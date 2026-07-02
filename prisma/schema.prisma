@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model GameSession {
+  id           String         @id @default(uuid()) @db.Uuid
+  name         String
+  createdAt    DateTime       @default(now())
+  squadRating  Int?
+  status       String         @default("in_progress") // "in_progress" | "completed"
+  userId       String         // Supabase User ID
+  players      CareerPlayer[]
+
+  @@map("game_sessions")
+}
+
+model CareerPlayer {
+  id                String      @id @default(uuid()) @db.Uuid
+  gameSessionId     String      @db.Uuid
+  gameSession       GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  slotIndex         Int         // 0 to 10 representing position in formation
+
+  // Identity
+  name              String
+  nationality       String
+  position          String      // GK, LB, CB, RB, CDM, CM, CAM, LW, ST, RW
+  height            Int
+  preferredFoot     String      // "Right" | "Left" | "Both"
+
+  // Career Arc
+  debutAge          Int
+  retireAge         Int
+  careerLengthYears Int
+
+  // Stats & Rarity
+  debutOvr          Int
+  peakOvr           Int
+  cardRarity        String      // bronze, silver, gold, rare_gold, epic, legendary
+
+  // Timelines & Logs (Stored as JSON)
+  statsTimeline     Json        // Array of StatsSnapshot: { age, ovr, pac, sho, pas, dri, def, phy, ... }
+  clubStints        Json        // Array of ClubStint: { clubId, clubName, leagueId, leagueName, startAge, endAge, yearsAtClub, ovrAtJoining, ovrAtLeaving }
+  events            Json        // Array of CareerEvent: { type, label, age, clubId, nationality }
+  hiddenStats       Json        // HiddenStats: { personality, professionalism, luckRating } (Server-only)
+
+  @@unique([gameSessionId, slotIndex])
+  @@map("career_players")
+}
+
+model League {
+  id        String   @id // e.g., "ENG1", "ESP1"
+  name      String
+  country   String
+  tier      Int      // 1 or 2
+  prestige  Int      // 1 to 5 stars
+  clubs     Club[]
+
+  @@map("leagues")
+}
+
+model Club {
+  id                     String   @id // e.g., "real_madrid", "man_city"
+  name                   String
+  leagueId               String
+  league                 League   @relation(fields: [leagueId], references: [id])
+  prestige               Int      // 1 to 5 stars
+  leagueTitlesCount      Int      @default(0)
+  domesticCupsCount      Int      @default(0)
+  continentalTitlesCount Int      @default(0)
+  continentalType        String   @default("none") // "UCL" | "UEL" | "UECL" | "Libertadores" | "AFC_CL" | "none"
+
+  @@map("clubs")
+}
