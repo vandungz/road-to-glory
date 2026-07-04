@@ -130,6 +130,24 @@ PHASE 3 — AUTO GENERATION & RETROSPECTIVE COMPILATION
   - CAM/CM: 0
   - LB/RB: +1
 
+- **Position-based 6 Core Stats Distribution**:
+  When generating the 6 core stats (PAC, SHO, PAS, DRI, DEF, PHY) during the debut setup, the wheel weights are dynamically modified based on the player's position to ensure realism:
+  * **Strikers/Wingers (ST, LW, RW)**: Attack stats (SHO, PAC, DRI) are weighted higher (range 65–85). Defense stats (DEF) are forced to lower ranges (15–38).
+  * **Defenders (CB, LB, RB)**: Defense and Physical stats (DEF, PHY) are weighted higher (65–85). Attack stats (SHO) are forced to lower ranges (15–40).
+  * **Goalkeepers (GK)**: Defense (GK reflexes/positioning) and Physical (PHY) are weighted higher (65–88). Attack and Dribbling stats (SHO, DRI) are forced to lower ranges (10–30).
+  * **Midfielders (CDM, CM, CAM)**: Passing and Dribbling stats (PAS, DRI) are weighted higher (65–85). CDM has a higher weight for DEF, while CAM has a higher weight for SHO.
+
+- **Weighted OVR Calculation**:
+  The Overall Rating (OVR) of the player is not calculated as a simple average, but as a weighted average prioritizing the key stats of their position:
+  * **GK**: OVR = DEF * 0.60 + PHY * 0.30 + PAS * 0.10
+  * **CB**: OVR = DEF * 0.45 + PHY * 0.35 + PAC * 0.15 + PAS * 0.05
+  * **LB / RB**: OVR = PAC * 0.30 + DEF * 0.30 + PAS * 0.20 + DRI * 0.10 + PHY * 0.10
+  * **CDM**: OVR = DEF * 0.35 + PHY * 0.30 + PAS * 0.20 + DRI * 0.10 + PAC * 0.05
+  * **CM**: OVR = PAS * 0.30 + DRI * 0.25 + DEF * 0.15 + PHY * 0.15 + SHO * 0.10 + PAC * 0.05
+  * **CAM**: OVR = PAS * 0.35 + DRI * 0.30 + SHO * 0.25 + PAC * 0.10
+  * **LW / RW**: OVR = PAC * 0.35 + DRI * 0.30 + SHO * 0.20 + PAS * 0.15
+  * **ST**: OVR = SHO * 0.45 + PAC * 0.25 + DRI * 0.15 + PHY * 0.10 + PAS * 0.05
+
 - Output feeds: starting stats snapshot for the year-by-year timeline.
 
 ### 4.4 Career Length Wheel
@@ -192,24 +210,36 @@ For each of the $N$ clubs (where $N$ = Number of Clubs):
 
 Within each stint, for each year, the game processes the following sub-steps:
 
-#### A. Backend Auto-Calculations (No Spin)
-The BE automatically computes the seasonal performance metrics based on the player's position, current OVR, and club prestige:
+#### A. Interactive Team & Cup Wheels (Spins)
+The team achievements are determined by weighted wheels spun by the player:
+1. **League Standing Wheel**: Determines the club's league position (1 to 20).
+   - *Weights*: Controlled by club prestige and player OVR (higher player OVR compared to league average increases chance of top spots - "carrying" the team).
+2. **Domestic Cup Wheel**: Determines the club's cup progress (Winner, Runner-Up, Semi-Finals, Early Exit).
+   - *Weights*: Driven by club prestige, player OVR, and player `luckRating`.
+3. **Continental Cup Wheel**: Only spun if the club qualified for a continental tournament in the current season (decided by the league standing achieved in the *previous* season, see Section 7.3 for slot rules).
+   - *Trophies list*: Displays the actual cup name according to the club's geography (UEFA Champions League/Europa League/Conference League, Copa Libertadores, AFC Champions League, CONCACAF Champions Cup).
+   - *Outcomes*: Winner, Runner-Up, Semi-Finals, Group Stage.
+
+#### B. Personal Match Performance (BE Auto-Calculation, No Spin)
+The BE automatically computes the player's personal seasonal stats based on their position, current OVR, and club prestige:
 - **Match Stats**: Total Appearances (Apps), Goals (G), and Assists (A).
-- **Match Rating**: Average rating of the season (e.g. 6.2 to 8.6).
-- **Team Standings**: Real-world standings and cup competition results (domestic league position, domestic cup progress, continental tournaments like UCL/UEL progress) corresponding to that club's real-world history for the corresponding season.
+- **Match Rating**: Average rating of the season (e.g., 6.2 to 8.8) and clean sheets for GKs/defenders.
+- **Individual Milestones**: Golden Boot, Golden Glove, Team of the Season.
 
-#### B. Ballon d'Or Wheel (Optional)
-If the player's OVR is $>85$ and they have an outstanding season (high Goals/Assists/Clean Sheets and high Match Rating, plus continental/international titles), they are nominated for the Ballon d'Or.
-- **Ballon d'Or Wheel**: User spins to see if they win the Ballon d'Or. Trọng số thắng được điều khiển bởi OVR, performance rating, và `luckRating`.
+#### C. Ballon d'Or Wheel (Optional)
+If the player's OVR is $>85$ and they have an outstanding season (high Goals/Assists/Clean Sheets and Match Rating $\ge 7.80$, plus continental/international titles), they are nominated for the Ballon d'Or.
+- **Ballon d'Or Wheel**: User spins to see if they win the Ballon d'Or. Winning weight is controlled by OVR, performance rating, and `luckRating`.
 
-#### C. End-of-Year Stats Update Wheels
+#### D. End-of-Year Stats Update Wheels
 To simulate natural progression and decline, three wheels are spun at the end of each year:
-1. **OVR Change Direction Wheel**: Spins to decide if OVR increases, decreases, or remains unchanged (increase / decrease / maintain).
-   - *Modifiers*: Highly influenced by average Match Rating during the season, age (younger players have higher probability of increase, older players $\ge 32$ have higher probability of decrease), and team trophies.
-2. **Quantity of Stats Wheel**: If OVR change is not 'maintain', this wheel determines how many of the 6 core stats (PAC, SHO, PAS, DRI, DEF, PHY) are affected (1, 2, or 3 stats).
-3. **Stats Magnitude Wheel**: Spins to determine the value change for each affected stat (e.g., $+1$, $+2$, $+3$, or $-1$, $-2$, $-3$). The overall OVR is recalculated from the updated 6 core stats.
+1. **OVR Change Direction Wheel**: Decide if OVR increases, decreases, or remains unchanged (increase / decrease / maintain).
+   - *Formula*: `Final Weight = Base Weight + Age Modifier + Performance Modifier`.
+   * **Age Modifier**: Young players (17-22) have high increase weights; Prime players (23-28) maintain; Veterans (30+) decline fast (especially PAC/PHY).
+   * **Performance Modifier**: High Match Rating ($\ge 7.50$) increases chance of stats improvement; low rating increases chance of decline. Trophies add a luck bonus.
+2. **Quantity of Stats Wheel**: If OVR change is not 'maintain', this wheel determines how many of the 6 core stats are affected (1 to 4 stats).
+3. **Stats Magnitude Wheel**: Spins to determine value change (+/- 1 to 4 points). Affected stats are dynamically prioritized based on player position (e.g. CB prioritizes DEF/PHY, ST prioritizes SHO/PAC/DRI).
 
-#### D. International National Team Wheels (Every 2/4 Years)
+#### E. International National Team Wheels (Every 2/4 Years)
 During World Cup or continental cup years:
 1. **Call-Up Wheel**: Determines if the player is selected for the national team squad. Weight depends on player OVR, season form/Match Rating, and the nation's Tier.
 2. **Tournament Performance Wheel**: If called up, spins to simulate the national team's run (Group Stage, Round of 16, QF, SF, Runner-Up, Winner). Positive outcomes add national team trophies and tournament awards (e.g. Euro Golden Boot) to the player's career event log.
@@ -321,18 +351,48 @@ The player's **Nationality** determines which international competitions they ca
 | **CAF** | Egypt, South Africa | **CAF Africa Cup of Nations** | **FIFA World Cup** |
 
 #### Call-Up & Simulation Logic
-International tournaments are simulated on a **2-year/4-year cycle** matching real world schedules (e.g., Euros/Copas/Asian Cups/AFCON/Gold Cups and World Cups alternating every 2 years).
+International tournaments are simulated on a **2-year/4-year cycle** mapped directly to the player's age to represent the real world tournament cycle:
+- **FIFA World Cup**: Occurs at ages divisible by 4 (20, 24, 28, 32, 36...).
+- **Continental Cups**: Occurs at even ages not divisible by 4 (18, 22, 26, 30, 34...).
 
 1. **National Team Call-Up Threshold**:
    - A player is eligible for national team selection only if their **current OVR** at the time of the tournament meets the country's depth threshold:
-     - *Tier 1 Nations* (e.g., Brazil, France, England): OVR $\ge 80$
-     - *Tier 2 Nations* (e.g., Portugal, Italy, Japan, USA): OVR $\ge 75$
-     - *Tier 3 Nations* (e.g., Scotland, Saudi Arabia, South Africa): OVR $\ge 70$
+     - *Tier 1 Nations* (e.g., England, France, Spain, Germany, Italy, Brazil, Argentina): OVR $\ge 80$.
+     - *Tier 2 Nations* (e.g., Portugal, Netherlands, Croatia, Morocco, Senegal, Ivory Coast, USA, Mexico, Colombia, Uruguay, Japan, South Korea): OVR $\ge 75$.
+     - *Tier 3 Nations* (e.g., Scotland, Saudi Arabia, South Africa, Turkey, Norway, Ghana, Canada, Cape Verde): OVR $\ge 70$.
 2. **Simulation Outcomes**:
-   - If selected, the player participates in the tournament.
-   - Outcome (Group Stage, Quarter-Final, Runner-Up, Winner) is decided by the country's strength prestige + player OVR + player `luckRating`.
-   - Positive outcomes generate trophy events (e.g., *"FIFA World Cup Winner"*, *"UEFA Euro Runner-Up"*).
-   - Star performance players (high OVR + high `luckRating`) can also win individual awards (e.g., *"World Cup Golden Boot"*, *"Euro Player of the Tournament"*).
+   - Eligible players spin the **Call-Up Wheel** to see if they get called to the national team squad (weights depend on player OVR and Match Rating of the previous season).
+   - If selected, they spin the **International Tournament Wheel** (Group Stage, Quarter-Finals, Semi-Finals, Runner-Up, Winner). Outcomes depend on nation tier, player OVR, and `luckRating`.
+   - Winners receive trophy events (e.g., *"FIFA World Cup Winner"*, *"UEFA Euro Winner"*). Plus, star players can win individual awards (e.g. *"World Cup Golden Boot"*).
+
+### 7.4 Club Continental Qualification Logic
+
+The continental tournament that the player's club participates in for the next season is determined dynamically by the club's geography and the **League Standing** achieved in the previous season, weighted by **League Prestige** (prestige rating from 1 to 5 stars in the database):
+
+#### A. Europe (UEFA Leagues)
+*   **League Prestige = 5** (e.g. Premier League, La Liga, Serie A, Bundesliga):
+    *   Hạng 1 - 4: UEFA Champions League (C1)
+    *   Hạng 5 - 6: UEFA Europa League (C2)
+    *   Hạng 7: UEFA Conference League (C3)
+*   **League Prestige = 4** (e.g. Ligue 1, Eredivisie, Primeira Liga):
+    *   Hạng 1 - 2: UEFA Champions League (C1)
+    *   Hạng 3 - 4: UEFA Europa League (C2)
+    *   Hạng 5: UEFA Conference League (C3)
+*   **League Prestige = 3** (e.g. Scottish Premiership, Süper Lig, Jupiler Pro League):
+    *   Hạng 1: UEFA Champions League (C1)
+    *   Hạng 2: UEFA Europa League (C2)
+    *   Hạng 3: UEFA Conference League (C3)
+*   **League Prestige $\le 2$** (Second-tier leagues):
+    *   No continental qualification.
+
+#### B. South America (CONMEBOL Leagues)
+*   **League Prestige = 5** (Série A Brazil): Hạng 1 - 6 qualify for Copa Libertadores.
+*   **League Prestige = 4** (Primera División Argentina): Hạng 1 - 4 qualify for Copa Libertadores.
+*   **League Prestige $\le 3$**: Hạng 1 - 2 qualify for Copa Libertadores.
+
+#### C. Asia (AFC) & North America (CONCACAF Leagues)
+*   **League Prestige $\ge 4$** (Saudi Pro League, J1 League, MLS, Liga MX): Hạng 1 - 3 qualify for AFC Champions League / CONCACAF Champions Cup.
+*   **League Prestige $\le 3$**: Only Hạng 1 (Champion) qualifies.
 
 ---
 

@@ -1,26 +1,306 @@
+@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&display=swap");
 @import "tailwindcss";
 
+/* ============================================================
+   FOOTBALL LIFE — RETRO EDITORIAL DESIGN SYSTEM
+   Vintage Panini Sticker Album aesthetic
+   ============================================================ */
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  /* Core Palette */
+  --cream: #F5F2EB;
+  --cream-dark: #EDE9DF;
+  --cream-border: #D8D3C4;
+  --charcoal: #27272a;
+  --charcoal-light: #3f3f46;
+  --black: #000000;
+  --coral: #FF5A43;
+  --coral-hover: #E84A33;
+  --coral-shadow: rgba(255, 90, 67, 0.25);
+  --white: #ffffff;
+  --ink-gray: #71717a;
+  --ink-light: #a1a1aa;
+
+  /* Typography */
+  --font-headline: "Oswald", "Impact", sans-serif;
+  --font-body: "Lora", "Georgia", serif;
+  --font-stamp: "Special Elite", "Courier New", monospace;
+
+  /* Spacing & Shape */
+  --border-width: 2px;
+  --border-color: var(--charcoal);
+  --radius-card: 4px;
+
+  /* Shadows */
+  --shadow-card: 3px 3px 0px var(--charcoal);
+  --shadow-button: 3px 3px 0px rgba(0,0,0,0.8);
+  --shadow-button-hover: 1px 1px 0px rgba(0,0,0,0.8);
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background-color: var(--cream);
+  background-image:
+    /* Subtle paper texture via repeating gradients */
+    repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 28px,
+      rgba(0,0,0,0.018) 28px,
+      rgba(0,0,0,0.018) 29px
+    );
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ============================================================
+   TAILWIND THEME TOKENS
+   ============================================================ */
+
+@theme inline {
+  --color-background: var(--cream);
+  --color-foreground: var(--charcoal);
+  --color-cream: #F5F2EB;
+  --color-cream-dark: #EDE9DF;
+  --color-cream-border: #D8D3C4;
+  --color-charcoal: #27272a;
+  --color-coral: #FF5A43;
+  --color-coral-hover: #E84A33;
+  --color-ink-gray: #71717a;
+
+  --font-headline: "Oswald", "Impact", sans-serif;
+  --font-body: "Lora", "Georgia", serif;
+  --font-stamp: "Special Elite", "Courier New", monospace;
+}
+
+/* ============================================================
+   TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+.font-headline {
+  font-family: var(--font-headline);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.font-stamp {
+  font-family: var(--font-stamp);
+}
+
+/* ============================================================
+   RETRO BUTTON STYLES
+   ============================================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background-color: var(--coral);
+  color: var(--white);
+  font-family: var(--font-headline);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 2px solid var(--charcoal);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-button);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 80ms ease;
+  user-select: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--coral-hover);
+  box-shadow: var(--shadow-button-hover);
+  transform: translate(2px, 2px);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 12px 28px;
+  background-color: var(--white);
+  color: var(--charcoal);
+  font-family: var(--font-headline);
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  border: 2px solid var(--charcoal);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-button);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 80ms ease;
+  user-select: none;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--cream-dark);
+  box-shadow: var(--shadow-button-hover);
+  transform: translate(2px, 2px);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================
+   RETRO CARD (STICKER) STYLES
+   ============================================================ */
+
+.card-retro {
+  background-color: var(--white);
+  border: 2px solid var(--charcoal);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  transition: transform 80ms ease, box-shadow 80ms ease;
+}
+
+.card-retro:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: 5px 5px 0px var(--charcoal);
+}
+
+/* ============================================================
+   FORM INPUT STYLES
+   ============================================================ */
+
+.input-retro {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--white);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  border: 2px solid var(--charcoal);
+  border-radius: var(--radius-card);
+  outline: none;
+  transition: box-shadow 80ms ease;
+}
+
+.input-retro:focus {
+  box-shadow: 3px 3px 0px var(--charcoal);
+}
+
+.input-retro::placeholder {
+  color: var(--ink-light);
+}
+
+.select-retro {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--white);
+  color: var(--charcoal);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  border: 2px solid var(--charcoal);
+  border-radius: var(--radius-card);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2327272a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  transition: box-shadow 80ms ease;
+}
+
+.select-retro:focus {
+  box-shadow: 3px 3px 0px var(--charcoal);
+}
+
+/* ============================================================
+   RETRO DIVIDER
+   ============================================================ */
+
+.divider-retro {
+  border: none;
+  border-top: 2px solid var(--charcoal);
+  margin: 0;
+}
+
+/* ============================================================
+   BADGE / STAMP STYLES
+   ============================================================ */
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 2px 8px;
+  font-family: var(--font-stamp);
+  font-size: 0.7rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1.5px solid currentColor;
+  border-radius: 2px;
+}
+
+.badge-in-progress {
+  color: #b45309;
+  background-color: #fef3c7;
+}
+
+.badge-completed {
+  color: #15803d;
+  background-color: #dcfce7;
+}
+
+/* ============================================================
+   MODAL OVERLAY
+   ============================================================ */
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(2px);
+  z-index: 50;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+
+.modal-panel {
+  background-color: var(--cream);
+  border: 2px solid var(--charcoal);
+  box-shadow: 6px 6px 0px var(--charcoal);
+  border-radius: var(--radius-card);
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
 }

@@ -137,11 +137,13 @@ luckRating           (0 → 1.0) — ảnh hưởng trophy và award probability
 ### StatsTimeline & Peak OVR
 
 Lịch sử các chỉ số của cầu thủ qua từng năm sự nghiệp. Thay vì tính bằng công thức toán học cố định, chỉ số của cầu thủ được phát triển và suy giảm động thông qua việc quay **End-of-Year Stats Update wheels** ở cuối mỗi năm:
-- **OVR Change Direction Wheel**: Tăng, Giảm hoặc Giữ nguyên OVR (phụ thuộc vào điểm đánh giá mùa giải, độ tuổi và danh hiệu).
-- **Quantity of Stats Wheel**: Số lượng stats trong 6 stats core bị ảnh hưởng (1-3 stats).
-- **Stats Magnitude Wheel**: Mức độ thay đổi của từng stat cụ thể (+1, +2, +3, -1, -2, -3).
+- **OVR Change Direction Wheel**: Tăng, Giảm hoặc Giữ nguyên OVR. Trọng số (weight) được tính bằng công thức: `Final Weight = Base Weight + Age Modifier + Performance Modifier`.
+  * Trẻ tuổi (17-22) tăng stats nhanh; Đỉnh cao (23-28) duy trì; Lão tướng (30+) dễ giảm sút (đặc biệt PAC, PHY).
+  * Mùa giải có Rating cao ($\ge 7.50$) hoặc có cúp tập thể sẽ tăng cơ hội tăng chỉ số. Mùa giải tệ ($\le 6.30$) tăng cơ hội giảm chỉ số.
+- **Quantity of Stats Wheel**: Số lượng stats trong 6 stats core bị ảnh hưởng (1-4 stats).
+- **Stats Magnitude Wheel**: Mức độ thay đổi của từng stat cụ thể (+/- 1 đến 4 điểm). Chỉ số biến động được ưu tiên lựa chọn theo vai trò của vị trí (Ví dụ: ST ưu tiên thay đổi SHO/PAC/DRI, CB ưu tiên thay đổi DEF/PHY).
 
-**Peak OVR**: Sau khi cầu thủ giải nghệ, hệ thống sẽ trích xuất mùa giải có OVR cao nhất làm `peakOvr`. Nếu có nhiều mùa giải bằng OVR, hệ thống sẽ so sánh các stats tương ứng với vai trò của vị trí (ví dụ: SHO/PAC cho Tiền đạo) để chọn ra năm đỉnh cao nhất để render thẻ cầu thủ.
+**Peak OVR**: Sau khi cầu thủ giải nghệ, hệ thống sẽ trích xuất mùa giải có OVR cao nhất làm `peakOvr` để render thẻ cầu thủ.
 
 ---
 
@@ -447,10 +449,12 @@ For each clubStint:
   Apply hiddenStats.luckRating → random selection within eligible trophies
 ```
 
-**2. Liên kết cúp đội tuyển quốc gia (International Trophies):**
-- Diễn ra theo chu kỳ 2 năm / 4 năm dựa trên độ tuổi của cầu thủ và các giải đấu thực tế (World Cup, Euro, Copa América, AFC Asian Cup, AFCON, Gold Cup).
-- Để được gọi lên tuyển: OVR tại năm đó phải đạt ngưỡng quy định (Tier 1: OVR $\ge 80$, Tier 2: OVR $\ge 75$, Tier 3: OVR $\ge 70$).
-- Kết quả giải đấu (Winner, Runner-Up, v.v.) được mô phỏng dựa trên sức mạnh của đội tuyển quốc gia đó + OVR + `luckRating` của cầu thủ.
+**2. Liên kết cúp đội tuyển quốc gia (International Trophies) & Suất dự cúp Châu lục CLB:**
+- **Giải đấu ĐTQG**: Diễn ra theo chu kỳ 2 năm một lần (so le) dựa trên tuổi chẵn của cầu thủ:
+  * Tuổi chia hết cho 4 (20, 24, 28, 32...): FIFA World Cup.
+  * Tuổi chẵn không chia hết cho 4 (18, 22, 26, 30, 34...): Cúp liên đoàn châu lục (UEFA Euro, Copa América, AFC Asian Cup...) tương ứng theo quốc tịch.
+  * *Điều kiện triệu tập*: Cầu thủ phải có OVR đạt ngưỡng quy định của quốc gia đó (Tier 1: OVR $\ge 80$, Tier 2: OVR $\ge 75$, Tier 3: OVR $\ge 70$), đồng thời vượt qua vòng quay triệu tập **Call-Up Wheel** hàng năm. Kết quả giải đấu được quyết định bằng **International Tournament Wheel**.
+- **Cúp Châu lục cấp CLB (UCL/UEL/UECL/Libertadores/AFC CL/CONCACAF CC)**: Được quyết định trực tiếp dựa trên thứ hạng (League Standing) quay được ở mùa giải trước, phân phối số lượng vé chi tiết dựa vào độ uy tín **League Prestige** (giải 5 sao có 4 vé C1, giải 4 sao có 2 vé C1, giải $\le 2$ sao không có vé). Mùa giải debut lấy theo `continentalType` mặc định của CLB trong database. Kết quả thi đấu được quyết định qua **Continental Cup Wheel**.
 
 **3. Sự kiện cá nhân và chấn thương (Awards & Injuries):**
 - Generate chấn thương dựa trên: độ tuổi, vị trí, `professionalism`.

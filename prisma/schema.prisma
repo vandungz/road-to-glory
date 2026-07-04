@@ -13,6 +13,7 @@ datasource db {
 model GameSession {
   id           String         @id @default(uuid()) @db.Uuid
   name         String
+  formation    String         @default("4-3-3")
   createdAt    DateTime       @default(now())
   squadRating  Int?
   status       String         @default("in_progress") // "in_progress" | "completed"

@@ -92,6 +92,60 @@ When modifying any wheel type (Training, Match, Club, Transfer, Award, Life):
 
 ---
 
+## Framer Motion / Animation Rules
+
+**Stack:** `framer-motion@12.x` + `react@19.x` + `next@15.x`
+
+### Hydration Invariant — `AnimatePresence`
+
+`AnimatePresence` từ Framer Motion 12 sử dụng React 19's `Activity` API nội bộ. Điều này tạo ra `<div hidden={true}>` phía server nhưng hydrate thành `hidden={null}` phía client — gây **Recoverable Hydration Error**.
+
+**Rule bắt buộc:** Bất kỳ component nào dùng `AnimatePresence` đều phải áp dụng `isMounted` pattern:
+
+```tsx
+// ✅ ĐÚNG — defer AnimatePresence đến sau hydration
+"use client";
+import { useState, useEffect } from "react";
+import { AnimatePresence } from "framer-motion";
+
+export function MyComponent() {
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  return (
+    <>
+      {/* UI không liên quan đến animation render bình thường */}
+
+      {isMounted && (
+        <AnimatePresence>
+          {isOpen && <motion.div .../>}
+        </AnimatePresence>
+      )}
+    </>
+  );
+}
+```
+
+```tsx
+// ❌ SAI — AnimatePresence render thẳng từ server
+export function MyComponent() {
+  return (
+    <AnimatePresence>
+      {isOpen && <motion.div .../>}
+    </AnimatePresence>
+  );
+}
+```
+
+**Scope:** Rule này áp dụng cho **tất cả** `AnimatePresence` trong project — kể cả những cái bên trong form, nested trong component khác, hay dùng làm error message container.
+
+**Tại sao không dùng `suppressHydrationWarning`:** `suppressHydrationWarning` chỉ che lỗi, không fix nguyên nhân. `isMounted` pattern loại bỏ mismatch tại gốc.
+
+---
+
 ## References
 
 - Architecture overview: [`AGENTS.md`](../AGENTS.md)
