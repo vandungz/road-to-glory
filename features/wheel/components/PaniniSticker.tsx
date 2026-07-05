@@ -20,6 +20,7 @@ interface PaniniStickerProps {
   currentStats: Record<string, number>;
   evolvedStatsThisYear: Array<{ stat: string; delta: number }>;
   currentClubName?: string;
+  cleanSheets?: number;
 }
 
 function getContinentalCupLabel(cupType: string): string {
@@ -59,6 +60,7 @@ export function PaniniSticker({
   currentStats,
   evolvedStatsThisYear,
   currentClubName,
+  cleanSheets,
 }: PaniniStickerProps) {
   const retirementAge = playerDebutAge + playerCareerLength;
 
@@ -241,6 +243,12 @@ export function PaniniSticker({
               );
             })}
           </div>
+          {["GK", "CB", "LB", "RB", "CDM"].includes(position) && cleanSheets !== undefined && (
+            <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--cream-border)", paddingBottom: "3px" }}>
+              <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", textTransform: "uppercase" }}>Giữ sạch lưới (CS)</span>
+              <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>{cleanSheets} Trận</span>
+            </div>
+          )}
           <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--cream-border)", paddingBottom: "3px" }}>
             <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", textTransform: "uppercase" }}>Mùa Giải Cuối</span>
             <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.75rem", fontWeight: 700 }}>{getSeasonYearString(retirementAge, playerDebutAge)} ({retirementAge}T)</span>

@@ -107,6 +107,19 @@ export function getClubWeights(clubs: { id: string; name: string }[]): WeightedI
   }));
 }
 
+function generateContinuousWeights(min: number, max: number): WeightedItem<number>[] {
+  const items: WeightedItem<number>[] = [];
+  const mean = (min + max) / 2;
+  const stdDev = Math.max(1, (max - min) / 4);
+
+  for (let val = min; val <= max; val++) {
+    const exponent = -Math.pow(val - mean, 2) / (2 * Math.pow(stdDev, 2));
+    const weight = Math.max(1, Math.round(100 * Math.exp(exponent)));
+    items.push({ value: val, weight });
+  }
+  return items;
+}
+
 // 7. Sinh phân phối chỉ số core lúc debut theo vị trí thi đấu thực tế
 export function getDebutStatWeights(position: string, statName: string): WeightedItem<number>[] {
   const stat = statName.toLowerCase();
@@ -114,160 +127,65 @@ export function getDebutStatWeights(position: string, statName: string): Weighte
   // ── GK (Thủ môn) ──
   if (position === "GK") {
     if (stat === "def" || stat === "phy") {
-      return [
-        { value: 65, weight: 15 },
-        { value: 68, weight: 20 },
-        { value: 71, weight: 25 },
-        { value: 74, weight: 20 },
-        { value: 78, weight: 15 },
-        { value: 82, weight: 5 },
-      ];
+      return generateContinuousWeights(65, 80);
     } else if (stat === "sho" || stat === "dri") {
-      return [
-        { value: 15, weight: 35 },
-        { value: 20, weight: 35 },
-        { value: 25, weight: 20 },
-        { value: 30, weight: 10 },
-      ];
+      return generateContinuousWeights(15, 30);
     } else {
-      return [
-        { value: 45, weight: 20 },
-        { value: 50, weight: 30 },
-        { value: 55, weight: 30 },
-        { value: 60, weight: 20 },
-      ];
+      return generateContinuousWeights(45, 60);
     }
   }
 
   // ── TIỀN ĐẠO (ST, LW, RW) ──
   if (position === "ST" || position === "LW" || position === "RW") {
     if (stat === "pac" || stat === "sho" || stat === "dri") {
-      return [
-        { value: 65, weight: 15 },
-        { value: 68, weight: 20 },
-        { value: 71, weight: 25 },
-        { value: 75, weight: 20 },
-        { value: 78, weight: 15 },
-        { value: 82, weight: 5 },
-      ];
+      return generateContinuousWeights(65, 80);
     } else if (stat === "def") {
-      return [
-        { value: 20, weight: 40 },
-        { value: 25, weight: 35 },
-        { value: 30, weight: 15 },
-        { value: 35, weight: 10 },
-      ];
+      return generateContinuousWeights(20, 35);
     } else {
-      return [
-        { value: 55, weight: 20 },
-        { value: 60, weight: 30 },
-        { value: 65, weight: 30 },
-        { value: 70, weight: 20 },
-      ];
+      return generateContinuousWeights(55, 70);
     }
   }
 
   // ── HẬU VỆ (CB, LB, RB) ──
   if (position === "CB" || position === "LB" || position === "RB") {
     if (stat === "def" || stat === "phy") {
-      return [
-        { value: 65, weight: 15 },
-        { value: 68, weight: 20 },
-        { value: 71, weight: 25 },
-        { value: 75, weight: 20 },
-        { value: 78, weight: 15 },
-        { value: 82, weight: 5 },
-      ];
+      return generateContinuousWeights(65, 80);
     } else if (stat === "sho") {
-      return [
-        { value: 20, weight: 40 },
-        { value: 28, weight: 35 },
-        { value: 35, weight: 15 },
-        { value: 42, weight: 10 },
-      ];
+      return generateContinuousWeights(20, 40);
     } else {
       const isWingBack = position === "LB" || position === "RB";
       if (stat === "pac" && isWingBack) {
-        return [
-          { value: 65, weight: 20 },
-          { value: 70, weight: 40 },
-          { value: 75, weight: 30 },
-          { value: 80, weight: 10 },
-        ];
+        return generateContinuousWeights(65, 80);
       }
-      return [
-        { value: 50, weight: 20 },
-        { value: 55, weight: 30 },
-        { value: 60, weight: 30 },
-        { value: 65, weight: 20 },
-      ];
+      if (stat === "pac" && position === "CB") {
+        return generateContinuousWeights(45, 60);
+      }
+      return generateContinuousWeights(50, 65);
     }
   }
 
   // ── TIỀN VỆ (CDM, CM, CAM) ──
   if (position === "CDM" || position === "CM" || position === "CAM") {
     if (stat === "pas" || stat === "dri") {
-      return [
-        { value: 65, weight: 15 },
-        { value: 68, weight: 20 },
-        { value: 71, weight: 25 },
-        { value: 75, weight: 20 },
-        { value: 78, weight: 15 },
-        { value: 82, weight: 5 },
-      ];
+      return generateContinuousWeights(65, 80);
     } else if (stat === "def") {
       if (position === "CDM") {
-        return [
-          { value: 65, weight: 20 },
-          { value: 70, weight: 40 },
-          { value: 75, weight: 30 },
-          { value: 80, weight: 10 },
-        ];
+        return generateContinuousWeights(65, 80);
       } else if (position === "CAM") {
-        return [
-          { value: 30, weight: 40 },
-          { value: 35, weight: 35 },
-          { value: 42, weight: 15 },
-          { value: 50, weight: 10 },
-        ];
+        return generateContinuousWeights(30, 50);
       } else {
-        return [
-          { value: 50, weight: 20 },
-          { value: 55, weight: 30 },
-          { value: 60, weight: 30 },
-          { value: 65, weight: 20 },
-        ];
+        return generateContinuousWeights(50, 65);
       }
     } else if (stat === "sho") {
       if (position === "CAM") {
-        return [
-          { value: 62, weight: 20 },
-          { value: 68, weight: 40 },
-          { value: 72, weight: 30 },
-          { value: 78, weight: 10 },
-        ];
+        return generateContinuousWeights(62, 78);
       } else if (position === "CDM") {
-        return [
-          { value: 35, weight: 40 },
-          { value: 42, weight: 35 },
-          { value: 50, weight: 15 },
-          { value: 58, weight: 10 },
-        ];
+        return generateContinuousWeights(35, 55);
       } else {
-        return [
-          { value: 50, weight: 20 },
-          { value: 58, weight: 30 },
-          { value: 64, weight: 30 },
-          { value: 70, weight: 20 },
-        ];
+        return generateContinuousWeights(50, 70);
       }
     } else {
-      return [
-        { value: 58, weight: 20 },
-        { value: 63, weight: 30 },
-        { value: 68, weight: 30 },
-        { value: 73, weight: 20 },
-      ];
+      return generateContinuousWeights(58, 73);
     }
   }
 

@@ -16,6 +16,7 @@ interface SeasonProfileProps {
   setIsContinentalOpen: (open: boolean) => void;
   isNationalOpen: boolean;
   setIsNationalOpen: (open: boolean) => void;
+  position: string;
 }
 
 function getContinentalCupLabel(cupType: string): string {
@@ -51,6 +52,7 @@ export function SeasonProfile({
   setIsContinentalOpen,
   isNationalOpen,
   setIsNationalOpen,
+  position,
 }: SeasonProfileProps) {
   const activeRecord = seasonRecords[selectedAgeForStats];
 
@@ -110,6 +112,32 @@ export function SeasonProfile({
               <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-light)", display: "block" }}>CÂU LẠC BỘ</span>
               <strong style={{ fontSize: "0.85rem" }}>{activeRecord.clubName.toUpperCase()}</strong>
               <span style={{ color: "var(--ink-gray)", display: "block", fontSize: "0.72rem", marginTop: "2px" }}>{activeRecord.leagueName}</span>
+            </div>
+
+            {/* THỐNG KÊ CÁ NHÂN MÙA GIẢI */}
+            <div style={{ display: "grid", gridTemplateColumns: ["GK", "CB", "LB", "RB", "CDM"].includes(position) ? "repeat(5, 1fr)" : "repeat(4, 1fr)", gap: "6px", padding: "6px 8px", backgroundColor: "var(--cream-dark)", borderRadius: "3px", textAlign: "center", border: "1.5px solid var(--cream-border)" }}>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>APPS</span>
+                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.apps !== undefined ? activeRecord.apps : "-"}</strong>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>GOALS</span>
+                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.goals !== undefined ? activeRecord.goals : "-"}</strong>
+              </div>
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>ASSISTS</span>
+                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.assists !== undefined ? activeRecord.assists : "-"}</strong>
+              </div>
+              {["GK", "CB", "LB", "RB", "CDM"].includes(position) && (
+                <div style={{ display: "flex", flexDirection: "column" }}>
+                  <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--coral)", fontWeight: 900 }}>CLEAN (CS)</span>
+                  <strong style={{ fontSize: "0.78rem", color: "var(--coral)" }}>{activeRecord.cleanSheets !== undefined ? activeRecord.cleanSheets : "-"}</strong>
+                </div>
+              )}
+              <div style={{ display: "flex", flexDirection: "column" }}>
+                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>RATING</span>
+                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.matchRating !== undefined ? (typeof activeRecord.matchRating === 'number' ? activeRecord.matchRating.toFixed(2) : activeRecord.matchRating) : "-"}</strong>
+              </div>
             </div>
 
             {/* Label 1: LEAGUE + DROPDOWN LIST BẢNG XẾP HẠNG CHI TIẾT */}
