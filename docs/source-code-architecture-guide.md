@@ -230,10 +230,13 @@ Services trong `features/career/services/` không được import React, Next.js
 ```txt
 features/wheel/
   components/
-    WheelSpinScreen.tsx            # Full flow orchestrator
-    WheelCanvas.tsx                # SVG wheel + Framer Motion animation
+    DraftDrumScreen.tsx            # Main career simulation page & orchestrator
+    PaniniSticker.tsx              # Renders the live Panini sticker card (stamps & stats evolution)
+    SeasonProfile.tsx              # Accordion layout for standings, domestic/continental cups, and NT
+    TimelineHistory.tsx            # Career timeline event logs at the bottom
+    SpinnerWheel.tsx               # Reusable SVG wheel + Framer Motion spin animation
     WheelStepProgress.tsx          # Step indicator (Step 2/7)
-    PreviousStepsStrip.tsx         # Already-resolved steps summary
+    PreviousStepsStrip.tsx         # Already-resolved setup steps summary
   stores/
     useWheelUiStore.ts             # Spin UI state (step, animation state)
   types.ts

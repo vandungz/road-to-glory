@@ -326,6 +326,30 @@ Services không được:
 
 ---
 
+## React Key Reset — Automatic State Clearing
+
+In Next.js, navigate transitions (Soft Navigation) preserve the state of layout/page components. To guarantee that a complex interactive client screen (like the Career Simulation/Draft board) is completely reset when switching players, creating a new session, or switching slots, we use the React `key` prop at the page-compose level:
+
+```tsx
+// app/(game)/[gameId]/draft/[slotIndex]/page.tsx
+export default async function DraftPage({ params }: { params: { gameId: string; slotIndex: string } }) {
+  // ...
+  return (
+    <DraftDrumScreen
+      key={`${gameId}_${slotIndex}`} // ← Force unmount & clean state whenever slotIndex/gameId changes
+      gameId={gameId}
+      slotIndex={Number(slotIndex)}
+    />
+  );
+}
+```
+
+### Why it is used:
+* **Garbage Collection**: Avoids manual, tedious resetting of dozens of local hooks (`useState`) which are prone to bugs and memory leaks.
+* **Fresh Context**: When React detects a change in the `key` prop, it completely destroys the old component instance (running standard cleanups) and mounts a brand new component starting with pristine initial states.
+
+---
+
 ## Anti-patterns
 
 ```ts

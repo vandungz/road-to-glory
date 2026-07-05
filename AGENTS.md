@@ -145,6 +145,11 @@ football-life/
 - Services are pure functions or class instances — they do not import React or Next.js.
 - Every career-state-changing operation must accept the current `CareerState` and return a new `CareerState` (immutable update pattern).
 
+### Code Length Limitation Rules
+
+- Every source code file (.ts, .tsx, .js, .jsx, .css) must strictly remain under **400 - 500 lines**.
+- Do not write spaghetti files. If logic or component grows, refactor immediately by splitting into sub-components, custom hooks, or helper functions.
+
 ---
 
 ## Data Scope

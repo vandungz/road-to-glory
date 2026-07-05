@@ -12,6 +12,11 @@ AI agents modifying this codebase must preserve the **integrity of the Career si
 - Read [`AGENTS.md`](../AGENTS.md) to understand architectural boundaries.
 - Check `types/` for existing domain types before creating new ones.
 
+### Code Length Limitation
+
+- Every source code file (.ts, .tsx, .js, .jsx, .css) must strictly remain under **400 - 500 lines**.
+- If a file exceeds this limit, refactor immediately by extracting business logic to custom hooks, sub-components, or pure helper functions.
+
 ### Code Placement
 
 - Put **game business logic** (wheel calculations, career progression, transfer resolution) in `features/<domain>/services/` or `lib/`.
@@ -52,6 +57,7 @@ AI agents modifying this codebase must preserve the **integrity of the Career si
 - ❌ Do not use `any` — use proper discriminated unions and generics.
 - ❌ Do not import server-only modules (`prisma`, `supabase-admin`) in client components.
 - ❌ Do not hardcode football data (clubs, leagues, players) — always read from the database.
+- ❌ Do not write or commit files exceeding **400 - 500 lines of code** — if logic grows, split into sub-components, hooks, or helpers immediately.
 
 ---
 

@@ -131,15 +131,44 @@ PHASE 3 — AUTO GENERATION & RETROSPECTIVE COMPILATION
   - LB/RB: +1
 
 - **Position-based 6 Core Stats Distribution**:
-  When generating the 6 core stats (PAC, SHO, PAS, DRI, DEF, PHY) during the debut setup, the wheel weights are dynamically modified based on the player's position to ensure realism:
-  * **Strikers/Wingers (ST, LW, RW)**: Attack stats (SHO, PAC, DRI) are weighted higher (range 65–85). Defense stats (DEF) are forced to lower ranges (15–38).
-  * **Defenders (CB, LB, RB)**: Defense and Physical stats (DEF, PHY) are weighted higher (65–85). Attack stats (SHO) are forced to lower ranges (15–40).
-  * **Goalkeepers (GK)**: Defense (GK reflexes/positioning) and Physical (PHY) are weighted higher (65–88). Attack and Dribbling stats (SHO, DRI) are forced to lower ranges (10–30).
-  * **Midfielders (CDM, CM, CAM)**: Passing and Dribbling stats (PAS, DRI) are weighted higher (65–85). CDM has a higher weight for DEF, while CAM has a higher weight for SHO.
+  When generating the 6 core stats during the debut setup, the wheel weights are dynamically modified based on the player's position to ensure realism. The attributes generated differ depending on whether the player is a field player or a Goalkeeper:
+  * **Outfield Players (ST, LW, RW, CAM, CM, CDM, CB, LB, RB)**: PAC, SHO, PAS, DRI, DEF, PHY.
+  * **Goalkeepers (GK)**: DIV (Diving), HAN (Handling), KIC (Kicking), REF (Reflexes), SPD (Speed), POS (Positioning).
+
+  The detailed range distributions (where values are generated continuously with a step of 1 point) for each position group are as follows:
+
+  #### A. Goalkeepers (GK)
+  * **REF (Reflexes)**, **DIV (Diving)**, **POS (Positioning)** & **HAN (Handling)**: Range `65 – 82` (1-point continuous step)
+  * **KIC (Kicking)**: Range `45 – 60` (1-point continuous step)
+  * **SPD (Speed)**: Range `15 – 30` (1-point continuous step)
+
+  #### B. Strikers & Wingers (ST, LW, RW)
+  * **PAC (Pace)**, **SHO (Shooting)** & **DRI (Dribbling)**: Range `65 – 82` (1-point continuous step)
+  * **PAS (Passing)** & **PHY (Physical)**: Range `55 – 70` (1-point continuous step)
+  * **DEF (Defending)**: Range `20 – 35` (1-point continuous step)
+
+  #### C. Defenders (CB, LB, RB)
+  * **DEF (Defending)** & **PHY (Physical)**: Range `65 – 82` (1-point continuous step)
+  * **Wingbacks (LB, RB) - PAC (Pace)**: Range `65 – 80` (1-point continuous step)
+  * **Centrebacks (CB) - PAC (Pace)**, and **PAS (Passing)** & **DRI (Dribbling)** of all defenders: Range `50 – 65` (1-point continuous step)
+  * **SHO (Shooting)**: Range `20 – 42` (1-point continuous step)
+
+  #### D. Midfielders (CDM, CM, CAM)
+  * **PAS (Passing)** & **DRI (Dribbling)**: Range `65 – 82` (1-point continuous step)
+  * **DEF (Defending)**:
+    * *CDM*: Range `65 – 80` (1-point continuous step)
+    * *CAM*: Range `30 – 50` (1-point continuous step)
+    * *CM*: Range `50 – 65` (1-point continuous step)
+  * **SHO (Shooting)**:
+    * *CAM*: Range `62 – 78` (1-point continuous step)
+    * *CDM*: Range `35 – 58` (1-point continuous step)
+    * *CM*: Range `50 – 70` (1-point continuous step)
+  * **PAC (Pace)** & **PHY (Physical)**: Range `58 – 73` (1-point continuous step)
+
 
 - **Weighted OVR Calculation**:
   The Overall Rating (OVR) of the player is not calculated as a simple average, but as a weighted average prioritizing the key stats of their position:
-  * **GK**: OVR = DEF * 0.60 + PHY * 0.30 + PAS * 0.10
+  * **GK**: OVR = REF * 0.24 + DIV * 0.21 + POS * 0.21 + HAN * 0.21 + KIC * 0.08 + SPD * 0.05
   * **CB**: OVR = DEF * 0.45 + PHY * 0.35 + PAC * 0.15 + PAS * 0.05
   * **LB / RB**: OVR = PAC * 0.30 + DEF * 0.30 + PAS * 0.20 + DRI * 0.10 + PHY * 0.10
   * **CDM**: OVR = DEF * 0.35 + PHY * 0.30 + PAS * 0.20 + DRI * 0.10 + PAC * 0.05
@@ -213,7 +242,9 @@ Within each stint, for each year, the game processes the following sub-steps:
 #### A. Interactive Team & Cup Wheels (Spins)
 The team achievements are determined by weighted wheels spun by the player:
 1. **League Standing Wheel**: Determines the club's league position (1 to 20).
-   - *Weights*: Controlled by club prestige and player OVR (higher player OVR compared to league average increases chance of top spots - "carrying" the team).
+   - *Weights*: Controlled by club prestige and player overall contribution. The player's carrying effect depends on their Match Appearances (Apps):
+     $$\text{Influence Factor} = \min\left(1.0, \frac{\text{Apps}}{55}\right)$$
+     The overall rating impact is scaled by this factor, preventing bench players (low Apps) with high or low OVR from artificially inflating or dragging down the league finish of top-tier clubs.
 2. **Domestic Cup Wheel**: Determines the club's cup progress (Winner, Runner-Up, Semi-Finals, Early Exit).
    - *Weights*: Driven by club prestige, player OVR, and player `luckRating`.
 3. **Continental Cup Wheel**: Only spun if the club qualified for a continental tournament in the current season (decided by the league standing achieved in the *previous* season, see Section 7.3 for slot rules).
@@ -223,7 +254,11 @@ The team achievements are determined by weighted wheels spun by the player:
 #### B. Personal Match Performance (BE Auto-Calculation, No Spin)
 The BE automatically computes the player's personal seasonal stats based on their position, current OVR, and club prestige:
 - **Match Stats**: Total Appearances (Apps), Goals (G), and Assists (A).
-- **Match Rating**: Average rating of the season (e.g., 6.2 to 8.8) and clean sheets for GKs/defenders.
+- **Clean Sheets**: Automatically simulated for Goalkeepers and Defenders (GK, CB, LB, RB) and defensive midfielders (CDM) based on club prestige, player overall, and form.
+- **Match Rating**: Average rating of the season (e.g., 6.2 to 8.8):
+  * *Attackers & Creative Midfielders (ST, LW, RW, CAM, CM)*: Driven primarily by Goals and Assists per appearance.
+  * *Goalkeepers & Defenders (GK, CB, LB, RB)*: Driven primarily by Clean Sheets per appearance.
+  * *Defensive Midfielders (CDM)*: A hybrid calculation combining both defensive Clean Sheets and offensive G/A.
 - **Individual Milestones**: Golden Boot, Golden Glove, Team of the Season.
 
 #### C. Ballon d'Or Wheel (Optional)
@@ -231,13 +266,16 @@ If the player's OVR is $>85$ and they have an outstanding season (high Goals/Ass
 - **Ballon d'Or Wheel**: User spins to see if they win the Ballon d'Or. Winning weight is controlled by OVR, performance rating, and `luckRating`.
 
 #### D. End-of-Year Stats Update Wheels
-To simulate natural progression and decline, three wheels are spun at the end of each year:
+To simulate natural progression and decline, wheels are spun at the end of each year in a 4-step sequence:
 1. **OVR Change Direction Wheel**: Decide if OVR increases, decreases, or remains unchanged (increase / decrease / maintain).
    - *Formula*: `Final Weight = Base Weight + Age Modifier + Performance Modifier`.
    * **Age Modifier**: Young players (17-22) have high increase weights; Prime players (23-28) maintain; Veterans (30+) decline fast (especially PAC/PHY).
    * **Performance Modifier**: High Match Rating ($\ge 7.50$) increases chance of stats improvement; low rating increases chance of decline. Trophies add a luck bonus.
 2. **Quantity of Stats Wheel**: If OVR change is not 'maintain', this wheel determines how many of the 6 core stats are affected (1 to 4 stats).
-3. **Stats Magnitude Wheel**: Spins to determine value change (+/- 1 to 4 points). Affected stats are dynamically prioritized based on player position (e.g. CB prioritizes DEF/PHY, ST prioritizes SHO/PAC/DRI).
+3. **Stats Selector Wheel**: Spins multiple times (equal to the Quantity of Stats). 
+   - *Exclusion Logic*: To prevent double-rolling the same attribute in a single season, once an attribute (e.g., PAS) is selected, it is removed from the Selector Wheel pool for subsequent spins in that year.
+   - *Defensive Initialization*: The first spin of the year always resets to ensure all 6 core attributes (PAC, SHO, PAS, DRI, DEF, PHY) are present, avoiding issues with stale cache.
+4. **Stats Magnitude Wheel**: Spins to determine value change (+/- 1 to 4 points) for each of the selected attributes. Affected stats are dynamically prioritized based on player position (e.g. CB prioritizes DEF/PHY, ST prioritizes SHO/PAC/DRI).
 
 #### E. International National Team Wheels (Every 2/4 Years)
 During World Cup or continental cup years:
