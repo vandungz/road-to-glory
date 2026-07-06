@@ -216,6 +216,8 @@ PHASE 3 — AUTO GENERATION & RETROSPECTIVE COMPILATION
 
 The player's career is simulated iteratively. The total career duration is tracked. Each club stint consumes a portion of the remaining career years, until the career length is exhausted.
 
+**Hidden Stats Auto-generation**: When a player is initialized, the Backend Service automatically generates the `hiddenStats` (luckRating, professionalism, personality) on the server. The client is not allowed to generate or send these stats to prevent client-side modifications.
+
 ### 5.1 Stint Level Wheels (League, Club, & Years)
 
 For each of the $N$ clubs (where $N$ = Number of Clubs):
@@ -239,21 +241,38 @@ For each of the $N$ clubs (where $N$ = Number of Clubs):
 
 Within each stint, for each year, the game processes the following sub-steps:
 
+*   **Transfer Offers**: At the end of each season, the Backend Service calculates the probability of receiving a transfer offer based on the player's seasonal Match Rating, stats, and OVR. If successful, BE queries eligible clubs in the DB that match the player's level (based on prestige and tier) and generates the transfer offer.
+*   **Ballon d'Or Nomination**: The nomination checks are done on the Backend. Based on player OVR, season statistics, and titles won, BE decides whether to unlock the Ballon d'Or nomination.
+
 #### A. Interactive Team & Cup Wheels (Spins)
 The team achievements are determined by weighted wheels spun by the player:
-1. **League Standing Wheel**: Determines the club's league position (1 to 20).
+1. **League Standing Wheel**: Determines the club's league position (1 to $N$, where $N$ is the number of clubs in the league).
    - *Weights*: Controlled by club prestige and player overall contribution. The player's carrying effect depends on their Match Appearances (Apps):
      $$\text{Influence Factor} = \min\left(1.0, \frac{\text{Apps}}{55}\right)$$
      The overall rating impact is scaled by this factor, preventing bench players (low Apps) with high or low OVR from artificially inflating or dragging down the league finish of top-tier clubs.
+   - *Dynamic League Table*: The league size ($N$) is dynamically fetched from the database for each league. For all clubs in the league standings, the number of played matches (Apps/Played) must be strictly set to $\text{Played} = (N - 1) \times 2$. The points (PTS) and detailed match records (Won, Drawn, Lost) for every club must be calculated dynamically on the backend, ensuring a strictly descending, logical standings table where positions correspond to points ($\text{PTS}_{\text{Rank } i} > \text{PTS}_{\text{Rank } i+1}$) without any hardcoded mock limits.
 2. **Domestic Cup Wheel**: Determines the club's cup progress (Winner, Runner-Up, Semi-Finals, Early Exit).
    - *Weights*: Driven by club prestige, player OVR, and player `luckRating`.
 3. **Continental Cup Wheel**: Only spun if the club qualified for a continental tournament in the current season (decided by the league standing achieved in the *previous* season, see Section 7.3 for slot rules).
    - *Trophies list*: Displays the actual cup name according to the club's geography (UEFA Champions League/Europa League/Conference League, Copa Libertadores, AFC Champions League, CONCACAF Champions Cup).
    - *Outcomes*: Winner, Runner-Up, Semi-Finals, Group Stage.
 
+*   **Cup Journeys**: The sequence of matches for domestic and continental cups (played teams, match scores, and stage logs) is dynamically generated on the Backend. Opponents are selected using database geographic filters to ensure strict logical correctness:
+    * *Domestic Cup*: Opponents must belong to the same country as the player's club (filtered by `league.country`).
+    * *Continental Cup*: Opponents must have the corresponding `continentalType` (e.g., UCL, AFC_CL) matching the player's active continental competition in the database.
+    * *National Team*: Opponents are filtered by the player's continental region (e.g., Euro opponents for European nations, Asian Cup opponents for Asian nations) unless it is a global tournament like the FIFA World Cup.
+*   **International Tournaments Cycle**: The schedule of international tournaments (e.g., FIFA World Cup, Euros, Asian Cup) is calculated based on the actual calendar year of the season (e.g., Year 2026, 2030 for World Cups; 2028, 2032 for continental cups) instead of the player's age, preventing layout misalignments when players debut at different ages.
+
 #### B. Personal Match Performance (BE Auto-Calculation, No Spin)
 The BE automatically computes the player's personal seasonal stats based on their position, current OVR, and club prestige:
-- **Match Stats**: Total Appearances (Apps), Goals (G), and Assists (A).
+- **Match Stats**: Total Appearances (Apps), Goals (G), and Assists (A) calculated dynamically by the Backend Service.
+  * *Dynamic Apps Calculation*: The player's maximum season appearances ($M_{\text{max}}$) is computed based on the club's active tournaments and results:
+    $$M_{\text{max}} = \text{League Matches} + \text{Domestic Cup Matches} + \text{Continental Cup Matches} + \text{National Team Matches}$$
+    * League Matches: $(N - 1) \times 2$ (where $N$ is the dynamic league size).
+    * Domestic Cup Matches: Decided by domestic cup wheel outcome (1 to 6 matches).
+    * Continental Cup Matches: Decided by continental cup wheel outcome (0, 6, 12, or 13 matches).
+    * National Team Matches: Decided by call-up and tournament progress wheel outcome (0, 3, 6, or 7 matches).
+  * The actual player appearances (Apps) is simulated by BE as a fraction of $M_{\text{max}}$, driven by player OVR compared to the club's quality threshold, ensuring it never exceeds $M_{\text{max}}$.
 - **Clean Sheets**: Automatically simulated for Goalkeepers and Defenders (GK, CB, LB, RB) and defensive midfielders (CDM) based on club prestige, player overall, and form.
 - **Match Rating**: Average rating of the season (e.g., 6.2 to 8.8):
   * *Attackers & Creative Midfielders (ST, LW, RW, CAM, CM)*: Driven primarily by Goals and Assists per appearance.
@@ -276,6 +295,7 @@ To simulate natural progression and decline, wheels are spun at the end of each 
    - *Exclusion Logic*: To prevent double-rolling the same attribute in a single season, once an attribute (e.g., PAS) is selected, it is removed from the Selector Wheel pool for subsequent spins in that year.
    - *Defensive Initialization*: The first spin of the year always resets to ensure all 6 core attributes (PAC, SHO, PAS, DRI, DEF, PHY) are present, avoiding issues with stale cache.
 4. **Stats Magnitude Wheel**: Spins to determine value change (+/- 1 to 4 points) for each of the selected attributes. Affected stats are dynamically prioritized based on player position (e.g. CB prioritizes DEF/PHY, ST prioritizes SHO/PAC/DRI).
+   - **BE Validation (Security Critical)**: Once all magnitude spins are completed, the full list of attribute evolutions is sent to the Backend Service (`evolvePlayerStatsService`). The Backend applies the deltas safely (clamped to min 10, max 99), recalculates the new OVR via `calculateOvrByPosition`, and returns the validated `nextStats` and `nextOvr`. **The client is never allowed to self-compute the final OVR.** This prevents client-side manipulation of player stats.
 
 #### E. International National Team Wheels (Every 2/4 Years)
 During World Cup or continental cup years:

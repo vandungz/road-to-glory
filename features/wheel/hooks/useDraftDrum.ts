@@ -1,55 +1,26 @@
 "use client";
 
-import { useEffect, useState, useMemo } from "react";
-import { simulatePlayerSeason, type SimulatedSeasonResult } from "@/lib/simulation-engine/match-simulator";
-import { getNationalContinentalCup, getNationalTier, calculateOvrByPosition } from "@/lib/wheel-engine/weight-calculator";
+import { useEffect, useState } from "react";
+import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import { getNationalContinentalCup, getNationalTier } from "@/lib/wheel-engine/weight-calculator";
 import {
   calculateContinentalQualification,
   getContinentalCupLabel,
   getSeasonYearString,
-  getMockOpponentsByLeagueName,
-  generateDomesticCupJourney,
-  generateContinentalCupJourney,
-  generateNationalTeamJourney,
-  generateMockLeagueTable,
 } from "../lib/simulation-helpers";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { useSetupStage } from "./useSetupStage";
 import { useCareerStats } from "./useCareerStats";
 import { useCareerWheelItems } from "./useCareerWheelItems";
-
-export interface SeasonRecord {
-  age: number;
-  clubName: string;
-  leagueName: string;
-  standing: number | null;
-  domesticCup: string | null;
-  continentalCup: { type: string; result: string } | null;
-  nationalTeam: { type: string; callup: string; result: string | null } | null;
-  leagueTable?: any[];
-  domesticCupJourney?: string[];
-  continentalCupJourney?: string[];
-  nationalTeamJourney?: string[];
-  apps?: number;
-  goals?: number;
-  assists?: number;
-  matchRating?: number;
-  cleanSheets?: number;
-}
-
-export const STEP_LABELS = [
-  "Quốc Tịch",
-  "Tuổi Ra Mắt",
-  "Pace (PAC)",
-  "Shooting (SHO)",
-  "Passing (PAS)",
-  "Dribbling (DRI)",
-  "Defending (DEF)",
-  "Physical (PHY)",
-  "Thời Gian Thi Đấu",
-  "Giải Đấu",
-  "Câu Lạc Bộ",
-];
+import { 
+  simulatePlayerSeasonAction, 
+  generateLeagueTableAction, 
+  startPlayerCareerAction,
+  generateTransferOfferAction,
+  generateCupJourneyAction,
+  evolvePlayerStatsAction
+} from "@/actions/season.actions";
+import { type SeasonRecord, STEP_LABELS } from "@/types/game";
 
 export function useDraftDrum(
   gameId: string,
@@ -59,11 +30,8 @@ export function useDraftDrum(
   clubs: any[]
 ) {
   const [isMounted, setIsMounted] = useState(false);
-
-  // 1. Quản lý chế độ (mode): "setup" | "career" | "retired"
   const [mode, setMode] = useState<"setup" | "career" | "retired">("setup");
 
-  // Sub-hooks
   const setupProps = useSetupStage({ position, leagues, clubs, isMounted, mode });
   const statsProps = useCareerStats({ gameId, slotIndex, position });
 
@@ -95,7 +63,6 @@ export function useDraftDrum(
     setIsNationalOpen,
   } = statsProps;
 
-  // States vòng quay Career Loop hàng năm
   const [careerSubStep, setCareerSubStep] = useState<
     "idle" | "dir_increase" | "dir_decrease" | "count" | "selector" | "magnitude" | "standing" | "domestic_cup" | "continental_cup" | "national_callup" | "national_tournament" | "transfer" | "resolved"
   >("idle");
@@ -103,19 +70,16 @@ export function useDraftDrum(
   const [careerTargetIndex, setCareerTargetIndex] = useState<number>(-1);
   const [careerTempValue, setCareerTempValue] = useState<string | null>(null);
 
-  // Biến tạm để tiến hóa stats trong năm
   const [yearEvolution, setYearEvolution] = useState<{
     direction: "increase" | "decrease" | "maintain" | null;
     count: number | null;
   }>({ direction: null, count: null });
 
-  // Theo dõi lượt quay selector và loại trừ
   const [selectorIndex, setSelectorIndex] = useState<number>(0);
   const [selectedStatsList, setSelectedStatsList] = useState<string[]>([]);
   const [tempSelectedStat, setTempSelectedStat] = useState<string | null>(null);
   const [evolvedStatsThisYear, setEvolvedStatsThisYear] = useState<{ stat: string; delta: number }[]>([]);
 
-  // Kết quả quay các wheels tập thể trong năm thi đấu
   const [standingResult, setStandingResult] = useState<number | null>(null);
   const [domesticCupResult, setDomesticCupResult] = useState<string | null>(null);
   const [continentalCupResult, setContinentalCupResult] = useState<string | null>(null);
@@ -147,11 +111,11 @@ export function useDraftDrum(
     setMode("setup");
   }, []);
 
-  // Khởi tạo bản ghi mùa giải mới
   useEffect(() => {
     if (mode === "career" && currentClub) {
       statsProps.setSeasonRecords((prev) => {
         if (prev[currentAge]) return prev;
+        const currentYear = 2026 + (currentAge - playerDebutAge);
         return {
           ...prev,
           [currentAge]: {
@@ -161,57 +125,69 @@ export function useDraftDrum(
             standing: null,
             domesticCup: "Chờ quay",
             continentalCup: currentContinentalCup !== "none" ? { type: currentContinentalCup, result: "Chờ quay" } : null,
-            nationalTeam: (currentAge % 2 === 0) ? { type: currentAge % 4 === 0 ? "FIFA World Cup" : getNationalContinentalCup(playerNationality), callup: "Chờ gọi", result: null } : null,
+            nationalTeam: (currentAge % 2 === 0) ? {
+              type: currentYear % 4 === 2 ? "FIFA World Cup" : getNationalContinentalCup(playerNationality),
+              callup: "Chờ gọi",
+              result: null
+            } : null,
           }
         };
       });
       setSelectedAgeForStats(currentAge);
     }
-  }, [currentAge, mode, currentClub, currentContinentalCup, playerNationality]);
+  }, [currentAge, mode, currentClub, currentContinentalCup, playerNationality, playerDebutAge]);
 
-  // Bắt đầu sự nghiệp
-  function handleStartCareer() {
-    statsProps.handleStartCareer(setupProps.draftData, clubs);
-    
+  function resetSeasonState() {
     setYearEvolution({ direction: null, count: null });
-    setSelectorIndex(0);
-    setSelectedStatsList([]);
-    setTempSelectedStat(null);
-    setEvolvedStatsThisYear([]);
-    setStandingResult(null);
-    setDomesticCupResult(null);
-    setContinentalCupResult(null);
-    setNationalCallupResult(null);
-    setNationalTournamentResult(null);
-    setYearSimResult(null);
-    setTransferOffer(null);
+    setSelectorIndex(0); setSelectedStatsList([]); setTempSelectedStat(null); setEvolvedStatsThisYear([]);
+    setStandingResult(null); setDomesticCupResult(null); setContinentalCupResult(null);
+    setNationalCallupResult(null); setNationalTournamentResult(null); setYearSimResult(null);
     setHasBallonDorWinner(false);
-
-    setMode("career");
-    setCareerSubStep("idle");
+    setIsLeagueOpen(false); setIsCupOpen(false); setIsContinentalOpen(false); setIsNationalOpen(false);
   }
 
-  function handleStartSeason() {
+  async function handleStartCareer() {
+    try {
+      const initPayload = await startPlayerCareerAction(setupProps.draftData);
+      statsProps.handleStartCareer(setupProps.draftData, initPayload, clubs);
+      resetSeasonState();
+      setTransferOffer(null);
+      setMode("career");
+      setCareerSubStep("idle");
+    } catch (err) {
+      console.error("Error starting career:", err);
+    }
+  }
+
+  async function handleStartSeason() {
     const luck = hiddenStats?.luckRating ?? 10;
     const prestige = currentClub?.prestige ?? 3;
 
-    const simRes = simulatePlayerSeason({
-      age: currentAge,
-      ovr: currentOvr,
-      position,
-      luckRating: luck,
-      clubPrestige: prestige,
-      clubName: currentClub.name,
-      leagueName: currentClub.leagueName,
-    });
-    setYearSimResult(simRes);
+    try {
+      const simRes = await simulatePlayerSeasonAction({
+        age: currentAge,
+        ovr: currentOvr,
+        position,
+        luckRating: luck,
+        clubPrestige: prestige,
+        clubName: currentClub.name,
+        leagueName: currentClub.leagueName,
+        leagueId: currentClub.leagueId,
+        hasContinentalCup: currentContinentalCup !== "none",
+        playerNationality: playerNationality,
+      });
 
-    let isBallonDor = false;
-    if (currentOvr >= 85 && simRes.matchRating >= 7.80) {
-      isBallonDor = Math.random() < 0.35;
-      setHasBallonDorWinner(isBallonDor);
-    } else {
-      setHasBallonDorWinner(false);
+      setYearSimResult(simRes);
+
+      let isBallonDor = false;
+      if (currentOvr >= 85 && simRes.matchRating >= 7.80) {
+        isBallonDor = Math.random() < 0.35;
+        setHasBallonDorWinner(isBallonDor);
+      } else {
+        setHasBallonDorWinner(false);
+      }
+    } catch (err) {
+      console.error("Error in handleStartSeason:", err);
     }
 
     setSelectorIndex(0);
@@ -222,7 +198,6 @@ export function useDraftDrum(
     setCareerSubStep("standing");
   }
 
-  // ── CAREER LOOPS SPIN RESOLVER ──
   function handleCareerSpin() {
     if (careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved" || careerWheelItems.length === 0) return;
 
@@ -248,7 +223,6 @@ export function useDraftDrum(
     (window as any)._tempCareerResult = result;
   }
 
-  // ── CAREER LOOPS SPIN COMPLETE ──
   function handleCareerSpinComplete() {
     const result = (window as any)._tempCareerResult;
     setCareerSpinning(false);
@@ -269,7 +243,7 @@ export function useDraftDrum(
         setCareerSubStep("count");
       } else {
         setYearEvolution((prev) => ({ ...prev, direction: "maintain" }));
-        statsProps.checkTransferOfferTransition(clubs, leagues, setTransferOffer, setCareerSubStep);
+        triggerTransferCheck();
       }
     }
     else if (careerSubStep === "count") {
@@ -287,13 +261,9 @@ export function useDraftDrum(
     else if (careerSubStep === "magnitude") {
       const delta = yearEvolution.direction === "increase" ? result : -result;
       
-      const nextStats = { ...currentStats };
-      nextStats[tempSelectedStat!] = Math.min(99, Math.max(10, nextStats[tempSelectedStat!] + delta));
-      const nextOvr = calculateOvrByPosition(position, nextStats as any);
-
-      statsProps.setCurrentStats(nextStats);
-      statsProps.setCurrentOvr(nextOvr);
-      setEvolvedStatsThisYear((prev) => [...prev, { stat: tempSelectedStat!, delta }]);
+      const newEvo = { stat: tempSelectedStat!, delta };
+      const evolutions = [...evolvedStatsThisYear, newEvo];
+      setEvolvedStatsThisYear(evolutions);
 
       const nextIdx = selectorIndex + 1;
       const totalNeed = yearEvolution.count ?? 1;
@@ -303,59 +273,93 @@ export function useDraftDrum(
         setTempSelectedStat(null);
         setCareerSubStep("selector");
       } else {
-        statsProps.checkTransferOfferTransition(clubs, leagues, setTransferOffer, setCareerSubStep);
+        evolvePlayerStatsAction({
+          currentStats,
+          position,
+          evolutions,
+        }).then((res) => {
+          statsProps.setCurrentStats(res.nextStats as unknown as Record<string, number>);
+          statsProps.setCurrentOvr(res.nextOvr);
+          triggerTransferCheck();
+        }).catch((err) => {
+          console.error("Error evolving player stats on backend:", err);
+          triggerTransferCheck();
+        });
       }
     }
     else if (careerSubStep === "standing") {
       setStandingResult(result);
       
-      const currentLeagueClubs = clubs.filter((c: any) => c.leagueId === currentClub.leagueId);
-      const mockTable = generateMockLeagueTable(result, currentClub.name, currentLeagueClubs);
-      statsProps.setSeasonRecords((prev) => {
-        const rec = { ...prev[currentAge] };
-        rec.standing = result;
-        rec.leagueTable = mockTable;
-        return { ...prev, [currentAge]: rec };
+      const currentLeagueClubsRaw = clubs.filter((c: any) => c.leagueId === currentClub.leagueId);
+      generateLeagueTableAction({
+        leagueId: currentClub.leagueId,
+        playerClubId: currentClub.id,
+        playerClubName: currentClub.name,
+        playerStanding: result,
+        currentLeagueClubsRaw,
+      }).then((mockTable) => {
+        statsProps.setSeasonRecords((prev) => {
+          const rec = { ...prev[currentAge] };
+          rec.standing = result;
+          rec.leagueTable = mockTable;
+          return { ...prev, [currentAge]: rec };
+        });
+        setIsLeagueOpen(true);
+        setCareerSubStep("domestic_cup");
+      }).catch((err) => {
+        console.error("Error generating league table:", err);
       });
-
-      setIsLeagueOpen(true);
-      setCareerSubStep("domestic_cup");
     }
     else if (careerSubStep === "domestic_cup") {
       setDomesticCupResult(result);
       
-      const journey = generateDomesticCupJourney(result);
-      statsProps.setSeasonRecords((prev) => {
-        const rec = { ...prev[currentAge] };
-        rec.domesticCup = result;
-        rec.domesticCupJourney = journey;
-        return { ...prev, [currentAge]: rec };
+      generateCupJourneyAction({
+        type: "domestic",
+        result,
+        playerClubId: currentClub.id,
+        playerClubPrestige: currentClub.prestige ?? 3,
+      }).then((journey) => {
+        statsProps.setSeasonRecords((prev) => {
+          const rec = { ...prev[currentAge] };
+          rec.domesticCup = result;
+          rec.domesticCupJourney = journey;
+          return { ...prev, [currentAge]: rec };
+        });
+        setIsCupOpen(true);
+
+        if (currentContinentalCup !== "none") {
+          setCareerSubStep("continental_cup");
+        } else {
+          statsProps.checkNationalCallupTransition(setCareerSubStep);
+        }
+      }).catch((err) => {
+        console.error("Error generating domestic cup journey:", err);
       });
-
-      setIsCupOpen(true);
-
-      if (currentContinentalCup !== "none") {
-        setCareerSubStep("continental_cup");
-      } else {
-        statsProps.checkNationalCallupTransition(setCareerSubStep);
-      }
     }
     else if (careerSubStep === "continental_cup") {
       setContinentalCupResult(result);
 
       const cupLabel = getContinentalCupLabel(currentContinentalCup);
-      const journey = generateContinentalCupJourney(result, cupLabel);
-      statsProps.setSeasonRecords((prev) => {
-        const rec = { ...prev[currentAge] };
-        if (rec.continentalCup) {
-          rec.continentalCup.result = result;
-        }
-        rec.continentalCupJourney = journey;
-        return { ...prev, [currentAge]: rec };
+      generateCupJourneyAction({
+        type: "continental",
+        result,
+        playerClubId: currentClub.id,
+        playerClubPrestige: currentClub.prestige ?? 3,
+        cupName: cupLabel,
+      }).then((journey) => {
+        statsProps.setSeasonRecords((prev) => {
+          const rec = { ...prev[currentAge] };
+          if (rec.continentalCup) {
+            rec.continentalCup.result = result;
+          }
+          rec.continentalCupJourney = journey;
+          return { ...prev, [currentAge]: rec };
+        });
+        setIsContinentalOpen(true);
+        statsProps.checkNationalCallupTransition(setCareerSubStep);
+      }).catch((err) => {
+        console.error("Error generating continental cup journey:", err);
       });
-
-      setIsContinentalOpen(true);
-      statsProps.checkNationalCallupTransition(setCareerSubStep);
     }
     else if (careerSubStep === "national_callup") {
       setNationalCallupResult(result);
@@ -376,17 +380,52 @@ export function useDraftDrum(
       setNationalTournamentResult(result);
 
       const nationCup = getNationalContinentalCup(playerNationality);
-      const tourney = currentAge % 4 === 0 ? "FIFA World Cup" : nationCup;
-      const journey = generateNationalTeamJourney(result, tourney);
-      statsProps.setSeasonRecords((prev) => {
-        const rec = { ...prev[currentAge] };
-        if (rec.nationalTeam) rec.nationalTeam.result = result;
-        rec.nationalTeamJourney = journey;
-        return { ...prev, [currentAge]: rec };
+      const currentYear = 2026 + (currentAge - playerDebutAge);
+      const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
+      generateCupJourneyAction({
+        type: "national",
+        result,
+        playerClubId: currentClub.id,
+        playerClubPrestige: currentClub.prestige ?? 3,
+        cupName: tourney,
+        playerNationality,
+      }).then((journey) => {
+        statsProps.setSeasonRecords((prev) => {
+          const rec = { ...prev[currentAge] };
+          if (rec.nationalTeam) rec.nationalTeam.result = result;
+          rec.nationalTeamJourney = journey;
+          return { ...prev, [currentAge]: rec };
+        });
+        setIsNationalOpen(true);
+        setCareerSubStep("dir_increase");
+      }).catch((err) => {
+        console.error("Error generating national team journey:", err);
+      });
+    }
+  }
+
+  async function triggerTransferCheck() {
+    try {
+      const res = await generateTransferOfferAction({
+        currentClubId: currentClub.id,
+        currentClubPrestige: currentClub.prestige ?? 3,
+        currentOvr,
+        matchRating: yearSimResult?.matchRating ?? 6.0,
+        goals: yearSimResult?.goals ?? 0,
+        assists: yearSimResult?.assists ?? 0,
+        cleanSheets: yearSimResult?.cleanSheets ?? 0,
+        position,
       });
 
-      setIsNationalOpen(true);
-      setCareerSubStep("dir_increase");
+      if (res.hasOffer && res.offer) {
+        setTransferOffer(res.offer);
+        setCareerSubStep("transfer");
+      } else {
+        setCareerSubStep("resolved");
+      }
+    } catch (err) {
+      console.error("Error checking transfer offer:", err);
+      setCareerSubStep("resolved");
     }
   }
 
@@ -408,25 +447,8 @@ export function useDraftDrum(
     if (isRetire) {
       setMode("retired");
     } else {
+      resetSeasonState();
       setCareerSubStep("idle");
-      setYearEvolution({ direction: null, count: null });
-      setStandingResult(null);
-      setDomesticCupResult(null);
-      setContinentalCupResult(null);
-      setNationalCallupResult(null);
-      setNationalTournamentResult(null);
-      setYearSimResult(null);
-      setHasBallonDorWinner(false);
-      
-      setSelectorIndex(0);
-      setSelectedStatsList([]);
-      setTempSelectedStat(null);
-      setEvolvedStatsThisYear([]);
-      
-      setIsLeagueOpen(false);
-      setIsCupOpen(false);
-      setIsContinentalOpen(false);
-      setIsNationalOpen(false);
     }
   }
 

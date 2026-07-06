@@ -1,10 +1,10 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { type SeasonRecord } from "./useDraftDrum";
+import { type SeasonRecord } from "@/types/game";
 import { type SimulatedSeasonResult } from "@/lib/simulation-engine/match-simulator";
 import { saveCareerPlayer } from "@/actions/player.actions";
-import { calculateOvrByPosition, getNationalContinentalCup, getNationalTier } from "@/lib/wheel-engine/weight-calculator";
+import { getNationalContinentalCup, getNationalTier } from "@/lib/wheel-engine/weight-calculator";
 import { generateFictionalName } from "@/lib/name-gen";
 import {
   calculateContinentalQualification,
@@ -47,16 +47,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   const [isCupOpen, setIsCupOpen] = useState(false);
   const [isContinentalOpen, setIsContinentalOpen] = useState(false);
   const [isNationalOpen, setIsNationalOpen] = useState(false);
-
-  function applySingleStatEvolution(statKey: string, delta: number) {
-    const nextStats = { ...currentStats };
-    nextStats[statKey] = Math.min(99, Math.max(10, nextStats[statKey] + delta));
-
-    const nextOvr = calculateOvrByPosition(position, nextStats as any);
-
-    setCurrentStats(nextStats);
-    setCurrentOvr(nextOvr);
-  }
 
   function applySimResultToRecords(age: number, result: SimulatedSeasonResult) {
     setSeasonRecords((prev) => {
@@ -136,58 +126,15 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     return seasonRecords[selectedAgeForStats] || null;
   }, [seasonRecords, selectedAgeForStats]);
 
-  function handleStartCareer(draftData: any, clubs: any[]) {
-    const generatedName = generateFictionalName(draftData.nationality!);
-    const luckRating = Math.floor(Math.random() * 20) + 1;
-    const professionalism = Math.floor(Math.random() * 20) + 1;
-    const personalityPool = ["Loyal", "Professional", "Ambitious", "Mercenary", "Temperamental", "Normal"];
-    const personality = personalityPool[Math.floor(Math.random() * professionalism) % personalityPool.length];
-    const generatedHiddenStats = { luckRating, professionalism, personality };
-
-    const initStint = {
-      clubId: draftData.clubId!,
-      clubName: draftData.clubName!,
-      leagueId: draftData.leagueId!,
-      leagueName: draftData.leagueName!,
-      startAge: draftData.debutAge!,
-      endAge: draftData.debutAge!,
-      yearsAtClub: 1,
-      ovrAtJoining: draftData.debutOvr!,
-      ovrAtLeaving: draftData.debutOvr!,
-    };
-
-    const initEvent = {
-      type: "DEBUT",
-      label: `Ký Hợp Đồng chuyên nghiệp đầu tiên tại CLB ${draftData.clubName} (${draftData.leagueName}) ở mùa giải 2025/26 (tuổi ${draftData.debutAge}).`,
-      age: draftData.debutAge!,
-      clubId: draftData.clubId!,
-    };
-
-    const initStats = {
-      pac: draftData.pac!,
-      sho: draftData.sho!,
-      pas: draftData.pas!,
-      dri: draftData.dri!,
-      def: draftData.def!,
-      phy: draftData.phy!,
-    };
-
-    const initTimeline = [
-      {
-        age: draftData.debutAge!,
-        ovr: draftData.debutOvr!,
-        ...initStats
-      }
-    ];
-
-    setPlayerName(generatedName);
-    setHiddenStats(generatedHiddenStats);
-    setClubStints([initStint]);
-    setEvents([initEvent]);
-    setStatsTimeline(initTimeline);
+  function handleStartCareer(draftData: any, initPayload: any, clubs: any[]) {
+    setPlayerName(initPayload.playerName);
+    setHiddenStats(initPayload.hiddenStats);
+    setClubStints([initPayload.initStint]);
+    setEvents([initPayload.initEvent]);
+    setStatsTimeline(initPayload.initTimeline);
     setCurrentAge(draftData.debutAge!);
     setCurrentOvr(draftData.debutOvr!);
-    setCurrentStats(initStats);
+    setCurrentStats(initPayload.initStats);
 
     const fullClub = clubs.find((c) => c.id === draftData.clubId);
     const selectedClub = {
@@ -274,7 +221,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
     if (nationalCallupResult === "called_up" && nationalTournamentResult) {
       const nationCup = getNationalContinentalCup(playerNationality);
-      const tourney = currentAge % 4 === 0 ? "FIFA World Cup" : nationCup;
+      const currentYear = 2026 + (currentAge - playerDebutAge);
+      const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
 
       setEvents((prev) => [
         ...prev,
@@ -376,30 +324,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setCareerSubStep("dir_increase");
   }
 
-  function checkTransferOfferTransition(
-    clubs: any[],
-    leagues: any[],
-    setTransferOffer: (offer: any) => void,
-    setCareerSubStep: (step: any) => void
-  ) {
-    if (Math.random() < 0.30) {
-      const eligibleClubs = clubs.filter((c) => c.id !== currentClub.id);
-      if (eligibleClubs.length > 0) {
-        const randomClub = eligibleClubs[Math.floor(Math.random() * eligibleClubs.length)];
-        const league = leagues.find((l) => l.id === randomClub.leagueId);
-        setTransferOffer({
-          clubId: randomClub.id,
-          clubName: randomClub.name,
-          leagueId: randomClub.leagueId,
-          leagueName: league?.name ?? "Giải Vô Địch",
-        });
-        setCareerSubStep("transfer");
-        return;
-      }
-    }
-    setCareerSubStep("resolved");
-  }
-
   function handleAcceptTransfer(
     accept: boolean,
     transferOffer: any,
@@ -499,7 +423,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setIsContinentalOpen,
     isNationalOpen,
     setIsNationalOpen,
-    applySingleStatEvolution,
     applySimResultToRecords,
     handleSavePlayer,
     careerTotalStats,
@@ -508,7 +431,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     handleStartCareer,
     handleNextSeason,
     checkNationalCallupTransition,
-    checkTransferOfferTransition,
     handleAcceptTransfer,
   };
 }
