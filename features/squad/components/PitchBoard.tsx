@@ -198,22 +198,25 @@ interface Props {
   formation: Formation;
   players: ClientSafePlayer[]; // starting XI only (slotIndex 0–10)
   status?: string;
+  onPlayerClick?: (player: ClientSafePlayer) => void;
 }
 
-export function PitchBoard({ gameId, formation, players, status }: Props) {
+export function PitchBoard({ gameId, formation, players, status, onPlayerClick }: Props) {
   const router = useRouter();
 
   const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
   const playerMap = new Map(players.map((p) => [p.slotIndex, p]));
 
   function handleSlotClick(slotIndex: number) {
-    if (status === "completed") {
-      console.log("Game session completed. Slot interaction disabled.");
-      return;
-    }
     const player = playerMap.get(slotIndex);
     if (player) {
-      console.log("Slot already filled. Slot interaction disabled.");
+      if (onPlayerClick) {
+        onPlayerClick(player);
+      }
+      return;
+    }
+    if (status === "completed") {
+      console.log("Game session completed. Slot interaction disabled.");
       return;
     }
     router.push(`/${gameId}/draft/${slotIndex}`);
@@ -257,7 +260,7 @@ export function PitchBoard({ gameId, formation, players, status }: Props) {
               <FilledSlot
                 player={player}
                 onClick={() => handleSlotClick(slot.index)}
-                disabled={true}
+                disabled={false}
               />
             ) : (
               <EmptySlot

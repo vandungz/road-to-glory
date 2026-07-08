@@ -10,6 +10,7 @@ import {
   calculateContinentalQualification,
   getContinentalCupLabel,
   getSeasonYearString,
+  getDomesticCupName,
 } from "../lib/simulation-helpers";
 
 interface UseCareerStatsProps {
@@ -25,6 +26,13 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   const [statsTimeline, setStatsTimeline] = useState<any[]>([]);
   const [clubStints, setClubStints] = useState<any[]>([]);
   const [events, setEvents] = useState<any[]>([]);
+  const [achievements, setAchievements] = useState<any>({
+    ballonDor: 0,
+    leagues: {},
+    cups: {},
+    continentals: {},
+    internationals: {},
+  });
 
   const [playerNationality, setPlayerNationality] = useState<string>("");
   const [playerDebutAge, setPlayerDebutAge] = useState<number>(18);
@@ -92,6 +100,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         clubStints,
         events: finalEvents,
         hiddenStats,
+        achievements,
       });
     } catch (err) {
       console.error("Save player error:", err);
@@ -168,7 +177,13 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     hasBallonDorWinner: boolean
   ): boolean {
     const nextAge = currentAge + 1;
-    const latestStint = clubStints[clubStints.length - 1];
+    const actualStint = clubStints.find((st: any) => currentAge >= st.startAge && currentAge <= st.endAge) 
+      || clubStints[clubStints.length - 1];
+    
+    const actualClubName = actualStint?.clubName ?? currentClub.name;
+    const actualLeagueName = actualStint?.leagueName ?? currentClub.leagueName;
+    const actualClubId = actualStint?.clubId ?? currentClub.id;
+
     const currentSeasonStr = getSeasonYearString(currentAge, playerDebutAge);
 
     if (standingResult !== null) {
@@ -176,9 +191,9 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         ...prev,
         {
           type: "standing",
-          label: `Đứng hạng ${standingResult} giải đấu ${currentClub.leagueName} cùng CLB ${currentClub.name} ở mùa giải ${currentSeasonStr}.`,
+          label: `Đứng hạng ${standingResult} giải đấu ${actualLeagueName} cùng CLB ${actualClubName} ở mùa giải ${currentSeasonStr}.`,
           age: currentAge,
-          clubId: latestStint.clubId,
+          clubId: actualClubId,
         }
       ]);
       if (standingResult === 1) {
@@ -186,9 +201,9 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
           ...prev,
           {
             type: "trophy",
-            label: `🏆 Vô Địch giải đấu vô địch quốc gia cùng CLB ${currentClub.name} ở mùa giải ${currentSeasonStr}!`,
+            label: `🏆 Vô Địch giải đấu vô địch quốc gia cùng CLB ${actualClubName} ở mùa giải ${currentSeasonStr}!`,
             age: currentAge,
-            clubId: latestStint.clubId,
+            clubId: actualClubId,
           }
         ]);
       }
@@ -199,9 +214,9 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         ...prev,
         {
           type: "cup",
-          label: `${domesticCupResult === "Winner" ? "🏆 Vô Địch" : domesticCupResult === "Runner-Up" ? "Á Quân" : "Bán Kết"} Cup Quốc Gia cùng CLB ${currentClub.name} ở mùa giải ${currentSeasonStr}.`,
+          label: `${domesticCupResult === "Winner" ? "🏆 Vô Địch" : domesticCupResult === "Runner-Up" ? "Á Quân" : "Bán Kết"} Cup Quốc Gia cùng CLB ${actualClubName} ở mùa giải ${currentSeasonStr}.`,
           age: currentAge,
-          clubId: latestStint.clubId,
+          clubId: actualClubId,
         }
       ]);
     }
@@ -212,9 +227,9 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         ...prev,
         {
           type: "continental_cup",
-          label: `${continentalCupResult === "Winner" ? `🏆 Vô Địch ${cupLabel} 🏆` : continentalCupResult === "Runner-Up" ? `Á Quân ${cupLabel}` : continentalCupResult === "Semi-Finals" ? `Bán Kết ${cupLabel}` : `Tham dự Vòng Bảng ${cupLabel}`} cùng CLB ${currentClub.name} ở mùa giải ${currentSeasonStr}.`,
+          label: `${continentalCupResult === "Winner" ? `🏆 Vô Địch ${cupLabel} 🏆` : continentalCupResult === "Runner-Up" ? `Á Quân ${cupLabel}` : continentalCupResult === "Semi-Finals" ? `Bán Kết ${cupLabel}` : `Tham dự Vòng Bảng ${cupLabel}`} cùng CLB ${actualClubName} ở mùa giải ${currentSeasonStr}.`,
           age: currentAge,
-          clubId: latestStint.clubId,
+          clubId: actualClubId,
         }
       ]);
     }
@@ -237,13 +252,28 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     if (yearSimResult) {
       applySimResultToRecords(currentAge, yearSimResult);
 
+      setStatsTimeline((prev) =>
+        prev.map((item) =>
+          item.age === currentAge
+            ? {
+                ...item,
+                apps: yearSimResult.apps,
+                goals: yearSimResult.goals,
+                assists: yearSimResult.assists,
+                cleanSheets: yearSimResult.cleanSheets,
+                matchRating: yearSimResult.matchRating,
+              }
+            : item
+        )
+      );
+
       setEvents((prev) => [
         ...prev,
         {
           type: "PERFORMANCE",
           label: `Thống kê cá nhân mùa giải ${currentSeasonStr}: Ra sân ${yearSimResult.apps} trận, ghi ${yearSimResult.goals} bàn, ${yearSimResult.assists} kiến tạo. Rating: ${yearSimResult.matchRating}.`,
           age: currentAge,
-          clubId: latestStint.clubId,
+          clubId: actualClubId,
         }
       ]);
 
@@ -254,7 +284,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
             type: ev.type,
             label: `${ev.label} (Mùa giải ${currentSeasonStr})`,
             age: currentAge,
-            clubId: latestStint.clubId,
+            clubId: actualClubId,
           }
         ]);
       });
@@ -276,6 +306,43 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       setCurrentContinentalCup(nextYearCup);
       setLastYearStanding(standingResult);
     }
+
+    setAchievements((prev: any) => {
+      const updated = {
+        ballonDor: prev.ballonDor || 0,
+        leagues: { ...prev.leagues },
+        cups: { ...prev.cups },
+        continentals: { ...prev.continentals },
+        internationals: { ...prev.internationals },
+      };
+
+      if (standingResult === 1) {
+        const name = actualLeagueName || "Giải vô địch quốc gia";
+        const key = actualClubName ? `${name} (${actualClubName})` : name;
+        updated.leagues[key] = (updated.leagues[key] || 0) + 1;
+      }
+      if (domesticCupResult === "Winner") {
+        const cupName = getDomesticCupName(actualLeagueName);
+        const key = actualClubName ? `${cupName} (${actualClubName})` : cupName;
+        updated.cups[key] = (updated.cups[key] || 0) + 1;
+      }
+      if (continentalCupResult === "Winner") {
+        const cupLabel = getContinentalCupLabel(currentContinentalCup);
+        const key = actualClubName ? `${cupLabel} (${actualClubName})` : cupLabel;
+        updated.continentals[key] = (updated.continentals[key] || 0) + 1;
+      }
+      if (nationalCallupResult === "called_up" && nationalTournamentResult === "Winner") {
+        const nationCup = getNationalContinentalCup(playerNationality);
+        const currentYear = 2026 + (currentAge - playerDebutAge);
+        const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
+        const key = `${tourney} (${playerNationality})`;
+        updated.internationals[key] = (updated.internationals[key] || 0) + 1;
+      }
+      if (hasBallonDorWinner) {
+        updated.ballonDor = (updated.ballonDor || 0) + 1;
+      }
+      return updated;
+    });
 
     setStatsTimeline((prev) => [
       ...prev,

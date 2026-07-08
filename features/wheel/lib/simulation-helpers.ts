@@ -100,3 +100,22 @@ export function getStandingWheelPool(clubPrestige: number, ovr: number, leagueSi
 
   return pool;
 }
+
+export function getDomesticCupName(leagueName: string): string {
+  if (!leagueName) return "Cup Quốc Gia";
+  const name = leagueName.toLowerCase();
+  if (name.includes("premier league") || name.includes("championship")) return "FA Cup";
+  if (name.includes("laliga") || name.includes("segunda")) return "Copa del Rey";
+  if (name.includes("serie a") || name.includes("serie b")) {
+    if (name.includes("brazil") || name.includes("brasileirão")) return "Copa do Brasil";
+    return "Coppa Italia";
+  }
+  if (name.includes("ligue")) return "Coupe de France";
+  if (name.includes("bundesliga")) return "DFB-Pokal";
+  if (name.includes("portugal")) return "Taça de Portugal";
+  if (name.includes("eredivisie")) return "KNVB Beker";
+  if (name.includes("primera") || name.includes("argentina")) return "Copa Argentina";
+  if (name.includes("saudi") || name.includes("pro league")) return "King Cup";
+  if (name.includes("mls") || name.includes("major league")) return "US Open Cup";
+  return "Cup Quốc Gia";
+}

@@ -4,6 +4,8 @@ import { CreateGameDialog } from "@/features/game/components/CreateGameDialog";
 import type { GameSessionSummary } from "@/types/game";
 import { Trophy, Star } from "lucide-react";
 
+export const dynamic = "force-dynamic";
+
 // ============================================================
 // DATA FETCHING
 // ============================================================

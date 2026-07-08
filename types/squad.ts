@@ -70,6 +70,15 @@ export interface ClientSafePlayer {
   position: string;
   peakOvr: number;
   cardRarity: string; // "bronze" | "silver" | "gold" | "rare_gold" | "epic" | "legendary"
+  height?: number;
+  preferredFoot?: string;
+  debutAge?: number;
+  retireAge?: number;
+  careerLengthYears?: number;
+  statsTimeline?: any[];
+  events?: any[];
+  clubStints?: any[];
+  achievements?: any;
 }
 
 // ============================================================

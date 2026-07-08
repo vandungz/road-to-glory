@@ -36,6 +36,7 @@ interface SavePlayerParams {
   clubStints: any[];
   events: any[];
   hiddenStats: any;
+  achievements?: any;
 }
 
 export async function saveCareerPlayer(params: SavePlayerParams) {
@@ -53,6 +54,7 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
     clubStints,
     events,
     hiddenStats,
+    achievements,
   } = params;
 
   // 1. Sinh chiều cao & chân thuận
@@ -88,6 +90,7 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       clubStints,
       events,
       hiddenStats,
+      achievements: achievements ?? { ballonDor: 0, league: 0, cup: 0, continental: 0, international: 0 },
     },
   });
 
