@@ -66,16 +66,15 @@ export interface SeasonRecord {
   cleanSheets?: number;
 }
 
-export const STEP_LABELS = [
-  "Quốc Tịch",
-  "Tuổi Ra Mắt",
-  "Pace (PAC)",
-  "Shooting (SHO)",
-  "Passing (PAS)",
-  "Dribbling (DRI)",
-  "Defending (DEF)",
-  "Physical (PHY)",
-  "Thời Gian Thi Đấu",
-  "Giải Đấu",
-  "Câu Lạc Bộ",
-];
+const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt"];
+const BASE_STEP_SUFFIX = ["Thời Gian Thi Đấu", "Giải Đấu", "Câu Lạc Bộ"];
+
+export function getStepLabels(position: string): string[] {
+  const statLabels = position === "GK"
+    ? ["Diving (DIV)", "Handling (HAN)", "Kicking (KIC)", "Reflexes (REF)", "Speed (SPD)", "Positioning (POS)"]
+    : ["Pace (PAC)", "Shooting (SHO)", "Passing (PAS)", "Dribbling (DRI)", "Defending (DEF)", "Physical (PHY)"];
+  return [...BASE_STEP_PREFIX, ...statLabels, ...BASE_STEP_SUFFIX];
+}
+
+// Backward compat — field player labels
+export const STEP_LABELS = getStepLabels("field");

@@ -1,3 +1,5 @@
+import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+
 export interface ClubCupInfo {
   id: string;
   name: string;
@@ -14,25 +16,25 @@ export function generateCupScore(isWinner: boolean, playerPrestige: number, oppP
     // Thắng
     if (prestigeDiff >= 2) {
       // Hủy diệt
-      const goals = [3, 4, 5][Math.floor(Math.random() * 3)];
-      const oppGoals = [0, 1][Math.floor(Math.random() * 2)];
+      const goals = [3, 4, 5][resolveRandomInt(0, 2)];
+      const oppGoals = [0, 1][resolveRandomInt(0, 1)];
       return `Thắng ${goals}-${oppGoals}`;
     } else {
       // Thắng sít sao
-      const goals = [1, 2, 3][Math.floor(Math.random() * 3)];
-      const oppGoals = goals - (Math.random() > 0.6 ? 2 : 1);
+      const goals = [1, 2, 3][resolveRandomInt(0, 2)];
+      const oppGoals = goals - (resolveRandom() > 0.6 ? 2 : 1);
       return `Thắng ${goals}-${Math.max(0, oppGoals)}`;
     }
   } else {
     // Thua
     if (prestigeDiff <= -2) {
       // Thua đậm
-      const goals = [0, 1][Math.floor(Math.random() * 2)];
-      const oppGoals = [3, 4][Math.floor(Math.random() * 2)];
+      const goals = [0, 1][resolveRandomInt(0, 1)];
+      const oppGoals = [3, 4][resolveRandomInt(0, 1)];
       return `Thua ${goals}-${oppGoals}`;
     } else {
       // Thua sít sao
-      const oppGoals = [1, 2, 3][Math.floor(Math.random() * 3)];
+      const oppGoals = [1, 2, 3][resolveRandomInt(0, 2)];
       const goals = oppGoals - 1;
       return `Thua ${goals}-${oppGoals}`;
     }
@@ -53,7 +55,14 @@ export function generateDomesticCupJourneyService(params: {
     pool = [{ id: "mock_opp", name: "Đối Thủ Khác", prestige: 3, leagueId: "GENERIC", continentalType: "none" }];
   }
 
-  const getRandomOpp = () => pool[Math.floor(Math.random() * pool.length)];
+  const usedIds = new Set<string>();
+  const getRandomOpp = () => {
+    const available = pool.filter((c) => !usedIds.has(c.id));
+    const src = available.length > 0 ? available : pool;
+    const opp = src[resolveRandomInt(0, src.length - 1)];
+    usedIds.add(opp.id);
+    return opp;
+  };
 
   const journey: string[] = [];
 
@@ -118,13 +127,19 @@ export function generateContinentalCupJourneyService(params: {
     pool = [{ id: "mock_cont", name: "Đối Thủ Châu Lục", prestige: 4, leagueId: "GENERIC", continentalType: "none" }];
   }
 
-  const getRandomOpp = () => pool[Math.floor(Math.random() * pool.length)];
+  const usedIds = new Set<string>();
+  const getRandomOpp = () => {
+    const available = pool.filter((c) => !usedIds.has(c.id));
+    const src = available.length > 0 ? available : pool;
+    const opp = src[resolveRandomInt(0, src.length - 1)];
+    usedIds.add(opp.id);
+    return opp;
+  };
 
   const journey: string[] = [];
 
   // Vòng Bảng
-  if (result === "Group Stage") {
-    const opp = getRandomOpp();
+  if (result === "Group Stage" || result === "Early Exit") {
     journey.push(`Vòng Bảng: Xếp hạng 4 bảng đấu (Bị loại sau vòng bảng) ❌`);
     return journey;
   }
@@ -166,26 +181,34 @@ export function generateContinentalCupJourneyService(params: {
   return journey;
 }
 
+export interface NationalTeamInfo {
+  id: string;
+  name: string;        // tên hiển thị tiếng Việt
+  nationality: string; // key tiếng Anh khớp với CareerPlayer.nationality
+  confederation: string;
+  tier: number;
+}
+
 export function generateNationalTeamJourneyService(params: {
   result: string;
   tourneyName: string;
   playerNationality: string;
+  opponents: NationalTeamInfo[];
 }): string[] {
-  const { result, tourneyName, playerNationality } = params;
+  const { result, tourneyName, playerNationality, opponents } = params;
 
-  // Lập danh sách các ĐTQG đối thủ
-  const asianNations = ["Nhật Bản", "Hàn Quốc", "Iran", "Úc", "Saudi Arabia", "Qatar", "Iraq", "UAE", "Thái Lan"];
-  const europeanNations = ["Anh", "Pháp", "Đức", "Tây Ban Nha", "Ý", "Bồ Đào Nha", "Hà Lan", "Bỉ", "Croatia"];
-  const globalNations = ["Brazil", "Argentina", "Uruguay", "Mỹ", "Senegal", "Maroc", ...asianNations, ...europeanNations];
+  // Loại đội của người chơi khỏi pool đối thủ
+  let pool = opponents.filter((t) => t.nationality !== playerNationality);
+  if (pool.length === 0) pool = opponents;
 
-  const isAsia = ["Vietnam", "Japan", "South Korea", "China", "Saudi Arabia", "Qatar", "Thailand"].includes(playerNationality);
-  
-  let pool = isAsia ? asianNations : europeanNations;
-  if (tourneyName === "FIFA World Cup") {
-    pool = globalNations;
-  }
-
-  const getRandomNation = () => pool[Math.floor(Math.random() * pool.length)];
+  const usedIds = new Set<string>();
+  const getRandomNation = () => {
+    const available = pool.filter((t) => !usedIds.has(t.id));
+    const src = available.length > 0 ? available : pool;
+    const team = src[resolveRandomInt(0, src.length - 1)];
+    usedIds.add(team.id);
+    return team.name;
+  };
 
   const journey: string[] = [];
 

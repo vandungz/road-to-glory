@@ -1,3 +1,4 @@
+import { resolveRandomFloat, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
 
 export interface ClubInfo {
   id: string;
@@ -38,7 +39,7 @@ export function simulateDynamicLeagueTableService(
   
   // Hạng 1 có khoảng 85-92% số điểm tối đa (thực tế và hấp dẫn hơn)
   const maxPossiblePoints = played * 3;
-  let currentPoints = Math.round(maxPossiblePoints * (0.75 + Math.random() * 0.1)); 
+  let currentPoints = Math.round(maxPossiblePoints * (0.75 + resolveRandomFloat(0, 0.1)));
 
   const step = Math.max(1.5, currentPoints / (size * 1.25));
 
@@ -58,7 +59,7 @@ export function simulateDynamicLeagueTableService(
     }
 
     const maxDrawn = Math.floor(played * 0.25);
-    const drawn = Math.min(maxDrawn, Math.floor(Math.random() * 5) + 3);
+    const drawn = Math.min(maxDrawn, resolveRandomInt(3, 7));
     const won = Math.max(0, Math.floor((currentPoints - drawn) / 3));
     const lost = Math.max(0, played - won - drawn);
     const points = won * 3 + (played - won - lost);
@@ -73,7 +74,7 @@ export function simulateDynamicLeagueTableService(
       points,
     });
 
-    currentPoints = Math.max(0, Math.round(currentPoints - (step + Math.random() * 2)));
+    currentPoints = Math.max(0, Math.round(currentPoints - (step + resolveRandomFloat(0, 2))));
   }
 
   return finalTable;

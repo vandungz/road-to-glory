@@ -272,21 +272,41 @@ const CLUBS = [
   { id: "millonarios", name: "Millonarios", leagueId: "COL1", prestige: 3, leagueTitlesCount: 16, domesticCupsCount: 3, continentalTitlesCount: 0, continentalType: "Libertadores" },
   { id: "nacional_col", name: "Atlético Nacional", leagueId: "COL1", prestige: 3, leagueTitlesCount: 17, domesticCupsCount: 6, continentalTitlesCount: 2, continentalType: "Libertadores" },
   { id: "deportivo_cali", name: "Deportivo Cali", leagueId: "COL1", prestige: 2, leagueTitlesCount: 10, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "america_cali", name: "América de Cali", leagueId: "COL1", prestige: 2, leagueTitlesCount: 13, domesticCupsCount: 5, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "ind_medellin", name: "Independiente Medellín", leagueId: "COL1", prestige: 2, leagueTitlesCount: 4, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "deportes_tolima", name: "Deportes Tolima", leagueId: "COL1", prestige: 2, leagueTitlesCount: 2, domesticCupsCount: 3, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "once_caldas", name: "Once Caldas", leagueId: "COL1", prestige: 2, leagueTitlesCount: 2, domesticCupsCount: 4, continentalTitlesCount: 1, continentalType: "Libertadores" },
+  { id: "santa_fe", name: "Independiente Santa Fe", leagueId: "COL1", prestige: 2, leagueTitlesCount: 9, domesticCupsCount: 8, continentalTitlesCount: 0, continentalType: "Libertadores" },
 
   // ==================== Ecuador Tier 1 (LigaPro) ====================
   { id: "ldu_quito", name: "LDU Quito", leagueId: "ECU1", prestige: 3, leagueTitlesCount: 12, domesticCupsCount: 1, continentalTitlesCount: 1, continentalType: "Libertadores" },
   { id: "ind_del_valle", name: "Independiente del Valle", leagueId: "ECU1", prestige: 3, leagueTitlesCount: 1, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "Libertadores" },
   { id: "barcelona_sc", name: "Barcelona SC", leagueId: "ECU1", prestige: 3, leagueTitlesCount: 16, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "emelec", name: "Club Sport Emelec", leagueId: "ECU1", prestige: 2, leagueTitlesCount: 14, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "el_nacional", name: "El Nacional", leagueId: "ECU1", prestige: 2, leagueTitlesCount: 13, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "aucas", name: "Sociedad Deportiva Aucas", leagueId: "ECU1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "macara", name: "Macará", leagueId: "ECU1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "dep_cuenca", name: "Deportivo Cuenca", leagueId: "ECU1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
 
   // ==================== Uruguay Tier 1 (Primera División) ====================
   { id: "penarol", name: "Peñarol", leagueId: "URU1", prestige: 3, leagueTitlesCount: 51, domesticCupsCount: 0, continentalTitlesCount: 5, continentalType: "Libertadores" },
   { id: "nacional_uru", name: "Nacional de Montevideo", leagueId: "URU1", prestige: 3, leagueTitlesCount: 49, domesticCupsCount: 0, continentalTitlesCount: 3, continentalType: "Libertadores" },
   { id: "defensor_sporting", name: "Defensor Sporting", leagueId: "URU1", prestige: 2, leagueTitlesCount: 4, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "danubio", name: "Danubio FC", leagueId: "URU1", prestige: 2, leagueTitlesCount: 3, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "racing_uru", name: "Racing Club Uruguay", leagueId: "URU1", prestige: 1, leagueTitlesCount: 2, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "liverpool_uru", name: "Liverpool FC Montevideo", leagueId: "URU1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "cerro_uru", name: "Club Atlético Cerro", leagueId: "URU1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "fenix_uru", name: "Centro Atlético Fénix", leagueId: "URU1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
 
   // ==================== Chile Tier 1 (Primera División) ====================
   { id: "colo_colo", name: "Colo-Colo", leagueId: "CHI1", prestige: 3, leagueTitlesCount: 33, domesticCupsCount: 14, continentalTitlesCount: 1, continentalType: "Libertadores" },
   { id: "u_de_chile", name: "Universidad de Chile", leagueId: "CHI1", prestige: 3, leagueTitlesCount: 18, domesticCupsCount: 5, continentalTitlesCount: 0, continentalType: "Libertadores" },
   { id: "u_catolica", name: "Universidad Católica", leagueId: "CHI1", prestige: 3, leagueTitlesCount: 16, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "palestino", name: "Club Deportivo Palestino", leagueId: "CHI1", prestige: 2, leagueTitlesCount: 2, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "ohiggins", name: "O'Higgins FC", leagueId: "CHI1", prestige: 2, leagueTitlesCount: 2, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "audax_italiano", name: "Audax Italiano", leagueId: "CHI1", prestige: 1, leagueTitlesCount: 4, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "huachipato", name: "Huachipato FC", leagueId: "CHI1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
+  { id: "everton_vina", name: "Everton de Viña del Mar", leagueId: "CHI1", prestige: 1, leagueTitlesCount: 4, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "Libertadores" },
 
   // ==================== USA Tier 1 (MLS) ====================
   { id: "inter_miami", name: "Inter Miami CF", leagueId: "USA1", prestige: 3, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
@@ -327,6 +347,10 @@ const CLUBS = [
   { id: "jeonbuk_motors", name: "Jeonbuk Hyundai Motors", leagueId: "KOR1", prestige: 3, leagueTitlesCount: 9, domesticCupsCount: 5, continentalTitlesCount: 2, continentalType: "AFC_CL" },
   { id: "pohang_steelers", name: "Pohang Steelers", leagueId: "KOR1", prestige: 3, leagueTitlesCount: 5, domesticCupsCount: 5, continentalTitlesCount: 3, continentalType: "none" },
   { id: "fc_seoul", name: "FC Seoul", leagueId: "KOR1", prestige: 3, leagueTitlesCount: 6, domesticCupsCount: 2, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "suwon_bluewings", name: "Suwon Samsung Bluewings", leagueId: "KOR1", prestige: 2, leagueTitlesCount: 4, domesticCupsCount: 5, continentalTitlesCount: 2, continentalType: "none" },
+  { id: "seongnam", name: "Seongnam FC", leagueId: "KOR1", prestige: 2, leagueTitlesCount: 7, domesticCupsCount: 3, continentalTitlesCount: 3, continentalType: "none" },
+  { id: "incheon_utd", name: "Incheon United", leagueId: "KOR1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "gangwon", name: "Gangwon FC", leagueId: "KOR1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
 
   // ==================== China Tier 1 (CSL) ====================
   { id: "shanghai_port", name: "Shanghai Port FC", leagueId: "CHN1", prestige: 2, leagueTitlesCount: 3, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
@@ -355,27 +379,138 @@ const CLUBS = [
   { id: "al_ain", name: "Al Ain", leagueId: "UAE1", prestige: 3, leagueTitlesCount: 14, domesticCupsCount: 7, continentalTitlesCount: 2, continentalType: "AFC_CL" },
   { id: "al_wasl", name: "Al Wasl", leagueId: "UAE1", prestige: 2, leagueTitlesCount: 8, domesticCupsCount: 3, continentalTitlesCount: 0, continentalType: "none" },
   { id: "shabab_al_ahli", name: "Shabab Al Ahli", leagueId: "UAE1", prestige: 3, leagueTitlesCount: 10, domesticCupsCount: 13, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_jazira", name: "Al Jazira Club", leagueId: "UAE1", prestige: 2, leagueTitlesCount: 3, domesticCupsCount: 5, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "sharjah_fc", name: "Sharjah FC", leagueId: "UAE1", prestige: 2, leagueTitlesCount: 3, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_wahda_uae", name: "Al Wahda FC", leagueId: "UAE1", prestige: 2, leagueTitlesCount: 4, domesticCupsCount: 5, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "baniyas", name: "Baniyas SC", leagueId: "UAE1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_nasr_uae", name: "Al Nasr Dubai", leagueId: "UAE1", prestige: 1, leagueTitlesCount: 2, domesticCupsCount: 3, continentalTitlesCount: 0, continentalType: "none" },
 
   // ==================== Qatar Tier 1 (Qatar Stars League) ====================
   { id: "al_sadd", name: "Al Sadd", leagueId: "QAT1", prestige: 3, leagueTitlesCount: 17, domesticCupsCount: 18, continentalTitlesCount: 2, continentalType: "AFC_CL" },
   { id: "al_duhail", name: "Al Duhail", leagueId: "QAT1", prestige: 2, leagueTitlesCount: 8, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "none" },
   { id: "al_rayyan", name: "Al Rayyan", leagueId: "QAT1", prestige: 2, leagueTitlesCount: 8, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_wakrah", name: "Al Wakrah SC", leagueId: "QAT1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_gharafa", name: "Al Gharafa SC", leagueId: "QAT1", prestige: 2, leagueTitlesCount: 2, domesticCupsCount: 6, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "qatar_sc", name: "Qatar SC", leagueId: "QAT1", prestige: 1, leagueTitlesCount: 2, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_arabi_qat", name: "Al Arabi SC", leagueId: "QAT1", prestige: 1, leagueTitlesCount: 3, domesticCupsCount: 4, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_ahli_qat", name: "Al Ahli Doha", leagueId: "QAT1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "none" },
 
   // ==================== Egypt Tier 1 (Egyptian Premier League) ====================
   { id: "al_ahly_eg", name: "Al Ahly", leagueId: "EGY1", prestige: 3, leagueTitlesCount: 44, domesticCupsCount: 39, continentalTitlesCount: 12, continentalType: "CAF_CL" },
   { id: "zamalek", name: "Zamalek", leagueId: "EGY1", prestige: 3, leagueTitlesCount: 14, domesticCupsCount: 28, continentalTitlesCount: 5, continentalType: "CAF_CL" },
   { id: "pyramids", name: "Pyramids FC", leagueId: "EGY1", prestige: 3, leagueTitlesCount: 0, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "ismaily", name: "Ismaily SC", leagueId: "EGY1", prestige: 2, leagueTitlesCount: 2, domesticCupsCount: 5, continentalTitlesCount: 1, continentalType: "CAF_CL" },
+  { id: "al_masry", name: "Al Masry", leagueId: "EGY1", prestige: 2, leagueTitlesCount: 1, domesticCupsCount: 2, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "enppi", name: "ENPPI SC", leagueId: "EGY1", prestige: 1, leagueTitlesCount: 1, domesticCupsCount: 1, continentalTitlesCount: 1, continentalType: "none" },
+  { id: "ceramica_cleopatra", name: "Ceramica Cleopatra FC", leagueId: "EGY1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "al_ittihad_alex", name: "Al Ittihad Alexandria", leagueId: "EGY1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "none" },
 
   // ==================== South Africa Tier 1 (South African PSL) ====================
   { id: "mamelodi_sundowns", name: "Mamelodi Sundowns", leagueId: "RSA1", prestige: 2, leagueTitlesCount: 17, domesticCupsCount: 6, continentalTitlesCount: 1, continentalType: "CAF_CL" },
   { id: "orlando_pirates", name: "Orlando Pirates", leagueId: "RSA1", prestige: 2, leagueTitlesCount: 9, domesticCupsCount: 8, continentalTitlesCount: 1, continentalType: "CAF_CL" },
   { id: "kaizer_chiefs", name: "Kaizer Chiefs", leagueId: "RSA1", prestige: 2, leagueTitlesCount: 12, domesticCupsCount: 13, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "cape_town_city", name: "Cape Town City FC", leagueId: "RSA1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 1, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "supersport_utd", name: "SuperSport United", leagueId: "RSA1", prestige: 2, leagueTitlesCount: 4, domesticCupsCount: 8, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "stellenbosch", name: "Stellenbosch FC", leagueId: "RSA1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "chippa_utd", name: "Chippa United", leagueId: "RSA1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
+  { id: "golden_arrows", name: "Golden Arrows FC", leagueId: "RSA1", prestige: 1, leagueTitlesCount: 0, domesticCupsCount: 0, continentalTitlesCount: 0, continentalType: "none" },
+];
+
+const NATIONAL_TEAMS = [
+  // ── UEFA ──
+  { id: "england",     name: "Anh",               nationality: "England",               confederation: "UEFA",     tier: 1 },
+  { id: "france",      name: "Pháp",               nationality: "France",                confederation: "UEFA",     tier: 1 },
+  { id: "spain",       name: "Tây Ban Nha",         nationality: "Spain",                 confederation: "UEFA",     tier: 1 },
+  { id: "germany",     name: "Đức",                nationality: "Germany",               confederation: "UEFA",     tier: 1 },
+  { id: "italy",       name: "Ý",                  nationality: "Italy",                 confederation: "UEFA",     tier: 1 },
+  { id: "portugal",    name: "Bồ Đào Nha",          nationality: "Portugal",              confederation: "UEFA",     tier: 1 },
+  { id: "netherlands", name: "Hà Lan",              nationality: "Netherlands",           confederation: "UEFA",     tier: 1 },
+  { id: "belgium",     name: "Bỉ",                 nationality: "Belgium",               confederation: "UEFA",     tier: 1 },
+  { id: "croatia",     name: "Croatia",             nationality: "Croatia",               confederation: "UEFA",     tier: 2 },
+  { id: "norway",      name: "Na Uy",               nationality: "Norway",                confederation: "UEFA",     tier: 2 },
+  { id: "turkey",      name: "Thổ Nhĩ Kỳ",         nationality: "Turkey",                confederation: "UEFA",     tier: 2 },
+  { id: "switzerland", name: "Thụy Sĩ",             nationality: "Switzerland",           confederation: "UEFA",     tier: 2 },
+  { id: "denmark",     name: "Đan Mạch",             nationality: "Denmark",               confederation: "UEFA",     tier: 2 },
+  { id: "sweden",      name: "Thụy Điển",            nationality: "Sweden",                confederation: "UEFA",     tier: 2 },
+  { id: "poland",      name: "Ba Lan",               nationality: "Poland",                confederation: "UEFA",     tier: 2 },
+  { id: "austria",     name: "Áo",                  nationality: "Austria",               confederation: "UEFA",     tier: 2 },
+  { id: "ukraine",     name: "Ukraine",              nationality: "Ukraine",               confederation: "UEFA",     tier: 2 },
+  { id: "serbia",      name: "Serbia",               nationality: "Serbia",                confederation: "UEFA",     tier: 2 },
+  { id: "scotland",    name: "Scotland",             nationality: "Scotland",              confederation: "UEFA",     tier: 3 },
+  { id: "greece",      name: "Hy Lạp",               nationality: "Greece",                confederation: "UEFA",     tier: 3 },
+  { id: "czech",       name: "Séc",                  nationality: "Czech Republic",        confederation: "UEFA",     tier: 3 },
+  { id: "bosnia",      name: "Bosnia",               nationality: "Bosnia and Herzegovina",confederation: "UEFA",     tier: 3 },
+  { id: "wales",       name: "Xứ Wales",             nationality: "Wales",                 confederation: "UEFA",     tier: 3 },
+  { id: "albania",     name: "Albania",              nationality: "Albania",               confederation: "UEFA",     tier: 3 },
+
+  // ── CONMEBOL ──
+  { id: "brazil",      name: "Brazil",               nationality: "Brazil",                confederation: "CONMEBOL", tier: 1 },
+  { id: "argentina",   name: "Argentina",             nationality: "Argentina",             confederation: "CONMEBOL", tier: 1 },
+  { id: "uruguay",     name: "Uruguay",               nationality: "Uruguay",               confederation: "CONMEBOL", tier: 2 },
+  { id: "colombia",    name: "Colombia",              nationality: "Colombia",              confederation: "CONMEBOL", tier: 2 },
+  { id: "chile",       name: "Chile",                 nationality: "Chile",                 confederation: "CONMEBOL", tier: 2 },
+  { id: "ecuador",     name: "Ecuador",               nationality: "Ecuador",               confederation: "CONMEBOL", tier: 2 },
+  { id: "paraguay",    name: "Paraguay",              nationality: "Paraguay",              confederation: "CONMEBOL", tier: 3 },
+  { id: "peru",        name: "Peru",                  nationality: "Peru",                  confederation: "CONMEBOL", tier: 3 },
+  { id: "venezuela",   name: "Venezuela",             nationality: "Venezuela",             confederation: "CONMEBOL", tier: 3 },
+  { id: "bolivia",     name: "Bolivia",               nationality: "Bolivia",               confederation: "CONMEBOL", tier: 3 },
+
+  // ── AFC ──
+  { id: "japan",       name: "Nhật Bản",              nationality: "Japan",                 confederation: "AFC",      tier: 1 },
+  { id: "south_korea", name: "Hàn Quốc",              nationality: "South Korea",           confederation: "AFC",      tier: 1 },
+  { id: "iran",        name: "Iran",                  nationality: "Iran",                  confederation: "AFC",      tier: 2 },
+  { id: "australia",   name: "Úc",                   nationality: "Australia",             confederation: "AFC",      tier: 2 },
+  { id: "saudi",       name: "Saudi Arabia",          nationality: "Saudi Arabia",          confederation: "AFC",      tier: 2 },
+  { id: "qatar",       name: "Qatar",                 nationality: "Qatar",                 confederation: "AFC",      tier: 2 },
+  { id: "iraq",        name: "Iraq",                  nationality: "Iraq",                  confederation: "AFC",      tier: 2 },
+  { id: "uae",         name: "UAE",                   nationality: "UAE",                   confederation: "AFC",      tier: 3 },
+  { id: "uzbekistan",  name: "Uzbekistan",            nationality: "Uzbekistan",            confederation: "AFC",      tier: 3 },
+  { id: "jordan",      name: "Jordan",                nationality: "Jordan",                confederation: "AFC",      tier: 3 },
+  { id: "thailand",    name: "Thái Lan",              nationality: "Thailand",              confederation: "AFC",      tier: 3 },
+  { id: "china",       name: "Trung Quốc",             nationality: "China",                 confederation: "AFC",      tier: 3 },
+
+  // ── CAF ──
+  { id: "senegal",     name: "Senegal",               nationality: "Senegal",               confederation: "CAF",      tier: 1 },
+  { id: "morocco",     name: "Maroc",                 nationality: "Morocco",               confederation: "CAF",      tier: 1 },
+  { id: "nigeria",     name: "Nigeria",               nationality: "Nigeria",               confederation: "CAF",      tier: 1 },
+  { id: "egypt",       name: "Ai Cập",                nationality: "Egypt",                 confederation: "CAF",      tier: 1 },
+  { id: "ivory_coast", name: "Bờ Biển Ngà",           nationality: "Ivory Coast",           confederation: "CAF",      tier: 1 },
+  { id: "ghana",       name: "Ghana",                 nationality: "Ghana",                 confederation: "CAF",      tier: 2 },
+  { id: "algeria",     name: "Algeria",               nationality: "Algeria",               confederation: "CAF",      tier: 2 },
+  { id: "tunisia",     name: "Tunisia",               nationality: "Tunisia",               confederation: "CAF",      tier: 2 },
+  { id: "cameroon",    name: "Cameroon",              nationality: "Cameroon",              confederation: "CAF",      tier: 2 },
+  { id: "mali",        name: "Mali",                  nationality: "Mali",                  confederation: "CAF",      tier: 2 },
+  { id: "south_africa",name: "Nam Phi",               nationality: "South Africa",          confederation: "CAF",      tier: 2 },
+  { id: "dr_congo",    name: "DR Congo",              nationality: "DR Congo",              confederation: "CAF",      tier: 2 },
+  { id: "guinea",      name: "Guinea",                nationality: "Guinea",                confederation: "CAF",      tier: 3 },
+  { id: "cape_verde",  name: "Cape Verde",            nationality: "Cape Verde",            confederation: "CAF",      tier: 3 },
+
+  // ── CONCACAF ──
+  { id: "usa",         name: "Mỹ",                   nationality: "USA",                   confederation: "CONCACAF", tier: 1 },
+  { id: "mexico",      name: "Mexico",                nationality: "Mexico",                confederation: "CONCACAF", tier: 1 },
+  { id: "canada",      name: "Canada",                nationality: "Canada",                confederation: "CONCACAF", tier: 2 },
+  { id: "costa_rica",  name: "Costa Rica",            nationality: "Costa Rica",            confederation: "CONCACAF", tier: 2 },
+  { id: "panama",      name: "Panama",                nationality: "Panama",                confederation: "CONCACAF", tier: 3 },
+  { id: "jamaica",     name: "Jamaica",               nationality: "Jamaica",               confederation: "CONCACAF", tier: 3 },
+  { id: "honduras",    name: "Honduras",              nationality: "Honduras",              confederation: "CONCACAF", tier: 3 },
+  { id: "haiti",       name: "Haiti",                 nationality: "Haiti",                 confederation: "CONCACAF", tier: 3 },
+  { id: "el_salvador", name: "El Salvador",           nationality: "El Salvador",           confederation: "CONCACAF", tier: 3 },
 ];
 
 async function main() {
   console.log("Cleaning existing reference data...");
+  await prisma.nationalTeam.deleteMany({});
   await prisma.club.deleteMany({});
   await prisma.league.deleteMany({});
+
+  console.log("Seeding national teams...");
+  for (const nt of NATIONAL_TEAMS) {
+    await prisma.nationalTeam.upsert({
+      where: { id: nt.id },
+      update: nt,
+      create: nt,
+    });
+  }
 
   console.log("Seeding leagues...");
   for (const league of LEAGUES) {
@@ -395,7 +530,7 @@ async function main() {
     });
   }
 
-  console.log(`Database seeded successfully. Total Leagues: ${LEAGUES.length}, Total Clubs: ${CLUBS.length}`);
+  console.log(`Database seeded successfully. National Teams: ${NATIONAL_TEAMS.length}, Leagues: ${LEAGUES.length}, Clubs: ${CLUBS.length}`);
 }
 
 main()

@@ -1,9 +1,11 @@
+import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+
 export interface ClubDbInfo {
   id: string;
   name: string;
   leagueId: string;
   prestige: number;
-  leagueName?: string;
+  leagueName?: string | null;
 }
 
 export interface TransferOfferResult {
@@ -26,9 +28,8 @@ export function generateTransferOfferService(params: {
   cleanSheets: number;
   position: string;
   clubs: ClubDbInfo[];
-  leagues: { id: string; name: string }[];
 }): TransferOfferResult {
-  const { currentClubId, currentClubPrestige, currentOvr, matchRating, clubs, leagues } = params;
+  const { currentClubId, currentClubPrestige, currentOvr, matchRating, clubs } = params;
 
   // 1. Tính toán cơ hội nhận Transfer Offer dựa trên OVR và phong độ thực tế
   let offerChance = 0.20; // Cơ hội cơ bản 20%
@@ -42,7 +43,7 @@ export function generateTransferOfferService(params: {
     offerChance += 0.15;
   }
 
-  const hasOffer = Math.random() < offerChance;
+  const hasOffer = resolveRandom() < offerChance;
   if (!hasOffer) {
     return { hasOffer: false, offer: null };
   }
@@ -65,8 +66,7 @@ export function generateTransferOfferService(params: {
   }
 
   // Chọn CLB ngẫu nhiên
-  const chosenClub = targetClubs[Math.floor(Math.random() * targetClubs.length)];
-  const league = leagues.find((l) => l.id === chosenClub.leagueId);
+  const chosenClub = targetClubs[resolveRandomInt(0, targetClubs.length - 1)];
 
   return {
     hasOffer: true,
@@ -74,7 +74,7 @@ export function generateTransferOfferService(params: {
       clubId: chosenClub.id,
       clubName: chosenClub.name,
       leagueId: chosenClub.leagueId,
-      leagueName: league?.name ?? "Giải Vô Địch",
+      leagueName: chosenClub.leagueName ?? "Giải Vô Địch",
     },
   };
 }

@@ -2,6 +2,8 @@
 // FICTIONAL NAME POOLS BY NATIONALITY
 // ============================================================
 
+import { resolveRandomInt } from "./wheel-engine/spin-resolver";
+
 const FIRST_NAMES: Record<string, string[]> = {
   England: ["Harry", "John", "Jack", "George", "James", "Thomas", "Charlie", "Oliver", "William", "Daniel"],
   France: ["Pierre", "Jean", "Lucas", "Hugo", "Antoine", "Clément", "Mathieu", "Théo", "Nicolas", "Alexandre"],
@@ -33,8 +35,8 @@ export function generateFictionalName(nationality: string): string {
   const firsts = FIRST_NAMES[nationality] ?? FIRST_NAMES["England"];
   const lasts = LAST_NAMES[nationality] ?? LAST_NAMES["England"];
 
-  const randomFirst = firsts[Math.floor(Math.random() * firsts.length)];
-  const randomLast = lasts[Math.floor(Math.random() * lasts.length)];
+  const randomFirst = firsts[resolveRandomInt(0, firsts.length - 1)];
+  const randomLast = lasts[resolveRandomInt(0, lasts.length - 1)];
 
   return `${randomFirst} ${randomLast}`;
 }

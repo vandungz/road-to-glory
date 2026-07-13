@@ -5,22 +5,15 @@ export interface StatEvolutionItem {
   delta: number;
 }
 
-export interface PlayerStatsInput {
-  pac: number;
-  sho: number;
-  pas: number;
-  dri: number;
-  def: number;
-  phy: number;
-}
+export type PlayerStatsInput = Record<string, number>;
 
 export interface StatsEvolutionResult {
-  nextStats: PlayerStatsInput;
+  nextStats: Record<string, number>;
   nextOvr: number;
 }
 
 export function evolvePlayerStatsService(params: {
-  currentStats: PlayerStatsInput;
+  currentStats: Record<string, number>;
   position: string;
   evolutions: StatEvolutionItem[];
 }): StatsEvolutionResult {
@@ -28,15 +21,13 @@ export function evolvePlayerStatsService(params: {
 
   const nextStats = { ...currentStats };
 
-  // Áp dụng các thay đổi điểm thuộc tính một cách an toàn trên server
   for (const evo of evolutions) {
-    const key = evo.stat.toLowerCase() as keyof PlayerStatsInput;
+    const key = evo.stat.toLowerCase();
     if (key in nextStats) {
       nextStats[key] = Math.min(99, Math.max(10, nextStats[key] + evo.delta));
     }
   }
 
-  // Tính toán lại OVR chuẩn xác từ Backend
   const nextOvr = calculateOvrByPosition(position, nextStats);
 
   return {

@@ -11,13 +11,17 @@
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
+    "@supabase/ssr": "^0.12.0",
+    "@supabase/supabase-js": "^2.110.2",
     "@tanstack/react-query": "^5.101.2",
+    "clsx": "^2.1.1",
     "framer-motion": "^12.42.2",
     "lucide-react": "^1.22.0",
     "next": "15.5.20",
     "pg": "^8.22.0",
     "react": "19.1.0",
     "react-dom": "19.1.0",
+    "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3",
     "zustand": "^5.0.14"
   },

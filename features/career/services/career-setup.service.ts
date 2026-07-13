@@ -1,4 +1,5 @@
 import { generateFictionalName } from "@/lib/name-gen";
+import { resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
 
 export interface DraftDataInput {
   nationality: string;
@@ -9,12 +10,21 @@ export interface DraftDataInput {
   clubName: string;
   leagueId: string;
   leagueName: string;
-  pac: number;
-  sho: number;
-  pas: number;
-  dri: number;
-  def: number;
-  phy: number;
+  position: string;
+  // Field player stats (null when not applicable)
+  pac?: number | null;
+  sho?: number | null;
+  pas?: number | null;
+  dri?: number | null;
+  def?: number | null;
+  phy?: number | null;
+  // GK stats (null when not applicable)
+  div?: number | null;
+  han?: number | null;
+  kic?: number | null;
+  ref?: number | null;
+  spd?: number | null;
+  pos?: number | null;
 }
 
 export interface StintInfo {
@@ -40,7 +50,6 @@ export interface CareerSetupResult {
   playerName: string;
   hiddenStats: {
     luckRating: number;
-    professionalness: number; // Tên biến trong DB là professionalism nhưng DB Schema map Json. Ta dùng professionalism
     professionalism: number;
     personality: string;
   };
@@ -52,14 +61,13 @@ export interface CareerSetupResult {
 
 export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige: number, clubContinentalType: string): CareerSetupResult {
   const playerName = generateFictionalName(draftData.nationality);
-  const luckRating = Math.floor(Math.random() * 20) + 1;
-  const professionalism = Math.floor(Math.random() * 20) + 1;
+  const luckRating = resolveRandomInt(1, 20);
+  const professionalism = resolveRandomInt(1, 20);
   const personalityPool = ["Loyal", "Professional", "Ambitious", "Mercenary", "Temperamental", "Normal"];
-  const personality = personalityPool[Math.floor(Math.random() * professionalism) % personalityPool.length];
-  
+  const personality = personalityPool[resolveRandomInt(0, personalityPool.length - 1)];
+
   const hiddenStats = {
     luckRating,
-    professionalness: professionalism,
     professionalism,
     personality,
   };
@@ -83,14 +91,9 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
     clubId: draftData.clubId,
   };
 
-  const initStats = {
-    pac: draftData.pac,
-    sho: draftData.sho,
-    pas: draftData.pas,
-    dri: draftData.dri,
-    def: draftData.def,
-    phy: draftData.phy,
-  };
+  const initStats: Record<string, number> = draftData.position === "GK"
+    ? { div: draftData.div ?? 60, han: draftData.han ?? 60, kic: draftData.kic ?? 60, ref: draftData.ref ?? 60, spd: draftData.spd ?? 60, pos: draftData.pos ?? 60 }
+    : { pac: draftData.pac ?? 60, sho: draftData.sho ?? 60, pas: draftData.pas ?? 60, dri: draftData.dri ?? 60, def: draftData.def ?? 60, phy: draftData.phy ?? 60 };
 
   const initTimeline = [
     {

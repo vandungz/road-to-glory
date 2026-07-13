@@ -1,6 +1,49 @@
 import type { WeightedItem } from "./spin-resolver";
 
 // ============================================================
+// STAT KEY DEFINITIONS
+// ============================================================
+
+export const FIELD_STAT_KEYS = ["pac", "sho", "pas", "dri", "def", "phy"] as const;
+export const GK_STAT_KEYS    = ["div", "han", "kic", "ref", "spd", "pos"] as const;
+
+export type FieldStatKey = (typeof FIELD_STAT_KEYS)[number];
+export type GKStatKey    = (typeof GK_STAT_KEYS)[number];
+
+export function getStatKeys(position: string): readonly string[] {
+  return position === "GK" ? GK_STAT_KEYS : FIELD_STAT_KEYS;
+}
+
+const GK_STAT_LABELS: Record<GKStatKey, string> = {
+  div: "Diving (DIV)",
+  han: "Handling (HAN)",
+  kic: "Kicking (KIC)",
+  ref: "Reflexes (REF)",
+  spd: "Speed (SPD)",
+  pos: "Positioning (POS)",
+};
+
+const FIELD_STAT_LABELS: Record<FieldStatKey, string> = {
+  pac: "Pace (PAC)",
+  sho: "Shooting (SHO)",
+  pas: "Passing (PAS)",
+  dri: "Dribbling (DRI)",
+  def: "Defending (DEF)",
+  phy: "Physical (PHY)",
+};
+
+export function getStatLabel(position: string, key: string): string {
+  if (position === "GK") return GK_STAT_LABELS[key as GKStatKey] ?? key.toUpperCase();
+  return FIELD_STAT_LABELS[key as FieldStatKey] ?? key.toUpperCase();
+}
+
+export function getDefaultStats(position: string): Record<string, number> {
+  return position === "GK"
+    ? { div: 60, han: 60, kic: 60, ref: 60, spd: 60, pos: 60 }
+    : { pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 };
+}
+
+// ============================================================
 // WEIGHT CONFIGURATIONS (PURE DETERMINISTIC LOGIC)
 // ============================================================
 
@@ -123,15 +166,17 @@ function generateContinuousWeights(min: number, max: number): WeightedItem<numbe
 // 7. Sinh phân phối chỉ số core lúc debut theo vị trí thi đấu thực tế
 export function getDebutStatWeights(position: string, statName: string): WeightedItem<number>[] {
   const stat = statName.toLowerCase();
-  
-  // ── GK (Thủ môn) ──
+
+  // ── GK (Thủ môn) — dùng bộ stats riêng: div/han/kic/ref/spd/pos ──
   if (position === "GK") {
-    if (stat === "def" || stat === "phy") {
-      return generateContinuousWeights(65, 80);
-    } else if (stat === "sho" || stat === "dri") {
-      return generateContinuousWeights(15, 30);
-    } else {
-      return generateContinuousWeights(45, 60);
+    switch (stat) {
+      case "ref": return generateContinuousWeights(65, 82); // Reflexes — quan trọng nhất
+      case "div": return generateContinuousWeights(62, 80); // Diving
+      case "han": return generateContinuousWeights(60, 78); // Handling
+      case "pos": return generateContinuousWeights(60, 78); // Positioning
+      case "kic": return generateContinuousWeights(45, 68); // Kicking — trung bình
+      case "spd": return generateContinuousWeights(40, 65); // Speed — thấp hơn field
+      default:    return generateContinuousWeights(55, 72);
     }
   }
 
@@ -231,40 +276,45 @@ export function getNationalContinentalCup(nationality: string): string {
 }
 
 // 10. Tính toán OVR theo trọng số vị trí thi đấu thực tế (Weighted OVR)
-export function calculateOvrByPosition(position: string, stats: { pac: number; sho: number; pas: number; dri: number; def: number; phy: number }): number {
-  const { pac, sho, pas, dri, def, phy } = stats;
+export function calculateOvrByPosition(position: string, stats: Record<string, number>): number {
   let ovr = 0;
 
   switch (position) {
-    case "GK":
-      ovr = def * 0.60 + phy * 0.30 + pas * 0.10;
+    case "GK": {
+      const { ref = 60, div = 60, han = 60, pos: gkPos = 60, kic = 60, spd = 60 } = stats;
+      ovr = ref * 0.25 + div * 0.25 + han * 0.20 + gkPos * 0.15 + kic * 0.10 + spd * 0.05;
       break;
-    case "CB":
-      ovr = def * 0.45 + phy * 0.35 + pac * 0.15 + pas * 0.05;
-      break;
-    case "LB":
-    case "RB":
-      ovr = pac * 0.30 + def * 0.30 + pas * 0.20 + dri * 0.10 + phy * 0.10;
-      break;
-    case "CDM":
-      ovr = def * 0.35 + phy * 0.30 + pas * 0.20 + dri * 0.10 + pac * 0.05;
-      break;
-    case "CM":
-      ovr = pas * 0.30 + dri * 0.25 + def * 0.15 + phy * 0.15 + sho * 0.10 + pac * 0.05;
-      break;
-    case "CAM":
-      ovr = pas * 0.35 + dri * 0.30 + sho * 0.25 + pac * 0.10;
-      break;
-    case "LW":
-    case "RW":
-      ovr = pac * 0.35 + dri * 0.30 + sho * 0.20 + pas * 0.15;
-      break;
-    case "ST":
-      ovr = sho * 0.45 + pac * 0.25 + dri * 0.15 + phy * 0.10 + pas * 0.05;
-      break;
-    default:
-      // Fallback trung bình cộng
-      ovr = (pac + sho + pas + dri + def + phy) / 6;
+    }
+    default: {
+      const { pac = 60, sho = 60, pas = 60, dri = 60, def = 60, phy = 60 } = stats;
+      switch (position) {
+        case "CB":
+          ovr = def * 0.45 + phy * 0.35 + pac * 0.15 + pas * 0.05;
+          break;
+        case "LB":
+        case "RB":
+          ovr = pac * 0.30 + def * 0.30 + pas * 0.20 + dri * 0.10 + phy * 0.10;
+          break;
+        case "CDM":
+          ovr = def * 0.35 + phy * 0.30 + pas * 0.20 + dri * 0.10 + pac * 0.05;
+          break;
+        case "CM":
+          ovr = pas * 0.30 + dri * 0.25 + def * 0.15 + phy * 0.15 + sho * 0.10 + pac * 0.05;
+          break;
+        case "CAM":
+          ovr = pas * 0.35 + dri * 0.30 + sho * 0.25 + pac * 0.10;
+          break;
+        case "LW":
+        case "RW":
+          ovr = pac * 0.35 + dri * 0.30 + sho * 0.20 + pas * 0.15;
+          break;
+        case "ST":
+          ovr = sho * 0.45 + pac * 0.25 + dri * 0.15 + phy * 0.10 + pas * 0.05;
+          break;
+        default:
+          ovr = (pac + sho + pas + dri + def + phy) / 6;
+      }
+    }
   }
 
   return Math.round(ovr);
