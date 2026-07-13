@@ -1,6 +1,8 @@
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 import { GameList } from "@/features/game/components/GameList";
 import { CreateGameDialog } from "@/features/game/components/CreateGameDialog";
+import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import type { GameSessionSummary } from "@/types/game";
 import { Trophy, Star } from "lucide-react";
 
@@ -10,8 +12,9 @@ export const dynamic = "force-dynamic";
 // DATA FETCHING
 // ============================================================
 
-async function getGameSessions(): Promise<GameSessionSummary[]> {
+async function getGameSessions(userId: string): Promise<GameSessionSummary[]> {
   const sessions = await prisma.gameSession.findMany({
+    where: { userId },
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
@@ -35,7 +38,10 @@ async function getGameSessions(): Promise<GameSessionSummary[]> {
 // ============================================================
 
 export default async function LobbyPage() {
-  const sessions = await getGameSessions();
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  // middleware đảm bảo user tồn tại khi đến đây
+  const sessions = await getGameSessions(user!.id);
 
   return (
     <div
@@ -71,21 +77,24 @@ export default async function LobbyPage() {
             </div>
           </div>
 
-          {/* Info Box */}
-          <div style={{
-            border: "2px solid var(--charcoal)",
-            borderRadius: "3px",
-            padding: "5px 12px",
-            backgroundColor: "var(--white)",
-            boxShadow: "2px 2px 0 var(--charcoal)",
-            textAlign: "right",
-          }}>
-            <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--charcoal)", lineHeight: 1 }}>
-              Classic Lobby
+          {/* Right side */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              border: "2px solid var(--charcoal)",
+              borderRadius: "3px",
+              padding: "5px 12px",
+              backgroundColor: "var(--white)",
+              boxShadow: "2px 2px 0 var(--charcoal)",
+              textAlign: "right",
+            }}>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--charcoal)", lineHeight: 1 }}>
+                Classic Lobby
+              </div>
+              <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
+                Season 2025/26
+              </div>
             </div>
-            <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
-              Season 2025/26
-            </div>
+            <LogoutButton />
           </div>
 
         </div>

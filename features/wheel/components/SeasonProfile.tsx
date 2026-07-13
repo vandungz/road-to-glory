@@ -239,7 +239,7 @@ export function SeasonProfile({
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
                     <strong style={{ color: "var(--charcoal)" }}>
-                      {activeRecord.continentalCup.result === "Winner" ? "🏆 VÔ ĐỊCH" : activeRecord.continentalCup.result === "Runner-Up" ? "Á QUÂN" : activeRecord.continentalCup.result === "Semi-Finals" ? "BÁN KẾT" : activeRecord.continentalCup.result === "Group Stage" ? "VÒNG BẢNG" : activeRecord.continentalCup.result}
+                      {activeRecord.continentalCup.result === "Winner" ? "🏆 VÔ ĐỊCH" : activeRecord.continentalCup.result === "Runner-Up" ? "Á QUÂN" : activeRecord.continentalCup.result === "Semi-Finals" ? "BÁN KẾT" : (activeRecord.continentalCup.result === "Group Stage" || activeRecord.continentalCup.result === "Early Exit") ? "VÒNG BẢNG" : activeRecord.continentalCup.result}
                     </strong>
                     {isContinentalOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
                   </div>

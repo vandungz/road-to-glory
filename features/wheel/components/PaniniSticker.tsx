@@ -89,122 +89,6 @@ export function PaniniSticker({
           <div style={{ position: "absolute", bottom: "10px", left: "10px", fontFamily: "var(--font-headline)", fontSize: "2rem", fontWeight: 700 }}>{currentOvr}</div>
           <div style={{ position: "absolute", top: "10px", left: "10px", fontFamily: "var(--font-stamp)", fontSize: "0.48rem", border: "1px solid rgba(0,0,0,0.15)", padding: "2px 4px", borderRadius: "2px" }}>LIVE STAMP</div>
           
-          {/* HÀNG STAMPS THÀNH TÍCH MÙA GIẢI HIỆN TẠI */}
-          <div style={{
-            position: "absolute",
-            top: "38px",
-            left: "10px",
-            right: "10px",
-            display: "flex",
-            flexWrap: "wrap",
-            gap: "6px",
-            justifyContent: "flex-start",
-            zIndex: 5,
-          }}>
-            {/* 1. Stamp Vé Dự Cúp Châu Lục Đầu Năm */}
-            {currentContinentalCup !== "none" && (
-              <span style={{
-                fontFamily: "var(--font-stamp)",
-                fontSize: "0.42rem",
-                fontWeight: 900,
-                backgroundColor: "var(--charcoal)",
-                color: "var(--white)",
-                padding: "2px 5px",
-                borderRadius: "2px",
-                border: "1px solid var(--white)",
-                boxShadow: "1px 1.5px 0 rgba(0,0,0,0.3)",
-                letterSpacing: "0.05em",
-                textTransform: "uppercase"
-              }} title={`Mùa này tham dự ${getContinentalCupLabel(currentContinentalCup)}`}>
-                🎫 {currentContinentalCup}
-              </span>
-            )}
-
-            {/* 2. Stamp Thứ Hạng League */}
-            {standingResult !== null && (
-              <span style={{
-                fontFamily: "var(--font-headline)",
-                fontSize: "0.55rem",
-                fontWeight: 800,
-                backgroundColor: standingResult === 1 ? "gold" : "var(--white)",
-                color: "var(--charcoal)",
-                padding: "2px 6px",
-                borderRadius: "12px",
-                border: "1px solid var(--charcoal)",
-                boxShadow: "1px 1.5px 0 rgba(0,0,0,0.3)"
-              }}>
-                L: #{standingResult}
-              </span>
-            )}
-
-            {/* 3. Stamp Cup Quốc Gia */}
-            {domesticCupResult !== null && domesticCupResult !== "Early Exit" && (
-              <span style={{
-                fontFamily: "var(--font-headline)",
-                fontSize: "0.52rem",
-                fontWeight: 800,
-                backgroundColor: "var(--white)",
-                color: "var(--charcoal)",
-                padding: "2px 5px",
-                borderRadius: "3px",
-                border: "1px solid var(--charcoal)",
-                boxShadow: "1px 1.5px 0 rgba(0,0,0,0.3)"
-              }}>
-                🏆 Cup: {domesticCupResult === "Winner" ? "Win" : "RU"}
-              </span>
-            )}
-
-            {/* 4. Stamp Continental Cup */}
-            {continentalCupResult !== null && currentContinentalCup !== "none" && continentalCupResult !== "Group Stage" && (
-              <span style={{
-                fontFamily: "var(--font-headline)",
-                fontSize: "0.52rem",
-                fontWeight: 800,
-                backgroundColor: continentalCupResult === "Winner" ? "gold" : "var(--charcoal)",
-                color: continentalCupResult === "Winner" ? "var(--charcoal)" : "var(--white)",
-                padding: "2px 5px",
-                borderRadius: "3px",
-                border: "1px solid var(--charcoal)",
-                boxShadow: "1px 1.5px 0 rgba(0,0,0,0.3)"
-              }}>
-                🌍 {currentContinentalCup}: {continentalCupResult === "Winner" ? "Win" : "SF/RU"}
-              </span>
-            )}
-
-            {/* 5. Stamp ĐTQG */}
-            {nationalCallupResult === "called_up" && (
-              <span style={{
-                fontFamily: "var(--font-stamp)",
-                fontSize: "0.45rem",
-                fontWeight: 900,
-                backgroundColor: "var(--coral)",
-                color: "var(--white)",
-                padding: "2px 5px",
-                borderRadius: "2px",
-                border: "1px solid var(--white)",
-                boxShadow: "1px 1.5px 0 rgba(0,0,0,0.3)"
-              }}>
-                🇸🇬 NT {nationalTournamentResult ? (nationalTournamentResult === "Winner" ? "🏆" : "RU") : "Callup"}
-              </span>
-            )}
-
-            {/* 6. Stamp Ballon d'Or */}
-            {hasBallonDorWinner && (
-              <span style={{
-                fontFamily: "var(--font-headline)",
-                fontSize: "0.5rem",
-                fontWeight: 900,
-                backgroundColor: "gold",
-                color: "var(--charcoal)",
-                padding: "2px 6px",
-                borderRadius: "4px",
-                border: "1.5px solid var(--charcoal)",
-                boxShadow: "1px 1.5px 0 rgba(0,0,0,0.4)"
-              }}>
-                👑 BALLON D'OR
-              </span>
-            )}
-          </div>
 
           <div style={{ width: "66px", height: "80px", borderRadius: "50% 50% 0 0", backgroundColor: "var(--cream-border)" }} />
         </div>
@@ -219,14 +103,24 @@ export function PaniniSticker({
             <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.75rem", fontWeight: 700 }}>MÙA {getSeasonYearString(currentAge, playerDebutAge)} ({currentAge}T)</span>
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", borderBottom: "1px solid var(--cream-border)", padding: "4px 0", textAlign: "center", backgroundColor: "var(--cream-dark)", borderRadius: "3px" }}>
-            {[
-              { label: "PAC", key: "pac", val: currentStats.pac },
-              { label: "SHO", key: "sho", val: currentStats.sho },
-              { label: "PAS", key: "pas", val: currentStats.pas },
-              { label: "DRI", key: "dri", val: currentStats.dri },
-              { label: "DEF", key: "def", val: currentStats.def },
-              { label: "PHY", key: "phy", val: currentStats.phy },
-            ].map((st) => {
+            {(position === "GK"
+              ? [
+                  { label: "DIV", key: "div", val: currentStats.div },
+                  { label: "HAN", key: "han", val: currentStats.han },
+                  { label: "KIC", key: "kic", val: currentStats.kic },
+                  { label: "REF", key: "ref", val: currentStats.ref },
+                  { label: "SPD", key: "spd", val: currentStats.spd },
+                  { label: "POS", key: "pos", val: currentStats.pos },
+                ]
+              : [
+                  { label: "PAC", key: "pac", val: currentStats.pac },
+                  { label: "SHO", key: "sho", val: currentStats.sho },
+                  { label: "PAS", key: "pas", val: currentStats.pas },
+                  { label: "DRI", key: "dri", val: currentStats.dri },
+                  { label: "DEF", key: "def", val: currentStats.def },
+                  { label: "PHY", key: "phy", val: currentStats.phy },
+                ]
+            ).map((st) => {
               const ev = evolvedStatsThisYear.find(e => e.stat === st.key);
               return (
                 <div key={st.label} style={{ display: "flex", flexDirection: "column" }}>

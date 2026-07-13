@@ -1,9 +1,52 @@
 "use server";
 
 import { z } from "zod";
-import { revalidatePath } from "next/cache";
+import { revalidatePath, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
+
+// ── Cup opponents caches (data thay đổi chỉ khi re-seed) ──────────────────
+
+const getCachedDomesticOpponents = unstable_cache(
+  async (country: string) =>
+    prisma.club.findMany({
+      where: { league: { country } },
+      select: { id: true, name: true, prestige: true, leagueId: true, continentalType: true },
+    }),
+  ["domestic-cup-opponents"],
+  { revalidate: 3600 }
+);
+
+const getCachedContinentalOpponents = unstable_cache(
+  async (allowedTypes: string[]) =>
+    prisma.club.findMany({
+      where: { continentalType: { in: allowedTypes } },
+      select: { id: true, name: true, prestige: true, leagueId: true, continentalType: true },
+    }),
+  ["continental-cup-opponents"],
+  { revalidate: 3600 }
+);
+
+const getCachedNationalTeams = unstable_cache(
+  async (confederation: string | undefined) =>
+    prisma.nationalTeam.findMany({
+      where: confederation ? { confederation } : undefined,
+      select: { id: true, name: true, nationality: true, confederation: true, tier: true },
+    }),
+  ["national-teams"],
+  { revalidate: 3600 }
+);
+
+const getCachedClubCountry = unstable_cache(
+  async (clubId: string) =>
+    prisma.club.findUnique({
+      where: { id: clubId },
+      select: { league: { select: { country: true } } },
+    }),
+  ["club-country"],
+  { revalidate: 3600 }
+);
 import { simulatePlayerSeasonService, type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { simulateDynamicLeagueTableService, type TableRow } from "@/features/season/services/table-simulator.service";
 import { startPlayerCareerService, type CareerSetupResult } from "@/features/career/services/career-setup.service";
@@ -25,11 +68,20 @@ interface PlayerUpdateInput {
   clubStints: any[];
   events: any[];
   slotIndex: number;
+  currentContinentalCup?: string;
 }
 
 interface SaveProgressParams {
   gameId: string;
   playersUpdate: PlayerUpdateInput[];
+}
+
+interface SeasonProgressUpdate {
+  playerId: string;
+  statsTimeline: any[];
+  clubStints: any[];
+  events: any[];
+  currentContinentalCup: string;
 }
 
 const simulatePlayerSeasonSchema = z.object({
@@ -61,12 +113,21 @@ const startPlayerCareerSchema = z.object({
   clubName: z.string(),
   leagueId: z.string(),
   leagueName: z.string(),
-  pac: z.number().int(),
-  sho: z.number().int(),
-  pas: z.number().int(),
-  dri: z.number().int(),
-  def: z.number().int(),
-  phy: z.number().int(),
+  position: z.string(),
+  // Field player stats (null for GK, undefined never sent)
+  pac: z.number().int().nullish(),
+  sho: z.number().int().nullish(),
+  pas: z.number().int().nullish(),
+  dri: z.number().int().nullish(),
+  def: z.number().int().nullish(),
+  phy: z.number().int().nullish(),
+  // GK stats (null for field players, undefined never sent)
+  div: z.number().int().nullish(),
+  han: z.number().int().nullish(),
+  kic: z.number().int().nullish(),
+  ref: z.number().int().nullish(),
+  spd: z.number().int().nullish(),
+  pos: z.number().int().nullish(),
 });
 
 const generateTransferOfferSchema = z.object({
@@ -86,18 +147,12 @@ const generateCupJourneySchema = z.object({
   playerClubId: z.string(),
   playerClubPrestige: z.number().int(),
   cupName: z.string().optional(),
+  cupType: z.string().optional(), // e.g. "UCL", "Libertadores" — the game-state cup, not DB club field
   playerNationality: z.string().optional(),
 });
 
 const evolvePlayerStatsSchema = z.object({
-  currentStats: z.object({
-    pac: z.number().int().min(10).max(99),
-    sho: z.number().int().min(10).max(99),
-    pas: z.number().int().min(10).max(99),
-    dri: z.number().int().min(10).max(99),
-    def: z.number().int().min(10).max(99),
-    phy: z.number().int().min(10).max(99),
-  }),
+  currentStats: z.record(z.string(), z.number().int().min(10).max(99)),
   position: z.string(),
   evolutions: z.array(z.object({
     stat: z.string(),
@@ -109,10 +164,21 @@ const evolvePlayerStatsSchema = z.object({
 // SERVER ACTIONS
 // ============================================================
 
+async function verifyGameOwnership(gameId: string): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const session = await prisma.gameSession.findUnique({
+    where: { id: gameId },
+    select: { userId: true },
+  });
+  if (session?.userId !== user.id) throw new Error("Forbidden");
+}
+
 export async function saveSeasonProgress(params: SaveProgressParams) {
   const { gameId, playersUpdate } = params;
-
-  console.log(`[saveSeasonProgress] Saving season progress for game: ${gameId}...`);
+  await verifyGameOwnership(gameId);
 
   await prisma.$transaction(
     playersUpdate.map((player) =>
@@ -123,18 +189,42 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
           clubStints: player.clubStints,
           events: player.events,
           slotIndex: player.slotIndex,
+          currentContinentalCup: player.currentContinentalCup,
         },
       })
     )
   );
 
-  console.log(`[saveSeasonProgress] Successfully saved progression for ${playersUpdate.length} players.`);
-
   revalidatePath(`/${gameId}`);
   redirect(`/${gameId}`);
 }
 
+export async function updateSeasonProgressAction(params: SeasonProgressUpdate): Promise<void> {
+  const { playerId, statsTimeline, clubStints, events, currentContinentalCup } = params;
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const player = await prisma.careerPlayer.findUnique({
+    where: { id: playerId },
+    select: { gameSession: { select: { userId: true } } },
+  });
+  if (player?.gameSession.userId !== user.id) throw new Error("Forbidden");
+
+  await prisma.careerPlayer.update({
+    where: { id: playerId },
+    data: {
+      statsTimeline,
+      clubStints,
+      events,
+      currentContinentalCup,
+    },
+  });
+}
+
 export async function completeGameSession(gameId: string) {
+  await verifyGameOwnership(gameId);
   console.log(`[completeGameSession] Completing game session: ${gameId}...`);
 
   const players = await prisma.careerPlayer.findMany({
@@ -220,12 +310,23 @@ export async function startPlayerCareerAction(input: unknown): Promise<CareerSet
 export async function generateTransferOfferAction(input: unknown): Promise<TransferOfferResult> {
   const validated = generateTransferOfferSchema.parse(input);
 
-  const dbClubs = await prisma.club.findMany({
-    select: { id: true, name: true, leagueId: true, prestige: true },
-  });
+  // Compute prestige range server-side to avoid full table scan (~292 clubs)
+  const expectedPrestige = Math.min(5, Math.max(1, Math.round((validated.currentOvr - 50) / 8)));
+  const minPrestige = Math.max(1, expectedPrestige - 1);
+  const maxPrestige = Math.min(5, expectedPrestige + 1);
 
-  const dbLeagues = await prisma.league.findMany({
-    select: { id: true, name: true },
+  const dbClubs = await prisma.club.findMany({
+    where: {
+      prestige: { gte: minPrestige, lte: maxPrestige },
+      id: { not: validated.currentClubId },
+    },
+    select: {
+      id: true,
+      name: true,
+      leagueId: true,
+      prestige: true,
+      league: { select: { name: true } },
+    },
   });
 
   return generateTransferOfferService({
@@ -237,8 +338,7 @@ export async function generateTransferOfferAction(input: unknown): Promise<Trans
     assists: validated.assists,
     cleanSheets: validated.cleanSheets,
     position: validated.position,
-    clubs: dbClubs,
-    leagues: dbLeagues,
+    clubs: dbClubs.map((c) => ({ ...c, leagueName: c.league?.name })),
   });
 }
 
@@ -246,88 +346,62 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
   const validated = generateCupJourneySchema.parse(input);
 
   if (validated.type === "domestic") {
-    const playerClub = await prisma.club.findUnique({
-      where: { id: validated.playerClubId },
-      select: {
-        league: { select: { country: true } }
-      }
-    });
-
+    const playerClub = await getCachedClubCountry(validated.playerClubId);
     const country = playerClub?.league?.country ?? "England";
-
-    const dbClubs = await prisma.club.findMany({
-      where: {
-        league: { country }
-      },
-      select: {
-        id: true,
-        name: true,
-        prestige: true,
-        leagueId: true,
-        continentalType: true,
-      }
-    });
+    const opponents = await getCachedDomesticOpponents(country);
 
     return generateDomesticCupJourneyService({
       result: validated.result,
       playerClubId: validated.playerClubId,
       playerClubPrestige: validated.playerClubPrestige,
-      opponents: dbClubs,
+      opponents,
     });
-  } 
-  
+  }
+
   if (validated.type === "continental") {
-    // 1. Query lấy continentalType của CLB người chơi
-    const playerClub = await prisma.club.findUnique({
-      where: { id: validated.playerClubId },
-      select: { continentalType: true }
-    });
-
-    const pType = playerClub?.continentalType ?? "none";
-
-    // 2. Phân nhóm các giải đấu châu lục theo confederation địa lý
-    let allowedTypes: string[] = [];
-    if (["UCL", "UEL", "UECL"].includes(pType)) {
+    const cupType = validated.cupType ?? "none";
+    let allowedTypes: string[];
+    if (["UCL", "UEL", "UECL"].includes(cupType)) {
       allowedTypes = ["UCL", "UEL", "UECL"];
-    } else if (pType === "Libertadores") {
+    } else if (cupType === "Libertadores") {
       allowedTypes = ["Libertadores"];
-    } else if (pType === "AFC_CL") {
+    } else if (cupType === "AFC_CL") {
       allowedTypes = ["AFC_CL"];
-    } else if (pType === "CONCACAF_CC") {
+    } else if (cupType === "CONCACAF_CC") {
       allowedTypes = ["CONCACAF_CC"];
-    } else if (pType === "CAF_CL") {
+    } else if (cupType === "CAF_CL") {
       allowedTypes = ["CAF_CL"];
     } else {
-      allowedTypes = pType !== "none" ? [pType] : ["UCL", "UEL", "UECL", "Libertadores", "AFC_CL", "CONCACAF_CC", "CAF_CL"];
+      allowedTypes = ["UCL", "UEL", "UECL"];
     }
 
-    // 3. Query các câu lạc bộ đối thủ thuộc cùng confederation địa lý
-    const dbClubs = await prisma.club.findMany({
-      where: {
-        continentalType: { in: allowedTypes }
-      },
-      select: {
-        id: true,
-        name: true,
-        prestige: true,
-        leagueId: true,
-        continentalType: true,
-      }
-    });
+    const opponents = await getCachedContinentalOpponents(allowedTypes);
 
     return generateContinentalCupJourneyService({
       result: validated.result,
       playerClubId: validated.playerClubId,
       playerClubPrestige: validated.playerClubPrestige,
       cupName: validated.cupName ?? "Champions League",
-      opponents: dbClubs,
+      opponents,
     });
   }
 
+  const tourneyName = validated.cupName ?? "FIFA World Cup";
+  const confederationMap: Record<string, string> = {
+    "UEFA Euro": "UEFA",
+    "Copa América": "CONMEBOL",
+    "AFC Asian Cup": "AFC",
+    "CAF Africa Cup of Nations": "CAF",
+    "CONCACAF Gold Cup": "CONCACAF",
+  };
+  const confederation = confederationMap[tourneyName];
+  const opponents = await getCachedNationalTeams(confederation);
+
   return generateNationalTeamJourneyService({
     result: validated.result,
-    tourneyName: validated.cupName ?? "FIFA World Cup",
-    playerNationality: validated.playerNationality ?? "Vietnam",
+    tourneyName,
+    playerNationality: validated.playerNationality ?? "",
+    opponents,
   });
 }
 

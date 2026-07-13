@@ -3,7 +3,9 @@
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 import { generateFictionalName } from "@/lib/name-gen";
+import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
 
 // ============================================================
 // HELPERS
@@ -22,6 +24,22 @@ function getCardRarity(peak: number): string {
 // SERVER ACTION
 // ============================================================
 
+interface InitCareerParams {
+  gameId: string;
+  slotIndex: number;
+  position: string;
+  name: string;
+  nationality: string;
+  debutAge: number;
+  careerLength: number;
+  debutOvr: number;
+  currentContinentalCup: string;
+  statsTimeline: any[];
+  clubStints: any[];
+  events: any[];
+  hiddenStats: any;
+}
+
 interface SavePlayerParams {
   gameId: string;
   slotIndex: number;
@@ -37,9 +55,73 @@ interface SavePlayerParams {
   events: any[];
   hiddenStats: any;
   achievements?: any;
+  currentContinentalCup?: string;
+}
+
+async function verifyGameOwnership(gameId: string): Promise<string> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const session = await prisma.gameSession.findUnique({
+    where: { id: gameId },
+    select: { userId: true },
+  });
+  if (session?.userId !== user.id) throw new Error("Forbidden");
+
+  return user.id;
+}
+
+export async function initCareerPlayerAction(params: InitCareerParams): Promise<{ id: string }> {
+  await verifyGameOwnership(params.gameId);
+
+  const {
+    gameId, slotIndex, position, name, nationality,
+    debutAge, careerLength, debutOvr, currentContinentalCup,
+    statsTimeline, clubStints, events, hiddenStats,
+  } = params;
+
+  const player = await prisma.careerPlayer.upsert({
+    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+    create: {
+      gameSessionId: gameId,
+      slotIndex,
+      name,
+      nationality,
+      position,
+      height: 175,
+      preferredFoot: "Right",
+      debutAge,
+      retireAge: debutAge + careerLength,
+      careerLengthYears: careerLength,
+      debutOvr,
+      peakOvr: debutOvr,
+      cardRarity: "bronze",
+      currentContinentalCup,
+      statsTimeline,
+      clubStints,
+      events,
+      hiddenStats,
+      achievements: { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+    },
+    update: {
+      name,
+      nationality,
+      currentContinentalCup,
+      statsTimeline,
+      clubStints,
+      events,
+      hiddenStats,
+    },
+    select: { id: true },
+  });
+
+  return { id: player.id };
 }
 
 export async function saveCareerPlayer(params: SavePlayerParams) {
+  await verifyGameOwnership(params.gameId);
+
   const {
     gameId,
     slotIndex,
@@ -57,22 +139,13 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
     achievements,
   } = params;
 
-  // 1. Sinh chiều cao & chân thuận
-  const height = Math.floor(Math.random() * 26) + 170; // 170-195 cm
-  const preferredFoot = Math.random() > 0.8 ? "Left" : "Right";
+  const height = resolveRandomInt(170, 195);
+  const preferredFoot = resolveRandom() > 0.8 ? "Left" : "Right";
   const cardRarity = getCardRarity(peakOvr);
 
-  // 2. Xóa cầu thủ cũ ở slot này (nếu có) để tránh lỗi trùng lặp Unique Index
-  await prisma.careerPlayer.deleteMany({
-    where: {
-      gameSessionId: gameId,
-      slotIndex,
-    },
-  });
-
-  // 3. Lưu vào Database
-  await prisma.careerPlayer.create({
-    data: {
+  await prisma.careerPlayer.upsert({
+    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+    create: {
       gameSessionId: gameId,
       slotIndex,
       name,
@@ -86,11 +159,31 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       debutOvr: statsTimeline[0]?.ovr ?? 60,
       peakOvr,
       cardRarity,
+      currentContinentalCup: params.currentContinentalCup ?? "none",
       statsTimeline,
       clubStints,
       events,
       hiddenStats,
-      achievements: achievements ?? { ballonDor: 0, league: 0, cup: 0, continental: 0, international: 0 },
+      achievements: achievements ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+    },
+    update: {
+      name,
+      nationality,
+      position,
+      height,
+      preferredFoot,
+      debutAge,
+      retireAge,
+      careerLengthYears: careerLength,
+      debutOvr: statsTimeline[0]?.ovr ?? 60,
+      peakOvr,
+      cardRarity,
+      currentContinentalCup: params.currentContinentalCup ?? "none",
+      statsTimeline,
+      clubStints,
+      events,
+      hiddenStats,
+      achievements: achievements ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
     },
   });
 

@@ -16,9 +16,11 @@ interface Props {
   position: string;
   leagues: { id: string; name: string }[];
   clubs: { id: string; name: string; leagueId: string; prestige: number; continentalType: string }[];
+  savedPlayerId?: string;
+  savedContinentalCup?: string;
 }
 
-export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs }: Props) {
+export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup }: Props) {
   const {
     isMounted,
     isSaving,
@@ -80,7 +82,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs }:
     handleSavePlayer,
     STEP_LABELS,
     selectorIndex,
-  } = useDraftDrum(gameId, slotIndex, position, leagues, clubs);
+  } = useDraftDrum(gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup);
 
   if (!isMounted) return null;
 

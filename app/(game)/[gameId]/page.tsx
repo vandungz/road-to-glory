@@ -3,6 +3,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { Trophy } from "lucide-react";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
+import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { SquadDashboard } from "@/features/squad/components/SquadDashboard";
 import { FORMATION_SLOTS } from "@/types/squad";
 import type { ClientSafePlayer } from "@/types/squad";
@@ -38,6 +40,9 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 export default async function SquadBoardPage({ params }: Props) {
   const { gameId } = await params;
 
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
     select: {
@@ -47,6 +52,7 @@ export default async function SquadBoardPage({ params }: Props) {
       createdAt:   true,
       status:      true,
       squadRating: true,
+      userId:      true,
       players: {
         orderBy: { slotIndex: "asc" },
         select: {
@@ -72,6 +78,7 @@ export default async function SquadBoardPage({ params }: Props) {
   });
 
   if (!session) notFound();
+  if (session.userId !== user!.id) notFound();
 
   const formation = (session.formation as Formation) ?? "4-3-3";
   const slots     = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
@@ -116,21 +123,24 @@ export default async function SquadBoardPage({ params }: Props) {
             </div>
           </Link>
 
-          {/* Info Box */}
-          <div style={{
-            border: "2px solid var(--charcoal)",
-            borderRadius: "3px",
-            padding: "5px 12px",
-            backgroundColor: "var(--white)",
-            boxShadow: "2px 2px 0 var(--charcoal)",
-            textAlign: "right",
-          }}>
-            <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--charcoal)", lineHeight: 1 }}>
-              {session.name}
+          {/* Right side */}
+          <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+            <div style={{
+              border: "2px solid var(--charcoal)",
+              borderRadius: "3px",
+              padding: "5px 12px",
+              backgroundColor: "var(--white)",
+              boxShadow: "2px 2px 0 var(--charcoal)",
+              textAlign: "right",
+            }}>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700, letterSpacing: "0.05em", textTransform: "uppercase", color: "var(--charcoal)", lineHeight: 1 }}>
+                {session.name}
+              </div>
+              <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
+                Classic Mode · Formation {formation}
+              </div>
             </div>
-            <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", letterSpacing: "0.06em", textTransform: "uppercase", marginTop: "2px" }}>
-              Classic Mode · Formation {formation}
-            </div>
+            <LogoutButton />
           </div>
 
         </div>

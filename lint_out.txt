@@ -1,0 +1,200 @@
+
+> football-life@0.1.0 lint
+> eslint
+
+
+D:\road-to-glory\actions\player.actions.ts
+   6:10  warning  'generateFictionalName' is defined but never used  @typescript-eslint/no-unused-vars
+  36:18  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  37:15  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  38:11  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  39:16  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  40:18  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\actions\season.actions.ts
+  24:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  26:11  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\app\(game)\[gameId]\page.tsx
+  81:9  warning  'playerMap' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\road-to-glory\app\(game)\page.tsx
+  5:18  warning  'Star' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\road-to-glory\features\career\services\career-setup.service.ts
+  50:17  error    Unexpected any. Specify a different type         @typescript-eslint/no-explicit-any
+  53:69  warning  'clubPrestige' is defined but never used         @typescript-eslint/no-unused-vars
+  53:91  warning  'clubContinentalType' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\road-to-glory\features\game\components\GameList.tsx
+  5:10  warning  'Trophy' is defined but never used  @typescript-eslint/no-unused-vars
+
+D:\road-to-glory\features\player\components\PlayerCareerDialog.tsx
+   19:9   warning  The 'statsTimeline' logical expression could make the dependencies of useMemo Hook (at line 49) change on every render. To fix this, wrap the initialization of 'statsTimeline' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   19:9   warning  The 'statsTimeline' logical expression could make the dependencies of useMemo Hook (at line 79) change on every render. To fix this, wrap the initialization of 'statsTimeline' in its own useMemo() Hook  react-hooks/exhaustive-deps
+   20:9   warning  The 'events' logical expression could make the dependencies of useMemo Hook (at line 79) change on every render. To fix this, wrap the initialization of 'events' in its own useMemo() Hook                react-hooks/exhaustive-deps
+   21:9   warning  The 'clubStints' logical expression could make the dependencies of useMemo Hook (at line 56) change on every render. To fix this, wrap the initialization of 'clubStints' in its own useMemo() Hook        react-hooks/exhaustive-deps
+   21:9   warning  The 'clubStints' logical expression could make the dependencies of useMemo Hook (at line 79) change on every render. To fix this, wrap the initialization of 'clubStints' in its own useMemo() Hook        react-hooks/exhaustive-deps
+   35:34  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   62:43  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   63:44  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   66:42  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   85:44  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+   90:35  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  116:28  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  125:46  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  132:46  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  168:6   warning  React Hook useMemo has missing dependencies: 'clubStints' and 'player?.nationality'. Either include them or remove the dependency array                                                                    react-hooks/exhaustive-deps
+  362:56  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+  467:52  error    Unexpected any. Specify a different type                                                                                                                                                                   @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\player\components\PlayerOvrChart.tsx
+    6:18  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+   16:3   warning  'peakOvr' is defined but never used       @typescript-eslint/no-unused-vars
+   32:40  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  109:16  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:17  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  110:25  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  114:76  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  147:25  error    Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\season\services\cup-journey.service.ts
+  129:11  warning  'opp' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\road-to-glory\features\season\services\season-simulator.service.ts
+  33:5  warning  'clubName' is assigned a value but never used    @typescript-eslint/no-unused-vars
+  34:5  warning  'leagueName' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+D:\road-to-glory\features\wheel\components\CareerActionsPanel.tsx
+    3:10  warning  'Dices' is defined but never used                                @typescript-eslint/no-unused-vars
+    3:24  warning  'Sparkles' is defined but never used                             @typescript-eslint/no-unused-vars
+   11:16  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   14:21  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   20:18  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   22:18  error    Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+   52:3   warning  'continentalCupResult' is defined but never used                 @typescript-eslint/no-unused-vars
+   55:3   warning  'position' is defined but never used                             @typescript-eslint/no-unused-vars
+  188:47  error    `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\road-to-glory\features\wheel\components\PaniniSticker.tsx
+  204:28  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\road-to-glory\features\wheel\components\RetiredStage.tsx
+  12:15   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  13:11   error  Unexpected any. Specify a different type                         @typescript-eslint/no-explicit-any
+  94:163  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+D:\road-to-glory\features\wheel\components\SeasonProfile.tsx
+    6:33  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  172:59  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\components\SetupStage.tsx
+  10:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  16:14  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\components\SpinnerWheel.tsx
+  12:10  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\components\TimelineHistory.tsx
+  4:62  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\hooks\useCareerStats.ts
+    8:10  warning  'generateFictionalName' is defined but never used  @typescript-eslint/no-unused-vars
+   25:50  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   26:54  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   27:48  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   28:40  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   29:52  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+   46:50  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  138:41  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  138:59  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  138:71  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  180:46  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  310:28  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  375:67  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  396:20  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  397:12  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  398:31  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+  399:30  error    Unexpected any. Specify a different type           @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\hooks\useCareerWheelItems.ts
+  14:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  19:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  38:84  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  43:40  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\hooks\useDraftDrum.ts
+    6:37  warning  'getNationalTier' is defined but never used                                                                                                   @typescript-eslint/no-unused-vars
+    8:3   warning  'calculateContinentalQualification' is defined but never used                                                                                 @typescript-eslint/no-unused-vars
+   10:3   warning  'getSeasonYearString' is defined but never used                                                                                               @typescript-eslint/no-unused-vars
+   24:15  warning  'SeasonRecord' is defined but never used                                                                                                      @typescript-eslint/no-unused-vars
+   30:12  error    Unexpected any. Specify a different type                                                                                                      @typescript-eslint/no-explicit-any
+   31:10  error    Unexpected any. Specify a different type                                                                                                      @typescript-eslint/no-explicit-any
+  105:49  error    Unexpected any. Specify a different type                                                                                                      @typescript-eslint/no-explicit-any
+  141:6   warning  React Hook useEffect has missing dependencies: 'setSelectedAgeForStats' and 'statsProps'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  215:51  error    Unexpected any. Specify a different type                                                                                                      @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\hooks\useSetupStage.ts
+   18:12  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+   19:10  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+   25:72  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+   44:40  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+  102:6   warning  React Hook useEffect has a missing dependency: 'filteredClubs'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+  108:17  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+  188:16  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+  192:31  error    Unexpected any. Specify a different type                                                                          @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\lib\career-wheel-resolver.ts
+  13:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  14:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  15:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  25:15  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\features\wheel\stores\useWheelUiStore.ts
+  32:38  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\lib\name-gen.ts
+  36:41  error  Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+  37:39  error  Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+
+D:\road-to-glory\lib\simulation-engine\match-simulator.ts
+   29:11  warning  'age' is assigned a value but never used                                                                                         @typescript-eslint/no-unused-vars
+   29:57  warning  'clubName' is assigned a value but never used                                                                                    @typescript-eslint/no-unused-vars
+   29:67  warning  'leagueName' is assigned a value but never used                                                                                  @typescript-eslint/no-unused-vars
+   41:35  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   53:15  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   55:78  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   57:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   57:57  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   58:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   58:59  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   60:78  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   62:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   62:57  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   63:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   65:78  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   67:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   68:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   70:78  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   72:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   73:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   75:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   76:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   78:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   79:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   81:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+   82:27  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+  107:25  error    Math.random() bị cấm. Dùng resolveWeightedOutcome() từ lib/wheel-engine/spin-resolver.ts để đảm bảo randomness có thể test được  no-restricted-syntax
+
+D:\road-to-glory\types\game.ts
+  58:17  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+D:\road-to-glory\types\squad.ts
+  78:19  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  79:12  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  80:16  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+  81:18  error  Unexpected any. Specify a different type  @typescript-eslint/no-explicit-any
+
+✖ 139 problems (109 errors, 30 warnings)
+

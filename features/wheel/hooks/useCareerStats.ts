@@ -2,9 +2,9 @@
 
 import { useState, useMemo } from "react";
 import { type SeasonRecord } from "@/types/game";
-import { type SimulatedSeasonResult } from "@/lib/simulation-engine/match-simulator";
+import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { saveCareerPlayer } from "@/actions/player.actions";
-import { getNationalContinentalCup, getNationalTier } from "@/lib/wheel-engine/weight-calculator";
+import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { generateFictionalName } from "@/lib/name-gen";
 import {
   calculateContinentalQualification,
@@ -40,11 +40,14 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
   const [currentAge, setCurrentAge] = useState<number>(18);
   const [currentOvr, setCurrentOvr] = useState<number>(60);
-  const [currentStats, setCurrentStats] = useState<Record<string, number>>({
-    pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60
-  });
+  const [currentStats, setCurrentStats] = useState<Record<string, number>>(
+    position === "GK"
+      ? { div: 60, han: 60, kic: 60, ref: 60, spd: 60, pos: 60 }
+      : { pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 }
+  );
   const [currentClub, setCurrentClub] = useState<any>(null);
 
+  const [playerId, setPlayerId] = useState<string | null>(null);
   const [currentContinentalCup, setCurrentContinentalCup] = useState<string>("none");
   const [lastYearStanding, setLastYearStanding] = useState<number>(10);
 
@@ -101,6 +104,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         events: finalEvents,
         hiddenStats,
         achievements,
+        currentContinentalCup,
       });
     } catch (err) {
       console.error("Save player error:", err);
@@ -175,7 +179,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     nationalTournamentResult: string | null,
     yearSimResult: SimulatedSeasonResult | null,
     hasBallonDorWinner: boolean
-  ): boolean {
+  ): { isRetire: boolean; nextContinentalCup: string } {
     const nextAge = currentAge + 1;
     const actualStint = clubStints.find((st: any) => currentAge >= st.startAge && currentAge <= st.endAge) 
       || clubStints[clubStints.length - 1];
@@ -301,9 +305,17 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       ]);
     }
 
+    let nextContinentalCup = currentContinentalCup;
     if (standingResult !== null) {
-      const nextYearCup = calculateContinentalQualification(currentClub.leagueId, standingResult);
-      setCurrentContinentalCup(nextYearCup);
+      // Dùng leagueId của stint bao phủ currentAge (không phải currentClub.leagueId vì club có thể đã đổi sau transfer)
+      const thisSeasonLeagueId = actualStint?.leagueId ?? currentClub.leagueId;
+      nextContinentalCup = calculateContinentalQualification(
+        thisSeasonLeagueId,
+        standingResult,
+        continentalCupResult,
+        currentContinentalCup,
+      );
+      setCurrentContinentalCup(nextContinentalCup);
       setLastYearStanding(standingResult);
     }
 
@@ -365,28 +377,17 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
     const retireAge = playerDebutAge + playerCareerLength;
     if (nextAge >= retireAge) {
-      return true; // Retire!
+      return { isRetire: true, nextContinentalCup };
     } else {
       setCurrentAge(nextAge);
-      return false; // Continue!
+      return { isRetire: false, nextContinentalCup };
     }
   }
 
   function checkNationalCallupTransition(setCareerSubStep: (step: any) => void) {
     if (currentAge % 2 === 0) {
-      const tier = getNationalTier(playerNationality);
-      const threshold = tier === 1 ? 80 : tier === 2 ? 75 : 70;
-
-      if (currentOvr >= threshold) {
-        setCareerSubStep("national_callup");
-        return;
-      } else {
-        setSeasonRecords((prev) => {
-          const rec = { ...prev[currentAge] };
-          if (rec.nationalTeam) rec.nationalTeam.callup = "Không đủ OVR triệu tập";
-          return { ...prev, [currentAge]: rec };
-        });
-      }
+      setCareerSubStep("national_callup");
+      return;
     }
     setCareerSubStep("dir_increase");
   }
@@ -450,6 +451,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   return {
     isSaving,
     setIsSaving,
+    playerId,
+    setPlayerId,
     playerName,
     setPlayerName,
     hiddenStats,

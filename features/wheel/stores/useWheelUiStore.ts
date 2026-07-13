@@ -8,12 +8,20 @@ import { calculateOvrByPosition } from "@/lib/wheel-engine/weight-calculator";
 export interface DraftData {
   nationality: string | null;
   debutAge: number | null;
+  // Field player stats
   pac: number | null;
   sho: number | null;
   pas: number | null;
   dri: number | null;
   def: number | null;
   phy: number | null;
+  // GK stats
+  div: number | null;
+  han: number | null;
+  kic: number | null;
+  ref: number | null;
+  spd: number | null;
+  pos: number | null;
   debutOvr: number | null;
   careerLength: number | null;
   leagueId: string | null;
@@ -40,12 +48,8 @@ interface WheelUiState {
 const initialDraftData: DraftData = {
   nationality: null,
   debutAge: null,
-  pac: null,
-  sho: null,
-  pas: null,
-  dri: null,
-  def: null,
-  phy: null,
+  pac: null, sho: null, pas: null, dri: null, def: null, phy: null,
+  div: null, han: null, kic: null, ref: null, spd: null, pos: null,
   debutOvr: null,
   careerLength: null,
   leagueId: null,
@@ -81,43 +85,51 @@ export const useWheelUiStore = create<WheelUiState>((set) => ({
           updatedData.debutAge = value as number;
           break;
         case 2:
-          updatedData.pac = value as number;
+          if (position === "GK") updatedData.div = value as number;
+          else updatedData.pac = value as number;
           break;
         case 3:
-          updatedData.sho = value as number;
+          if (position === "GK") updatedData.han = value as number;
+          else updatedData.sho = value as number;
           break;
         case 4:
-          updatedData.pas = value as number;
+          if (position === "GK") updatedData.kic = value as number;
+          else updatedData.pas = value as number;
           break;
         case 5:
-          updatedData.dri = value as number;
+          if (position === "GK") updatedData.ref = value as number;
+          else updatedData.dri = value as number;
           break;
         case 6:
-          updatedData.def = value as number;
+          if (position === "GK") updatedData.spd = value as number;
+          else updatedData.def = value as number;
           break;
         case 7:
-          updatedData.phy = value as number;
-          // Tự động tính debutOvr có trọng số theo vị trí thi đấu thực tế
-          if (position) {
-            updatedData.debutOvr = calculateOvrByPosition(position, {
-              pac: updatedData.pac ?? 60,
-              sho: updatedData.sho ?? 60,
-              pas: updatedData.pas ?? 60,
-              dri: updatedData.dri ?? 60,
-              def: updatedData.def ?? 60,
-              phy: value as number,
+          if (position === "GK") {
+            updatedData.pos = value as number;
+            updatedData.debutOvr = calculateOvrByPosition("GK", {
+              div: updatedData.div ?? 60,
+              han: updatedData.han ?? 60,
+              kic: updatedData.kic ?? 60,
+              ref: updatedData.ref ?? 60,
+              spd: updatedData.spd ?? 60,
+              pos: value as number,
             });
           } else {
-            // Fallback trung bình cộng nếu không có vị trí
-            const stats = [
-              updatedData.pac ?? 0,
-              updatedData.sho ?? 0,
-              updatedData.pas ?? 0,
-              updatedData.dri ?? 0,
-              updatedData.def ?? 0,
-              value as number,
-            ];
-            updatedData.debutOvr = Math.round(stats.reduce((a, b) => a + b, 0) / 6);
+            updatedData.phy = value as number;
+            if (position) {
+              updatedData.debutOvr = calculateOvrByPosition(position, {
+                pac: updatedData.pac ?? 60,
+                sho: updatedData.sho ?? 60,
+                pas: updatedData.pas ?? 60,
+                dri: updatedData.dri ?? 60,
+                def: updatedData.def ?? 60,
+                phy: value as number,
+              });
+            } else {
+              const vals = [updatedData.pac ?? 0, updatedData.sho ?? 0, updatedData.pas ?? 0, updatedData.dri ?? 0, updatedData.def ?? 0, value as number];
+              updatedData.debutOvr = Math.round(vals.reduce((a, b) => a + b, 0) / 6);
+            }
           }
           break;
         case 8:

@@ -73,14 +73,23 @@ export function useCareerWheelItems({
         ];
         break;
       case "selector":
-        const coreStats = [
-          { key: "pac", name: "Pace (PAC)" },
-          { key: "sho", name: "Shooting (SHO)" },
-          { key: "pas", name: "Passing (PAS)" },
-          { key: "dri", name: "Dribbling (DRI)" },
-          { key: "def", name: "Defending (DEF)" },
-          { key: "phy", name: "Physical (PHY)" },
-        ];
+        const coreStats = position === "GK"
+          ? [
+              { key: "div", name: "Diving (DIV)" },
+              { key: "han", name: "Handling (HAN)" },
+              { key: "kic", name: "Kicking (KIC)" },
+              { key: "ref", name: "Reflexes (REF)" },
+              { key: "spd", name: "Speed (SPD)" },
+              { key: "pos", name: "Positioning (POS)" },
+            ]
+          : [
+              { key: "pac", name: "Pace (PAC)" },
+              { key: "sho", name: "Shooting (SHO)" },
+              { key: "pas", name: "Passing (PAS)" },
+              { key: "dri", name: "Dribbling (DRI)" },
+              { key: "def", name: "Defending (DEF)" },
+              { key: "phy", name: "Physical (PHY)" },
+            ];
         const currentSelectedList = selectorIndex === 0 ? [] : selectedStatsList;
         const available = coreStats.filter(c => !currentSelectedList.includes(c.key));
         items = available.map(c => ({

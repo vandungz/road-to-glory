@@ -1,10 +1,23 @@
 // features/wheel/lib/simulation-helpers.ts
 
-export function calculateContinentalQualification(leagueId: string, standing: number): string {
+export function calculateContinentalQualification(
+  leagueId: string,
+  standing: number,
+  continentalCupResult?: string | null,
+  currentContinentalCup?: string,
+): string {
   if (!leagueId) return "none";
-  
+
+  // Vô địch cúp châu lục → tự động có vé mùa sau (bất kể hạng mấy)
+  if (continentalCupResult === "Winner" && currentContinentalCup && currentContinentalCup !== "none") {
+    // UEFA pathway: thắng UEL → UCL, thắng UECL → UEL
+    if (currentContinentalCup === "UEL") return "UCL";
+    if (currentContinentalCup === "UECL") return "UEL";
+    return currentContinentalCup;
+  }
+
   const id = leagueId.toUpperCase();
-  
+
   // 1. Nhóm giải siêu cấp châu Âu (Top 4 leagues: Anh, Tây Ban Nha, Đức, Ý)
   if (["ENG1", "ESP1", "GER1", "ITA1"].includes(id)) {
     if (standing <= 4) return "UCL";
@@ -46,7 +59,12 @@ export function calculateContinentalQualification(leagueId: string, standing: nu
   if (["USA1", "MEX1"].includes(id)) {
     if (standing <= 3) return "CONCACAF_CC";
   }
-  
+
+  // 7. Nhóm Châu Phi (Egypt, South Africa...)
+  if (["EGY1", "RSA1"].includes(id)) {
+    if (standing <= 2) return "CAF_CL";
+  }
+
   return "none";
 }
 

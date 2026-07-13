@@ -56,22 +56,22 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
         }));
         break;
       case 2:
-        items = getDebutStatWeights(position, "pac").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "div" : "pac").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 3:
-        items = getDebutStatWeights(position, "sho").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "han" : "sho").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 4:
-        items = getDebutStatWeights(position, "pas").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "kic" : "pas").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 5:
-        items = getDebutStatWeights(position, "dri").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "ref" : "dri").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 6:
-        items = getDebutStatWeights(position, "def").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "spd" : "def").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 7:
-        items = getDebutStatWeights(position, "phy").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "pos" : "phy").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 8:
         items = CAREER_LENGTH_POOL.map((x) => ({
@@ -119,42 +119,17 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
         idx = DEBUT_AGE_POOL.findIndex((x) => x.value === result);
         setTempValue(`${result} Tuổi`);
         break;
-      case 2:
-        const pacWeights = getDebutStatWeights(position, "pac");
-        result = resolveWeightedOutcome(pacWeights);
-        idx = pacWeights.findIndex((x) => x.value === result);
+      case 2: case 3: case 4: case 5: case 6: case 7: {
+        const statKeyMap = position === "GK"
+          ? ["div", "han", "kic", "ref", "spd", "pos"]
+          : ["pac", "sho", "pas", "dri", "def", "phy"];
+        const statKey = statKeyMap[activeStep - 2];
+        const statWeights = getDebutStatWeights(position, statKey);
+        result = resolveWeightedOutcome(statWeights);
+        idx = statWeights.findIndex((x) => x.value === result);
         setTempValue(`${result}`);
         break;
-      case 3:
-        const shoWeights = getDebutStatWeights(position, "sho");
-        result = resolveWeightedOutcome(shoWeights);
-        idx = shoWeights.findIndex((x) => x.value === result);
-        setTempValue(`${result}`);
-        break;
-      case 4:
-        const pasWeights = getDebutStatWeights(position, "pas");
-        result = resolveWeightedOutcome(pasWeights);
-        idx = pasWeights.findIndex((x) => x.value === result);
-        setTempValue(`${result}`);
-        break;
-      case 5:
-        const driWeights = getDebutStatWeights(position, "dri");
-        result = resolveWeightedOutcome(driWeights);
-        idx = driWeights.findIndex((x) => x.value === result);
-        setTempValue(`${result}`);
-        break;
-      case 6:
-        const defWeights = getDebutStatWeights(position, "def");
-        result = resolveWeightedOutcome(defWeights);
-        idx = defWeights.findIndex((x) => x.value === result);
-        setTempValue(`${result}`);
-        break;
-      case 7:
-        const phyWeights = getDebutStatWeights(position, "phy");
-        result = resolveWeightedOutcome(phyWeights);
-        idx = phyWeights.findIndex((x) => x.value === result);
-        setTempValue(`${result}`);
-        break;
+      }
       case 8:
         result = resolveWeightedOutcome(CAREER_LENGTH_POOL);
         idx = CAREER_LENGTH_POOL.findIndex((x) => x.value === result);

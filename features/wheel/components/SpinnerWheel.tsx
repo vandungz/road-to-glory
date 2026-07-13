@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useAnimation } from "framer-motion";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 
 // ============================================================
 // PROPS
@@ -43,30 +43,29 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete }:
   const N = items.length;
   const sliceAngle = 360 / N;
 
+  // Ref pattern: keeps callback fresh without adding it to animation deps.
+  // Adding onSpinComplete to the animation effect deps would restart the animation
+  // mid-spin whenever the parent re-renders (e.g. from a server action resolving early).
+  const onSpinCompleteRef = useRef(onSpinComplete);
+  useEffect(() => { onSpinCompleteRef.current = onSpinComplete; });
+
   useEffect(() => {
     if (isSpinning && targetIndex >= 0) {
-      // 1. Tính toán góc quay
-      // Múi targetIndex có góc trung tâm là: targetIndex * sliceAngle + sliceAngle / 2
-      // Để xoay múi này về vị trí kim chỉ bên phải (0 độ):
-      // Góc xoay cần thiết = (450 - targetMiddleAngle) % 360
       const targetMiddleAngle = targetIndex * sliceAngle + sliceAngle / 2;
       const rotationToTarget = (450 - targetMiddleAngle) % 360;
-      
-      // Quay 6 vòng (2160 độ) để tạo quán tính mượt mà
       const finalRotation = 2160 + rotationToTarget;
 
-      // 2. Chạy animation
       controls.start({
         rotate: [0, finalRotation],
         transition: {
           duration: 3.5,
-          ease: [0.12, 0, 0.39, 1], // ease-out chậm dần mượt mà
+          ease: [0.12, 0, 0.39, 1],
         },
       }).then(() => {
-        onSpinComplete();
+        onSpinCompleteRef.current();
       });
     }
-  }, [isSpinning, targetIndex, controls, N, sliceAngle, onSpinComplete]);
+  }, [isSpinning, targetIndex, controls, N, sliceAngle]);
 
   return (
     <div style={{ position: "relative", width: "100%", maxWidth: "340px", aspectRatio: "1 / 1", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>

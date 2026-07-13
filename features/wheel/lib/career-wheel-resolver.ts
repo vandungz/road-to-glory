@@ -2,10 +2,12 @@
 
 import { resolveWeightedOutcome } from "@/lib/wheel-engine/spin-resolver";
 import { getNationalTier, getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
+import { getFlagEmoji } from "@/types/squad";
 import { getStandingWheelPool, getContinentalCupLabel } from "./simulation-helpers";
 
 interface CareerWheelContext {
   currentAge: number;
+  playerDebutAge: number;
   currentOvr: number;
   position: string;
   yearSimResult: any;
@@ -96,21 +98,32 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     tempValue = `${result} Chỉ Số`;
   }
   else if (subStep === "selector") {
-    const coreStats = [
-      { key: "pac", name: "Pace (PAC)" },
-      { key: "sho", name: "Shooting (SHO)" },
-      { key: "pas", name: "Passing (PAS)" },
-      { key: "dri", name: "Dribbling (DRI)" },
-      { key: "def", name: "Defending (DEF)" },
-      { key: "phy", name: "Physical (PHY)" },
-    ];
+    const coreStats = ctx.position === "GK"
+      ? [
+          { key: "div", name: "Diving (DIV)" },
+          { key: "han", name: "Handling (HAN)" },
+          { key: "kic", name: "Kicking (KIC)" },
+          { key: "ref", name: "Reflexes (REF)" },
+          { key: "spd", name: "Speed (SPD)" },
+          { key: "pos", name: "Positioning (POS)" },
+        ]
+      : [
+          { key: "pac", name: "Pace (PAC)" },
+          { key: "sho", name: "Shooting (SHO)" },
+          { key: "pas", name: "Passing (PAS)" },
+          { key: "dri", name: "Dribbling (DRI)" },
+          { key: "def", name: "Defending (DEF)" },
+          { key: "phy", name: "Physical (PHY)" },
+        ];
     const currentSelectedList = ctx.selectorIndex === 0 ? [] : ctx.selectedStatsList;
     const available = coreStats.filter(c => !currentSelectedList.includes(c.key));
     const pool = available.map(c => {
       let w = 10;
-      if (["ST", "LW", "RW"].includes(ctx.position)) {
+      if (ctx.position === "GK") {
+        if (["ref", "div"].includes(c.key)) w = 25;
+      } else if (["ST", "LW", "RW"].includes(ctx.position)) {
         if (["sho", "pac", "dri"].includes(c.key)) w = 25;
-      } else if (["CB", "LB", "RB", "GK"].includes(ctx.position)) {
+      } else if (["CB", "LB", "RB"].includes(ctx.position)) {
         if (["def", "phy"].includes(c.key)) w = 25;
       } else {
         if (["pas", "dri"].includes(c.key)) w = 25;
@@ -243,24 +256,27 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   }
   else if (subStep === "national_callup") {
     const tier = getNationalTier(ctx.playerNationality);
-    const threshold = tier === 1 ? 80 : tier === 2 ? 75 : 70;
-    
-    let wCall = 50, wMiss = 50;
-    if (ctx.currentOvr >= threshold + 5) {
-      wCall = 85; wMiss = 15;
-    }
+    // midOvr = điểm "trung bình" của tier, không phải hard gate
+    // OVR cao hơn midOvr → xác suất được gọi tăng dần, thấp hơn → giảm dần
+    const midOvr = tier === 1 ? 80 : tier === 2 ? 75 : 70;
+    const ovrDiff = ctx.currentOvr - midOvr; // âm = dưới mức trung bình, dương = trên
+
+    // Mỗi điểm OVR trên/dưới mid → +/-2 weight, clamp [5, 90]
+    let wCall = Math.max(5, Math.min(90, 50 + ovrDiff * 2));
+
     if (ctx.yearSimResult) {
-      if (ctx.yearSimResult.matchRating >= 7.40) wCall += 20;
-      else if (ctx.yearSimResult.matchRating <= 6.50) wCall -= 35;
+      if (ctx.yearSimResult.matchRating >= 7.40) wCall = Math.min(90, wCall + 20);
+      else if (ctx.yearSimResult.matchRating <= 6.50) wCall = Math.max(5, wCall - 20);
     }
+    const wMiss = Math.max(5, 100 - wCall);
 
     const pool = [
-      { value: "called_up", weight: Math.max(5, wCall) },
-      { value: "missed", weight: Math.max(5, wMiss) },
+      { value: "called_up", weight: wCall },
+      { value: "missed", weight: wMiss },
     ];
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
-    tempValue = result === "called_up" ? "ĐƯỢC TRIỆU TẬP ĐTQG! 🇸🇬" : "Không được gọi";
+    tempValue = result === "called_up" ? `ĐƯỢC TRIỆU TẬP ĐTQG! ${getFlagEmoji(ctx.playerNationality)}` : "Không được gọi";
   }
   else if (subStep === "national_tournament") {
     const luck = ctx.hiddenStats?.luckRating ?? 10;
@@ -281,7 +297,8 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     idx = pool.findIndex((x) => x.value === result);
     
     const nationCup = getNationalContinentalCup(ctx.playerNationality);
-    const tourney = ctx.currentAge % 4 === 0 ? "FIFA World Cup" : nationCup;
+    const currentYear = 2026 + (ctx.currentAge - ctx.playerDebutAge);
+    const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
     tempValue = result === "Winner" ? `VÔ ĐỊCH ${tourney}! 🏆` : result === "Runner-Up" ? `Á Quân ${tourney}` : result === "Semi-Finals" ? `Bán Kết ${tourney}` : `Vòng Bảng ${tourney}`;
   }
 

@@ -120,14 +120,24 @@ export function SetupStage({
                 <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.75rem", fontWeight: 700 }}>{draftData.debutAge ? `${draftData.debutAge} TUỔI` : "—"}</span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", borderBottom: "1px solid var(--cream-border)", padding: "4px 0", textAlign: "center", backgroundColor: "var(--cream-dark)", borderRadius: "3px" }}>
-                {[
-                  { label: "PAC", val: draftData.pac },
-                  { label: "SHO", val: draftData.sho },
-                  { label: "PAS", val: draftData.pas },
-                  { label: "DRI", val: draftData.dri },
-                  { label: "DEF", val: draftData.def },
-                  { label: "PHY", val: draftData.phy },
-                ].map((st) => (
+                {(position === "GK"
+                  ? [
+                      { label: "DIV", val: draftData.div },
+                      { label: "HAN", val: draftData.han },
+                      { label: "KIC", val: draftData.kic },
+                      { label: "REF", val: draftData.ref },
+                      { label: "SPD", val: draftData.spd },
+                      { label: "POS", val: draftData.pos },
+                    ]
+                  : [
+                      { label: "PAC", val: draftData.pac },
+                      { label: "SHO", val: draftData.sho },
+                      { label: "PAS", val: draftData.pas },
+                      { label: "DRI", val: draftData.dri },
+                      { label: "DEF", val: draftData.def },
+                      { label: "PHY", val: draftData.phy },
+                    ]
+                ).map((st) => (
                   <div key={st.label} style={{ display: "flex", flexDirection: "column" }}>
                     <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>{st.label}</span>
                     <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.78rem", fontWeight: 700 }}>{st.val !== null ? st.val : "—"}</span>

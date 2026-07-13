@@ -45,6 +45,7 @@ model CareerPlayer {
   debutOvr          Int
   peakOvr           Int
   cardRarity        String      // bronze, silver, gold, rare_gold, epic, legendary
+  currentContinentalCup String @default("none") // "UCL" | "UEL" | "UECL" | "Libertadores" | "AFC_CL" | "CONCACAF_CC" | "CAF_CL" | "none"
 
   // Timelines & Logs (Stored as JSON)
   statsTimeline     Json        // Array of StatsSnapshot: { age, ovr, pac, sho, pas, dri, def, phy, ... }
@@ -66,6 +67,16 @@ model League {
   clubs     Club[]
 
   @@map("leagues")
+}
+
+model NationalTeam {
+  id            String @id // e.g., "england", "france"
+  name          String // Tên hiển thị tiếng Việt: "Anh", "Pháp"
+  nationality   String @unique // Key tiếng Anh khớp với CareerPlayer.nationality
+  confederation String // "UEFA" | "CONMEBOL" | "AFC" | "CAF" | "CONCACAF"
+  tier          Int    // 1 = Tier 1, 2 = Tier 2, 3 = Tier 3
+
+  @@map("national_teams")
 }
 
 model Club {

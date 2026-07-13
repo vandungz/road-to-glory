@@ -1,9 +1,30 @@
 import { notFound } from "next/navigation";
+import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
+import { createClient } from "@/lib/supabase/server";
 import { FORMATION_SLOTS } from "@/types/squad";
 import type { Formation } from "@/types/game";
 import { DraftDrumScreen } from "@/features/wheel/components/DraftDrumScreen";
+
+// Clubs & leagues không đổi thường xuyên — cache 1 giờ, revalidate khi có seed mới
+const getCachedLeaguesAndClubs = unstable_cache(
+  async () => {
+    const [leagues, clubs] = await Promise.all([
+      prisma.league.findMany({
+        select: { id: true, name: true, country: true, prestige: true },
+        orderBy: { name: "asc" },
+      }),
+      prisma.club.findMany({
+        select: { id: true, name: true, leagueId: true, prestige: true, continentalType: true },
+        orderBy: { name: "asc" },
+      }),
+    ]);
+    return { leagues, clubs };
+  },
+  ["leagues-clubs-pool"],
+  { revalidate: 3600 }
+);
 
 interface Props {
   params: Promise<{ gameId: string; slotIndex: string }>;
@@ -20,27 +41,29 @@ export default async function DraftSlotPage({ params }: Props) {
 
   if (isNaN(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
 
-  // 1. Fetch game session
+  // 1. Fetch game session + verify ownership
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
-    select: { id: true, name: true, formation: true },
+    select: { id: true, name: true, formation: true, userId: true },
   });
   if (!session) notFound();
+  if (session.userId !== user!.id) notFound();
 
   const formation = (session.formation as Formation) ?? "4-3-3";
   const slots     = FORMATION_SLOTS[formation];
   const slot      = slots[slotIndex];
   if (!slot) notFound();
 
-  // 2. Fetch leagues and clubs for the lottery pools
-  const leagues = await prisma.league.findMany({
-    select: { id: true, name: true, country: true, prestige: true },
-    orderBy: { name: "asc" },
-  });
+  // 2. Fetch leagues and clubs (cached — data changes only on re-seed)
+  const { leagues, clubs } = await getCachedLeaguesAndClubs();
 
-  const clubs = await prisma.club.findMany({
-    select: { id: true, name: true, leagueId: true, prestige: true, continentalType: true },
-    orderBy: { name: "asc" },
+  // 3. Check for in-progress career player at this slot
+  const inProgressPlayer = await prisma.careerPlayer.findUnique({
+    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+    select: { id: true, currentContinentalCup: true },
   });
 
   return (
@@ -51,6 +74,8 @@ export default async function DraftSlotPage({ params }: Props) {
       position={slot.position}
       leagues={leagues}
       clubs={clubs}
+      savedPlayerId={inProgressPlayer?.id}
+      savedContinentalCup={inProgressPlayer?.currentContinentalCup}
     />
   );
 }
