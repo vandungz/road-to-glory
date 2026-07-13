@@ -18,7 +18,7 @@ async function getGameSessions(userId: string): Promise<GameSessionSummary[]> {
     orderBy: { createdAt: "desc" },
     include: {
       _count: {
-        select: { players: true },
+        select: { players: { where: { isRetired: true } } },
       },
     },
   });

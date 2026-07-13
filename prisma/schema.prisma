@@ -53,6 +53,7 @@ model CareerPlayer {
   events            Json        // Array of CareerEvent: { type, label, age, clubId, nationality }
   hiddenStats       Json        // HiddenStats: { personality, professionalism, luckRating } (Server-only)
   achievements      Json?       // Cumulative trophies object: { ballonDor, league, cup, continental, international }
+  isRetired         Boolean     @default(false)
 
   @@unique([gameSessionId, slotIndex])
   @@map("career_players")

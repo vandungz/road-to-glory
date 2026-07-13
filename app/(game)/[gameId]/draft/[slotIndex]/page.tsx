@@ -60,9 +60,9 @@ export default async function DraftSlotPage({ params }: Props) {
   // 2. Fetch leagues and clubs (cached — data changes only on re-seed)
   const { leagues, clubs } = await getCachedLeaguesAndClubs();
 
-  // 3. Check for in-progress career player at this slot
-  const inProgressPlayer = await prisma.careerPlayer.findUnique({
-    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+  // 3. Check for in-progress career player at this slot (exclude retired players)
+  const inProgressPlayer = await prisma.careerPlayer.findFirst({
+    where: { gameSessionId: gameId, slotIndex, isRetired: false },
     select: { id: true, currentContinentalCup: true },
   });
 

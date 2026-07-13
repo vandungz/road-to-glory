@@ -54,6 +54,7 @@ export default async function SquadBoardPage({ params }: Props) {
       squadRating: true,
       userId:      true,
       players: {
+        where: { isRetired: true },
         orderBy: { slotIndex: "asc" },
         select: {
           id:                true,

@@ -165,6 +165,7 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       events,
       hiddenStats,
       achievements: achievements ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+      isRetired: true,
     },
     update: {
       name,
@@ -184,6 +185,7 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       events,
       hiddenStats,
       achievements: achievements ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+      isRetired: true,
     },
   });
 

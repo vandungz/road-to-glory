@@ -12,6 +12,7 @@ import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { useSetupStage } from "./useSetupStage";
 import { useCareerStats } from "./useCareerStats";
 import { useCareerWheelItems } from "./useCareerWheelItems";
+import { useWheelUiStore } from "../stores/useWheelUiStore";
 import {
   simulatePlayerSeasonAction,
   generateLeagueTableAction,
@@ -36,6 +37,7 @@ export function useDraftDrum(
   const [isMounted, setIsMounted] = useState(false);
   const [mode, setMode] = useState<"setup" | "career" | "retired">("setup");
 
+  const { resetDraft } = useWheelUiStore();
   const setupProps = useSetupStage({ position, leagues, clubs, isMounted, mode });
   const statsProps = useCareerStats({ gameId, slotIndex, position });
 
@@ -116,6 +118,7 @@ export function useDraftDrum(
   const prevAgeRef = useRef<number | null>(null);
 
   useEffect(() => {
+    resetDraft();
     setIsMounted(true);
     setMode("setup");
     if (savedPlayerId) statsProps.setPlayerId(savedPlayerId);
