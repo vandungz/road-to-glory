@@ -124,6 +124,55 @@ function EmptySlot({ position, onClick }: EmptySlotProps) {
 }
 
 // ============================================================
+// IN-PROGRESS SLOT CAPSULE — amber, career đang dở
+// ============================================================
+
+interface InProgressSlotProps {
+  position: string;
+  onClick: () => void;
+}
+
+function InProgressSlot({ position, onClick }: InProgressSlotProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      aria-label={`Tiếp tục career cầu thủ vị trí ${position}`}
+      style={{
+        backgroundColor: "rgba(251,191,36,0.22)",
+        border: "1.5px solid rgba(251,191,36,0.85)",
+        borderRadius: "20px",
+        padding: "6px 14px",
+        color: "#fbbf24",
+        fontFamily: "var(--font-headline)",
+        fontSize: "0.75rem",
+        letterSpacing: "0.1em",
+        textTransform: "uppercase",
+        cursor: "pointer",
+        whiteSpace: "nowrap",
+        transition: "background 100ms ease, border-color 100ms ease, transform 80ms ease",
+        lineHeight: 1.2,
+        userSelect: "none",
+      }}
+      onMouseEnter={(e) => {
+        const el = e.currentTarget;
+        el.style.backgroundColor = "rgba(251,191,36,0.40)";
+        el.style.borderColor = "rgba(251,191,36,1)";
+        el.style.transform = "scale(1.06)";
+      }}
+      onMouseLeave={(e) => {
+        const el = e.currentTarget;
+        el.style.backgroundColor = "rgba(251,191,36,0.22)";
+        el.style.borderColor = "rgba(251,191,36,0.85)";
+        el.style.transform = "scale(1)";
+      }}
+    >
+      ▶ {position}
+    </button>
+  );
+}
+
+// ============================================================
 // FILLED SLOT — mini Panini sticker
 // ============================================================
 
@@ -198,10 +247,11 @@ interface Props {
   formation: Formation;
   players: ClientSafePlayer[]; // starting XI only (slotIndex 0–10)
   status?: string;
+  inProgressSlots?: number[];
   onPlayerClick?: (player: ClientSafePlayer) => void;
 }
 
-export function PitchBoard({ gameId, formation, players, status, onPlayerClick }: Props) {
+export function PitchBoard({ gameId, formation, players, status, inProgressSlots = [], onPlayerClick }: Props) {
   const router = useRouter();
 
   const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
@@ -215,10 +265,7 @@ export function PitchBoard({ gameId, formation, players, status, onPlayerClick }
       }
       return;
     }
-    if (status === "completed") {
-      console.log("Game session completed. Slot interaction disabled.");
-      return;
-    }
+    if (status === "completed") return;
     router.push(`/${gameId}/draft/${slotIndex}`);
   }
 
@@ -261,6 +308,11 @@ export function PitchBoard({ gameId, formation, players, status, onPlayerClick }
                 player={player}
                 onClick={() => handleSlotClick(slot.index)}
                 disabled={false}
+              />
+            ) : inProgressSlots.includes(slot.index) ? (
+              <InProgressSlot
+                position={slot.position}
+                onClick={() => handleSlotClick(slot.index)}
               />
             ) : (
               <EmptySlot

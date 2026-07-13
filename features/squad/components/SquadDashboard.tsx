@@ -16,6 +16,7 @@ interface SquadDashboardProps {
   squadRating: number | null;
   players: ClientSafePlayer[];
   slots: SlotConfig[];
+  inProgressSlots?: number[];
 }
 
 export function SquadDashboard({
@@ -25,6 +26,7 @@ export function SquadDashboard({
   squadRating,
   players,
   slots,
+  inProgressSlots = [],
 }: SquadDashboardProps) {
   const router = useRouter();
   const [selectedPlayer, setSelectedPlayer] = useState<ClientSafePlayer | null>(null);
@@ -77,6 +79,7 @@ export function SquadDashboard({
             formation={formation}
             players={startingXI}
             status={status}
+            inProgressSlots={inProgressSlots}
             onPlayerClick={(player) => setSelectedPlayer(player)}
           />
         </div>
@@ -224,6 +227,7 @@ export function SquadDashboard({
             {/* Slot Rows */}
             {slots.map((slot, i) => {
               const player = playerMap.get(slot.index);
+              const isInProgress = !player && inProgressSlots.includes(slot.index);
               return (
                 <div
                   key={slot.index}
@@ -233,15 +237,15 @@ export function SquadDashboard({
                     gridTemplateColumns: "60px 1fr 40px",
                     padding: "12px 14px",
                     borderBottom: i < slots.length - 1 ? "1px solid var(--cream-border)" : "none",
-                    backgroundColor: player ? "transparent" : "rgba(0,0,0,0.01)",
+                    backgroundColor: isInProgress ? "rgba(251,191,36,0.07)" : player ? "transparent" : "rgba(0,0,0,0.01)",
                     cursor: player ? "pointer" : status === "completed" ? "default" : "pointer",
                     transition: "background-color 80ms ease",
                   }}
                   onMouseEnter={(!player && status === "completed") ? undefined : (e) => {
-                    e.currentTarget.style.backgroundColor = "rgba(0, 0, 0, 0.03)";
+                    e.currentTarget.style.backgroundColor = isInProgress ? "rgba(251,191,36,0.14)" : "rgba(0, 0, 0, 0.03)";
                   }}
                   onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = player ? "transparent" : "rgba(0,0,0,0.01)";
+                    e.currentTarget.style.backgroundColor = isInProgress ? "rgba(251,191,36,0.07)" : player ? "transparent" : "rgba(0,0,0,0.01)";
                   }}
                 >
                   {/* Position Label */}
@@ -260,6 +264,10 @@ export function SquadDashboard({
                   {player ? (
                     <span style={{ fontFamily: "var(--font-body)", fontSize: "0.9rem", fontWeight: 600, color: "var(--charcoal)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
                       {player.name}
+                    </span>
+                  ) : isInProgress ? (
+                    <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.72rem", color: "#d97706", fontStyle: "italic" }}>
+                      ▶ Đang chơi...
                     </span>
                   ) : (
                     <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.72rem", color: "var(--ink-light)", fontStyle: "italic" }}>

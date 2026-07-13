@@ -463,6 +463,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setClubStints,
     events,
     setEvents,
+    achievements,
+    setAchievements,
     playerNationality,
     setPlayerNationality,
     playerDebutAge,

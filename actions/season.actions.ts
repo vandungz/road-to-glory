@@ -81,6 +81,7 @@ interface SeasonProgressUpdate {
   statsTimeline: any[];
   clubStints: any[];
   events: any[];
+  achievements: any;
   currentContinentalCup: string;
 }
 
@@ -200,7 +201,7 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
 }
 
 export async function updateSeasonProgressAction(params: SeasonProgressUpdate): Promise<void> {
-  const { playerId, statsTimeline, clubStints, events, currentContinentalCup } = params;
+  const { playerId, statsTimeline, clubStints, events, achievements, currentContinentalCup } = params;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -218,6 +219,7 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
       statsTimeline,
       clubStints,
       events,
+      achievements,
       currentContinentalCup,
     },
   });

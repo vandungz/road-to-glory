@@ -22,7 +22,7 @@ import {
   evolvePlayerStatsAction,
   updateSeasonProgressAction,
 } from "@/actions/season.actions";
-import { initCareerPlayerAction } from "@/actions/player.actions";
+import { initCareerPlayerAction, getCareerPlayerAction } from "@/actions/player.actions";
 import { type SeasonRecord, getStepLabels } from "@/types/game";
 
 export function useDraftDrum(
@@ -47,6 +47,7 @@ export function useDraftDrum(
     statsTimeline,
     clubStints,
     events,
+    achievements,
     playerNationality,
     playerDebutAge,
     playerCareerLength,
@@ -113,16 +114,83 @@ export function useDraftDrum(
     position,
     yearSimResult,
     selectorIndex,
+    yearEvolutionDirection: yearEvolution.direction,
   });
 
   const prevAgeRef = useRef<number | null>(null);
 
   useEffect(() => {
-    resetDraft();
-    setIsMounted(true);
-    setMode("setup");
-    if (savedPlayerId) statsProps.setPlayerId(savedPlayerId);
-    if (savedContinentalCup) statsProps.setCurrentContinentalCup(savedContinentalCup);
+    const controller = new AbortController();
+
+    if (savedPlayerId) {
+      getCareerPlayerAction({ playerId: savedPlayerId })
+        .then((player) => {
+          if (controller.signal.aborted || !player) return;
+
+          const lastStats = (player.statsTimeline as any[]).at(-1);
+          const lastStint = (player.clubStints as any[]).at(-1);
+
+          if (!lastStats || !lastStint) {
+            resetDraft();
+            setMode("setup");
+            setIsMounted(true);
+            return;
+          }
+
+          statsProps.setPlayerId(savedPlayerId);
+          statsProps.setPlayerName(player.name);
+          statsProps.setPlayerNationality(player.nationality);
+          statsProps.setPlayerDebutAge(player.debutAge);
+          statsProps.setPlayerCareerLength(player.careerLengthYears);
+          statsProps.setStatsTimeline(player.statsTimeline as any[]);
+          statsProps.setClubStints(player.clubStints as any[]);
+          statsProps.setEvents(player.events as any[]);
+          statsProps.setAchievements(
+            (player.achievements as any) ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} }
+          );
+
+          statsProps.setCurrentAge(lastStats.age);
+          statsProps.setCurrentOvr(lastStats.ovr);
+          const statKeys = position === "GK"
+            ? ["div", "han", "kic", "ref", "spd", "pos"]
+            : ["pac", "sho", "pas", "dri", "def", "phy"];
+          statsProps.setCurrentStats(
+            Object.fromEntries(statKeys.map((k) => [k, lastStats[k] ?? 60]))
+          );
+
+          const fullClub = clubs.find((c: any) => c.id === lastStint.clubId);
+          statsProps.setCurrentClub({
+            id: lastStint.clubId,
+            name: lastStint.clubName,
+            leagueId: lastStint.leagueId,
+            leagueName: lastStint.leagueName,
+            prestige: fullClub?.prestige ?? 3,
+            continentalType: fullClub?.continentalType ?? "none",
+          });
+
+          if (savedContinentalCup) {
+            statsProps.setCurrentContinentalCup(savedContinentalCup);
+          }
+
+          prevAgeRef.current = lastStats.age;
+          setCareerSubStep("idle");
+          setMode("career");
+          setIsMounted(true);
+        })
+        .catch(() => {
+          if (!controller.signal.aborted) {
+            resetDraft();
+            setMode("setup");
+            setIsMounted(true);
+          }
+        });
+    } else {
+      resetDraft();
+      setMode("setup");
+      setIsMounted(true);
+    }
+
+    return () => controller.abort();
   }, []);
 
   // Background save sau mỗi mùa: fire sau khi currentAge đã update (state đã commit)
@@ -140,6 +208,7 @@ export function useDraftDrum(
         statsTimeline,
         clubStints,
         events,
+        achievements,
         currentContinentalCup,
       }).catch((err) => console.error("Background save failed:", err));
     }

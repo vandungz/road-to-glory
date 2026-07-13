@@ -88,6 +88,12 @@ export default async function SquadBoardPage({ params }: Props) {
   const startingXI    = allPlayers.filter((p) => p.slotIndex >= 0 && p.slotIndex <= 10);
   const playerMap     = new Map(startingXI.map((p) => [p.slotIndex, p]));
 
+  const inProgressPlayers = await prisma.careerPlayer.findMany({
+    where: { gameSessionId: gameId, isRetired: false },
+    select: { slotIndex: true },
+  });
+  const inProgressSlots = inProgressPlayers.map((p) => p.slotIndex);
+
   return (
     <div
       style={{
@@ -156,6 +162,7 @@ export default async function SquadBoardPage({ params }: Props) {
           squadRating={session.squadRating}
           players={allPlayers}
           slots={slots}
+          inProgressSlots={inProgressSlots}
         />
       </main>
 

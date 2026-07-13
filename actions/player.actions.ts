@@ -119,6 +119,36 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
   return { id: player.id };
 }
 
+export async function getCareerPlayerAction(input: unknown) {
+  const { playerId } = (input as any);
+  if (!playerId || typeof playerId !== "string") throw new Error("Invalid playerId");
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+
+  const player = await prisma.careerPlayer.findUnique({
+    where: { id: playerId },
+    select: {
+      gameSession: { select: { userId: true } },
+      name: true,
+      nationality: true,
+      debutAge: true,
+      careerLengthYears: true,
+      statsTimeline: true,
+      clubStints: true,
+      events: true,
+      achievements: true,
+      currentContinentalCup: true,
+      // hiddenStats: không trả về client — invariant
+    },
+  });
+
+  if (!player || player.gameSession.userId !== user.id) throw new Error("Forbidden");
+
+  return player;
+}
+
 export async function saveCareerPlayer(params: SavePlayerParams) {
   await verifyGameOwnership(params.gameId);
 
