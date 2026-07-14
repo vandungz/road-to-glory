@@ -10,7 +10,7 @@ interface RetiredStageProps {
   playerName: string;
   careerTotalStats: { apps: number; goals: number; assists: number };
   clubStints: any[];
-  events: any[];
+  achievements?: any;
   isSaving: boolean;
   handleSavePlayer: () => void;
 }
@@ -22,7 +22,7 @@ export function RetiredStage({
   playerName,
   careerTotalStats,
   clubStints,
-  events,
+  achievements,
   isSaving,
   handleSavePlayer,
 }: RetiredStageProps) {
@@ -88,7 +88,7 @@ export function RetiredStage({
               </div>
             </div>
 
-            {events.some(e => e.label.includes("BALLON D'OR")) && (
+            {(achievements?.ballonDor ?? 0) > 0 && (
               <div style={{ display: "flex", alignItems: "center", gap: "8px", border: "1.5px solid var(--charcoal)", padding: "8px 12px", borderRadius: "3px", backgroundColor: "gold", boxShadow: "2px 2px 0 var(--charcoal)" }}>
                 <Trophy size={20} color="var(--charcoal)" />
                 <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", fontWeight: 900, textTransform: "uppercase" }}>ĐOẠT QUẢ BÓNG VÀNG BALLON D'OR!</span>

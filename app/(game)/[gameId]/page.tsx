@@ -70,7 +70,6 @@ export default async function SquadBoardPage({ params }: Props) {
           retireAge:         true,
           careerLengthYears: true,
           statsTimeline:     true,
-          events:            true,
           clubStints:        true,
           achievements:      true,
         },

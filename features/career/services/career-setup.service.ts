@@ -39,13 +39,6 @@ export interface StintInfo {
   ovrAtLeaving: number;
 }
 
-export interface CareerEvent {
-  type: string;
-  label: string;
-  age: number;
-  clubId?: string;
-}
-
 export interface CareerSetupResult {
   playerName: string;
   hiddenStats: {
@@ -54,7 +47,6 @@ export interface CareerSetupResult {
     personality: string;
   };
   initStint: StintInfo;
-  initEvent: CareerEvent;
   initStats: Record<string, number>;
   initTimeline: any[];
 }
@@ -84,13 +76,6 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
     ovrAtLeaving: draftData.debutOvr,
   };
 
-  const initEvent: CareerEvent = {
-    type: "DEBUT",
-    label: `Ký Hợp Đồng chuyên nghiệp đầu tiên tại CLB ${draftData.clubName} (${draftData.leagueName}) ở mùa giải 2025/26 (tuổi ${draftData.debutAge}).`,
-    age: draftData.debutAge,
-    clubId: draftData.clubId,
-  };
-
   const initStats: Record<string, number> = draftData.position === "GK"
     ? { div: draftData.div ?? 60, han: draftData.han ?? 60, kic: draftData.kic ?? 60, ref: draftData.ref ?? 60, spd: draftData.spd ?? 60, pos: draftData.pos ?? 60 }
     : { pac: draftData.pac ?? 60, sho: draftData.sho ?? 60, pas: draftData.pas ?? 60, dri: draftData.dri ?? 60, def: draftData.def ?? 60, phy: draftData.phy ?? 60 };
@@ -107,7 +92,6 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
     playerName,
     hiddenStats,
     initStint,
-    initEvent,
     initStats,
     initTimeline,
   };

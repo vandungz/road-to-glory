@@ -76,7 +76,6 @@ export interface ClientSafePlayer {
   retireAge?: number;
   careerLengthYears?: number;
   statsTimeline?: any[];
-  events?: any[];
   clubStints?: any[];
   achievements?: any;
 }
