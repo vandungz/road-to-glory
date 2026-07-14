@@ -80,9 +80,9 @@ interface SeasonProgressUpdate {
   playerId: string;
   statsTimeline: any[];
   clubStints: any[];
-  events: any[];
   achievements: any;
   currentContinentalCup: string;
+  seasonHistory: Record<number, any>;
 }
 
 const simulatePlayerSeasonSchema = z.object({
@@ -96,6 +96,12 @@ const simulatePlayerSeasonSchema = z.object({
   leagueId: z.string(),
   hasContinentalCup: z.boolean(),
   playerNationality: z.string(),
+  // Outcomes từ wheels — optional, truyền sau khi tất cả wheels xong
+  standingResult: z.number().int().min(1).max(30).nullable().optional(),
+  domesticCupResult: z.string().nullable().optional(),
+  continentalCupResult: z.string().nullable().optional(),
+  nationalCallupResult: z.string().nullable().optional(),
+  nationalTournamentResult: z.string().nullable().optional(),
 });
 
 const generateLeagueTableSchema = z.object({
@@ -201,7 +207,7 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
 }
 
 export async function updateSeasonProgressAction(params: SeasonProgressUpdate): Promise<void> {
-  const { playerId, statsTimeline, clubStints, events, achievements, currentContinentalCup } = params;
+  const { playerId, statsTimeline, clubStints, achievements, currentContinentalCup, seasonHistory } = params;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -218,9 +224,9 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
     data: {
       statsTimeline,
       clubStints,
-      events,
       achievements,
       currentContinentalCup,
+      seasonHistory,
     },
   });
 }
@@ -270,6 +276,11 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     leagueClubsCount: clubsCount || 10,
     hasContinentalCup: validated.hasContinentalCup,
     playerNationality: validated.playerNationality,
+    standingResult: validated.standingResult,
+    domesticCupResult: validated.domesticCupResult,
+    continentalCupResult: validated.continentalCupResult,
+    nationalCallupResult: validated.nationalCallupResult,
+    nationalTournamentResult: validated.nationalTournamentResult,
   });
 }
 

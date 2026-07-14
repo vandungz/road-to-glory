@@ -36,7 +36,6 @@ interface InitCareerParams {
   currentContinentalCup: string;
   statsTimeline: any[];
   clubStints: any[];
-  events: any[];
   hiddenStats: any;
 }
 
@@ -52,7 +51,6 @@ interface SavePlayerParams {
   peakOvr: number;
   statsTimeline: any[];
   clubStints: any[];
-  events: any[];
   hiddenStats: any;
   achievements?: any;
   currentContinentalCup?: string;
@@ -78,7 +76,7 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
   const {
     gameId, slotIndex, position, name, nationality,
     debutAge, careerLength, debutOvr, currentContinentalCup,
-    statsTimeline, clubStints, events, hiddenStats,
+    statsTimeline, clubStints, hiddenStats,
   } = params;
 
   const player = await prisma.careerPlayer.upsert({
@@ -100,9 +98,9 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
       currentContinentalCup,
       statsTimeline,
       clubStints,
-      events,
+      events: [],
       hiddenStats,
-      achievements: { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+      achievements: { ballonDor: 0, trophies: [], seasonAwards: [] },
     },
     update: {
       name,
@@ -110,7 +108,6 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
       currentContinentalCup,
       statsTimeline,
       clubStints,
-      events,
       hiddenStats,
     },
     select: { id: true },
@@ -137,8 +134,8 @@ export async function getCareerPlayerAction(input: unknown) {
       careerLengthYears: true,
       statsTimeline: true,
       clubStints: true,
-      events: true,
       achievements: true,
+      seasonHistory: true,
       currentContinentalCup: true,
       // hiddenStats: không trả về client — invariant
     },
@@ -164,7 +161,6 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
     peakOvr,
     statsTimeline,
     clubStints,
-    events,
     hiddenStats,
     achievements,
   } = params;
@@ -192,9 +188,9 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       currentContinentalCup: params.currentContinentalCup ?? "none",
       statsTimeline,
       clubStints,
-      events,
+      events: [],
       hiddenStats,
-      achievements: achievements ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+      achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
       isRetired: true,
     },
     update: {
@@ -212,9 +208,8 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       currentContinentalCup: params.currentContinentalCup ?? "none",
       statsTimeline,
       clubStints,
-      events,
       hiddenStats,
-      achievements: achievements ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} },
+      achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
       isRetired: true,
     },
   });

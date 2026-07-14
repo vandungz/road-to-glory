@@ -52,7 +52,8 @@ model CareerPlayer {
   clubStints        Json        // Array of ClubStint: { clubId, clubName, leagueId, leagueName, startAge, endAge, yearsAtClub, ovrAtJoining, ovrAtLeaving }
   events            Json        // Array of CareerEvent: { type, label, age, clubId, nationality }
   hiddenStats       Json        // HiddenStats: { personality, professionalism, luckRating } (Server-only)
-  achievements      Json?       // Cumulative trophies object: { ballonDor, league, cup, continental, international }
+  achievements      Json?       // Cumulative trophies object: { ballonDor, trophies[], seasonAwards[] }
+  seasonHistory     Json        @default("{}") // Record<age, SeasonRecord> — persisted for resume
   isRetired         Boolean     @default(false)
 
   @@unique([gameSessionId, slotIndex])
