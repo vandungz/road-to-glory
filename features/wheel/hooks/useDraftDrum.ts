@@ -25,6 +25,8 @@ import {
 import { initCareerPlayerAction, getCareerPlayerAction } from "@/actions/player.actions";
 import { type SeasonRecord, getStepLabels } from "@/types/game";
 
+export type ModalType = "league" | "cup" | "continental" | "national" | "season_stats" | null;
+
 export function useDraftDrum(
   gameId: string,
   slotIndex: number,
@@ -46,7 +48,6 @@ export function useDraftDrum(
     hiddenStats,
     statsTimeline,
     clubStints,
-    events,
     achievements,
     playerNationality,
     playerDebutAge,
@@ -60,21 +61,16 @@ export function useDraftDrum(
     seasonRecords,
     selectedAgeForStats,
     setSelectedAgeForStats,
-    isLeagueOpen,
-    setIsLeagueOpen,
-    isCupOpen,
-    setIsCupOpen,
-    isContinentalOpen,
-    setIsContinentalOpen,
-    isNationalOpen,
-    setIsNationalOpen,
   } = statsProps;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const tempCareerResultRef = useRef<any>(null);
 
   const [careerSubStep, setCareerSubStep] = useState<
-    "idle" | "dir_increase" | "dir_decrease" | "count" | "selector" | "magnitude" | "standing" | "domestic_cup" | "continental_cup" | "national_callup" | "national_tournament" | "transfer" | "resolved"
+    | "idle" | "standing" | "domestic_cup" | "continental_cup"
+    | "national_callup" | "national_tournament"
+    | "season_stats"
+    | "dir_increase" | "dir_decrease" | "count" | "selector" | "magnitude"
+    | "transfer" | "resolved"
   >("idle");
   const [careerSpinning, setCareerSpinning] = useState(false);
   const [careerTargetIndex, setCareerTargetIndex] = useState<number>(-1);
@@ -100,6 +96,9 @@ export function useDraftDrum(
   const [transferOffer, setTransferOffer] = useState<{ clubId: string; clubName: string; leagueId: string; leagueName: string } | null>(null);
   const [hasBallonDorWinner, setHasBallonDorWinner] = useState(false);
 
+  // Modal state — replaces 4 boolean open states
+  const [activeModal, setActiveModal] = useState<ModalType>(null);
+
   const { careerWheelItems } = useCareerWheelItems({
     careerSubStep,
     isMounted,
@@ -115,6 +114,7 @@ export function useDraftDrum(
     yearSimResult,
     selectorIndex,
     yearEvolutionDirection: yearEvolution.direction,
+    currentStats,
   });
 
   const prevAgeRef = useRef<number | null>(null);
@@ -144,10 +144,19 @@ export function useDraftDrum(
           statsProps.setPlayerCareerLength(player.careerLengthYears);
           statsProps.setStatsTimeline(player.statsTimeline as any[]);
           statsProps.setClubStints(player.clubStints as any[]);
-          statsProps.setEvents(player.events as any[]);
           statsProps.setAchievements(
-            (player.achievements as any) ?? { ballonDor: 0, leagues: {}, cups: {}, continentals: {}, internationals: {} }
+            (player.achievements as any) ?? { ballonDor: 0, trophies: [], seasonAwards: [] }
           );
+
+          // Restore seasonHistory từ DB
+          if (player.seasonHistory && typeof player.seasonHistory === "object") {
+            const history = player.seasonHistory as Record<string, any>;
+            const restored: Record<number, SeasonRecord> = {};
+            for (const [k, v] of Object.entries(history)) {
+              restored[parseInt(k)] = v as SeasonRecord;
+            }
+            statsProps.setSeasonRecords(restored);
+          }
 
           statsProps.setCurrentAge(lastStats.age);
           statsProps.setCurrentOvr(lastStats.ovr);
@@ -193,7 +202,7 @@ export function useDraftDrum(
     return () => controller.abort();
   }, []);
 
-  // Background save sau mỗi mùa: fire sau khi currentAge đã update (state đã commit)
+  // Background save sau mỗi mùa
   useEffect(() => {
     if (mode !== "career" || prevAgeRef.current === null) {
       prevAgeRef.current = currentAge;
@@ -207,9 +216,9 @@ export function useDraftDrum(
         playerId: pid,
         statsTimeline,
         clubStints,
-        events,
         achievements,
         currentContinentalCup,
+        seasonHistory: seasonRecords as Record<number, any>,
       }).catch((err) => console.error("Background save failed:", err));
     }
   }, [currentAge]);
@@ -246,7 +255,7 @@ export function useDraftDrum(
     setStandingResult(null); setDomesticCupResult(null); setContinentalCupResult(null);
     setNationalCallupResult(null); setNationalTournamentResult(null); setYearSimResult(null);
     setHasBallonDorWinner(false);
-    setIsLeagueOpen(false); setIsCupOpen(false); setIsContinentalOpen(false); setIsNationalOpen(false);
+    setActiveModal(null);
   }
 
   async function handleStartCareer() {
@@ -270,7 +279,6 @@ export function useDraftDrum(
         currentContinentalCup: initialContinentalCup,
         statsTimeline: initPayload.initTimeline,
         clubStints: [initPayload.initStint],
-        events: [initPayload.initEvent],
         hiddenStats: initPayload.hiddenStats,
       }).then(({ id }) => statsProps.setPlayerId(id))
         .catch((err) => console.error("Error creating career player in DB:", err));
@@ -284,40 +292,17 @@ export function useDraftDrum(
     }
   }
 
-  async function handleStartSeason() {
-    const luck = hiddenStats?.luckRating ?? 10;
-    const prestige = currentClub?.prestige ?? 3;
-
-    try {
-      const simRes = await simulatePlayerSeasonAction({
-        age: currentAge,
-        ovr: currentOvr,
-        position,
-        luckRating: luck,
-        clubPrestige: prestige,
-        clubName: currentClub.name,
-        leagueName: currentClub.leagueName,
-        leagueId: currentClub.leagueId,
-        hasContinentalCup: currentContinentalCup !== "none",
-        playerNationality: playerNationality,
-      });
-
-      setYearSimResult(simRes);
-      setHasBallonDorWinner(simRes.hasBallonDorWinner);
-    } catch (err) {
-      console.error("Error in handleStartSeason:", err);
-    }
-
+  // handleStartSeason giờ chỉ set substep — KHÔNG gọi simulatePlayerSeasonAction nữa
+  function handleStartSeason() {
     setSelectorIndex(0);
     setSelectedStatsList([]);
     setTempSelectedStat(null);
     setEvolvedStatsThisYear([]);
-
     setCareerSubStep("standing");
   }
 
   function handleCareerSpin() {
-    if (careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved" || careerWheelItems.length === 0) return;
+    if (careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved" || careerSubStep === "season_stats" || careerWheelItems.length === 0) return;
 
     const ctx = {
       currentAge,
@@ -333,6 +318,7 @@ export function useDraftDrum(
       selectedStatsList,
       selectorIndex,
       yearEvolutionDirection: yearEvolution.direction,
+      currentStats,
     };
 
     const { result, idx, tempValue } = getCareerWheelPoolAndValue(careerSubStep, ctx);
@@ -340,6 +326,49 @@ export function useDraftDrum(
     setCareerSpinning(true);
     setCareerTempValue(tempValue);
     tempCareerResultRef.current = result;
+  }
+
+  async function triggerSeasonStats(
+    standing: number | null,
+    domestic: string | null,
+    continental: string | null,
+    callup: string | null,
+    tournament: string | null
+  ) {
+    const luck = hiddenStats?.luckRating ?? 10;
+    const prestige = currentClub?.prestige ?? 3;
+
+    try {
+      const simRes = await simulatePlayerSeasonAction({
+        age: currentAge,
+        ovr: currentOvr,
+        position,
+        luckRating: luck,
+        clubPrestige: prestige,
+        clubName: currentClub.name,
+        leagueName: currentClub.leagueName,
+        leagueId: currentClub.leagueId,
+        hasContinentalCup: currentContinentalCup !== "none",
+        playerNationality,
+        standingResult: standing,
+        domesticCupResult: domestic,
+        continentalCupResult: continental,
+        nationalCallupResult: callup,
+        nationalTournamentResult: tournament,
+      });
+
+      setYearSimResult(simRes);
+      setHasBallonDorWinner(simRes.hasBallonDorWinner);
+
+      // Ghi per-competition stats vào seasonRecords ngay để modal có data
+      statsProps.applySimResultToRecords(currentAge, simRes);
+
+      setActiveModal("season_stats");
+      setCareerSubStep("season_stats");
+    } catch (err) {
+      console.error("Error simulating season:", err);
+      setCareerSubStep("dir_increase");
+    }
   }
 
   function handleCareerSpinComplete() {
@@ -379,7 +408,7 @@ export function useDraftDrum(
     }
     else if (careerSubStep === "magnitude") {
       const delta = yearEvolution.direction === "increase" ? result : -result;
-      
+
       const newEvo = { stat: tempSelectedStat!, delta };
       const evolutions = [...evolvedStatsThisYear, newEvo];
       setEvolvedStatsThisYear(evolutions);
@@ -407,102 +436,133 @@ export function useDraftDrum(
       }
     }
     else if (careerSubStep === "standing") {
-      setStandingResult(result);
-      
+      const standingVal = result as number;
+      setStandingResult(standingVal);
+
       generateLeagueTableAction({
         leagueId: currentClub.leagueId,
         playerClubId: currentClub.id,
         playerClubName: currentClub.name,
-        playerStanding: result,
+        playerStanding: standingVal,
       }).then((mockTable) => {
         statsProps.setSeasonRecords((prev) => {
           const rec = { ...prev[currentAge] };
-          rec.standing = result;
+          rec.standing = standingVal;
           rec.leagueTable = mockTable;
           return { ...prev, [currentAge]: rec };
         });
-        setIsLeagueOpen(true);
+        setActiveModal("league");
         setCareerSubStep("domestic_cup");
       }).catch((err) => {
         console.error("Error generating league table:", err);
+        setCareerSubStep("domestic_cup");
       });
     }
     else if (careerSubStep === "domestic_cup") {
-      setDomesticCupResult(result);
-      
+      const cupVal = result as string;
+      setDomesticCupResult(cupVal);
+
       generateCupJourneyAction({
         type: "domestic",
-        result,
+        result: cupVal,
         playerClubId: currentClub.id,
         playerClubPrestige: currentClub.prestige ?? 3,
       }).then((journey) => {
         statsProps.setSeasonRecords((prev) => {
           const rec = { ...prev[currentAge] };
-          rec.domesticCup = result;
+          rec.domesticCup = cupVal;
           rec.domesticCupJourney = journey;
           return { ...prev, [currentAge]: rec };
         });
-        setIsCupOpen(true);
+        setActiveModal("cup");
 
         if (currentContinentalCup !== "none") {
           setCareerSubStep("continental_cup");
         } else {
-          statsProps.checkNationalCallupTransition(setCareerSubStep);
+          const next = statsProps.checkNationalCallupTransition();
+          if (next === "national_callup") {
+            setCareerSubStep("national_callup");
+          } else {
+            triggerSeasonStats(standingResult, domesticCupResult, continentalCupResult, null, null);
+          }
         }
       }).catch((err) => {
         console.error("Error generating domestic cup journey:", err);
+        if (currentContinentalCup !== "none") {
+          setCareerSubStep("continental_cup");
+        } else {
+          const next = statsProps.checkNationalCallupTransition();
+          if (next === "national_callup") {
+            setCareerSubStep("national_callup");
+          } else {
+            triggerSeasonStats(standingResult, domesticCupResult, continentalCupResult, null, null);
+          }
+        }
       });
     }
     else if (careerSubStep === "continental_cup") {
-      setContinentalCupResult(result);
+      const contVal = result as string;
+      setContinentalCupResult(contVal);
 
       const cupLabel = getContinentalCupLabel(currentContinentalCup);
       generateCupJourneyAction({
         type: "continental",
-        result,
+        result: contVal,
         playerClubId: currentClub.id,
         playerClubPrestige: currentClub.prestige ?? 3,
         cupName: cupLabel,
-        cupType: currentContinentalCup, // "UCL" | "UEL" | "Libertadores" | etc.
+        cupType: currentContinentalCup,
       }).then((journey) => {
         statsProps.setSeasonRecords((prev) => {
           const rec = { ...prev[currentAge] };
-          if (rec.continentalCup) {
-            rec.continentalCup.result = result;
-          }
+          if (rec.continentalCup) rec.continentalCup.result = contVal;
           rec.continentalCupJourney = journey;
           return { ...prev, [currentAge]: rec };
         });
-        setIsContinentalOpen(true);
-        statsProps.checkNationalCallupTransition(setCareerSubStep);
+        setActiveModal("continental");
+        const next = statsProps.checkNationalCallupTransition();
+        if (next === "national_callup") {
+          setCareerSubStep("national_callup");
+        } else {
+          triggerSeasonStats(standingResult, domesticCupResult, contVal, null, null);
+        }
       }).catch((err) => {
         console.error("Error generating continental cup journey:", err);
+        const next = statsProps.checkNationalCallupTransition();
+        if (next === "national_callup") {
+          setCareerSubStep("national_callup");
+        } else {
+          triggerSeasonStats(standingResult, domesticCupResult, contVal, null, null);
+        }
       });
     }
     else if (careerSubStep === "national_callup") {
-      setNationalCallupResult(result);
+      const callupVal = result as string;
+      setNationalCallupResult(callupVal);
 
       statsProps.setSeasonRecords((prev) => {
         const rec = { ...prev[currentAge] };
-        if (rec.nationalTeam) rec.nationalTeam.callup = result === "called_up" ? "Được triệu tập" : "Không được gọi";
+        if (rec.nationalTeam) rec.nationalTeam.callup = callupVal === "called_up" ? "Được triệu tập" : "Không được gọi";
         return { ...prev, [currentAge]: rec };
       });
 
-      if (result === "called_up") {
+      if (callupVal === "called_up") {
         setCareerSubStep("national_tournament");
       } else {
-        setCareerSubStep("dir_increase");
+        // Không được gọi → gen stats ngay
+        triggerSeasonStats(standingResult, domesticCupResult, continentalCupResult, callupVal, null);
       }
     }
     else if (careerSubStep === "national_tournament") {
-      setNationalTournamentResult(result);
+      const tournamentVal = result as string;
+      setNationalTournamentResult(tournamentVal);
 
       const nationCup = getNationalContinentalCup(playerNationality);
       const currentYear = 2026 + (currentAge - playerDebutAge);
       const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
       generateCupJourneyAction({
         type: "national",
-        result,
+        result: tournamentVal,
         playerClubId: currentClub.id,
         playerClubPrestige: currentClub.prestige ?? 3,
         cupName: tourney,
@@ -510,16 +570,24 @@ export function useDraftDrum(
       }).then((journey) => {
         statsProps.setSeasonRecords((prev) => {
           const rec = { ...prev[currentAge] };
-          if (rec.nationalTeam) rec.nationalTeam.result = result;
+          if (rec.nationalTeam) rec.nationalTeam.result = tournamentVal;
           rec.nationalTeamJourney = journey;
           return { ...prev, [currentAge]: rec };
         });
-        setIsNationalOpen(true);
-        setCareerSubStep("dir_increase");
+        setActiveModal("national");
+        // Sau national → gen stats
+        triggerSeasonStats(standingResult, domesticCupResult, continentalCupResult, nationalCallupResult, tournamentVal);
       }).catch((err) => {
         console.error("Error generating national team journey:", err);
+        triggerSeasonStats(standingResult, domesticCupResult, continentalCupResult, nationalCallupResult, tournamentVal);
       });
     }
+  }
+
+  // Được gọi khi user đóng season_stats modal → chuyển sang OVR wheels
+  function handleSeasonStatsModalClose() {
+    setActiveModal(null);
+    setCareerSubStep("dir_increase");
   }
 
   async function triggerTransferCheck() {
@@ -552,7 +620,7 @@ export function useDraftDrum(
   }
 
   function handleNextSeason() {
-    const { isRetire, nextContinentalCup } = statsProps.handleNextSeason(
+    const { isRetire } = statsProps.handleNextSeason(
       standingResult,
       domesticCupResult,
       continentalCupResult,
@@ -585,7 +653,6 @@ export function useDraftDrum(
     hiddenStats,
     statsTimeline,
     clubStints,
-    events,
     playerNationality,
     playerDebutAge,
     playerCareerLength,
@@ -598,14 +665,8 @@ export function useDraftDrum(
     seasonRecords,
     selectedAgeForStats,
     setSelectedAgeForStats,
-    isLeagueOpen,
-    setIsLeagueOpen,
-    isCupOpen,
-    setIsCupOpen,
-    isContinentalOpen,
-    setIsContinentalOpen,
-    isNationalOpen,
-    setIsNationalOpen,
+    activeModal,
+    setActiveModal,
     careerSubStep,
     setCareerSubStep,
     careerSpinning,
@@ -633,6 +694,7 @@ export function useDraftDrum(
     handleCareerSpinComplete,
     handleAcceptTransfer,
     handleNextSeason,
+    handleSeasonStatsModalClose,
     handleSavePlayer: statsProps.handleSavePlayer,
     STEP_LABELS: getStepLabels(position),
     selectorIndex,

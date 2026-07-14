@@ -19,6 +19,7 @@ interface CareerWheelContext {
   selectedStatsList: string[];
   selectorIndex: number;
   yearEvolutionDirection: "increase" | "decrease" | "maintain" | null;
+  currentStats: Record<string, number>;
 }
 
 export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelContext) {
@@ -116,7 +117,11 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
           { key: "phy", name: "Physical (PHY)" },
         ];
     const currentSelectedList = ctx.selectorIndex === 0 ? [] : ctx.selectedStatsList;
-    const available = coreStats.filter(c => !currentSelectedList.includes(c.key));
+    const isIncrease = ctx.yearEvolutionDirection === "increase";
+    const available = coreStats.filter(c =>
+      !currentSelectedList.includes(c.key) &&
+      !(isIncrease && (ctx.currentStats[c.key] ?? 0) >= 99)
+    );
     const pool = available.map(c => {
       let w = 10;
       if (ctx.position === "GK") {

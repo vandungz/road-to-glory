@@ -19,6 +19,7 @@ interface UseCareerWheelItemsProps {
   yearSimResult: any;
   selectorIndex: number;
   yearEvolutionDirection?: "increase" | "decrease" | "maintain" | null;
+  currentStats: Record<string, number>;
 }
 
 export function useCareerWheelItems({
@@ -36,6 +37,7 @@ export function useCareerWheelItems({
   yearSimResult,
   selectorIndex,
   yearEvolutionDirection,
+  currentStats,
 }: UseCareerWheelItemsProps) {
   const [careerWheelItems, setCareerWheelItems] = useState<{ label: string; value: any; weight?: number }[]>([]);
 
@@ -166,7 +168,11 @@ export function useCareerWheelItems({
               { key: "phy", name: "Physical (PHY)" },
             ];
         const currentSelectedList = selectorIndex === 0 ? [] : selectedStatsList;
-        const available = coreStats.filter((c) => !currentSelectedList.includes(c.key));
+        const isIncrease = yearEvolutionDirection === "increase";
+        const available = coreStats.filter((c) =>
+          !currentSelectedList.includes(c.key) &&
+          !(isIncrease && (currentStats[c.key] ?? 0) >= 99)
+        );
         items = available.map((c) => {
           let w = 10;
           if (position === "GK") {
@@ -252,7 +258,7 @@ export function useCareerWheelItems({
       }
     }
     setCareerWheelItems(items);
-  }, [careerSubStep, isMounted, mode, currentContinentalCup, currentAge, playerNationality, currentClub, currentOvr, leagueSize, selectedStatsList, position, yearSimResult, selectorIndex, yearEvolutionDirection]);
+  }, [careerSubStep, isMounted, mode, currentContinentalCup, currentAge, playerNationality, currentClub, currentOvr, leagueSize, selectedStatsList, position, yearSimResult, selectorIndex, yearEvolutionDirection, currentStats]);
 
   return { careerWheelItems, setCareerWheelItems };
 }
