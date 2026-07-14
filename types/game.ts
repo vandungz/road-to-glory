@@ -47,6 +47,14 @@ export type CreateGameResult =
   | { success: true; gameId: string }
   | { success: false; error: string };
 
+export interface CompetitionStats {
+  apps: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  rating: number;
+}
+
 export interface SeasonRecord {
   age: number;
   clubName: string;
@@ -59,11 +67,17 @@ export interface SeasonRecord {
   domesticCupJourney?: string[];
   continentalCupJourney?: string[];
   nationalTeamJourney?: string[];
+  // Tổng mùa
   apps?: number;
   goals?: number;
   assists?: number;
   matchRating?: number;
   cleanSheets?: number;
+  // Per-competition — từ server
+  leagueStats?: CompetitionStats;
+  domesticCupStats?: CompetitionStats;
+  continentalStats?: CompetitionStats;
+  nationalStats?: CompetitionStats;
 }
 
 const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt"];

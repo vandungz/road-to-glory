@@ -1,41 +1,33 @@
 "use client";
 
-import { Calendar, ChevronUp, ChevronDown } from "lucide-react";
+import { Calendar, ChevronRight } from "lucide-react";
+import type { ModalType } from "../hooks/useDraftDrum";
+import type { SeasonRecord } from "@/types/game";
+import { getDomesticCupName, getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
 
 interface SeasonProfileProps {
-  seasonRecords: Record<number, any>;
+  seasonRecords: Record<number, SeasonRecord>;
   currentAge: number;
   playerDebutAge: number;
   selectedAgeForStats: number;
   setSelectedAgeForStats: (age: number) => void;
-  isLeagueOpen: boolean;
-  setIsLeagueOpen: (open: boolean) => void;
-  isDomesticOpen: boolean;
-  setIsDomesticOpen: (open: boolean) => void;
-  isContinentalOpen: boolean;
-  setIsContinentalOpen: (open: boolean) => void;
-  isNationalOpen: boolean;
-  setIsNationalOpen: (open: boolean) => void;
   position: string;
+  onOpenModal: (type: ModalType) => void;
 }
 
-function getContinentalCupLabel(cupType: string): string {
-  switch (cupType) {
-    case "UCL": return "UEFA Champions League";
-    case "UEL": return "UEFA Europa League";
-    case "UECL": return "UEFA Conference League";
-    case "Libertadores": return "Copa Libertadores";
-    case "AFC_CL": return "AFC Champions League";
-    case "CONCACAF_CC": return "CONCACAF Champions Cup";
-    default: return "Cúp Châu Lục CLB";
-  }
+function getLeagueResultLabel(standing: number | null): string {
+  if (standing === null) return "Chờ quay...";
+  if (standing === 1) return "🏆 Vô địch";
+  if (standing <= 4) return `Top ${standing}`;
+  return `Hạng #${standing}`;
 }
 
-function getSeasonYearString(age: number, debutAge: number): string {
-  const startYear = 2025 + (age - debutAge);
-  const endYearShort = (startYear + 1) % 100;
-  const endYearStr = endYearShort < 10 ? `0${endYearShort}` : `${endYearShort}`;
-  return `${startYear}/${endYearStr}`;
+function getCupResultLabel(result: string | null | undefined): string {
+  if (!result || result === "Chờ quay") return "Chờ quay...";
+  if (result === "Winner") return "🏆 Vô địch";
+  if (result === "Runner-Up") return "Á quân";
+  if (result === "Semi-Finals") return "Bán kết";
+  return "Vòng loại";
 }
 
 export function SeasonProfile({
@@ -44,276 +36,219 @@ export function SeasonProfile({
   playerDebutAge,
   selectedAgeForStats,
   setSelectedAgeForStats,
-  isLeagueOpen,
-  setIsLeagueOpen,
-  isDomesticOpen,
-  setIsDomesticOpen,
-  isContinentalOpen,
-  setIsContinentalOpen,
-  isNationalOpen,
-  setIsNationalOpen,
   position,
+  onOpenModal,
 }: SeasonProfileProps) {
-  const activeRecord = seasonRecords[selectedAgeForStats];
+  const activeRecord = seasonRecords[selectedAgeForStats] ?? null;
+  const ages = Object.keys(seasonRecords).map(Number).sort((a, b) => a - b);
 
   return (
-    <div style={{ flex: 1, backgroundColor: "var(--white)", border: "2px solid var(--charcoal)", borderRadius: "4px", boxShadow: "3px 3px 0 var(--charcoal)", minHeight: "450px" }}>
-      <div style={{
-        padding: "20px 16px",
-        display: "flex",
-        flexDirection: "column",
-        gap: "18px"
-      }}>
+    <div style={{
+      flex: 1,
+      backgroundColor: "var(--white)",
+      border: "2px solid var(--charcoal)",
+      borderRadius: "4px",
+      boxShadow: "3px 3px 0 var(--charcoal)",
+      minHeight: "450px",
+    }}>
+      <div style={{ padding: "20px 16px", display: "flex", flexDirection: "column", gap: "14px" }}>
+
+        {/* Header */}
         <div style={{ borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "8px" }}>
           <div style={{ display: "flex", alignItems: "center", gap: "6px", fontFamily: "var(--font-headline)", fontSize: "0.92rem", fontWeight: 900, textTransform: "uppercase", color: "var(--charcoal)" }}>
             <Calendar size={16} color="var(--coral)" /> Hồ Sơ Mùa Giải
           </div>
-          <p style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", marginTop: "2px" }}>
-            CLICK VÀO CÁC DÒNG ĐỂ DROPDOWN LIST CHI TIẾT
-          </p>
         </div>
 
-        {/* Dropdown Selector Mùa Giải */}
-        <div>
-          <select
-            value={selectedAgeForStats}
-            onChange={(e) => setSelectedAgeForStats(parseInt(e.target.value))}
-            style={{
-              width: "100%",
-              fontFamily: "var(--font-headline)",
-              fontSize: "0.82rem",
-              fontWeight: 700,
-              border: "2.5px solid var(--charcoal)",
-              borderRadius: "3px",
-              padding: "8px 10px",
-              backgroundColor: "var(--cream)",
-              cursor: "pointer",
-              outline: "none",
-            }}
-          >
-            {Object.keys(seasonRecords).map((ageStr) => {
-              const ageNum = parseInt(ageStr, 10);
-              const isCurrent = ageNum === currentAge;
-              return (
-                <option key={ageNum} value={ageNum}>
-                  MÙA {getSeasonYearString(ageNum, playerDebutAge)} (TUỔI {ageNum}) {isCurrent ? "★" : ""}
-                </option>
-              );
-            })}
-          </select>
-        </div>
+        {/* Dropdown mùa */}
+        <select
+          value={selectedAgeForStats}
+          onChange={(e) => setSelectedAgeForStats(parseInt(e.target.value))}
+          style={{
+            width: "100%",
+            fontFamily: "var(--font-headline)",
+            fontSize: "0.82rem",
+            fontWeight: 700,
+            border: "2.5px solid var(--charcoal)",
+            borderRadius: "3px",
+            padding: "8px 10px",
+            backgroundColor: "var(--cream)",
+            cursor: "pointer",
+            outline: "none",
+          }}
+        >
+          {ages.map((age) => (
+            <option key={age} value={age}>
+              MÙA {getSeasonYearString(age, playerDebutAge)} (TUỔI {age}) {age === currentAge ? "★" : ""}
+            </option>
+          ))}
+        </select>
 
-        {/* Labels có dropdown list (Accordion) xổ ra chi tiết lấy 100% từ DB */}
         {activeRecord ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-            
-            {/* CLB */}
-            <div style={{ fontSize: "0.78rem", borderBottom: "1px solid var(--cream-border)", paddingBottom: "6px" }}>
-              <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-light)", display: "block" }}>CÂU LẠC BỘ</span>
-              <strong style={{ fontSize: "0.85rem" }}>{activeRecord.clubName.toUpperCase()}</strong>
-              <span style={{ color: "var(--ink-gray)", display: "block", fontSize: "0.72rem", marginTop: "2px" }}>{activeRecord.leagueName}</span>
+          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
+
+            {/* CLB info */}
+            <div style={{ paddingBottom: "6px", borderBottom: "1px solid var(--cream-border)" }}>
+              <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-light)", display: "block", textTransform: "uppercase" }}>Câu Lạc Bộ</span>
+              <strong style={{ fontSize: "0.85rem", fontFamily: "var(--font-headline)", textTransform: "uppercase" }}>{activeRecord.clubName}</strong>
+              <span style={{ color: "var(--ink-gray)", display: "block", fontSize: "0.72rem", marginTop: "1px" }}>{activeRecord.leagueName}</span>
             </div>
 
-            {/* THỐNG KÊ CÁ NHÂN MÙA GIẢI */}
-            <div style={{ display: "grid", gridTemplateColumns: ["GK", "CB", "LB", "RB", "CDM"].includes(position) ? "repeat(5, 1fr)" : "repeat(4, 1fr)", gap: "6px", padding: "6px 8px", backgroundColor: "var(--cream-dark)", borderRadius: "3px", textAlign: "center", border: "1.5px solid var(--cream-border)" }}>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>APPS</span>
-                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.apps !== undefined ? activeRecord.apps : "-"}</strong>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>GOALS</span>
-                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.goals !== undefined ? activeRecord.goals : "-"}</strong>
-              </div>
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>ASSISTS</span>
-                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.assists !== undefined ? activeRecord.assists : "-"}</strong>
-              </div>
-              {["GK", "CB", "LB", "RB", "CDM"].includes(position) && (
-                <div style={{ display: "flex", flexDirection: "column" }}>
-                  <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--coral)", fontWeight: 900 }}>CLEAN (CS)</span>
-                  <strong style={{ fontSize: "0.78rem", color: "var(--coral)" }}>{activeRecord.cleanSheets !== undefined ? activeRecord.cleanSheets : "-"}</strong>
-                </div>
+            {/* Status rows */}
+            <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
+
+              {/* League */}
+              <StatusRow
+                icon="🏆"
+                label={activeRecord.leagueName || "Giải VĐQG"}
+                result={getLeagueResultLabel(activeRecord.standing ?? null)}
+                hasResult={activeRecord.standing !== null && activeRecord.standing !== undefined}
+                isChampion={activeRecord.standing === 1}
+                onClick={() => onOpenModal("league")}
+              />
+
+              {/* Domestic Cup */}
+              <StatusRow
+                icon="🛡️"
+                label={getDomesticCupName(activeRecord.leagueName)}
+                result={getCupResultLabel(activeRecord.domesticCup)}
+                hasResult={!!activeRecord.domesticCup && activeRecord.domesticCup !== "Chờ quay"}
+                isChampion={activeRecord.domesticCup === "Winner"}
+                onClick={() => onOpenModal("cup")}
+              />
+
+              {/* Continental */}
+              {activeRecord.continentalCup ? (
+                <StatusRow
+                  icon="🌍"
+                  label={getContinentalCupLabel(activeRecord.continentalCup.type)}
+                  result={getCupResultLabel(activeRecord.continentalCup.result)}
+                  hasResult={!!activeRecord.continentalCup.result && activeRecord.continentalCup.result !== "Chờ quay"}
+                  isChampion={activeRecord.continentalCup.result === "Winner"}
+                  onClick={() => onOpenModal("continental")}
+                />
+              ) : (
+                <StatusRowInactive icon="🌍" label="Cúp Châu Lục CLB" note="Không tham gia" />
               )}
-              <div style={{ display: "flex", flexDirection: "column" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.45rem", color: "var(--ink-gray)" }}>RATING</span>
-                <strong style={{ fontSize: "0.78rem" }}>{activeRecord.matchRating !== undefined ? (typeof activeRecord.matchRating === 'number' ? activeRecord.matchRating.toFixed(2) : activeRecord.matchRating) : "-"}</strong>
-              </div>
-            </div>
 
-            {/* Label 1: LEAGUE + DROPDOWN LIST BẢNG XẾP HẠNG CHI TIẾT */}
-            <div style={{ display: "flex", flexDirection: "column", border: "2px solid var(--charcoal)", borderRadius: "4px", overflow: "hidden" }}>
-              <button
-                type="button"
-                onClick={() => setIsLeagueOpen(!isLeagueOpen)}
-                style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  backgroundColor: "var(--cream-dark)", padding: "10px 12px", width: "100%", textAlign: "left",
-                  fontFamily: "var(--font-headline)", fontSize: "0.78rem", fontWeight: 700, border: "none", cursor: "pointer"
-                }}
-              >
-                <span>🏆 Giải VĐQG</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <strong style={{ color: "var(--coral)" }}>
-                    {activeRecord.standing !== null ? `Hạng #${activeRecord.standing}` : "Chờ quay..."}
-                  </strong>
-                  {isLeagueOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </div>
-              </button>
-              
-              {isLeagueOpen && (
-                <div style={{ backgroundColor: "var(--white)", borderTop: "1.5px solid var(--charcoal)", padding: "8px" }}>
-                  {activeRecord.leagueTable ? (
-                    <div style={{ fontSize: "0.72rem", maxHeight: "260px", overflowY: "auto" }}>
-                      <div style={{ display: "grid", gridTemplateColumns: "30px 1fr 40px", fontWeight: 700, borderBottom: "1px solid var(--charcoal)", paddingBottom: "3px", marginBottom: "4px" }}>
-                        <span>POS</span>
-                        <span>CLUB</span>
-                        <span style={{ textAlign: "right" }}>PTS</span>
-                      </div>
-                      {activeRecord.leagueTable.map((row: any, i: number) => {
-                        const isPlayer = row.name.toLowerCase() === activeRecord.clubName.toLowerCase();
-                        return (
-                          <div key={i} style={{ display: "grid", gridTemplateColumns: "30px 1fr 40px", padding: "3.5px 0", color: isPlayer ? "var(--coral)" : "var(--charcoal)", fontWeight: isPlayer ? 800 : 500 }}>
-                            <span>{i + 1}</span>
-                            <span style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap" }}>{row.name}</span>
-                            <span style={{ textAlign: "right" }}>{row.points}</span>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  ) : (
-                    <p style={{ fontSize: "0.72rem", fontStyle: "italic", color: "var(--ink-light)", margin: 0 }}>Chưa có bảng xếp hạng...</p>
-                  )}
-                </div>
+              {/* National */}
+              {activeRecord.nationalTeam ? (
+                <StatusRow
+                  icon="🌎"
+                  label={activeRecord.nationalTeam.type}
+                  result={
+                    activeRecord.nationalTeam.result
+                      ? getCupResultLabel(activeRecord.nationalTeam.result)
+                      : activeRecord.nationalTeam.callup === "Được triệu tập"
+                        ? "Được triệu tập"
+                        : activeRecord.nationalTeam.callup === "Không được gọi"
+                          ? "Không được gọi"
+                          : "Chờ quay..."
+                  }
+                  hasResult={activeRecord.nationalTeam.callup !== "Chờ gọi"}
+                  isChampion={activeRecord.nationalTeam.result === "Winner"}
+                  isNational
+                  onClick={() => onOpenModal("national")}
+                />
+              ) : (
+                <StatusRowInactive icon="🌎" label="ĐTQG Quốc Tế" note="Không có giải" />
               )}
+
             </div>
-
-            {/* Label 2: CUP QUỐC GIA + DROPDOWN HÀNH TRÌNH CHI TIẾT */}
-            <div style={{ display: "flex", flexDirection: "column", border: "2px solid var(--charcoal)", borderRadius: "4px", overflow: "hidden" }}>
-              <button
-                type="button"
-                onClick={() => setIsDomesticOpen(!isDomesticOpen)}
-                style={{
-                  display: "flex", justifyContent: "space-between", alignItems: "center",
-                  backgroundColor: "var(--cream-dark)", padding: "10px 12px", width: "100%", textAlign: "left",
-                  fontFamily: "var(--font-headline)", fontSize: "0.78rem", fontWeight: 700, border: "none", cursor: "pointer"
-                }}
-              >
-                <span>🛡️ Cúp Quốc Gia</span>
-                <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                  <strong style={{ color: "var(--charcoal)" }}>
-                    {activeRecord.domesticCup === "Winner" ? "🏆 VÔ ĐỊCH" : activeRecord.domesticCup === "Runner-Up" ? "Á QUÂN" : activeRecord.domesticCup === "Semi-Finals" ? "BÁN KẾT" : activeRecord.domesticCup === "Early Exit" ? "LOẠI SỚM" : activeRecord.domesticCup || "Chờ quay..."}
-                  </strong>
-                  {isDomesticOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                </div>
-              </button>
-              
-              {isDomesticOpen && (
-                <div style={{ backgroundColor: "var(--white)", borderTop: "1.5px solid var(--charcoal)", padding: "8px", fontSize: "0.72rem" }}>
-                  {activeRecord.domesticCupJourney ? (
-                    <ul style={{ paddingLeft: "14px", margin: 0, display: "flex", flexDirection: "column", gap: "3px" }}>
-                      {activeRecord.domesticCupJourney.map((j: string, idx: number) => (
-                        <li key={idx} style={{ listStyleType: "circle" }}>{j}</li>
-                      ))}
-                    </ul>
-                  ) : (
-                    <p style={{ fontSize: "0.72rem", fontStyle: "italic", color: "var(--ink-light)", margin: 0 }}>Chưa đá vòng loại cúp...</p>
-                  )}
-                </div>
-              )}
-            </div>
-
-            {/* Label 3: CUP CHÂU LỤC CLB + DROPDOWN HÀNH TRÌNH CHI TIẾT */}
-            {activeRecord.continentalCup && activeRecord.continentalCup.type !== "none" ? (
-              <div style={{ display: "flex", flexDirection: "column", border: "2px solid var(--charcoal)", borderRadius: "4px", overflow: "hidden" }}>
-                <button
-                  type="button"
-                  onClick={() => setIsContinentalOpen(!isContinentalOpen)}
-                  style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    backgroundColor: "var(--cream-dark)", padding: "10px 12px", width: "100%", textAlign: "left",
-                    fontFamily: "var(--font-headline)", fontSize: "0.72rem", fontWeight: 700, border: "none", cursor: "pointer"
-                  }}
-                >
-                  <span style={{ textOverflow: "ellipsis", overflow: "hidden", whiteSpace: "nowrap", maxWidth: "160px" }}>
-                    🌍 {getContinentalCupLabel(activeRecord.continentalCup.type)}
-                  </span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <strong style={{ color: "var(--charcoal)" }}>
-                      {activeRecord.continentalCup.result === "Winner" ? "🏆 VÔ ĐỊCH" : activeRecord.continentalCup.result === "Runner-Up" ? "Á QUÂN" : activeRecord.continentalCup.result === "Semi-Finals" ? "BÁN KẾT" : (activeRecord.continentalCup.result === "Group Stage" || activeRecord.continentalCup.result === "Early Exit") ? "VÒNG BẢNG" : activeRecord.continentalCup.result}
-                    </strong>
-                    {isContinentalOpen ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
-                  </div>
-                </button>
-                
-                {isContinentalOpen && (
-                  <div style={{ backgroundColor: "var(--white)", borderTop: "1.5px solid var(--charcoal)", padding: "8px", fontSize: "0.72rem" }}>
-                    {activeRecord.continentalCupJourney ? (
-                      <ul style={{ paddingLeft: "14px", margin: 0, display: "flex", flexDirection: "column", gap: "3px" }}>
-                        {activeRecord.continentalCupJourney.map((j: string, idx: number) => (
-                          <li key={idx} style={{ listStyleType: "circle" }}>{j}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p style={{ fontSize: "0.72rem", fontStyle: "italic", color: "var(--ink-light)", margin: 0 }}>Chưa đá vòng bảng châu lục...</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--cream-dark)", padding: "10px 12px", borderRadius: "4px", border: "1.5px dashed var(--cream-border)", opacity: 0.65 }}>
-                <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.72rem", fontWeight: 500, color: "var(--ink-light)" }}>🌍 Cúp Châu Lục CLB</span>
-                <span style={{ fontSize: "0.7rem", fontStyle: "italic", color: "var(--ink-light)" }}>Không tham gia</span>
-              </div>
-            )}
-
-            {/* Label 4 & 5: ĐTQG + DROPDOWN LIST */}
-            {activeRecord.nationalTeam ? (
-              <div style={{ display: "flex", flexDirection: "column", border: "2px solid var(--coral)", borderRadius: "4px", overflow: "hidden" }}>
-                <button
-                  type="button"
-                  onClick={() => setIsNationalOpen(!isNationalOpen)}
-                  style={{
-                    display: "flex", justifyContent: "space-between", alignItems: "center",
-                    backgroundColor: "rgba(255, 111, 97, 0.08)", padding: "10px 12px", width: "100%", textAlign: "left",
-                    fontFamily: "var(--font-headline)", fontSize: "0.72rem", fontWeight: 700, border: "none", cursor: "pointer"
-                  }}
-                >
-                  <span style={{ color: "var(--coral)" }}>🌎 ĐTQG ({activeRecord.nationalTeam.type})</span>
-                  <div style={{ display: "flex", alignItems: "center", gap: "4px" }}>
-                    <strong style={{ color: "var(--coral)" }}>
-                      {activeRecord.nationalTeam.result ? (activeRecord.nationalTeam.result === "Winner" ? "🏆 VÔ ĐỊCH" : activeRecord.nationalTeam.result === "Runner-Up" ? "Á QUÂN" : activeRecord.nationalTeam.result === "Semi-Finals" ? "BÁN KẾT" : "VÒNG BẢNG") : activeRecord.nationalTeam.callup}
-                    </strong>
-                    {isNationalOpen ? <ChevronUp size={14} color="var(--coral)" /> : <ChevronDown size={14} color="var(--coral)" />}
-                  </div>
-                </button>
-                
-                {isNationalOpen && (
-                  <div style={{ backgroundColor: "var(--white)", borderTop: "1.5px solid var(--coral)", padding: "8px", fontSize: "0.72rem" }}>
-                    {activeRecord.nationalTeamJourney ? (
-                      <ul style={{ paddingLeft: "14px", margin: 0, display: "flex", flexDirection: "column", gap: "3px" }}>
-                        {activeRecord.nationalTeamJourney.map((j: string, idx: number) => (
-                          <li key={idx} style={{ listStyleType: "square", color: "var(--coral)" }}>{j}</li>
-                        ))}
-                      </ul>
-                    ) : (
-                      <p style={{ fontSize: "0.72rem", fontStyle: "italic", color: "var(--ink-light)", margin: 0 }}>Không có thông tin hành trình...</p>
-                    )}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", backgroundColor: "var(--cream-dark)", padding: "10px 12px", borderRadius: "4px", border: "1.5px dashed var(--cream-border)", opacity: 0.65 }}>
-                <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.72rem", fontWeight: 500, color: "var(--ink-light)" }}>🌎 ĐTQG Quốc Tế</span>
-                <span style={{ fontSize: "0.7rem", fontStyle: "italic", color: "var(--ink-light)" }}>Không có giải</span>
-              </div>
-            )}
-
           </div>
         ) : (
           <p style={{ fontSize: "0.75rem", fontStyle: "italic", color: "var(--ink-light)" }}>Chưa có dữ liệu thi đấu...</p>
         )}
 
       </div>
+    </div>
+  );
+}
+
+// ── Sub-components ──────────────────────────────────────────────────────────
+
+function StatusRow({
+  icon,
+  label,
+  result,
+  hasResult,
+  isChampion,
+  isNational,
+  onClick,
+}: {
+  icon: string;
+  label: string;
+  result: string;
+  hasResult: boolean;
+  isChampion?: boolean;
+  isNational?: boolean;
+  onClick: () => void;
+}) {
+  const borderColor = isNational ? "var(--coral)" : "var(--charcoal)";
+  const bgColor = isNational ? "rgba(255,111,97,0.06)" : "var(--cream-dark)";
+
+  return (
+    <button
+      type="button"
+      onClick={hasResult ? onClick : undefined}
+      disabled={!hasResult}
+      style={{
+        display: "flex",
+        justifyContent: "space-between",
+        alignItems: "center",
+        border: `1.5px solid ${hasResult ? borderColor : "var(--cream-border)"}`,
+        borderRadius: "4px",
+        padding: "8px 10px",
+        backgroundColor: hasResult ? bgColor : "transparent",
+        cursor: hasResult ? "pointer" : "default",
+        width: "100%",
+        textAlign: "left",
+        opacity: hasResult ? 1 : 0.55,
+        transition: "opacity 0.15s",
+      }}
+    >
+      <span style={{
+        fontFamily: "var(--font-headline)",
+        fontSize: "0.72rem",
+        fontWeight: 700,
+        color: isNational ? "var(--coral)" : "var(--charcoal)",
+        overflow: "hidden",
+        textOverflow: "ellipsis",
+        whiteSpace: "nowrap",
+        maxWidth: "140px",
+      }}>
+        {icon} {label}
+      </span>
+      <div style={{ display: "flex", alignItems: "center", gap: "4px", flexShrink: 0 }}>
+        <span style={{
+          fontFamily: "var(--font-headline)",
+          fontSize: "0.7rem",
+          fontWeight: 800,
+          color: isChampion ? "var(--coral)" : isNational ? "var(--coral)" : "var(--charcoal)",
+        }}>
+          {result}
+        </span>
+        {hasResult && <ChevronRight size={12} color={isNational ? "var(--coral)" : "var(--charcoal)"} />}
+      </div>
+    </button>
+  );
+}
+
+function StatusRowInactive({ icon, label, note }: { icon: string; label: string; note: string }) {
+  return (
+    <div style={{
+      display: "flex",
+      justifyContent: "space-between",
+      alignItems: "center",
+      border: "1.5px dashed var(--cream-border)",
+      borderRadius: "4px",
+      padding: "8px 10px",
+      opacity: 0.5,
+    }}>
+      <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.72rem", fontWeight: 500, color: "var(--ink-light)" }}>
+        {icon} {label}
+      </span>
+      <span style={{ fontSize: "0.68rem", fontStyle: "italic", color: "var(--ink-light)" }}>{note}</span>
     </div>
   );
 }

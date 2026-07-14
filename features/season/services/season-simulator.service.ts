@@ -1,6 +1,14 @@
 import { getNationalTier } from "@/lib/wheel-engine/weight-calculator";
 import { resolveRandom, resolveRandomFloat } from "@/lib/wheel-engine/spin-resolver";
 
+export interface CompetitionStats {
+  apps: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  rating: number;
+}
+
 export interface PlayerSeasonInput {
   age: number;
   ovr: number;
@@ -12,9 +20,16 @@ export interface PlayerSeasonInput {
   leagueClubsCount: number;
   hasContinentalCup: boolean;
   playerNationality: string;
+  // Outcomes từ wheels — truyền vào sau khi tất cả wheels xong
+  standingResult?: number | null;
+  domesticCupResult?: string | null;
+  continentalCupResult?: string | null;
+  nationalCallupResult?: string | null;
+  nationalTournamentResult?: string | null;
 }
 
 export interface SimulatedSeasonResult {
+  // Tổng toàn mùa
   apps: number;
   goals: number;
   assists: number;
@@ -22,93 +37,74 @@ export interface SimulatedSeasonResult {
   matchRating: number;
   hasBallonDorWinner: boolean;
   events: { type: string; label: string }[];
+  // Per-competition — server tính, FE chỉ hiển thị
+  leagueStats: CompetitionStats;
+  domesticCupStats: CompetitionStats;
+  continentalStats?: CompetitionStats;
+  nationalStats?: CompetitionStats;
 }
 
-export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
-  const {
-    age,
-    ovr,
-    position,
-    luckRating,
-    clubPrestige,
-    clubName,
-    leagueName,
-    leagueClubsCount,
-    hasContinentalCup,
-    playerNationality,
-  } = input;
-  
-  const events: { type: string; label: string }[] = [];
+// ── Match counts deterministic từ outcomes ──────────────────────────────────
 
-  // 1. Tính toán số trận đấu tối đa tiềm năng (Max Season Matches)
-  const leagueMatches = (leagueClubsCount - 1) * 2;
+function getCupMatches(result: string | null | undefined): number {
+  if (result === "Winner" || result === "Runner-Up") return 6;
+  if (result === "Semi-Finals") return 4;
+  if (result === "Early Exit") return 2;
+  return 2; // fallback
+}
 
-  // Domestic Cup: CLB prestige cao thì có khả năng tiến xa hơn (giả lập 1 đến 6 trận)
-  const cupProgressChance = resolveRandomFloat(0, 5) + clubPrestige;
-  const domesticCupMatches = cupProgressChance > 8 ? 6 : cupProgressChance > 6 ? 5 : cupProgressChance > 4 ? 3 : 1;
+function getContinentalMatches(result: string | null | undefined): number {
+  if (result === "Winner") return 13;
+  if (result === "Runner-Up") return 12;
+  if (result === "Semi-Finals") return 10;
+  if (result === "Group Stage" || result === "Early Exit") return 6;
+  return 6; // fallback
+}
 
-  // Continental Cup: Nếu được đá cúp châu lục (giả lập 6 đến 13 trận)
-  let continentalMatches = 0;
-  if (hasContinentalCup) {
-    const contChance = resolveRandomFloat(0, 5) + clubPrestige;
-    continentalMatches = contChance > 8 ? 13 : contChance > 6 ? 12 : 6;
-  }
+function getNationalMatches(
+  callup: string | null | undefined,
+  result: string | null | undefined
+): number {
+  if (callup !== "called_up") return 0;
+  if (result === "Winner" || result === "Runner-Up") return 7;
+  if (result === "Semi-Finals") return 5;
+  return 3;
+}
 
-  // ĐTQG: năm chẵn → tính xác suất được gọi lên tuyển theo OVR (không hard-gate)
-  let nationalMatches = 0;
-  if (age % 2 === 0) {
-    const tier = getNationalTier(playerNationality);
-    const midOvr = tier === 1 ? 80 : tier === 2 ? 75 : 70;
-    const callupProb = Math.max(0.1, Math.min(0.9, 0.5 + (ovr - midOvr) * 0.03));
-    if (resolveRandom() < callupProb) {
-      const ntChance = resolveRandomFloat(0, 6) + (luckRating / 4);
-      nationalMatches = ntChance > 8 ? 7 : ntChance > 5 ? 6 : 3;
-    }
-  }
+// ── Apps ratio với standing high impact ────────────────────────────────────
 
-  const maxSeasonMatches = leagueMatches + domesticCupMatches + continentalMatches + nationalMatches;
+function getStandingBonus(standing: number | null | undefined): number {
+  if (!standing) return 0;
+  if (standing === 1) return 0.12;
+  if (standing <= 4) return 0.06;
+  if (standing <= 10) return 0;
+  if (standing <= 15) return -0.06;
+  return -0.12;
+}
 
-  // 2. Tính số trận ra sân (Apps) của Player dựa trên thực lực so với chất lượng CLB
-  const clubThreshold = 55 + clubPrestige * 6;
-  const ovrDifference = ovr - clubThreshold;
+// ── Goals/Assists/CleanSheets per position ─────────────────────────────────
 
-  let baseAppsRatio = 0.55; // Mặc định đá khoảng 55% số trận
-  if (ovrDifference > 10) baseAppsRatio = 0.85; // Ngôi sao đá chính 85%
-  else if (ovrDifference < -10) baseAppsRatio = 0.25; // Dự bị đá 25%
-  else baseAppsRatio = 0.55 + (ovrDifference * 0.03); // Scale tuyến tính
-
-  const randModifier = resolveRandomFloat(-0.08, 0.08); // Biến thiên phong độ/chấn thương +-8%
-  const finalAppsRatio = Math.min(0.95, Math.max(0.05, baseAppsRatio + randModifier));
-  
-  const apps = Math.min(maxSeasonMatches, Math.max(1, Math.round(maxSeasonMatches * finalAppsRatio)));
-
-  // 3. Tính số Bàn thắng (Goals), Kiến tạo (Assists) và Sạch lưới (Clean Sheets)
+function calcAttackStats(
+  position: string,
+  ovr: number,
+  playFactor: number,
+  apps: number
+): { goals: number; assists: number; cleanSheets: number } {
   let goals = 0;
   let assists = 0;
-  let cleanSheets = 0;
-
-  const playFactor = apps / maxSeasonMatches; // Tỷ lệ trận ra sân thực tế
+  const cleanSheets = 0;
 
   if (position === "GK") {
-    goals = 0;
     assists = resolveRandom() > 0.97 ? 1 : 0;
-    const csBase = (leagueMatches * 0.15) + (clubPrestige * 1.5) + (ovr - 60) * 0.1;
-    cleanSheets = Math.round(Math.min(apps, Math.max(0, csBase * playFactor + resolveRandomFloat(-1.5, 1.5))));
   } else if (position === "CB") {
     goals = Math.round((resolveRandom() > 0.75 ? 2 : 0) + resolveRandomFloat(0, 3) * playFactor);
     assists = Math.round((resolveRandom() > 0.85 ? 1 : 0) + resolveRandomFloat(0, 2) * playFactor);
-    const csBase = (leagueMatches * 0.14) + (clubPrestige * 1.5) + (ovr - 60) * 0.08;
-    cleanSheets = Math.round(Math.min(apps, Math.max(0, csBase * playFactor + resolveRandomFloat(-1.5, 1.5))));
   } else if (position === "LB" || position === "RB") {
     goals = Math.round((resolveRandom() > 0.85 ? 1 : 0) + resolveRandomFloat(0, 2) * playFactor);
     assists = Math.round(resolveRandomFloat(1, 6) * playFactor);
-    const csBase = (leagueMatches * 0.13) + (clubPrestige * 1.3) + (ovr - 60) * 0.07;
-    cleanSheets = Math.round(Math.min(apps, Math.max(0, csBase * playFactor + resolveRandomFloat(-1.5, 1.5))));
   } else if (position === "CDM") {
     goals = Math.round(resolveRandomFloat(0, 3) * playFactor);
     assists = Math.round(resolveRandomFloat(1, 6) * playFactor);
-    const csBase = (leagueMatches * 0.11) + (clubPrestige * 1.0) + (ovr - 60) * 0.05;
-    cleanSheets = Math.round(Math.min(apps, Math.max(0, csBase * playFactor + resolveRandomFloat(-1, 1))));
   } else if (position === "CM") {
     goals = Math.round(resolveRandomFloat(1, 8) * playFactor);
     assists = Math.round(resolveRandomFloat(2, 11) * playFactor);
@@ -123,36 +119,153 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     assists = Math.round(resolveRandomFloat(1, 8) * playFactor);
   }
 
-  goals = Math.max(0, goals);
-  assists = Math.max(0, assists);
+  return { goals: Math.max(0, goals), assists: Math.max(0, assists), cleanSheets };
+}
 
-  // 4. Tính toán Match Rating
-  let performanceRating = 6.0 + (ovr - 55) * 0.015 + (luckRating / 20) * 0.25;
+function calcCleanSheets(
+  position: string,
+  ovr: number,
+  clubPrestige: number,
+  baseLeagueMatches: number,
+  playFactor: number
+): number {
+  if (!["GK", "CB", "LB", "RB", "CDM"].includes(position)) return 0;
+
+  let csBase: number;
+  if (position === "GK") {
+    csBase = (baseLeagueMatches * 0.15) + (clubPrestige * 1.5) + (ovr - 60) * 0.1;
+  } else if (position === "CB") {
+    csBase = (baseLeagueMatches * 0.14) + (clubPrestige * 1.5) + (ovr - 60) * 0.08;
+  } else if (position === "LB" || position === "RB") {
+    csBase = (baseLeagueMatches * 0.13) + (clubPrestige * 1.3) + (ovr - 60) * 0.07;
+  } else {
+    csBase = (baseLeagueMatches * 0.11) + (clubPrestige * 1.0) + (ovr - 60) * 0.05;
+  }
+
+  return Math.round(Math.min(999, Math.max(0, csBase * playFactor + resolveRandomFloat(-1.5, 1.5))));
+}
+
+// ── Match Rating per competition ───────────────────────────────────────────
+
+function calcRating(
+  position: string,
+  ovr: number,
+  luckRating: number,
+  compStats: { goals: number; assists: number; cleanSheets: number; apps: number },
+  standingBonus = 0
+): number {
+  if (compStats.apps === 0) return 0;
+
+  let base = 6.0 + (ovr - 55) * 0.015 + (luckRating / 20) * 0.25 + standingBonus;
 
   if (["ST", "LW", "RW", "CAM", "CM"].includes(position)) {
-    const gaFactor = (goals + assists) / apps;
-    performanceRating += gaFactor * 2.5;
+    const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
+    base += gaFactor * 2.5;
   } else if (position === "CDM") {
-    const csFactor = cleanSheets / apps;
-    const gaFactor = (goals + assists) / apps;
-    performanceRating += csFactor * 1.5 + gaFactor * 1.0;
+    const csFactor = compStats.cleanSheets / compStats.apps;
+    const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
+    base += csFactor * 1.5 + gaFactor * 1.0;
   } else {
-    const csFactor = cleanSheets / apps;
-    performanceRating += csFactor * 2.8;
+    const csFactor = compStats.cleanSheets / compStats.apps;
+    base += csFactor * 2.8;
   }
 
-  performanceRating += resolveRandomFloat(-0.2, 0.2);
-  const matchRating = Math.min(9.0, Math.max(5.5, Math.round(performanceRating * 100) / 100));
+  base += resolveRandomFloat(-0.15, 0.15);
+  return Math.min(9.0, Math.max(5.5, Math.round(base * 100) / 100));
+}
 
-  // 5. Thêm các milestones/danh hiệu cá nhân nổi bật
-  if (apps >= Math.round(maxSeasonMatches * 0.8)) {
-    events.push({ type: "milestone", label: `Cầu thủ then chốt thi đấu ${apps} trận trong mùa giải` });
+// ── Main service ───────────────────────────────────────────────────────────
+
+export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
+  const {
+    ovr, position, luckRating, clubPrestige, leagueClubsCount,
+    hasContinentalCup, playerNationality,
+    standingResult, domesticCupResult, continentalCupResult,
+    nationalCallupResult, nationalTournamentResult,
+  } = input;
+
+  const events: { type: string; label: string }[] = [];
+
+  // 1. Match counts — deterministic từ outcomes
+  const leagueMatches = (leagueClubsCount - 1) * 2;
+  const cupMatches = getCupMatches(domesticCupResult);
+  const continentalMatches = hasContinentalCup ? getContinentalMatches(continentalCupResult) : 0;
+  const nationalMatches = getNationalMatches(nationalCallupResult, nationalTournamentResult);
+  const maxSeasonMatches = leagueMatches + cupMatches + continentalMatches + nationalMatches;
+
+  // 2. Apps ratio — high impact từ standing
+  const clubThreshold = 55 + clubPrestige * 6;
+  const ovrDifference = ovr - clubThreshold;
+  let baseAppsRatio = 0.55;
+  if (ovrDifference > 10) baseAppsRatio = 0.85;
+  else if (ovrDifference < -10) baseAppsRatio = 0.25;
+  else baseAppsRatio = 0.55 + ovrDifference * 0.03;
+
+  const standingBonus = getStandingBonus(standingResult);
+  const randModifier = resolveRandomFloat(-0.05, 0.05); // giảm từ ±0.08
+  const finalAppsRatio = Math.min(0.95, Math.max(0.05, baseAppsRatio + standingBonus + randModifier));
+
+  // 3. Per-competition apps
+  const leagueApps = Math.max(1, Math.round(leagueMatches * finalAppsRatio));
+  const cupApps = cupMatches > 0 ? Math.max(0, Math.round(cupMatches * finalAppsRatio * 0.90)) : 0;
+  const continentalApps = continentalMatches > 0 ? Math.max(0, Math.round(continentalMatches * finalAppsRatio)) : 0;
+  const nationalApps = nationalMatches > 0 ? Math.max(0, Math.round(nationalMatches * finalAppsRatio * 0.85)) : 0;
+  const totalApps = leagueApps + cupApps + continentalApps + nationalApps;
+
+  // 4. Per-competition goals/assists
+  const leaguePf = leagueApps / leagueMatches;
+  const { goals: lgGoals, assists: lgAssists } = calcAttackStats(position, ovr, leaguePf, leagueApps);
+  const leagueCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, leaguePf);
+
+  const cupPf = cupMatches > 0 ? cupApps / cupMatches : 0;
+  const { goals: cpGoals, assists: cpAssists } = calcAttackStats(position, ovr, cupPf, cupApps);
+  const cupCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, cupPf);
+
+  const contPf = continentalMatches > 0 ? continentalApps / continentalMatches : 0;
+  const { goals: ctGoals, assists: ctAssists } = calcAttackStats(position, ovr, contPf, continentalApps);
+  const contCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, contPf);
+
+  const natPf = nationalMatches > 0 ? nationalApps / nationalMatches : 0;
+  const { goals: ntGoals, assists: ntAssists } = calcAttackStats(position, ovr, natPf, nationalApps);
+  const natCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, natPf);
+
+  // 5. Match ratings per competition
+  const lgRatingBonus = getStandingBonus(standingResult) * 0.8; // standing ảnh hưởng league rating
+  const leagueRating = leagueApps > 0
+    ? calcRating(position, ovr, luckRating, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus)
+    : 0;
+  const cupRating = cupApps > 0
+    ? calcRating(position, ovr, luckRating, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps })
+    : 0;
+  const contRating = continentalApps > 0
+    ? calcRating(position, ovr, luckRating, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps })
+    : 0;
+  const natRating = nationalApps > 0
+    ? calcRating(position, ovr, luckRating, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps })
+    : 0;
+
+  // 6. Totals (weighted average rating)
+  const totalGoals = Math.max(0, lgGoals + cpGoals + ctGoals + ntGoals);
+  const totalAssists = Math.max(0, lgAssists + cpAssists + ctAssists + ntAssists);
+  const totalCS = leagueCS + cupCS + contCS + natCS;
+
+  const ratingWeights = [
+    { r: leagueRating, a: leagueApps },
+    { r: cupRating, a: cupApps },
+    { r: contRating, a: continentalApps },
+    { r: natRating, a: nationalApps },
+  ].filter((x) => x.a > 0);
+  const weightedRating = ratingWeights.length > 0
+    ? ratingWeights.reduce((sum, x) => sum + x.r * x.a, 0) / ratingWeights.reduce((sum, x) => sum + x.a, 0)
+    : 6.0;
+  const matchRating = Math.min(9.0, Math.max(5.5, Math.round(weightedRating * 100) / 100));
+
+  // 7. Individual awards
+  if (totalGoals >= 20 && ["ST", "LW", "RW"].includes(position)) {
+    events.push({ type: "individual_award", label: `Đoạt chiếc giày vàng CLB với ${totalGoals} bàn thắng` });
   }
-  if (goals >= 20 && ["ST", "LW", "RW"].includes(position)) {
-    events.push({ type: "individual_award", label: `Đoạt chiếc giày vàng CLB với ${goals} bàn thắng` });
-  }
-  if (cleanSheets >= 15 && ["GK", "CB"].includes(position)) {
-    events.push({ type: "individual_award", label: `Đoạt Găng tay vàng với ${cleanSheets} trận giữ sạch lưới` });
+  if (totalCS >= 15 && ["GK", "CB"].includes(position)) {
+    events.push({ type: "individual_award", label: `Đoạt Găng tay vàng với ${totalCS} trận giữ sạch lưới` });
   }
   if (matchRating >= 7.60) {
     events.push({ type: "individual_award", label: `Lọt vào Đội hình tiêu biểu mùa giải với Rating ${matchRating}` });
@@ -161,12 +274,20 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const hasBallonDorWinner = ovr >= 85 && matchRating >= 7.80 && resolveRandom() < 0.35;
 
   return {
-    apps,
-    goals,
-    assists,
-    cleanSheets,
+    apps: totalApps,
+    goals: totalGoals,
+    assists: totalAssists,
+    cleanSheets: totalCS,
     matchRating,
     hasBallonDorWinner,
     events,
+    leagueStats: { apps: leagueApps, goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, rating: leagueRating },
+    domesticCupStats: { apps: cupApps, goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, rating: cupRating },
+    ...(continentalApps > 0 && {
+      continentalStats: { apps: continentalApps, goals: ctGoals, assists: ctAssists, cleanSheets: contCS, rating: contRating },
+    }),
+    ...(nationalApps > 0 && {
+      nationalStats: { apps: nationalApps, goals: ntGoals, assists: ntAssists, cleanSheets: natCS, rating: natRating },
+    }),
   };
 }

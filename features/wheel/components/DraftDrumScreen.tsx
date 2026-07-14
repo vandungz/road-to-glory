@@ -7,8 +7,9 @@ import { SetupStage } from "./SetupStage";
 import { CareerActionsPanel } from "./CareerActionsPanel";
 import { SeasonProfile } from "./SeasonProfile";
 import { PaniniSticker } from "./PaniniSticker";
-import { TimelineHistory } from "./TimelineHistory";
 import { RetiredStage } from "./RetiredStage";
+import { SeasonResultModal } from "./SeasonResultModal";
+import { SeasonStatsModal } from "./SeasonStatsModal";
 
 interface Props {
   gameId: string;
@@ -43,14 +44,8 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     seasonRecords,
     selectedAgeForStats,
     setSelectedAgeForStats,
-    isLeagueOpen,
-    setIsLeagueOpen,
-    isCupOpen,
-    setIsCupOpen,
-    isContinentalOpen,
-    setIsContinentalOpen,
-    isNationalOpen,
-    setIsNationalOpen,
+    activeModal,
+    setActiveModal,
     careerSubStep,
     careerSpinning,
     careerWheelItems,
@@ -64,7 +59,6 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     hasBallonDorWinner,
     careerTotalStats,
     peakOvrValue,
-    events,
     yearSimResult,
     transferOffer,
     clubStints,
@@ -79,12 +73,15 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     handleCareerSpinComplete,
     handleAcceptTransfer,
     handleNextSeason,
+    handleSeasonStatsModalClose,
     handleSavePlayer,
     STEP_LABELS,
     selectorIndex,
   } = useDraftDrum(gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup);
 
   if (!isMounted) return null;
+
+  const activeRecord = seasonRecords[selectedAgeForStats] ?? null;
 
   return (
     <div
@@ -185,7 +182,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
       {mode === "career" && (
         <main style={{ flex: 1, maxWidth: "1280px", width: "100%", margin: "0 auto", padding: "24px 16px" }}>
           <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "24px", alignItems: "flex-start", justifyContent: "center" }}>
-            
+
             {/* CỘT 1 (TRÁI): CAREER ACTIONS */}
             <CareerActionsPanel
               careerSubStep={careerSubStep}
@@ -221,15 +218,8 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
               playerDebutAge={playerDebutAge}
               selectedAgeForStats={selectedAgeForStats}
               setSelectedAgeForStats={setSelectedAgeForStats}
-              isLeagueOpen={isLeagueOpen}
-              setIsLeagueOpen={setIsLeagueOpen}
-              isDomesticOpen={isCupOpen}
-              setIsDomesticOpen={setIsCupOpen}
-              isContinentalOpen={isContinentalOpen}
-              setIsContinentalOpen={setIsContinentalOpen}
-              isNationalOpen={isNationalOpen}
-              setIsNationalOpen={setIsNationalOpen}
               position={position}
+              onOpenModal={setActiveModal}
             />
 
             {/* CỘT 3 (PHẢI): STICKER PANINI */}
@@ -255,10 +245,6 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
             />
 
           </div>
-
-          <div style={{ marginTop: "32px" }}>
-            <TimelineHistory events={events} playerDebutAge={playerDebutAge} />
-          </div>
         </main>
       )}
 
@@ -271,9 +257,28 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
           playerName={playerName}
           careerTotalStats={careerTotalStats}
           clubStints={clubStints}
-          events={events}
           isSaving={isSaving}
           handleSavePlayer={handleSavePlayer}
+        />
+      )}
+
+      {/* ── MODALS ── */}
+      {activeModal && activeModal !== "season_stats" && activeRecord && (
+        <SeasonResultModal
+          type={activeModal as "league" | "cup" | "continental" | "national"}
+          record={activeRecord}
+          currentContinentalCup={currentContinentalCup}
+          playerDebutAge={playerDebutAge}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
+
+      {activeModal === "season_stats" && yearSimResult && activeRecord && (
+        <SeasonStatsModal
+          record={activeRecord}
+          yearSimResult={yearSimResult}
+          currentContinentalCup={currentContinentalCup}
+          onClose={handleSeasonStatsModalClose}
         />
       )}
 

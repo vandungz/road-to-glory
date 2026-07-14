@@ -80,6 +80,7 @@ export function CareerActionsPanel({
             {careerSubStep === "continental_cup" && `Cup Lục Địa: ${getContinentalCupLabel(currentContinentalCup)}`}
             {careerSubStep === "national_callup" && "ĐTQG: Quay Triệu Tập Tuyển"}
             {careerSubStep === "national_tournament" && "ĐTQG: Vòng Quay Cup Quốc Tế"}
+            {careerSubStep === "season_stats" && "📊 Xem thống kê mùa giải..."}
             {careerSubStep === "transfer" && "Lời Mời Chuyển Nhượng"}
             {careerSubStep === "resolved" && "Mùa giải đã hoàn thành"}
           </h3>
