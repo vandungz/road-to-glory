@@ -22,9 +22,9 @@ export const FORMATION_SLOTS: Record<Formation, SlotConfig[]> = {
     { index: 2,  position: "CB",  x: 35, y: 71 },
     { index: 3,  position: "CB",  x: 65, y: 71 },
     { index: 4,  position: "RB",  x: 88, y: 71 },
-    { index: 5,  position: "CM",  x: 22, y: 50 },
-    { index: 6,  position: "CM",  x: 50, y: 50 },
-    { index: 7,  position: "CM",  x: 78, y: 50 },
+    { index: 5,  position: "CM",  x: 22, y: 46 },
+    { index: 6,  position: "CDM", x: 50, y: 58 },
+    { index: 7,  position: "CM",  x: 78, y: 46 },
     { index: 8,  position: "LW",  x: 14, y: 19 },
     { index: 9,  position: "ST",  x: 50, y: 14 },
     { index: 10, position: "RW",  x: 86, y: 19 },
@@ -71,6 +71,7 @@ export interface ClientSafePlayer {
   peakOvr: number;
   cardRarity: string; // "bronze" | "silver" | "gold" | "rare_gold" | "epic" | "legendary"
   height?: number;
+  weight?: number;
   preferredFoot?: string;
   debutAge?: number;
   retireAge?: number;

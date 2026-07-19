@@ -14,6 +14,27 @@ export function getStatKeys(position: string): readonly string[] {
   return position === "GK" ? GK_STAT_KEYS : FIELD_STAT_KEYS;
 }
 
+// 3 main-stat chính xác theo từng vị trí cụ thể (nguồn: trọng số trong
+// calculateOvrByPosition) — dùng cho selector weight khi tăng/giảm chỉ số.
+const MAIN_STATS_BY_POSITION: Record<string, readonly string[]> = {
+  GK: ["ref", "div", "han"],
+  CB: ["def", "phy", "pac"],
+  LB: ["pac", "def", "pas"],
+  RB: ["pac", "def", "pas"],
+  CDM: ["def", "phy", "pas"],
+  CM: ["pas", "dri", "phy"],
+  CAM: ["pas", "dri", "sho"],
+  LW: ["pac", "dri", "sho"],
+  RW: ["pac", "dri", "sho"],
+  LM: ["dri", "pac", "pas"],
+  RM: ["dri", "pac", "pas"],
+  ST: ["sho", "pac", "dri"],
+};
+
+export function getMainStatsByPosition(position: string): readonly string[] {
+  return MAIN_STATS_BY_POSITION[position] ?? [];
+}
+
 const GK_STAT_LABELS: Record<GKStatKey, string> = {
   div: "Diving (DIV)",
   han: "Handling (HAN)",
@@ -89,6 +110,7 @@ export const NATIONALITY_POOL: WeightedItem<string>[] = [
 
 // 2. Tuổi ra mắt (Debut Age)
 export const DEBUT_AGE_POOL: WeightedItem<number>[] = [
+  { value: 15, weight: 4 }, // thần đồng ra mắt cực sớm, rất hiếm
   { value: 16, weight: 10 },
   { value: 17, weight: 25 },
   { value: 18, weight: 30 },
@@ -97,7 +119,11 @@ export const DEBUT_AGE_POOL: WeightedItem<number>[] = [
   { value: 21, weight: 5 },
 ];
 
-// 3. Debut OVR
+// 3. Emergency fallback pool — KHÔNG phải pool debut OVR thật.
+// Debut OVR luôn được TÍNH từ 6 chỉ số core qua calculateOvrByPosition(), không
+// bao giờ random trực tiếp từ đây. Pool này chỉ được getDebutStatWeights() dùng
+// làm fallback nếu gặp 1 vị trí lạ không khớp case nào — với danh sách vị trí hợp
+// lệ hiện tại (kể cả LM/RM), nhánh này không bao giờ được kích hoạt trong thực tế.
 export const DEBUT_OVR_POOL: WeightedItem<number>[] = [
   { value: 60, weight: 5 },
   { value: 62, weight: 8 },
@@ -123,8 +149,13 @@ export const CAREER_LENGTH_POOL: WeightedItem<number>[] = [
   { value: 20, weight: 2 },
 ];
 
-// 5. Tính trọng số Leagues dựa trên prestiges/tiếng tăm
-export function getLeagueWeights(leagues: { id: string; name: string }[]): WeightedItem<{ id: string; name: string }>[] {
+// 5. Tính trọng số Leagues dựa trên prestiges/tiếng tăm — ưu tiên (không tuyệt
+// đối) giải đấu ở đúng quốc gia cầu thủ sinh ra, vd cầu thủ Anh có xu hướng debut
+// ở Premier League/Championship nhiều hơn, cầu thủ Pháp ở Ligue 1/2 nhiều hơn...
+export function getLeagueWeights(
+  leagues: { id: string; name: string; country?: string }[],
+  nationality?: string | null
+): WeightedItem<{ id: string; name: string }>[] {
   return leagues.map((league) => {
     // Ưu tiên Top 5 giải đấu nổi tiếng
     let weight = 10;
@@ -133,6 +164,10 @@ export function getLeagueWeights(leagues: { id: string; name: string }[]): Weigh
       weight = 40;
     } else if (name.includes("championship") || name.includes("primeira liga") || name.includes("eredivisie")) {
       weight = 20;
+    }
+    // Ưu tiên quê nhà — nhân hệ số, không ghi đè, để vẫn có cơ hội ra nước ngoài
+    if (nationality && league.country === nationality) {
+      weight *= 2.5;
     }
     return {
       value: { id: league.id, name: league.name },
@@ -234,6 +269,19 @@ export function getDebutStatWeights(position: string, statName: string): Weighte
     }
   }
 
+  // ── TIỀN VỆ CÁNH (LM, RM) ──
+  if (position === "LM" || position === "RM") {
+    if (stat === "pac" || stat === "dri") {
+      return generateContinuousWeights(60, 78);
+    } else if (stat === "pas") {
+      return generateContinuousWeights(55, 72);
+    } else if (stat === "def") {
+      return generateContinuousWeights(35, 55);
+    } else {
+      return generateContinuousWeights(50, 65);
+    }
+  }
+
   return DEBUT_OVR_POOL;
 }
 
@@ -289,7 +337,7 @@ export function calculateOvrByPosition(position: string, stats: Record<string, n
       const { pac = 60, sho = 60, pas = 60, dri = 60, def = 60, phy = 60 } = stats;
       switch (position) {
         case "CB":
-          ovr = def * 0.45 + phy * 0.35 + pac * 0.15 + pas * 0.05;
+          ovr = def * 0.40 + phy * 0.30 + pac * 0.20 + pas * 0.10;
           break;
         case "LB":
         case "RB":
@@ -299,7 +347,7 @@ export function calculateOvrByPosition(position: string, stats: Record<string, n
           ovr = def * 0.35 + phy * 0.30 + pas * 0.20 + dri * 0.10 + pac * 0.05;
           break;
         case "CM":
-          ovr = pas * 0.30 + dri * 0.25 + def * 0.15 + phy * 0.15 + sho * 0.10 + pac * 0.05;
+          ovr = pas * 0.30 + dri * 0.25 + phy * 0.20 + def * 0.15 + sho * 0.10;
           break;
         case "CAM":
           ovr = pas * 0.35 + dri * 0.30 + sho * 0.25 + pac * 0.10;
@@ -308,8 +356,12 @@ export function calculateOvrByPosition(position: string, stats: Record<string, n
         case "RW":
           ovr = pac * 0.35 + dri * 0.30 + sho * 0.20 + pas * 0.15;
           break;
+        case "LM":
+        case "RM":
+          ovr = dri * 0.30 + pac * 0.30 + pas * 0.25 + def * 0.10 + phy * 0.05;
+          break;
         case "ST":
-          ovr = sho * 0.45 + pac * 0.25 + dri * 0.15 + phy * 0.10 + pas * 0.05;
+          ovr = sho * 0.40 + pac * 0.25 + dri * 0.20 + phy * 0.10 + pas * 0.05;
           break;
         default:
           ovr = (pac + sho + pas + dri + def + phy) / 6;
@@ -318,4 +370,84 @@ export function calculateOvrByPosition(position: string, stats: Record<string, n
   }
 
   return Math.round(ovr);
+}
+
+// ============================================================
+// HEIGHT / WEIGHT WHEEL — ảnh hưởng debut stats theo thể hình
+// ============================================================
+
+// 11. Dải chiều cao (cm) theo vị trí — dùng với generateContinuousWeights
+export const HEIGHT_RANGE_BY_POSITION: Record<string, { min: number; max: number }> = {
+  GK: { min: 185, max: 198 },
+  CB: { min: 182, max: 196 },
+  CDM: { min: 178, max: 190 },
+  LB: { min: 172, max: 185 },
+  RB: { min: 172, max: 185 },
+  CM: { min: 173, max: 185 },
+  CAM: { min: 168, max: 182 },
+  LW: { min: 165, max: 180 },
+  RW: { min: 165, max: 180 },
+  LM: { min: 168, max: 181 },
+  RM: { min: 168, max: 181 },
+  ST: { min: 170, max: 190 },
+};
+
+export function getHeightWeights(position: string): WeightedItem<number>[] {
+  const range = HEIGHT_RANGE_BY_POSITION[position] ?? { min: 170, max: 190 };
+  return generateContinuousWeights(range.min, range.max);
+}
+
+// 12. Dải cân nặng (kg) phụ thuộc chiều cao vừa roll — BMI vận động viên 21-24
+export function getWeightRangeFromHeight(heightCm: number): { min: number; max: number } {
+  const heightM = heightCm / 100;
+  const min = Math.round(21 * heightM * heightM);
+  const max = Math.round(24 * heightM * heightM);
+  return { min, max };
+}
+
+export function getWeightWeights(heightCm: number): WeightedItem<number>[] {
+  const { min, max } = getWeightRangeFromHeight(heightCm);
+  return generateContinuousWeights(min, max);
+}
+
+// 13. Modifier từ thể hình (chiều cao/cân nặng) lên chỉ số core lúc debut
+export function getPhysiqueModifier(
+  heightCm: number,
+  weightKg: number,
+  position: string
+): Record<string, number> {
+  const range = HEIGHT_RANGE_BY_POSITION[position] ?? { min: 170, max: 190 };
+  const heightMid = (range.min + range.max) / 2;
+  const heightDev = heightCm - heightMid;
+  const heightMod = Math.max(-3, Math.min(3, Math.round(heightDev / 5)));
+
+  const { min: wMin, max: wMax } = getWeightRangeFromHeight(heightCm);
+  const weightMid = (wMin + wMax) / 2;
+  const weightDev = weightKg - weightMid;
+  const weightMod = Math.max(-2, Math.min(2, Math.round(weightDev / 2)));
+
+  const totalMod = Math.max(-3, Math.min(3, heightMod + weightMod));
+
+  const bulkyStat = position === "GK" ? "div" : "phy";
+  const agileStat = position === "GK" ? "spd" : "pac";
+
+  return {
+    [bulkyStat]: totalMod,
+    [agileStat]: -totalMod,
+  };
+}
+
+// 14. Áp modifier thể hình lên bộ chỉ số vừa roll, clamp cùng biên 10-99 như
+// evolvePlayerStatsService để nhất quán trong toàn bộ vòng đời chỉ số.
+export function applyPhysiqueModifier(
+  stats: Record<string, number>,
+  modifier: Record<string, number>
+): Record<string, number> {
+  const result = { ...stats };
+  for (const key of Object.keys(modifier)) {
+    if (key in result) {
+      result[key] = Math.min(99, Math.max(10, result[key] + modifier[key]));
+    }
+  }
+  return result;
 }
