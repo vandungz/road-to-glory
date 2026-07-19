@@ -5,7 +5,6 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { generateFictionalName } from "@/lib/name-gen";
-import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
 
 // ============================================================
 // HELPERS
@@ -33,6 +32,9 @@ interface InitCareerParams {
   debutAge: number;
   careerLength: number;
   debutOvr: number;
+  height: number;
+  weight: number;
+  preferredFoot: string;
   currentContinentalCup: string;
   statsTimeline: any[];
   clubStints: any[];
@@ -75,8 +77,8 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
 
   const {
     gameId, slotIndex, position, name, nationality,
-    debutAge, careerLength, debutOvr, currentContinentalCup,
-    statsTimeline, clubStints, hiddenStats,
+    debutAge, careerLength, debutOvr, height, weight, preferredFoot,
+    currentContinentalCup, statsTimeline, clubStints, hiddenStats,
   } = params;
 
   const player = await prisma.careerPlayer.upsert({
@@ -87,8 +89,9 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
       name,
       nationality,
       position,
-      height: 175,
-      preferredFoot: "Right",
+      height,
+      weight,
+      preferredFoot,
       debutAge,
       retireAge: debutAge + careerLength,
       careerLengthYears: careerLength,
@@ -165,20 +168,22 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
     achievements,
   } = params;
 
-  const height = resolveRandomInt(170, 195);
-  const preferredFoot = resolveRandom() > 0.8 ? "Left" : "Right";
   const cardRarity = getCardRarity(peakOvr);
 
   await prisma.careerPlayer.upsert({
     where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+    // height/weight/preferredFoot KHÔNG được set lại ở đây — đã roll đúng lúc
+    // debut qua initCareerPlayerAction. Nhánh `create` dưới đây chỉ là fallback
+    // phòng khi upsert chưa từng insert row (không nên xảy ra ở flow bình thường).
     create: {
       gameSessionId: gameId,
       slotIndex,
       name,
       nationality,
       position,
-      height,
-      preferredFoot,
+      height: 180,
+      weight: 75,
+      preferredFoot: "Right",
       debutAge,
       retireAge,
       careerLengthYears: careerLength,
@@ -197,8 +202,6 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
       name,
       nationality,
       position,
-      height,
-      preferredFoot,
       debutAge,
       retireAge,
       careerLengthYears: careerLength,

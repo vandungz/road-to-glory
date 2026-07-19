@@ -65,6 +65,7 @@ export default async function SquadBoardPage({ params }: Props) {
           peakOvr:           true,
           cardRarity:        true,
           height:            true,
+          weight:            true,
           preferredFoot:     true,
           debutAge:          true,
           retireAge:         true,

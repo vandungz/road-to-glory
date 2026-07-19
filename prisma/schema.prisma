@@ -34,6 +34,7 @@ model CareerPlayer {
   nationality       String
   position          String      // GK, LB, CB, RB, CDM, CM, CAM, LW, ST, RW
   height            Int
+  weight            Int         @default(75) // kg — roll qua wheel lúc debut, phụ thuộc height
   preferredFoot     String      // "Right" | "Left" | "Both"
 
   // Career Arc

@@ -13,6 +13,7 @@ interface SetupStageProps {
   tempValue: string | number | null;
   handleSetupSpin: () => void;
   handleStartCareer: () => void;
+  isProcessing: boolean;
   draftData: any;
   position: string;
   STEP_LABELS: string[];
@@ -27,6 +28,7 @@ export function SetupStage({
   tempValue,
   handleSetupSpin,
   handleStartCareer,
+  isProcessing,
   draftData,
   position,
   STEP_LABELS,
@@ -60,14 +62,14 @@ export function SetupStage({
           <div style={{ backgroundColor: "var(--white)", border: "2px solid var(--charcoal)", borderRadius: "4px", boxShadow: "3px 3px 0 var(--charcoal)", padding: "32px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: "24px" }}>
             <div style={{ textAlign: "center" }}>
               <p style={{ fontFamily: "var(--font-stamp)", fontSize: "0.58rem", color: "var(--ink-gray)", letterSpacing: "0.15em", textTransform: "uppercase", marginBottom: "4px" }}>
-                {activeStep < 11 ? `VÒNG QUAY SỐ ${activeStep + 1} / 11` : "HOÀN TẤT VÒNG QUAY SETUP"}
+                {activeStep < 13 ? `VÒNG QUAY SỐ ${activeStep + 1} / 13` : "HOÀN TẤT VÒNG QUAY SETUP"}
               </p>
               <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "1.45rem", fontWeight: 700, letterSpacing: "0.04em", textTransform: "uppercase", color: "var(--charcoal)", margin: 0 }}>
-                {activeStep < 11 ? STEP_LABELS[activeStep] : "BẮT ĐẦU SỰ NGHIỆP CẦU THỦ"}
+                {activeStep < 13 ? STEP_LABELS[activeStep] : "BẮT ĐẦU SỰ NGHIỆP CẦU THỦ"}
               </h3>
             </div>
 
-            {activeStep < 11 ? (
+            {activeStep < 13 ? (
               <>
                 <SpinnerWheel
                   isSpinning={isSpinning}
@@ -85,8 +87,14 @@ export function SetupStage({
                 </button>
               </>
             ) : (
-              <button type="button" onClick={handleStartCareer} className="btn-primary" style={{ fontSize: "1.2rem", padding: "16px 48px", backgroundColor: "var(--coral)", color: "var(--white)", display: "flex", alignItems: "center", gap: "8px" }}>
-                <Sparkles size={20} /> BẮT ĐẦU SỰ NGHIỆP CỦA BẠN
+              <button
+                type="button"
+                onClick={handleStartCareer}
+                disabled={isProcessing}
+                className="btn-primary"
+                style={{ fontSize: "1.2rem", padding: "16px 48px", backgroundColor: "var(--coral)", color: "var(--white)", display: "flex", alignItems: "center", gap: "8px", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}
+              >
+                <Sparkles size={20} /> {isProcessing ? "ĐANG TẠO CẦU THỦ..." : "BẮT ĐẦU SỰ NGHIỆP CỦA BẠN"}
               </button>
             )}
           </div>
@@ -118,6 +126,12 @@ export function SetupStage({
               <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--cream-border)", paddingBottom: "3px" }}>
                 <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", textTransform: "uppercase" }}>Tuổi Debut</span>
                 <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.75rem", fontWeight: 700 }}>{draftData.debutAge ? `${draftData.debutAge} TUỔI` : "—"}</span>
+              </div>
+              <div style={{ display: "flex", justifyContent: "space-between", borderBottom: "1px solid var(--cream-border)", paddingBottom: "3px" }}>
+                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", textTransform: "uppercase" }}>Thể Hình</span>
+                <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.75rem", fontWeight: 700 }}>
+                  {draftData.height && draftData.weight ? `${draftData.height}CM · ${draftData.weight}KG` : "—"}
+                </span>
               </div>
               <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", borderBottom: "1px solid var(--cream-border)", padding: "4px 0", textAlign: "center", backgroundColor: "var(--cream-dark)", borderRadius: "3px" }}>
                 {(position === "GK"

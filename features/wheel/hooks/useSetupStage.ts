@@ -11,6 +11,8 @@ import {
   getLeagueWeights,
   getClubWeights,
   getDebutStatWeights,
+  getHeightWeights,
+  getWeightWeights,
 } from "@/lib/wheel-engine/weight-calculator";
 
 interface UseSetupStageProps {
@@ -56,37 +58,43 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
         }));
         break;
       case 2:
-        items = getDebutStatWeights(position, position === "GK" ? "div" : "pac").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getHeightWeights(position).map((x) => ({ label: `${x.value} cm`, value: x.value }));
         break;
       case 3:
-        items = getDebutStatWeights(position, position === "GK" ? "han" : "sho").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getWeightWeights(draftData.height ?? 180).map((x) => ({ label: `${x.value} kg`, value: x.value }));
         break;
       case 4:
-        items = getDebutStatWeights(position, position === "GK" ? "kic" : "pas").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "div" : "pac").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 5:
-        items = getDebutStatWeights(position, position === "GK" ? "ref" : "dri").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "han" : "sho").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 6:
-        items = getDebutStatWeights(position, position === "GK" ? "spd" : "def").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "kic" : "pas").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 7:
-        items = getDebutStatWeights(position, position === "GK" ? "pos" : "phy").map((x) => ({ label: `${x.value}`, value: x.value }));
+        items = getDebutStatWeights(position, position === "GK" ? "ref" : "dri").map((x) => ({ label: `${x.value}`, value: x.value }));
         break;
       case 8:
+        items = getDebutStatWeights(position, position === "GK" ? "spd" : "def").map((x) => ({ label: `${x.value}`, value: x.value }));
+        break;
+      case 9:
+        items = getDebutStatWeights(position, position === "GK" ? "pos" : "phy").map((x) => ({ label: `${x.value}`, value: x.value }));
+        break;
+      case 10:
         items = CAREER_LENGTH_POOL.map((x) => ({
           label: `${x.value} Năm`,
           value: x.value,
         }));
         break;
-      case 9:
-        const leagueWeights = getLeagueWeights(leagues);
+      case 11:
+        const leagueWeights = getLeagueWeights(leagues, draftData.nationality);
         items = leagueWeights.map((x) => ({
           label: x.value.name,
           value: x.value,
         }));
         break;
-      case 10:
+      case 12:
         if (filteredClubs.length === 0) {
           items = [{ label: "Không có CLB", value: { id: "", name: "Không có CLB" } }];
         } else {
@@ -99,11 +107,11 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
         break;
     }
     setWheelItems(items);
-  }, [activeStep, isMounted, leagues, filteredClubs.length, mode, position]);
+  }, [activeStep, isMounted, leagues, filteredClubs.length, mode, position, draftData.height, draftData.nationality]);
 
   // ── SETUP WHEELS SPIN RESOLVER ──
   function handleSetupSpin() {
-    if (isSpinning || activeStep >= 11 || wheelItems.length === 0) return;
+    if (isSpinning || activeStep >= 13 || wheelItems.length === 0) return;
 
     let result: any = null;
     let idx = -1;
@@ -119,29 +127,43 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
         idx = DEBUT_AGE_POOL.findIndex((x) => x.value === result);
         setTempValue(`${result} Tuổi`);
         break;
-      case 2: case 3: case 4: case 5: case 6: case 7: {
+      case 2: {
+        const heightWeights = getHeightWeights(position);
+        result = resolveWeightedOutcome(heightWeights);
+        idx = heightWeights.findIndex((x) => x.value === result);
+        setTempValue(`${result} cm`);
+        break;
+      }
+      case 3: {
+        const weightWeights = getWeightWeights(draftData.height ?? 180);
+        result = resolveWeightedOutcome(weightWeights);
+        idx = weightWeights.findIndex((x) => x.value === result);
+        setTempValue(`${result} kg`);
+        break;
+      }
+      case 4: case 5: case 6: case 7: case 8: case 9: {
         const statKeyMap = position === "GK"
           ? ["div", "han", "kic", "ref", "spd", "pos"]
           : ["pac", "sho", "pas", "dri", "def", "phy"];
-        const statKey = statKeyMap[activeStep - 2];
+        const statKey = statKeyMap[activeStep - 4];
         const statWeights = getDebutStatWeights(position, statKey);
         result = resolveWeightedOutcome(statWeights);
         idx = statWeights.findIndex((x) => x.value === result);
         setTempValue(`${result}`);
         break;
       }
-      case 8:
+      case 10:
         result = resolveWeightedOutcome(CAREER_LENGTH_POOL);
         idx = CAREER_LENGTH_POOL.findIndex((x) => x.value === result);
         setTempValue(`${result} Năm`);
         break;
-      case 9:
-        const leagueWeights = getLeagueWeights(leagues);
+      case 11:
+        const leagueWeights = getLeagueWeights(leagues, draftData.nationality);
         result = resolveWeightedOutcome(leagueWeights);
         idx = leagueWeights.findIndex((x) => x.value.id === result.id);
         setTempValue(result.name);
         break;
-      case 10:
+      case 12:
         if (filteredClubs.length === 0) {
           result = { id: "", name: "Không có CLB", prestige: 3, continentalType: "none" };
           idx = 0;

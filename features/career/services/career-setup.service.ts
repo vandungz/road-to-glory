@@ -1,5 +1,5 @@
 import { generateFictionalName } from "@/lib/name-gen";
-import { resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandomInt, resolveRandom } from "@/lib/wheel-engine/spin-resolver";
 
 export interface DraftDataInput {
   nationality: string;
@@ -41,6 +41,7 @@ export interface StintInfo {
 
 export interface CareerSetupResult {
   playerName: string;
+  preferredFoot: string;
   hiddenStats: {
     luckRating: number;
     professionalism: number;
@@ -53,6 +54,7 @@ export interface CareerSetupResult {
 
 export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige: number, clubContinentalType: string): CareerSetupResult {
   const playerName = generateFictionalName(draftData.nationality);
+  const preferredFoot = resolveRandom() > 0.8 ? "Left" : "Right";
   const luckRating = resolveRandomInt(1, 20);
   const professionalism = resolveRandomInt(1, 20);
   const personalityPool = ["Loyal", "Professional", "Ambitious", "Mercenary", "Temperamental", "Normal"];
@@ -90,6 +92,7 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
 
   return {
     playerName,
+    preferredFoot,
     hiddenStats,
     initStint,
     initStats,

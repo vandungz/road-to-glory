@@ -80,7 +80,7 @@ export interface SeasonRecord {
   nationalStats?: CompetitionStats;
 }
 
-const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt"];
+const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt", "Chiều Cao", "Cân Nặng"];
 const BASE_STEP_SUFFIX = ["Thời Gian Thi Đấu", "Giải Đấu", "Câu Lạc Bộ"];
 
 export function getStepLabels(position: string): string[] {

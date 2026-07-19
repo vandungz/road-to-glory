@@ -147,6 +147,7 @@ export function PlayerStickerCard({
         <div style={{ display: "flex", flexDirection: "column", gap: "6px" }}>
           {[
             { label: "Chiều cao", value: `${player.height ?? 180} cm` },
+            { label: "Cân nặng", value: `${player.weight ?? 75} kg` },
             { label: "Chân thuận", value: player.preferredFoot === "Right" ? "Phải" : player.preferredFoot === "Left" ? "Trái" : "Hai chân" },
             { label: "Tuổi ra mắt", value: `${debutAge} tuổi` },
             { label: "Tuổi giải nghệ", value: `${retireAge} tuổi` },
