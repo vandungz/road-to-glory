@@ -30,8 +30,21 @@ export function simulateDynamicLeagueTableService(
     playerClubObj = { id: "player", name: playerClubName, prestige: 4, continentalType: "none", leagueId: "GENERIC" };
   }
 
-  const tempClubs = sorted.filter(c => c.name.toLowerCase() !== playerClubName.toLowerCase());
+  const otherClubsByPrestige = sorted.filter(c => c.name.toLowerCase() !== playerClubName.toLowerCase());
   const size = sorted.length;
+
+  // Trước đây các CLB còn lại luôn xếp ĐÚNG thứ tự prestige tuyệt đối mỗi mùa
+  // (CLB mạnh nhất luôn #1, y hệt nhau mọi mùa) — chỉ có slot của player được
+  // random qua wheel. Giờ cộng nhiễu ngẫu nhiên vào chỉ số xếp hạng rồi sort lại:
+  // prestige vẫn định hướng đúng (CLB mạnh trung bình đứng cao hơn), nhưng mỗi
+  // mùa cho ra 1 thứ tự thật sự khác nhau — cùng tinh thần với wheel standing
+  // của player (getStandingWheelPool).
+  const jitter = Math.max(2, size * 0.2);
+  const tempClubs = otherClubsByPrestige
+    .map((club, i) => ({ club, score: i + resolveRandomFloat(-jitter, jitter) }))
+    .sort((a, b) => a.score - b.score)
+    .map((x) => x.club);
+
   const finalTable: TableRow[] = [];
 
   let tempIdx = 0;
