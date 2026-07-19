@@ -34,6 +34,14 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
     return { apps, goals, assists, cleanSheets, avgRating };
   }, [statsTimeline]);
 
+  const minOvr = useMemo(() => {
+    // Bỏ entry "ma" ở retireAge + 1 mà handleNextSeason push khi retire
+    // (xem PlayerOvrChart.tsx) — không phải mùa đã chơi thật.
+    const played = statsTimeline.filter((s: any) => s.age >= debutAge && s.age <= retireAge);
+    if (played.length === 0) return player?.peakOvr ?? 0;
+    return Math.min(...played.map((s: any) => s.ovr));
+  }, [statsTimeline, debutAge, retireAge, player]);
+
   const finalClub = useMemo(() => {
     if (clubStints.length === 0) return "Tự do";
     return clubStints[clubStints.length - 1]?.clubName ?? "Tự do";
@@ -237,7 +245,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
                 <Sparkles size={14} color="var(--coral)" /> BIỂU ĐỒ PHÁT TRIỂN CHỈ SỐ OVR THEO TUỔI
               </h3>
               <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)" }}>
-                MIN {Math.min(...statsTimeline.map((s: any) => s.ovr), 50)} · PEAK {player.peakOvr}
+                MIN {minOvr} · PEAK {player.peakOvr}
               </span>
             </div>
             <PlayerOvrChart statsTimeline={statsTimeline} debutAge={debutAge} retireAge={retireAge} peakOvr={player.peakOvr} />

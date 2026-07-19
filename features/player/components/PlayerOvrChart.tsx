@@ -16,7 +16,11 @@ export function PlayerOvrChart({
   peakOvr,
 }: PlayerOvrChartProps) {
   const chartSvg = useMemo(() => {
-    if (statsTimeline.length === 0) return null;
+    // handleNextSeason luôn push 1 entry cho nextAge trước khi biết có retire
+    // hay không, nên mùa cuối cùng để lại 1 entry "ma" ở retireAge + 1 (chưa
+    // từng chơi). Phải lọc bỏ để điểm/nhãn không bị vẽ tràn ra ngoài khung.
+    const timeline = statsTimeline.filter((s: any) => s.age >= debutAge && s.age <= retireAge);
+    if (timeline.length === 0) return null;
 
     const width = 500;
     const height = 220;
@@ -29,9 +33,9 @@ export function PlayerOvrChart({
     const chartHeight = height - paddingTop - paddingBottom;
 
     // Tìm dải OVR thực tế để co giãn trục Y tốt hơn
-    const ovrs = statsTimeline.map((s: any) => s.ovr);
-    const maxOvr = Math.max(...ovrs, 99);
-    const minOvr = Math.min(...ovrs, 50);
+    const ovrs = timeline.map((s: any) => s.ovr);
+    const maxOvr = Math.max(...ovrs);
+    const minOvr = Math.min(...ovrs);
 
     // Trục Y chạy từ minOvr - 3 đến maxOvr + 3 để biểu đồ đẹp mắt
     const yMin = Math.max(10, minOvr - 3);
@@ -105,7 +109,7 @@ export function PlayerOvrChart({
     }
 
     // Vẽ đường Line OVR
-    const points = statsTimeline
+    const points = timeline
       .map((s: any) => ({ x: getX(s.age), y: getY(s.ovr), age: s.age, ovr: s.ovr }))
       .sort((a: any, b: any) => a.age - b.age);
 
