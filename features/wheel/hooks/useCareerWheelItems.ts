@@ -1,8 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getNationalContinentalCup, getNationalTier } from "@/lib/wheel-engine/weight-calculator";
-import { getStandingWheelPool, getContinentalCupLabel } from "../lib/simulation-helpers";
+import { getNationalContinentalCup, getNationalTier, getMainStatsByPosition } from "@/lib/wheel-engine/weight-calculator";
+import {
+  getStandingWheelPool,
+  getContinentalCupLabel,
+  getGrowthTier,
+  getIncreaseGateWeight,
+  getDecreaseGateWeight,
+  getCountPool,
+  getCountPoolBoosted,
+  getMagnitudePool,
+  getMagnitudePoolBoosted,
+  getMagnitudeTierForDirection,
+  getAgeProgressThresholds,
+  getCareerProgress,
+  getGrowthBoost,
+} from "../lib/simulation-helpers";
 
 interface UseCareerWheelItemsProps {
   careerSubStep: string;
@@ -10,16 +24,21 @@ interface UseCareerWheelItemsProps {
   mode: string;
   currentContinentalCup: string;
   currentAge: number;
+  playerDebutAge: number;
+  playerCareerLength: number;
   playerNationality: string;
   currentClub: any;
   currentOvr: number;
   leagueSize: number;
+  lastYearStanding: number;
   selectedStatsList: string[];
   position: string;
   yearSimResult: any;
   selectorIndex: number;
   yearEvolutionDirection?: "increase" | "decrease" | "maintain" | null;
   currentStats: Record<string, number>;
+  ballonDorNominationWeight: number;
+  ballonDorRankWeights: number[];
 }
 
 export function useCareerWheelItems({
@@ -28,16 +47,21 @@ export function useCareerWheelItems({
   mode,
   currentContinentalCup,
   currentAge,
+  playerDebutAge,
+  playerCareerLength,
   playerNationality,
   currentClub,
   currentOvr,
   leagueSize,
+  lastYearStanding,
   selectedStatsList,
   position,
   yearSimResult,
   selectorIndex,
   yearEvolutionDirection,
   currentStats,
+  ballonDorNominationWeight,
+  ballonDorRankWeights,
 }: UseCareerWheelItemsProps) {
   const [careerWheelItems, setCareerWheelItems] = useState<{ label: string; value: any; weight?: number }[]>([]);
 
@@ -49,13 +73,11 @@ export function useCareerWheelItems({
 
     switch (careerSubStep) {
       case "dir_increase": {
-        let yesW = 40, noW = 60;
-        if (rating >= 7.50)      { yesW = 80; noW = 20; }
-        else if (rating >= 7.00) { yesW = 60; noW = 40; }
-        else if (rating >= 6.40) { yesW = 40; noW = 60; }
-        else                     { yesW = 5;  noW = 95; }
-        if (currentAge <= 22)    { yesW = Math.min(95, yesW + 10); noW = Math.max(5, noW - 10); }
-        else if (currentAge >= 30){ yesW = Math.max(5, yesW - 10); noW = Math.min(95, noW + 10); }
+        const { young, old } = getAgeProgressThresholds(position);
+        const progress = getCareerProgress(currentAge, playerDebutAge, playerCareerLength);
+        let { yes: yesW, no: noW } = getIncreaseGateWeight(getGrowthTier(rating));
+        if (progress < young)      { yesW = Math.min(95, yesW + 10); noW = Math.max(5, noW - 10); }
+        else if (progress >= old)  { yesW = Math.max(5, yesW - 10); noW = Math.min(95, noW + 10); }
         items = [
           { label: "TĂNG CHỈ SỐ (YES)", value: "yes", weight: yesW },
           { label: "KHÔNG TĂNG (NO)",    value: "no",  weight: noW  },
@@ -63,90 +85,39 @@ export function useCareerWheelItems({
         break;
       }
       case "dir_decrease": {
-        let yesW = 30, noW = 70;
-        if (rating <= 6.30)      { yesW = 70; noW = 30; }
-        else if (rating < 6.80)  { yesW = 30; noW = 70; }
-        else                     { yesW = 5;  noW = 95; }
-        if (currentAge <= 22)    { yesW = Math.max(5, yesW - 20);  noW = Math.min(95, noW + 20); }
-        else if (currentAge >= 30){ yesW = Math.min(95, yesW + 15); noW = Math.max(5, noW - 15); }
+        const { young, old } = getAgeProgressThresholds(position);
+        const progress = getCareerProgress(currentAge, playerDebutAge, playerCareerLength);
+        let { yes: yesW, no: noW } = getDecreaseGateWeight(getGrowthTier(rating));
+        if (progress < young)      { yesW = Math.max(5, yesW - 20);  noW = Math.min(95, noW + 20); }
+        else if (progress >= old)  { yesW = Math.min(95, yesW + 15); noW = Math.max(5, noW - 15); }
         items = [
           { label: "GIẢM CHỈ SỐ (YES)", value: "yes", weight: yesW },
           { label: "GIỮ NGUYÊN (NO)",   value: "no",  weight: noW  },
         ];
         break;
       }
-      case "count":
-        items = [
-          { label: "1 Chỉ Số", value: 1, weight: 45 },
-          { label: "2 Chỉ Số", value: 2, weight: 35 },
-          { label: "3 Chỉ Số", value: 3, weight: 15 },
-          { label: "4 Chỉ Số", value: 4, weight: 5  },
-        ];
+      case "count": {
+        const tier = getGrowthTier(rating);
+        const isInc = yearEvolutionDirection === "increase";
+        let pool = getCountPool(tier, isInc);
+        if (isInc) {
+          const { young } = getAgeProgressThresholds(position);
+          const progress = getCareerProgress(currentAge, playerDebutAge, playerCareerLength);
+          pool = getCountPoolBoosted(tier, getGrowthBoost(progress, young));
+        }
+        items = pool.map((p) => ({ label: `${p.value} Chỉ Số`, value: p.value, weight: p.weight }));
         break;
+      }
       case "magnitude": {
         const isInc = yearEvolutionDirection === "increase";
-        let pool: { label: string; value: number; weight: number }[] = [];
+        const tier = getMagnitudeTierForDirection(rating, isInc);
+        let pool = getMagnitudePool(tier);
         if (isInc) {
-          if (rating >= 7.60) {
-            pool = [
-              { label: "1 Điểm", value: 1, weight: 3  },
-              { label: "2 Điểm", value: 2, weight: 7  },
-              { label: "3 Điểm", value: 3, weight: 15 },
-              { label: "4 Điểm", value: 4, weight: 25 },
-              { label: "5 Điểm", value: 5, weight: 35 },
-              { label: "6 Điểm", value: 6, weight: 15 },
-            ];
-          } else if (rating >= 6.80) {
-            pool = [
-              { label: "1 Điểm", value: 1, weight: 10 },
-              { label: "2 Điểm", value: 2, weight: 25 },
-              { label: "3 Điểm", value: 3, weight: 35 },
-              { label: "4 Điểm", value: 4, weight: 20 },
-              { label: "5 Điểm", value: 5, weight: 8  },
-              { label: "6 Điểm", value: 6, weight: 2  },
-            ];
-          } else {
-            pool = [
-              { label: "1 Điểm", value: 1, weight: 50 },
-              { label: "2 Điểm", value: 2, weight: 30 },
-              { label: "3 Điểm", value: 3, weight: 12 },
-              { label: "4 Điểm", value: 4, weight: 5  },
-              { label: "5 Điểm", value: 5, weight: 2  },
-              { label: "6 Điểm", value: 6, weight: 1  },
-            ];
-          }
-        } else {
-          // decrease or maintain → same magnitude pools but inverse meaning
-          if (rating <= 6.20) {
-            pool = [
-              { label: "1 Điểm", value: 1, weight: 3  },
-              { label: "2 Điểm", value: 2, weight: 7  },
-              { label: "3 Điểm", value: 3, weight: 15 },
-              { label: "4 Điểm", value: 4, weight: 25 },
-              { label: "5 Điểm", value: 5, weight: 35 },
-              { label: "6 Điểm", value: 6, weight: 15 },
-            ];
-          } else if (rating < 6.80) {
-            pool = [
-              { label: "1 Điểm", value: 1, weight: 15 },
-              { label: "2 Điểm", value: 2, weight: 30 },
-              { label: "3 Điểm", value: 3, weight: 35 },
-              { label: "4 Điểm", value: 4, weight: 15 },
-              { label: "5 Điểm", value: 5, weight: 4  },
-              { label: "6 Điểm", value: 6, weight: 1  },
-            ];
-          } else {
-            pool = [
-              { label: "1 Điểm", value: 1, weight: 60 },
-              { label: "2 Điểm", value: 2, weight: 25 },
-              { label: "3 Điểm", value: 3, weight: 10 },
-              { label: "4 Điểm", value: 4, weight: 3  },
-              { label: "5 Điểm", value: 5, weight: 1  },
-              { label: "6 Điểm", value: 6, weight: 1  },
-            ];
-          }
+          const { young } = getAgeProgressThresholds(position);
+          const progress = getCareerProgress(currentAge, playerDebutAge, playerCareerLength);
+          pool = getMagnitudePoolBoosted(tier, getGrowthBoost(progress, young));
         }
-        items = pool;
+        items = pool.map((p) => ({ label: `${p.value} Điểm`, value: p.value, weight: p.weight }));
         break;
       }
       case "selector": {
@@ -173,23 +144,17 @@ export function useCareerWheelItems({
           !currentSelectedList.includes(c.key) &&
           !(isIncrease && (currentStats[c.key] ?? 0) >= 99)
         );
-        items = available.map((c) => {
-          let w = 10;
-          if (position === "GK") {
-            if (["ref", "div"].includes(c.key)) w = 25;
-          } else if (["ST", "LW", "RW"].includes(position)) {
-            if (["sho", "pac", "dri"].includes(c.key)) w = 25;
-          } else if (["CB", "LB", "RB"].includes(position)) {
-            if (["def", "phy"].includes(c.key)) w = 25;
-          } else {
-            if (["pas", "dri"].includes(c.key)) w = 25;
-          }
-          return { value: c.key, label: c.name.toUpperCase(), weight: w };
-        });
+        const mainStats = getMainStatsByPosition(position);
+        items = available.map((c) => ({
+          value: c.key,
+          label: c.name.toUpperCase(),
+          weight: mainStats.includes(c.key) ? 25 : 10,
+        }));
         break;
       }
       case "standing": {
-        const standingPool = getStandingWheelPool(currentClub?.prestige ?? 3, currentOvr, leagueSize, yearSimResult?.apps ?? 38);
+        const priorStanding = currentAge > playerDebutAge ? lastYearStanding : null;
+        const standingPool = getStandingWheelPool(currentClub?.prestige ?? 3, currentOvr, leagueSize, yearSimResult?.apps ?? 38, priorStanding);
         items = standingPool.map((x) => ({
           label: x.value === 1 ? "🏆 VÔ ĐỊCH (HẠNG 1)" : x.value === 2 ? "🥈 Á QUÂN (HẠNG 2)" : `HẠNG ${x.value}`,
           value: x.value,
@@ -240,6 +205,29 @@ export function useCareerWheelItems({
         ];
         break;
       }
+      case "ballon_dor_nomination": {
+        const w = ballonDorNominationWeight;
+        items = [
+          { label: "ĐƯỢC ĐỀ CỬ TOP 10! 🏅", value: "yes", weight: w },
+          { label: "Chưa được xét năm này", value: "no", weight: 100 - w },
+        ];
+        break;
+      }
+      case "ballon_dor_ranking": {
+        const rankLabels = [
+          "🏆 HẠNG #1 — BALLON D'OR!",
+          "🥈 Hạng #2", "🥉 Hạng #3",
+          "Hạng #4", "Hạng #5",
+          "Hạng #6", "Hạng #7",
+          "Hạng #8", "Hạng #9", "Hạng #10",
+        ];
+        items = ballonDorRankWeights.map((w, i) => ({
+          label: rankLabels[i],
+          value: i + 1,
+          weight: w,
+        }));
+        break;
+      }
       case "national_tournament": {
         const nationCupName = getNationalContinentalCup(playerNationality);
         const tourneyName   = currentAge % 4 === 0 ? "FIFA World Cup" : nationCupName;
@@ -258,7 +246,7 @@ export function useCareerWheelItems({
       }
     }
     setCareerWheelItems(items);
-  }, [careerSubStep, isMounted, mode, currentContinentalCup, currentAge, playerNationality, currentClub, currentOvr, leagueSize, selectedStatsList, position, yearSimResult, selectorIndex, yearEvolutionDirection, currentStats]);
+  }, [careerSubStep, isMounted, mode, currentContinentalCup, currentAge, playerDebutAge, playerCareerLength, playerNationality, currentClub, currentOvr, leagueSize, lastYearStanding, selectedStatsList, position, yearSimResult, selectorIndex, yearEvolutionDirection, currentStats, ballonDorNominationWeight, ballonDorRankWeights]);
 
   return { careerWheelItems, setCareerWheelItems };
 }

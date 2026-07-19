@@ -168,18 +168,18 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
                 ⭐ {award.label}
               </div>
             ))}
-            {yearSimResult.hasBallonDorWinner && (
+            {yearSimResult.ballonDor.eligible && (
               <div style={{
                 padding: "6px 10px",
-                backgroundColor: "rgba(255, 111, 97, 0.1)",
-                border: "1px solid var(--coral)",
+                backgroundColor: "rgba(255, 200, 50, 0.12)",
+                border: "1px solid #f59e0b",
                 borderRadius: "3px",
                 fontFamily: "var(--font-stamp)",
                 fontSize: "0.6rem",
-                color: "var(--coral)",
+                color: "#92400e",
                 fontWeight: 700,
               }}>
-                🏅 BALLON D&apos;OR WINNER
+                🏅 ĐỦ ĐIỀU KIỆN DỰ TRANH QUẢ BÓNG VÀNG — SPIN ĐỂ XEM KẾT QUẢ!
               </div>
             )}
           </div>

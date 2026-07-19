@@ -46,6 +46,22 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   const [currentContinentalCup, setCurrentContinentalCup] = useState<string>("none");
   const [lastYearStanding, setLastYearStanding] = useState<number>(10);
 
+  // Club và continental cup PHẢI đổi cùng nhau — vé cúp châu lục thuộc về CLB,
+  // không thuộc về cầu thủ. Đây là điểm duy nhất được phép set currentClub,
+  // để tránh currentContinentalCup bị lệch (bug: giữ nguyên vé cúp của CLB cũ
+  // sau khi transfer sang CLB mới).
+  function setClubAndContinental(club: {
+    id: string;
+    name: string;
+    leagueId: string;
+    leagueName: string;
+    prestige: number;
+    continentalType: string;
+  }) {
+    setCurrentClub(club);
+    setCurrentContinentalCup(club.continentalType ?? "none");
+  }
+
   const [seasonRecords, setSeasonRecords] = useState<Record<number, SeasonRecord>>({});
   const [selectedAgeForStats, setSelectedAgeForStats] = useState<number>(18);
 
@@ -123,21 +139,19 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setCurrentStats(initPayload.initStats);
 
     const fullClub = clubs.find((c) => c.id === draftData.clubId);
-    const selectedClub = {
+    setClubAndContinental({
       id: draftData.clubId!,
       name: draftData.clubName!,
       leagueId: draftData.leagueId!,
       leagueName: draftData.leagueName!,
       prestige: fullClub?.prestige ?? 3,
       continentalType: fullClub?.continentalType ?? "none",
-    };
-    setCurrentClub(selectedClub);
+    });
 
     setPlayerNationality(draftData.nationality!);
     setPlayerDebutAge(draftData.debutAge!);
     setPlayerCareerLength(draftData.careerLength!);
 
-    setCurrentContinentalCup(selectedClub.continentalType);
     setLastYearStanding(10);
 
     setSeasonRecords({});
@@ -151,7 +165,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     nationalCallupResult: string | null,
     nationalTournamentResult: string | null,
     yearSimResult: SimulatedSeasonResult | null,
-    hasBallonDorWinner: boolean
+    ballonDorRank: number | null,
   ): { isRetire: boolean; nextContinentalCup: string } {
     const nextAge = currentAge + 1;
     const actualStint =
@@ -161,6 +175,15 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     const actualClubName = actualStint?.clubName ?? currentClub.name;
     const actualLeagueName = actualStint?.leagueName ?? currentClub.leagueName;
     const actualStintLeagueId = actualStint?.leagueId ?? currentClub.leagueId;
+
+    // Nếu cầu thủ đã accept transfer TRƯỚC khi bấm "mùa giải tiếp theo" (currentClub
+    // đã là CLB mới, nhưng actualStint vẫn là CLB vừa thi đấu mùa này), thì KHÔNG
+    // được áp vé cúp châu lục tính từ standing của CLB CŨ — vé đó thuộc về CLB cũ,
+    // không đi theo cầu thủ. currentContinentalCup lúc này đã đúng theo CLB mới rồi
+    // (do handleAcceptTransfer set qua setClubAndContinental).
+    const hasTransferredAway = !!(
+      actualStint?.clubId && currentClub?.id && actualStint.clubId !== currentClub.id
+    );
 
     if (yearSimResult) {
       applySimResultToRecords(currentAge, yearSimResult);
@@ -183,14 +206,20 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
     let nextContinentalCup = currentContinentalCup;
     if (standingResult !== null) {
-      nextContinentalCup = calculateContinentalQualification(
-        actualStintLeagueId,
-        standingResult,
-        continentalCupResult,
-        currentContinentalCup,
-      );
-      setCurrentContinentalCup(nextContinentalCup);
-      setLastYearStanding(standingResult);
+      if (hasTransferredAway) {
+        // Giữ nguyên currentContinentalCup (đã đúng theo CLB mới) — không ghi đè
+        // bằng vé kiếm được ở CLB cũ.
+        setLastYearStanding(standingResult);
+      } else {
+        nextContinentalCup = calculateContinentalQualification(
+          actualStintLeagueId,
+          standingResult,
+          continentalCupResult,
+          currentContinentalCup,
+        );
+        setCurrentContinentalCup(nextContinentalCup);
+        setLastYearStanding(standingResult);
+      }
     }
 
     setAchievements((prev: any) => {
@@ -213,7 +242,11 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
         trophies.push({ type: "international", name: tourney, club: playerNationality, age: currentAge });
       }
-      if (hasBallonDorWinner) ballonDor += 1;
+      if (ballonDorRank !== null) {
+        // top 10 nomination
+        prev.ballonDorNominations = (prev.ballonDorNominations ?? 0) + 1;
+      }
+      if (ballonDorRank === 1) ballonDor += 1;
       if (yearSimResult) {
         yearSimResult.events.forEach((ev) => {
           if (ev.type === "individual_award") {
@@ -285,8 +318,11 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         return updated;
       });
 
+      // Vé cúp châu lục thuộc về CLB, không đi theo cầu thủ khi transfer —
+      // luôn dùng setClubAndContinental để tránh currentContinentalCup giữ
+      // nguyên giá trị của CLB cũ.
       const fullClub = clubs.find((c) => c.id === transferOffer.clubId);
-      setCurrentClub({
+      setClubAndContinental({
         id: transferOffer.clubId,
         name: transferOffer.clubName,
         leagueId: transferOffer.leagueId,

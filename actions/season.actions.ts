@@ -100,8 +100,10 @@ const simulatePlayerSeasonSchema = z.object({
   standingResult: z.number().int().min(1).max(30).nullable().optional(),
   domesticCupResult: z.string().nullable().optional(),
   continentalCupResult: z.string().nullable().optional(),
+  continentalCupType: z.string().nullable().optional(),
   nationalCallupResult: z.string().nullable().optional(),
   nationalTournamentResult: z.string().nullable().optional(),
+  nationalTournamentType: z.string().nullable().optional(),
 });
 
 const generateLeagueTableSchema = z.object({
@@ -279,8 +281,10 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     standingResult: validated.standingResult,
     domesticCupResult: validated.domesticCupResult,
     continentalCupResult: validated.continentalCupResult,
+    continentalCupType: validated.continentalCupType,
     nationalCallupResult: validated.nationalCallupResult,
     nationalTournamentResult: validated.nationalTournamentResult,
+    nationalTournamentType: validated.nationalTournamentType,
   });
 }
 

@@ -24,8 +24,16 @@ export interface PlayerSeasonInput {
   standingResult?: number | null;
   domesticCupResult?: string | null;
   continentalCupResult?: string | null;
+  continentalCupType?: string | null;        // "UCL" | "Libertadores" | ...
   nationalCallupResult?: string | null;
   nationalTournamentResult?: string | null;
+  nationalTournamentType?: string | null;    // "FIFA World Cup" | "Copa América" | ...
+}
+
+export interface BallonDorEligibility {
+  eligible: boolean;
+  nominationWeight: number;  // % Yes trong Wheel 1 (0 nếu không eligible)
+  rankWeights: number[];     // 10 phần tử cho Wheel 2 ([] nếu không eligible)
 }
 
 export interface SimulatedSeasonResult {
@@ -35,13 +43,14 @@ export interface SimulatedSeasonResult {
   assists: number;
   cleanSheets: number;
   matchRating: number;
-  hasBallonDorWinner: boolean;
   events: { type: string; label: string }[];
   // Per-competition — server tính, FE chỉ hiển thị
   leagueStats: CompetitionStats;
   domesticCupStats: CompetitionStats;
   continentalStats?: CompetitionStats;
   nationalStats?: CompetitionStats;
+  // Ballon d'Or eligibility — thay thế random boolean cũ
+  ballonDor: BallonDorEligibility;
 }
 
 // ── Match counts deterministic từ outcomes ──────────────────────────────────
@@ -174,14 +183,131 @@ function calcRating(
   return Math.min(9.0, Math.max(5.5, Math.round(base * 100) / 100));
 }
 
+// ── Ballon d'Or eligibility ────────────────────────────────────────────────
+
+const ATTACKER_POSITIONS = ["ST", "LW", "RW", "CAM"];
+const POSITION_MODIFIER: Record<string, number> = {
+  ST: 0, LW: 0, RW: 0, CAM: 0,
+  CM: -20, CDM: -20, LB: -20, RB: -20,
+  CB: -25,
+  GK: -30,
+};
+
+function calcTrophyScore(
+  standing: number | null | undefined,
+  clubPrestige: number,
+  domesticCup: string | null | undefined,
+  continentalResult: string | null | undefined,
+  continentalType: string | null | undefined,
+  nationalResult: string | null | undefined,
+  nationalType: string | null | undefined,
+): number {
+  let score = 0;
+
+  // League title
+  if (standing === 1) {
+    score += clubPrestige >= 4 ? 20 : 10;
+  }
+
+  // Domestic cup
+  if (domesticCup === "Winner") score += 5;
+
+  // Continental cup — phân biệt tier theo type
+  if (continentalResult === "Winner") {
+    const topCups = ["UCL", "Libertadores"];
+    score += topCups.includes(continentalType ?? "") ? 40 : 25;
+  }
+
+  // National tournament — World Cup vs giải châu lục
+  if (nationalResult === "Winner") {
+    score += nationalType === "FIFA World Cup" ? 40 : 25;
+  }
+
+  return score;
+}
+
+function calcBallonDorEligibility(
+  ovr: number,
+  position: string,
+  matchRating: number,
+  totalGoals: number,
+  standing: number | null | undefined,
+  clubPrestige: number,
+  domesticCup: string | null | undefined,
+  continentalResult: string | null | undefined,
+  continentalType: string | null | undefined,
+  nationalResult: string | null | undefined,
+  nationalType: string | null | undefined,
+): BallonDorEligibility {
+  // Individual score (OVR + Rating only — goals không tính vào gate)
+  let individualScore = 0;
+  if (ovr >= 96) individualScore += 45;
+  else if (ovr >= 93) individualScore += 35;
+  else if (ovr >= 90) individualScore += 20;
+  else if (ovr >= 88) individualScore += 10;
+
+  if (matchRating >= 8.30) individualScore += 30;
+  else if (matchRating >= 8.00) individualScore += 20;
+  else if (matchRating >= 7.80) individualScore += 10;
+
+  const trophyScore = calcTrophyScore(standing, clubPrestige, domesticCup, continentalResult, continentalType, nationalResult, nationalType);
+  const posModifier = POSITION_MODIFIER[position] ?? 0;
+  const eligibilityScore = individualScore + trophyScore + posModifier;
+
+  if (eligibilityScore < 75) {
+    return { eligible: false, nominationWeight: 0, rankWeights: [] };
+  }
+
+  // nominationWeight — % Yes trong Wheel 1
+  let nominationWeight: number;
+  if (eligibilityScore >= 115) nominationWeight = 82;
+  else if (eligibilityScore >= 105) nominationWeight = 70;
+  else if (eligibilityScore >= 95) nominationWeight = 55;
+  else if (eligibilityScore >= 85) nominationWeight = 35;
+  else nominationWeight = 20;
+
+  // rankScore — dùng cho Wheel 2 (goals tính ở đây)
+  const trophyBonus = calcRankTrophyBonus(continentalResult, continentalType, nationalResult, nationalType, standing, clubPrestige);
+  const goalBonus = ATTACKER_POSITIONS.includes(position)
+    ? (totalGoals >= 30 ? 20 : totalGoals >= 20 ? 10 : 0)
+    : 0;
+  const rankScore = (ovr - 88) * 2 + (matchRating - 7.80) * 20 + trophyBonus + goalBonus;
+
+  const rankWeights = getRankWeights(rankScore);
+
+  return { eligible: true, nominationWeight, rankWeights };
+}
+
+function calcRankTrophyBonus(
+  continentalResult: string | null | undefined,
+  continentalType: string | null | undefined,
+  nationalResult: string | null | undefined,
+  nationalType: string | null | undefined,
+  standing: number | null | undefined,
+  clubPrestige: number,
+): number {
+  let bonus = 0;
+  if (nationalResult === "Winner") bonus += nationalType === "FIFA World Cup" ? 35 : 20;
+  if (continentalResult === "Winner") bonus += ["UCL", "Libertadores"].includes(continentalType ?? "") ? 30 : 15;
+  if (standing === 1) bonus += clubPrestige >= 4 ? 15 : 8;
+  return bonus;
+}
+
+function getRankWeights(rankScore: number): number[] {
+  if (rankScore > 30) return [25, 22, 18, 12, 8, 5, 4, 3, 2, 1];
+  if (rankScore > 20) return [15, 18, 17, 13, 12, 8, 7, 5, 3, 2];
+  if (rankScore > 10) return [8, 12, 15, 13, 12, 10, 10, 8, 6, 6];
+  return [3, 7, 10, 10, 10, 15, 15, 15, 8, 7];
+}
+
 // ── Main service ───────────────────────────────────────────────────────────
 
 export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
   const {
     ovr, position, luckRating, clubPrestige, leagueClubsCount,
     hasContinentalCup, playerNationality,
-    standingResult, domesticCupResult, continentalCupResult,
-    nationalCallupResult, nationalTournamentResult,
+    standingResult, domesticCupResult, continentalCupResult, continentalCupType,
+    nationalCallupResult, nationalTournamentResult, nationalTournamentType,
   } = input;
 
   const events: { type: string; label: string }[] = [];
@@ -201,9 +327,15 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   else if (ovrDifference < -10) baseAppsRatio = 0.25;
   else baseAppsRatio = 0.55 + ovrDifference * 0.03;
 
+  // CLB càng nhỏ (prestige thấp) càng ít phương án thay thế cùng vị trí → cầu thủ
+  // đạt chuẩn tối thiểu có xu hướng đá chính nhiều hơn, độc lập với khoảng cách OVR
+  // so với chuẩn CLB. CLB top (prestige 5) không được cộng thêm vì vốn đã có
+  // nhiều lựa chọn xoay tua.
+  const squadDepthBonus = (5 - clubPrestige) * 0.03;
+
   const standingBonus = getStandingBonus(standingResult);
   const randModifier = resolveRandomFloat(-0.05, 0.05); // giảm từ ±0.08
-  const finalAppsRatio = Math.min(0.95, Math.max(0.05, baseAppsRatio + standingBonus + randModifier));
+  const finalAppsRatio = Math.min(0.95, Math.max(0.05, baseAppsRatio + squadDepthBonus + standingBonus + randModifier));
 
   // 3. Per-competition apps
   const leagueApps = Math.max(1, Math.round(leagueMatches * finalAppsRatio));
@@ -215,19 +347,25 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   // 4. Per-competition goals/assists
   const leaguePf = leagueApps / leagueMatches;
   const { goals: lgGoals, assists: lgAssists } = calcAttackStats(position, ovr, leaguePf, leagueApps);
-  const leagueCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, leaguePf);
+  const leagueCS = Math.min(leagueApps, calcCleanSheets(position, ovr, clubPrestige, leagueMatches, leaguePf));
 
   const cupPf = cupMatches > 0 ? cupApps / cupMatches : 0;
   const { goals: cpGoals, assists: cpAssists } = calcAttackStats(position, ovr, cupPf, cupApps);
-  const cupCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, cupPf);
+  const cupCS = cupApps > 0
+    ? Math.min(cupApps, calcCleanSheets(position, ovr, clubPrestige, cupMatches, cupPf))
+    : 0;
 
   const contPf = continentalMatches > 0 ? continentalApps / continentalMatches : 0;
   const { goals: ctGoals, assists: ctAssists } = calcAttackStats(position, ovr, contPf, continentalApps);
-  const contCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, contPf);
+  const contCS = continentalApps > 0
+    ? Math.min(continentalApps, calcCleanSheets(position, ovr, clubPrestige, continentalMatches, contPf))
+    : 0;
 
   const natPf = nationalMatches > 0 ? nationalApps / nationalMatches : 0;
   const { goals: ntGoals, assists: ntAssists } = calcAttackStats(position, ovr, natPf, nationalApps);
-  const natCS = calcCleanSheets(position, ovr, clubPrestige, leagueMatches, natPf);
+  const natCS = nationalApps > 0
+    ? Math.min(nationalApps, calcCleanSheets(position, ovr, clubPrestige, nationalMatches, natPf))
+    : 0;
 
   // 5. Match ratings per competition
   const lgRatingBonus = getStandingBonus(standingResult) * 0.8; // standing ảnh hưởng league rating
@@ -264,14 +402,23 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   if (totalGoals >= 20 && ["ST", "LW", "RW"].includes(position)) {
     events.push({ type: "individual_award", label: `Đoạt chiếc giày vàng CLB với ${totalGoals} bàn thắng` });
   }
-  if (totalCS >= 15 && ["GK", "CB"].includes(position)) {
+  if (totalCS >= 15 && position === "GK") {
     events.push({ type: "individual_award", label: `Đoạt Găng tay vàng với ${totalCS} trận giữ sạch lưới` });
+  }
+  if (totalCS >= 12 && ["CB", "LB", "RB", "CDM"].includes(position)) {
+    events.push({ type: "individual_award", label: `Đoạt danh hiệu Hậu vệ xuất sắc nhất mùa giải với ${totalCS} trận sạch lưới` });
   }
   if (matchRating >= 7.60) {
     events.push({ type: "individual_award", label: `Lọt vào Đội hình tiêu biểu mùa giải với Rating ${matchRating}` });
   }
 
-  const hasBallonDorWinner = ovr >= 85 && matchRating >= 7.80 && resolveRandom() < 0.35;
+  // 8. Ballon d'Or eligibility — không còn random boolean, client sẽ spin wheels
+  const ballonDor = calcBallonDorEligibility(
+    ovr, position, matchRating, totalGoals,
+    standingResult, clubPrestige,
+    domesticCupResult, continentalCupResult, continentalCupType,
+    nationalTournamentResult, nationalTournamentType,
+  );
 
   return {
     apps: totalApps,
@@ -279,8 +426,8 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     assists: totalAssists,
     cleanSheets: totalCS,
     matchRating,
-    hasBallonDorWinner,
     events,
+    ballonDor,
     leagueStats: { apps: leagueApps, goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, rating: leagueRating },
     domesticCupStats: { apps: cupApps, goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, rating: cupRating },
     ...(continentalApps > 0 && {

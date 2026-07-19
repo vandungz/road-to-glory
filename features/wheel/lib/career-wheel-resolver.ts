@@ -1,25 +1,43 @@
 // features/wheel/lib/career-wheel-resolver.ts
 
 import { resolveWeightedOutcome } from "@/lib/wheel-engine/spin-resolver";
-import { getNationalTier, getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
+import { getNationalTier, getNationalContinentalCup, getMainStatsByPosition } from "@/lib/wheel-engine/weight-calculator";
 import { getFlagEmoji } from "@/types/squad";
-import { getStandingWheelPool, getContinentalCupLabel } from "./simulation-helpers";
+import {
+  getStandingWheelPool,
+  getContinentalCupLabel,
+  getGrowthTier,
+  getIncreaseGateWeight,
+  getDecreaseGateWeight,
+  getCountPool,
+  getCountPoolBoosted,
+  getMagnitudePool,
+  getMagnitudePoolBoosted,
+  getMagnitudeTierForDirection,
+  getAgeProgressThresholds,
+  getCareerProgress,
+  getGrowthBoost,
+} from "./simulation-helpers";
 
 interface CareerWheelContext {
   currentAge: number;
   playerDebutAge: number;
+  playerCareerLength: number;
   currentOvr: number;
   position: string;
   yearSimResult: any;
   hiddenStats: any;
   currentClub: any;
   leagueSize: number;
+  lastYearStanding: number;
   currentContinentalCup: string;
   playerNationality: string;
   selectedStatsList: string[];
   selectorIndex: number;
   yearEvolutionDirection: "increase" | "decrease" | "maintain" | null;
   currentStats: Record<string, number>;
+  ballonDorNominationWeight: number;
+  ballonDorRankWeights: number[];
 }
 
 export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelContext) {
@@ -28,24 +46,16 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   let tempValue: string | null = null;
 
   if (subStep === "dir_increase") {
-    let yesW = 40;
-    let noW = 60;
     const rating = ctx.yearSimResult?.matchRating ?? 7.0;
+    const tier = getGrowthTier(rating);
+    let { yes: yesW, no: noW } = getIncreaseGateWeight(tier);
+    const { young, old } = getAgeProgressThresholds(ctx.position);
+    const progress = getCareerProgress(ctx.currentAge, ctx.playerDebutAge, ctx.playerCareerLength);
 
-    if (rating >= 7.50) {
-      yesW = 80; noW = 20;
-    } else if (rating >= 7.00) {
-      yesW = 60; noW = 40;
-    } else if (rating >= 6.40) {
-      yesW = 40; noW = 60;
-    } else {
-      yesW = 5; noW = 95;
-    }
-
-    if (ctx.currentAge <= 22) {
+    if (progress < young) {
       yesW = Math.min(95, yesW + 10);
       noW = Math.max(5, noW - 10);
-    } else if (ctx.currentAge >= 30) {
+    } else if (progress >= old) {
       yesW = Math.max(5, yesW - 10);
       noW = Math.min(95, noW + 10);
     }
@@ -59,22 +69,16 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     tempValue = result === "yes" ? "TĂNG CHỈ SỐ: YES" : "TĂNG CHỈ SỐ: NO";
   }
   else if (subStep === "dir_decrease") {
-    let yesW = 30;
-    let noW = 70;
     const rating = ctx.yearSimResult?.matchRating ?? 7.0;
+    const tier = getGrowthTier(rating);
+    let { yes: yesW, no: noW } = getDecreaseGateWeight(tier);
+    const { young, old } = getAgeProgressThresholds(ctx.position);
+    const progress = getCareerProgress(ctx.currentAge, ctx.playerDebutAge, ctx.playerCareerLength);
 
-    if (rating <= 6.30) {
-      yesW = 70; noW = 30;
-    } else if (rating < 6.80) {
-      yesW = 30; noW = 70;
-    } else {
-      yesW = 5; noW = 95;
-    }
-
-    if (ctx.currentAge <= 22) {
+    if (progress < young) {
       yesW = Math.max(5, yesW - 20);
       noW = Math.min(95, noW + 20);
-    } else if (ctx.currentAge >= 30) {
+    } else if (progress >= old) {
       yesW = Math.min(95, yesW + 15);
       noW = Math.max(5, noW - 15);
     }
@@ -85,15 +89,18 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     ];
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
-    tempValue = result === "yes" ? "GIẢM CHỈ SỐ: YES" : "GIỮ NGUYÊN: YES";
+    tempValue = result === "yes" ? "GIẢM CHỈ SỐ: YES" : "GIỮ NGUYÊN CHỈ SỐ";
   }
   else if (subStep === "count") {
-    const pool = [
-      { value: 1, weight: 45 },
-      { value: 2, weight: 35 },
-      { value: 3, weight: 15 },
-      { value: 4, weight: 5 },
-    ];
+    const rating = ctx.yearSimResult?.matchRating ?? 7.0;
+    const tier = getGrowthTier(rating);
+    const isInc = ctx.yearEvolutionDirection === "increase";
+    let pool = getCountPool(tier, isInc);
+    if (isInc) {
+      const { young } = getAgeProgressThresholds(ctx.position);
+      const progress = getCareerProgress(ctx.currentAge, ctx.playerDebutAge, ctx.playerCareerLength);
+      pool = getCountPoolBoosted(tier, getGrowthBoost(progress, young));
+    }
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = `${result} Chỉ Số`;
@@ -122,23 +129,12 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       !currentSelectedList.includes(c.key) &&
       !(isIncrease && (ctx.currentStats[c.key] ?? 0) >= 99)
     );
-    const pool = available.map(c => {
-      let w = 10;
-      if (ctx.position === "GK") {
-        if (["ref", "div"].includes(c.key)) w = 25;
-      } else if (["ST", "LW", "RW"].includes(ctx.position)) {
-        if (["sho", "pac", "dri"].includes(c.key)) w = 25;
-      } else if (["CB", "LB", "RB"].includes(ctx.position)) {
-        if (["def", "phy"].includes(c.key)) w = 25;
-      } else {
-        if (["pas", "dri"].includes(c.key)) w = 25;
-      }
-      return {
-        value: c.key,
-        label: c.name.toUpperCase(),
-        weight: w,
-      };
-    });
+    const mainStats = getMainStatsByPosition(ctx.position);
+    const pool = available.map(c => ({
+      value: c.key,
+      label: c.name.toUpperCase(),
+      weight: mainStats.includes(c.key) ? 25 : 10,
+    }));
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
     const matchedName = coreStats.find(c => c.key === result)?.name ?? result;
@@ -147,74 +143,23 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   else if (subStep === "magnitude") {
     const rating = ctx.yearSimResult?.matchRating ?? 7.0;
     const isInc = ctx.yearEvolutionDirection === "increase";
-    
-    let pool = [];
+    const tier = getMagnitudeTierForDirection(rating, isInc);
+    let pool = getMagnitudePool(tier);
     if (isInc) {
-      if (rating >= 7.60) {
-        pool = [
-          { value: 1, weight: 3 },
-          { value: 2, weight: 7 },
-          { value: 3, weight: 15 },
-          { value: 4, weight: 25 },
-          { value: 5, weight: 35 },
-          { value: 6, weight: 15 },
-        ];
-      } else if (rating >= 6.80) {
-        pool = [
-          { value: 1, weight: 10 },
-          { value: 2, weight: 25 },
-          { value: 3, weight: 35 },
-          { value: 4, weight: 20 },
-          { value: 5, weight: 8 },
-          { value: 6, weight: 2 },
-        ];
-      } else {
-        pool = [
-          { value: 1, weight: 50 },
-          { value: 2, weight: 30 },
-          { value: 3, weight: 12 },
-          { value: 4, weight: 5 },
-          { value: 5, weight: 2 },
-          { value: 6, weight: 1 },
-        ];
-      }
-    } else {
-      if (rating <= 6.20) {
-        pool = [
-          { value: 1, weight: 3 },
-          { value: 2, weight: 7 },
-          { value: 3, weight: 15 },
-          { value: 4, weight: 25 },
-          { value: 5, weight: 35 },
-          { value: 6, weight: 15 },
-        ];
-      } else if (rating < 6.80) {
-        pool = [
-          { value: 1, weight: 15 },
-          { value: 2, weight: 30 },
-          { value: 3, weight: 35 },
-          { value: 4, weight: 15 },
-          { value: 5, weight: 4 },
-          { value: 6, weight: 1 },
-        ];
-      } else {
-        pool = [
-          { value: 1, weight: 60 },
-          { value: 2, weight: 25 },
-          { value: 3, weight: 10 },
-          { value: 4, weight: 3 },
-          { value: 5, weight: 1 },
-          { value: 6, weight: 1 },
-        ];
-      }
+      const { young } = getAgeProgressThresholds(ctx.position);
+      const progress = getCareerProgress(ctx.currentAge, ctx.playerDebutAge, ctx.playerCareerLength);
+      pool = getMagnitudePoolBoosted(tier, getGrowthBoost(progress, young));
     }
-    
+
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = `${isInc ? "+" : "-"}${result} Điểm`;
   }
   else if (subStep === "standing") {
-    const standingPool = getStandingWheelPool(ctx.currentClub?.prestige ?? 3, ctx.currentOvr, ctx.leagueSize, ctx.yearSimResult?.apps ?? 38);
+    // Chỉ áp dụng quán tính mùa trước nếu đây KHÔNG phải mùa debut (mùa đầu tiên
+    // chưa có thành tích thật, lastYearStanding lúc đó chỉ là placeholder mặc định).
+    const priorStanding = ctx.currentAge > ctx.playerDebutAge ? ctx.lastYearStanding : null;
+    const standingPool = getStandingWheelPool(ctx.currentClub?.prestige ?? 3, ctx.currentOvr, ctx.leagueSize, ctx.yearSimResult?.apps ?? 38, priorStanding);
     result = resolveWeightedOutcome(standingPool);
     idx = standingPool.findIndex((x) => x.value === result);
     tempValue = result === 1 ? "🏆 VÔ ĐỊCH! (HẠNG 1)" : result === 2 ? "🥈 Á QUÂN (HẠNG 2)" : `HẠNG #${result}`;
@@ -305,6 +250,23 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     const currentYear = 2026 + (ctx.currentAge - ctx.playerDebutAge);
     const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
     tempValue = result === "Winner" ? `VÔ ĐỊCH ${tourney}! 🏆` : result === "Runner-Up" ? `Á Quân ${tourney}` : result === "Semi-Finals" ? `Bán Kết ${tourney}` : `Vòng Bảng ${tourney}`;
+  }
+
+  else if (subStep === "ballon_dor_nomination") {
+    const w = ctx.ballonDorNominationWeight;
+    const pool = [
+      { value: "yes", weight: w },
+      { value: "no", weight: 100 - w },
+    ];
+    result = resolveWeightedOutcome(pool);
+    idx = pool.findIndex((x) => x.value === result);
+    tempValue = result === "yes" ? "ĐƯỢC ĐỀ CỬ TOP 10 QBV! 🏅" : "Năm này chưa được xét";
+  }
+  else if (subStep === "ballon_dor_ranking") {
+    const pool = ctx.ballonDorRankWeights.map((w, i) => ({ value: i + 1, weight: w }));
+    result = resolveWeightedOutcome(pool);
+    idx = pool.findIndex((x) => x.value === result);
+    tempValue = result === 1 ? "🏆 HẠNG #1 — BALLON D'OR!" : `HẠNG #${result} TRONG TOP 10`;
   }
 
   return { result, idx, tempValue };
