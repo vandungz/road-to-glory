@@ -47,6 +47,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     activeModal,
     setActiveModal,
     careerSubStep,
+    isProcessing,
     careerSpinning,
     careerWheelItems,
     careerTargetIndex,
@@ -172,6 +173,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
           tempValue={tempValue}
           handleSetupSpin={handleSetupSpin}
           handleStartCareer={handleStartCareer}
+          isProcessing={isProcessing}
           draftData={draftData}
           position={position}
           STEP_LABELS={STEP_LABELS}
@@ -191,6 +193,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
               currentClub={currentClub}
               currentContinentalCup={currentContinentalCup}
               careerSpinning={careerSpinning}
+              isProcessing={isProcessing}
               careerWheelItems={careerWheelItems}
               careerTargetIndex={careerTargetIndex}
               handleCareerSpinComplete={handleCareerSpinComplete}

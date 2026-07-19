@@ -11,6 +11,7 @@ interface CareerActionsPanelProps {
   currentClub: any;
   currentContinentalCup: string;
   careerSpinning: boolean;
+  isProcessing: boolean;
   careerWheelItems: any[];
   careerTargetIndex: number;
   handleCareerSpinComplete: () => void;
@@ -38,6 +39,7 @@ export function CareerActionsPanel({
   currentClub,
   currentContinentalCup,
   careerSpinning,
+  isProcessing,
   careerWheelItems,
   careerTargetIndex,
   handleCareerSpinComplete,
@@ -80,6 +82,8 @@ export function CareerActionsPanel({
             {careerSubStep === "continental_cup" && `Cup Lục Địa: ${getContinentalCupLabel(currentContinentalCup)}`}
             {careerSubStep === "national_callup" && "ĐTQG: Quay Triệu Tập Tuyển"}
             {careerSubStep === "national_tournament" && "ĐTQG: Vòng Quay Cup Quốc Tế"}
+            {careerSubStep === "ballon_dor_nomination" && "🏅 QUẢ BÓNG VÀNG: Vào Top 10?"}
+            {careerSubStep === "ballon_dor_ranking" && "🏆 QUẢ BÓNG VÀNG: Hạng Bao Nhiêu?"}
             {careerSubStep === "season_stats" && "📊 Xem thống kê mùa giải..."}
             {careerSubStep === "transfer" && "Lời Mời Chuyển Nhượng"}
             {careerSubStep === "resolved" && "Mùa giải đã hoàn thành"}
@@ -97,8 +101,9 @@ export function CareerActionsPanel({
             <button
               type="button"
               onClick={handleStartSeason}
+              disabled={isProcessing}
               className="btn-primary"
-              style={{ fontSize: "1.1rem", padding: "14px 40px", backgroundColor: "var(--coral)" }}
+              style={{ fontSize: "1.1rem", padding: "14px 40px", backgroundColor: "var(--coral)", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}
             >
               TIẾN VÀO MÙA GIẢI
             </button>
@@ -106,7 +111,7 @@ export function CareerActionsPanel({
         )}
 
         {/* Wheels Spinner */}
-        {["dir_increase", "dir_decrease", "count", "selector", "magnitude", "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament"].includes(careerSubStep) && (
+        {["dir_increase", "dir_decrease", "count", "selector", "magnitude", "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep) && (
           <>
             <SpinnerWheel
               isSpinning={careerSpinning}
@@ -122,11 +127,11 @@ export function CareerActionsPanel({
             <button
               type="button"
               onClick={handleCareerSpin}
-              disabled={careerSpinning}
+              disabled={careerSpinning || isProcessing}
               className="btn-primary"
-              style={{ fontSize: "1.1rem", padding: "12px 36px", opacity: careerSpinning ? 0.6 : 1 }}
+              style={{ fontSize: "1.1rem", padding: "12px 36px", opacity: (careerSpinning || isProcessing) ? 0.6 : 1 }}
             >
-              QUAY BÁNH XE
+              {isProcessing && !careerSpinning ? "ĐANG XỬ LÝ..." : "QUAY BÁNH XE"}
             </button>
           </>
         )}
@@ -141,8 +146,8 @@ export function CareerActionsPanel({
               CLB <strong>{transferOffer.clubName}</strong> ({transferOffer.leagueName}) muốn ký hợp đồng với bạn. Bạn có đồng ý chuyển nhượng?
             </p>
             <div style={{ display: "flex", gap: "10px" }}>
-              <button type="button" onClick={() => handleAcceptTransfer(true)} className="btn-primary" style={{ flex: 1, padding: "10px" }}>ĐỒNG Ý</button>
-              <button type="button" onClick={() => handleAcceptTransfer(false)} className="btn-secondary" style={{ flex: 1, padding: "10px" }}>TỪ CHỐI</button>
+              <button type="button" onClick={() => handleAcceptTransfer(true)} disabled={isProcessing} className="btn-primary" style={{ flex: 1, padding: "10px", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}>ĐỒNG Ý</button>
+              <button type="button" onClick={() => handleAcceptTransfer(false)} disabled={isProcessing} className="btn-secondary" style={{ flex: 1, padding: "10px", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}>TỪ CHỐI</button>
             </div>
           </div>
         )}
@@ -193,8 +198,9 @@ export function CareerActionsPanel({
             <button
               type="button"
               onClick={handleNextSeason}
+              disabled={isProcessing}
               className="btn-primary"
-              style={{ width: "100%", fontSize: "1rem", padding: "10px", marginTop: "4px", backgroundColor: "var(--charcoal)", color: "var(--white)" }}
+              style={{ width: "100%", fontSize: "1rem", padding: "10px", marginTop: "4px", backgroundColor: "var(--charcoal)", color: "var(--white)", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}
             >
               TIẾN VÀO MÙA GIẢI TIẾP THEO →
             </button>
