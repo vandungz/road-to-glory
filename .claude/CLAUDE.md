@@ -49,7 +49,8 @@ features/
     components/DraftDrumScreen.tsx, CareerActionsPanel.tsx, SeasonProfile.tsx,
                 PaniniSticker.tsx, TimelineHistory.tsx, RetiredStage.tsx,
                 SetupStage.tsx, SpinnerWheel.tsx
-    hooks/useDraftDrum.ts, useCareerStats.ts, useCareerWheelItems.ts, useSetupStage.ts
+    hooks/useDraftDrum.ts, useCareerStats.ts, useCareerWheelItems.ts, useSetupStage.ts,
+          useCompetitionFlow.ts, useStatEvolutionFlow.ts
     lib/career-wheel-resolver.ts, simulation-helpers.ts
     stores/useWheelUiStore.ts
 
@@ -122,6 +123,46 @@ import { useState } from "react";  // CẤM
 
 Nếu vượt → split ngay thành hooks, sub-components, hoặc helper functions.
 
+### 7. currentClub và currentContinentalCup PHẢI đổi cùng nhau
+
+Vé cúp châu lục thuộc về CLB, không thuộc về cầu thủ. Khi cầu thủ đổi CLB (transfer,
+start career, hay bất kỳ chỗ nào set `currentClub` trong tương lai), `currentContinentalCup`
+BẮT BUỘC phải được set lại theo `continentalType` của CLB mới trong CÙNG một lần update —
+không set riêng lẻ ở 2 chỗ khác nhau.
+
+```ts
+// ✅ features/wheel/hooks/useCareerStats.ts — luôn dùng hàm này khi đổi club
+function setClubAndContinental(club: { ...; continentalType: string }) {
+  setCurrentClub(club);
+  setCurrentContinentalCup(club.continentalType ?? "none");
+}
+
+// ❌ CẤM — set currentClub mà không sync currentContinentalCup
+setCurrentClub({ ...transferOffer, continentalType: fullClub?.continentalType });
+// → currentContinentalCup giữ nguyên giá trị CLB CŨ, gây bug: cầu thủ chuyển
+//   sang Bundesliga nhưng wheel vẫn quay AFC Champions League của CLB J1 cũ.
+```
+
+Lý do phải ghi rõ thành invariant: state này bị đọc ở 6+ nơi khác nhau
+(`useCareerStats.ts`, `useCompetitionFlow.ts`, `useCareerWheelItems.ts`,
+`career-wheel-resolver.ts`, và vài component hiển thị UI) mà không có single
+source of truth / reducer nào enforce, nên rất dễ tái phát nếu có thêm một
+chỗ set `currentClub` trực tiếp mà quên sync theo.
+
+Ngoại lệ: cập nhật `currentContinentalCup` cuối mùa dựa trên
+`calculateContinentalQualification` (đứng hạng bao nhiêu → vé mùa sau) là hợp lệ
+và KHÔNG đi qua `setClubAndContinental`, vì đó là cùng một CLB, không phải đổi CLB.
+
+**Bẫy liên quan (đã fix, xem `handleNextSeason` trong `useCareerStats.ts`)**: nếu
+cầu thủ ACCEPT TRANSFER trong lúc off-season rồi mới bấm "mùa giải tiếp theo",
+`currentClub` đã đổi sang CLB mới TRƯỚC KHI `handleNextSeason` chạy — nhưng
+`actualStint` (CLB vừa thi đấu mùa đó) vẫn là CLB CŨ. Nếu code cứ vô điều kiện gọi
+`calculateContinentalQualification(actualStintLeagueId, standingResult, ...)` rồi
+`setCurrentContinentalCup(...)`, nó sẽ **ghi đè** giá trị đúng (CLB mới) bằng vé kiếm
+được ở CLB cũ — tái phát đúng loại bug ở trên nhưng qua đường khác. Luôn so sánh
+`actualStint.clubId !== currentClub.id` trước khi áp kết quả qualification; nếu khác
+nhau (đã transfer đi) thì bỏ qua, giữ nguyên `currentContinentalCup` hiện tại.
+
 ---
 
 ## Các vi phạm hiện tại (technical debt — cần fix sau)
@@ -130,7 +171,6 @@ Nếu vượt → split ngay thành hooks, sub-components, hoặc helper functio
 |---|---|---|
 | `features/career/services/career-setup.service.ts` | `Math.random()` không qua spin-resolver (luckRating, professionalism, personality) | Medium |
 | `features/transfer/services/transfer.service.ts` | `Math.random()` không qua spin-resolver | Medium |
-| `features/wheel/hooks/useDraftDrum.ts:223` | `(window as any)._tempCareerResult` — dùng `useRef` thay thế | Medium |
 | `actions/season.actions.ts:generateLeagueTableAction` | `currentLeagueClubsRaw` từ client không qua Zod schema | High |
 | `features/wheel/lib/career-wheel-resolver.ts:263` | Cờ `🇸🇬` hardcode cho mọi quốc tịch | Low |
 | `lib/simulation-engine/match-simulator.ts` | Dead code — chưa xóa | Low |
