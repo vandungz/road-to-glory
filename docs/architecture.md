@@ -75,6 +75,28 @@ Official writes phải đi qua Server Actions → Feature Services → Prisma. K
 
 ---
 
+## Runtime performance & traffic (wheel / sim)
+
+Game career có **nhiều spin/mùa**. Thiết kế vận hành phải tối ưu **số round-trip**, không chỉ
+đúng auth.
+
+**Nguyên tắc:**
+
+1. **Pure lib dùng chung** (`lib/`, `features/*/services` thuần) chạy được trên client để
+   preview + spin — không cần mạng.  
+2. **Server Action = checkpoint**, không = mỗi cú quay. Một mùa: tối thiểu
+   `simulateSeason` + `evolveStats` + (optional) transfer/journeys + 1 persist.  
+3. **Integrity scale-friendly:** ưu tiên *season seed + verify lúc commit* hoặc
+   *recompute OVR/peak trên server*; **cấm** mặc định per-spin Server Action.  
+4. **Cache** dữ liệu tham chiếu (clubs theo prestige, opponents cup/league) — TTL dài;
+   đừng `findMany` full mỗi journey.  
+5. **Persist batched** (đã có background save) — không ghi DB mỗi spin.
+
+Chi tiết budget I/O, anti-pattern, và pass implement:
+[`docs/core-game-logic-systems-map.md`](./core-game-logic-systems-map.md) §4b.
+
+---
+
 ## Wheel Engine Invariant
 
 Toàn bộ wheel weight calculation là deterministic. `Math.random()` chỉ được gọi một lần duy nhất tại `lib/wheel-engine/spin-resolver.ts` để resolve final outcome từ bảng weights đã tính. Bất kỳ test nào cũng có thể mock `Math.random()` để verify outcomes một cách deterministic.

@@ -1,5 +1,12 @@
 import { getNationalTier } from "@/lib/wheel-engine/weight-calculator";
 import { resolveRandom, resolveRandomFloat } from "@/lib/wheel-engine/spin-resolver";
+import {
+  getPerAppRates,
+  applyPrestigeToCsRate,
+  clampCompetitionStats,
+  type CompContext,
+} from "@/lib/season-stat-rates";
+import { estimateAppsRatio } from "@/lib/club-fit";
 
 export interface CompetitionStats {
   apps: number;
@@ -91,92 +98,75 @@ function getStandingBonus(standing: number | null | undefined): number {
   return -0.12;
 }
 
-// ── Goals/Assists/CleanSheets per position ─────────────────────────────────
+// ── Goals/Assists/CleanSheets — apps × rate(position) (SoT §7.0) ────────────
 
-function calcAttackStats(
-  position: string,
-  ovr: number,
-  playFactor: number,
-  apps: number
-): { goals: number; assists: number; cleanSheets: number } {
-  let goals = 0;
-  let assists = 0;
-  const cleanSheets = 0;
-
-  if (position === "GK") {
-    assists = resolveRandom() > 0.97 ? 1 : 0;
-  } else if (position === "CB") {
-    goals = Math.round((resolveRandom() > 0.75 ? 2 : 0) + resolveRandomFloat(0, 3) * playFactor);
-    assists = Math.round((resolveRandom() > 0.85 ? 1 : 0) + resolveRandomFloat(0, 2) * playFactor);
-  } else if (position === "LB" || position === "RB") {
-    goals = Math.round((resolveRandom() > 0.85 ? 1 : 0) + resolveRandomFloat(0, 2) * playFactor);
-    assists = Math.round(resolveRandomFloat(1, 6) * playFactor);
-  } else if (position === "CDM") {
-    goals = Math.round(resolveRandomFloat(0, 3) * playFactor);
-    assists = Math.round(resolveRandomFloat(1, 6) * playFactor);
-  } else if (position === "CM") {
-    goals = Math.round(resolveRandomFloat(1, 8) * playFactor);
-    assists = Math.round(resolveRandomFloat(2, 11) * playFactor);
-  } else if (position === "CAM") {
-    goals = Math.round(resolveRandomFloat(2, 13) * playFactor);
-    assists = Math.round(resolveRandomFloat(3, 16) * playFactor);
-  } else if (position === "LW" || position === "RW") {
-    goals = Math.round(resolveRandomFloat(3, 18) * playFactor);
-    assists = Math.round(resolveRandomFloat(2, 13) * playFactor);
-  } else if (position === "ST") {
-    goals = Math.round(resolveRandomFloat(5, 29) * playFactor + (ovr - 60) * 0.12);
-    assists = Math.round(resolveRandomFloat(1, 8) * playFactor);
-  }
-
-  return { goals: Math.max(0, goals), assists: Math.max(0, assists), cleanSheets };
-}
-
-function calcCleanSheets(
+function rollCompetitionOutput(
   position: string,
   ovr: number,
   clubPrestige: number,
-  baseLeagueMatches: number,
-  playFactor: number
-): number {
-  if (!["GK", "CB", "LB", "RB", "CDM"].includes(position)) return 0;
+  apps: number,
+  context: CompContext,
+): { goals: number; assists: number; cleanSheets: number } {
+  if (apps <= 0) return { goals: 0, assists: 0, cleanSheets: 0 };
 
-  let csBase: number;
+  const rates = getPerAppRates(position, ovr, context);
+  const rateCs = applyPrestigeToCsRate(rates.cleanSheets, clubPrestige);
+  const noise = () => 1 + resolveRandomFloat(-0.2, 0.2);
+
+  let goals = Math.round(apps * rates.goals * noise());
+  let assists = Math.round(apps * rates.assists * noise());
+  let cleanSheets = ["GK", "CB", "LB", "RB", "CDM"].includes(position)
+    ? Math.round(apps * rateCs * noise())
+    : 0;
+
+  // GK: rare assist instead of rate noise sometimes
   if (position === "GK") {
-    csBase = (baseLeagueMatches * 0.15) + (clubPrestige * 1.5) + (ovr - 60) * 0.1;
-  } else if (position === "CB") {
-    csBase = (baseLeagueMatches * 0.14) + (clubPrestige * 1.5) + (ovr - 60) * 0.08;
-  } else if (position === "LB" || position === "RB") {
-    csBase = (baseLeagueMatches * 0.13) + (clubPrestige * 1.3) + (ovr - 60) * 0.07;
-  } else {
-    csBase = (baseLeagueMatches * 0.11) + (clubPrestige * 1.0) + (ovr - 60) * 0.05;
+    goals = 0;
+    assists = resolveRandom() > 0.97 ? 1 : 0;
   }
 
-  return Math.round(Math.min(999, Math.max(0, csBase * playFactor + resolveRandomFloat(-1.5, 1.5))));
+  return clampCompetitionStats(position, apps, goals, assists, cleanSheets);
 }
 
 // ── Match Rating per competition ───────────────────────────────────────────
+
+/** Overqualify brake: when ovr ≫ club, G/A/CS contribution to rating shrinks (SoT §7.1). */
+function getOverqualifyPerfScale(ovr: number, clubPrestige: number): number {
+  const threshold = 55 + clubPrestige * 6;
+  const diff = ovr - threshold;
+  if (diff < 8) return 1;
+  if (diff >= 16) return 0.55;
+  // Linear 8→16: 1.0→0.55
+  return 1 - ((diff - 8) / 8) * 0.45;
+}
 
 function calcRating(
   position: string,
   ovr: number,
   luckRating: number,
+  clubPrestige: number,
   compStats: { goals: number; assists: number; cleanSheets: number; apps: number },
   standingBonus = 0
 ): number {
   if (compStats.apps === 0) return 0;
 
-  let base = 6.0 + (ovr - 55) * 0.015 + (luckRating / 20) * 0.25 + standingBonus;
+  const clubThreshold = 55 + clubPrestige * 6;
+  // SoT §7.3: rating relative to club environment (capped)
+  const ovrVsClub = Math.max(-1.2, Math.min(1.2, (ovr - clubThreshold) * 0.01));
+  let base = 6.0 + ovrVsClub + (luckRating / 20) * 0.25 + standingBonus;
+
+  const perfScale = getOverqualifyPerfScale(ovr, clubPrestige);
 
   if (["ST", "LW", "RW", "CAM", "CM"].includes(position)) {
     const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
-    base += gaFactor * 2.5;
+    base += gaFactor * 1.8 * perfScale;
   } else if (position === "CDM") {
     const csFactor = compStats.cleanSheets / compStats.apps;
     const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
-    base += csFactor * 1.5 + gaFactor * 1.0;
+    base += (csFactor * 1.3 + gaFactor * 0.9) * perfScale;
   } else {
     const csFactor = compStats.cleanSheets / compStats.apps;
-    base += csFactor * 2.8;
+    base += csFactor * 2.2 * perfScale;
   }
 
   base += resolveRandomFloat(-0.15, 0.15);
@@ -319,23 +309,13 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const nationalMatches = getNationalMatches(nationalCallupResult, nationalTournamentResult);
   const maxSeasonMatches = leagueMatches + cupMatches + continentalMatches + nationalMatches;
 
-  // 2. Apps ratio — high impact từ standing
-  const clubThreshold = 55 + clubPrestige * 6;
-  const ovrDifference = ovr - clubThreshold;
-  let baseAppsRatio = 0.55;
-  if (ovrDifference > 10) baseAppsRatio = 0.85;
-  else if (ovrDifference < -10) baseAppsRatio = 0.25;
-  else baseAppsRatio = 0.55 + ovrDifference * 0.03;
-
-  // CLB càng nhỏ (prestige thấp) càng ít phương án thay thế cùng vị trí → cầu thủ
-  // đạt chuẩn tối thiểu có xu hướng đá chính nhiều hơn, độc lập với khoảng cách OVR
-  // so với chuẩn CLB. CLB top (prestige 5) không được cộng thêm vì vốn đã có
-  // nhiều lựa chọn xoay tua.
-  const squadDepthBonus = (5 - clubPrestige) * 0.03;
-
+  // 2. Apps ratio — player↔club fit (SoT §7.6) + standing
   const standingBonus = getStandingBonus(standingResult);
-  const randModifier = resolveRandomFloat(-0.05, 0.05); // giảm từ ±0.08
-  const finalAppsRatio = Math.min(0.95, Math.max(0.05, baseAppsRatio + squadDepthBonus + standingBonus + randModifier));
+  const randModifier = resolveRandomFloat(-0.05, 0.05);
+  const finalAppsRatio = Math.min(
+    0.95,
+    Math.max(0.05, estimateAppsRatio(ovr, clubPrestige) + standingBonus + randModifier),
+  );
 
   // 3. Per-competition apps
   const leagueApps = Math.max(1, Math.round(leagueMatches * finalAppsRatio));
@@ -344,42 +324,33 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const nationalApps = nationalMatches > 0 ? Math.max(0, Math.round(nationalMatches * finalAppsRatio * 0.85)) : 0;
   const totalApps = leagueApps + cupApps + continentalApps + nationalApps;
 
-  // 4. Per-competition goals/assists
-  const leaguePf = leagueApps / leagueMatches;
-  const { goals: lgGoals, assists: lgAssists } = calcAttackStats(position, ovr, leaguePf, leagueApps);
-  const leagueCS = Math.min(leagueApps, calcCleanSheets(position, ovr, clubPrestige, leagueMatches, leaguePf));
-
-  const cupPf = cupMatches > 0 ? cupApps / cupMatches : 0;
-  const { goals: cpGoals, assists: cpAssists } = calcAttackStats(position, ovr, cupPf, cupApps);
-  const cupCS = cupApps > 0
-    ? Math.min(cupApps, calcCleanSheets(position, ovr, clubPrestige, cupMatches, cupPf))
-    : 0;
-
-  const contPf = continentalMatches > 0 ? continentalApps / continentalMatches : 0;
-  const { goals: ctGoals, assists: ctAssists } = calcAttackStats(position, ovr, contPf, continentalApps);
-  const contCS = continentalApps > 0
-    ? Math.min(continentalApps, calcCleanSheets(position, ovr, clubPrestige, continentalMatches, contPf))
-    : 0;
-
-  const natPf = nationalMatches > 0 ? nationalApps / nationalMatches : 0;
-  const { goals: ntGoals, assists: ntAssists } = calcAttackStats(position, ovr, natPf, nationalApps);
-  const natCS = nationalApps > 0
-    ? Math.min(nationalApps, calcCleanSheets(position, ovr, clubPrestige, nationalMatches, natPf))
-    : 0;
+  // 4. Per-competition goals/assists/CS (volume ∝ apps)
+  const { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS } = rollCompetitionOutput(
+    position, ovr, clubPrestige, leagueApps, "league",
+  );
+  const { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS } = rollCompetitionOutput(
+    position, ovr, clubPrestige, cupApps, "domestic_cup",
+  );
+  const { goals: ctGoals, assists: ctAssists, cleanSheets: contCS } = rollCompetitionOutput(
+    position, ovr, clubPrestige, continentalApps, "continental",
+  );
+  const { goals: ntGoals, assists: ntAssists, cleanSheets: natCS } = rollCompetitionOutput(
+    position, ovr, clubPrestige, nationalApps, "national",
+  );
 
   // 5. Match ratings per competition
-  const lgRatingBonus = getStandingBonus(standingResult) * 0.8; // standing ảnh hưởng league rating
+  const lgRatingBonus = getStandingBonus(standingResult) * 0.8;
   const leagueRating = leagueApps > 0
-    ? calcRating(position, ovr, luckRating, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus)
+    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus)
     : 0;
   const cupRating = cupApps > 0
-    ? calcRating(position, ovr, luckRating, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps })
+    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps })
     : 0;
   const contRating = continentalApps > 0
-    ? calcRating(position, ovr, luckRating, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps })
+    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps })
     : 0;
   const natRating = nationalApps > 0
-    ? calcRating(position, ovr, luckRating, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps })
+    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps })
     : 0;
 
   // 6. Totals (weighted average rating)

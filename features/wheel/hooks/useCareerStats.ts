@@ -9,6 +9,7 @@ import {
   calculateContinentalQualification,
   getContinentalCupLabel,
   getDomesticCupName,
+  getNationalTournamentName,
 } from "../lib/simulation-helpers";
 
 interface UseCareerStatsProps {
@@ -130,12 +131,13 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   }, [seasonRecords, selectedAgeForStats]);
 
   function handleStartCareer(draftData: any, initPayload: any, clubs: any[]) {
+    const debutOvr = initPayload.debutOvr ?? initPayload.initTimeline?.[0]?.ovr ?? draftData.debutOvr!;
     setPlayerName(initPayload.playerName);
     setHiddenStats(initPayload.hiddenStats);
     setClubStints([initPayload.initStint]);
     setStatsTimeline(initPayload.initTimeline);
     setCurrentAge(draftData.debutAge!);
-    setCurrentOvr(draftData.debutOvr!);
+    setCurrentOvr(debutOvr);
     setCurrentStats(initPayload.initStats);
 
     const fullClub = clubs.find((c) => c.id === draftData.clubId);
@@ -237,9 +239,9 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         trophies.push({ type: "continental", name: getContinentalCupLabel(currentContinentalCup), club: actualClubName, age: currentAge });
       }
       if (nationalCallupResult === "called_up" && nationalTournamentResult === "Winner") {
-        const nationCup = getNationalContinentalCup(playerNationality);
-        const currentYear = 2026 + (currentAge - playerDebutAge);
-        const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
+        const tourney = getNationalTournamentName(
+          playerNationality, currentAge, playerDebutAge, getNationalContinentalCup,
+        );
         trophies.push({ type: "international", name: tourney, club: playerNationality, age: currentAge });
       }
       if (ballonDorRank !== null) {
@@ -258,6 +260,27 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       return { ballonDor, trophies, seasonAwards };
     });
 
+    const retireAge = playerDebutAge + playerCareerLength;
+    const isRetiring = nextAge > retireAge;
+
+    if (isRetiring) {
+      // Không push timeline/stint tuổi retireAge+1 (entry “ma”) và bỏ stint
+      // transfer chưa bao giờ đá (startAge > retireAge).
+      setClubStints((prev) => {
+        const played = prev.filter((st: any) => st.startAge <= retireAge);
+        if (played.length === 0) return played;
+        const updated = [...played];
+        const last = { ...updated[updated.length - 1] };
+        last.endAge = Math.min(last.endAge ?? currentAge, currentAge);
+        if (last.endAge < last.startAge) last.endAge = last.startAge;
+        last.yearsAtClub = last.endAge - last.startAge + 1;
+        last.ovrAtLeaving = currentOvr;
+        updated[updated.length - 1] = last;
+        return updated;
+      });
+      return { isRetire: true, nextContinentalCup };
+    }
+
     setStatsTimeline((prev) => [
       ...prev,
       { age: nextAge, ovr: currentOvr, ...currentStats },
@@ -273,13 +296,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       return updated;
     });
 
-    const retireAge = playerDebutAge + playerCareerLength;
-    if (nextAge > retireAge) {
-      return { isRetire: true, nextContinentalCup };
-    } else {
-      setCurrentAge(nextAge);
-      return { isRetire: false, nextContinentalCup };
-    }
+    setCurrentAge(nextAge);
+    return { isRetire: false, nextContinentalCup };
   }
 
   // Trả về "national_callup" hoặc "trigger_stats" — caller tự xử lý
@@ -294,7 +312,11 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setTransferOffer: (offer: any) => void,
     setCareerSubStep: (step: any) => void
   ) {
-    if (accept && transferOffer) {
+    const retireAge = playerDebutAge + playerCareerLength;
+    const onFinalSeason = currentAge >= retireAge;
+
+    // Mùa cuối không còn năm tiếp theo — không ghi stint CLB mới.
+    if (accept && transferOffer && !onFinalSeason) {
       setClubStints((prevStints) => {
         const updated = [...prevStints];
         const last = { ...updated[updated.length - 1] };

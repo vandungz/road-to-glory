@@ -1,10 +1,12 @@
 "use server";
 
+import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { generateFictionalName } from "@/lib/name-gen";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // ============================================================
 // HELPERS
@@ -20,48 +22,83 @@ function getCardRarity(peak: number): string {
 }
 
 // ============================================================
-// SERVER ACTION
+// ZOD SCHEMAS — chặn payload sai kiểu/vượt biên gửi thẳng vào Server Action
+// (không phải qua UI). Không thay thế được các wheel weight ở server tính
+// đúng giá trị — chỉ chặn giá trị vô lý/injection, không chặn client "nói dối"
+// trong biên hợp lệ (statsTimeline/hiddenStats vốn đã round-trip qua client).
 // ============================================================
 
-interface InitCareerParams {
-  gameId: string;
-  slotIndex: number;
-  position: string;
-  name: string;
-  nationality: string;
-  debutAge: number;
-  careerLength: number;
-  debutOvr: number;
-  height: number;
-  weight: number;
-  preferredFoot: string;
-  currentContinentalCup: string;
-  statsTimeline: any[];
-  clubStints: any[];
-  hiddenStats: any;
-}
+const POSITIONS = ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "LM", "RM"] as const;
 
-interface SavePlayerParams {
-  gameId: string;
-  slotIndex: number;
-  position: string;
-  name: string;
-  nationality: string;
-  debutAge: number;
-  retireAge: number;
-  careerLength: number;
-  peakOvr: number;
-  statsTimeline: any[];
-  clubStints: any[];
-  hiddenStats: any;
-  achievements?: any;
-  currentContinentalCup?: string;
-}
+const statSnapshotSchema = z.object({
+  age: z.number().int().min(10).max(60),
+  ovr: z.number().int().min(1).max(99),
+}).catchall(z.number());
+
+const clubStintSchema = z.object({
+  clubId: z.string(),
+  clubName: z.string(),
+  leagueId: z.string(),
+  leagueName: z.string(),
+  startAge: z.number().int(),
+  endAge: z.number().int(),
+  yearsAtClub: z.number().int(),
+  ovrAtJoining: z.number().int(),
+  ovrAtLeaving: z.number().int(),
+});
+
+const hiddenStatsSchema = z.object({
+  luckRating: z.number().int().min(1).max(20),
+  professionalism: z.number().int().min(1).max(20),
+  personality: z.string(),
+});
+
+const initCareerPlayerSchema = z.object({
+  gameId: z.string().uuid(),
+  slotIndex: z.number().int().min(0).max(10),
+  position: z.enum(POSITIONS),
+  name: z.string().min(1).max(60),
+  nationality: z.string().min(1).max(60),
+  debutAge: z.number().int().min(10).max(35),
+  careerLength: z.number().int().min(1).max(30),
+  debutOvr: z.number().int().min(1).max(99),
+  height: z.number().int().min(100).max(230),
+  weight: z.number().int().min(30).max(200),
+  preferredFoot: z.enum(["Left", "Right", "Both"]),
+  currentContinentalCup: z.string(),
+  statsTimeline: z.array(statSnapshotSchema),
+  clubStints: z.array(clubStintSchema),
+  hiddenStats: hiddenStatsSchema,
+});
+type InitCareerParams = z.infer<typeof initCareerPlayerSchema>;
+
+const saveCareerPlayerSchema = z.object({
+  gameId: z.string().uuid(),
+  slotIndex: z.number().int().min(0).max(10),
+  position: z.enum(POSITIONS),
+  name: z.string().min(1).max(60),
+  nationality: z.string().min(1).max(60),
+  debutAge: z.number().int().min(10).max(35),
+  retireAge: z.number().int().min(10).max(70),
+  careerLength: z.number().int().min(1).max(30),
+  peakOvr: z.number().int().min(1).max(99).optional(),
+  statsTimeline: z.array(statSnapshotSchema),
+  clubStints: z.array(clubStintSchema),
+  hiddenStats: hiddenStatsSchema,
+  achievements: z.any().optional(),
+  currentContinentalCup: z.string().optional(),
+});
+type SavePlayerParams = z.infer<typeof saveCareerPlayerSchema>;
+
+const getCareerPlayerSchema = z.object({
+  playerId: z.string().uuid(),
+});
 
 async function verifyGameOwnership(gameId: string): Promise<string> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
+  await checkRateLimit(user.id);
 
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
@@ -72,7 +109,8 @@ async function verifyGameOwnership(gameId: string): Promise<string> {
   return user.id;
 }
 
-export async function initCareerPlayerAction(params: InitCareerParams): Promise<{ id: string }> {
+export async function initCareerPlayerAction(input: unknown): Promise<{ id: string }> {
+  const params: InitCareerParams = initCareerPlayerSchema.parse(input);
   await verifyGameOwnership(params.gameId);
 
   const {
@@ -120,12 +158,12 @@ export async function initCareerPlayerAction(params: InitCareerParams): Promise<
 }
 
 export async function getCareerPlayerAction(input: unknown) {
-  const { playerId } = (input as any);
-  if (!playerId || typeof playerId !== "string") throw new Error("Invalid playerId");
+  const { playerId } = getCareerPlayerSchema.parse(input);
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
+  await checkRateLimit(user.id);
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
@@ -149,7 +187,8 @@ export async function getCareerPlayerAction(input: unknown) {
   return player;
 }
 
-export async function saveCareerPlayer(params: SavePlayerParams) {
+export async function saveCareerPlayer(input: unknown) {
+  const params: SavePlayerParams = saveCareerPlayerSchema.parse(input);
   await verifyGameOwnership(params.gameId);
 
   const {
@@ -161,13 +200,17 @@ export async function saveCareerPlayer(params: SavePlayerParams) {
     debutAge,
     retireAge,
     careerLength,
-    peakOvr,
     statsTimeline,
     clubStints,
     hiddenStats,
     achievements,
   } = params;
 
+  // Server-derived peak — ignore client peakOvr (integrity)
+  const peakOvr = Math.max(
+    1,
+    ...statsTimeline.map((s) => (typeof s?.ovr === "number" ? s.ovr : 0)),
+  );
   const cardRarity = getCardRarity(peakOvr);
 
   await prisma.careerPlayer.upsert({

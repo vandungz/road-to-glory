@@ -1,5 +1,11 @@
 # Review: OVR Debut, Growth Weights & Formation Position Granularity
 
+> **Cân bằng peak OVR / PRIME / count–magnitude rarity:** xem
+> [`docs/core-growth-balance.md`](./core-growth-balance.md) (SoT mới, 2026-07-30).
+> File đó **supersede** các quyết định balance ở Vấn đề **C** và **F** khi xung đột
+> (weight count 3–5 quá cao, magnitude domain 1–8 quá béo, thiếu soft-cap). File này
+> vẫn là SoT cho vị trí / công thức OVR / formation / height-weight / debut age.
+>
 > Tài liệu thảo luận — chưa code. Ghi lại các vấn đề về logic tăng trưởng chỉ số/OVR
 > và độ chi tiết vị trí trên formation board. Dùng để quyết định hướng trước khi
 > triển khai.

@@ -80,6 +80,124 @@ export function getContinentalCupLabel(cupType: string): string {
   }
 }
 
+/** Calendar year of a career season (debutAge → 2026). Shared by preview + resolve. */
+export function getSeasonCalendarYear(currentAge: number, debutAge: number): number {
+  return 2026 + (currentAge - debutAge);
+}
+
+/**
+ * National tournament display name for a season.
+ * World Cup years: calendarYear % 4 === 2 (2026, 2030, …) — matches sim/journey.
+ */
+export function getNationalTournamentName(
+  nationality: string,
+  currentAge: number,
+  debutAge: number,
+  getContinentalCup: (nationality: string) => string,
+): string {
+  const year = getSeasonCalendarYear(currentAge, debutAge);
+  return year % 4 === 2 ? "FIFA World Cup" : getContinentalCup(nationality);
+}
+
+import { getClubThreshold, estimateAppsRatio, estimateExpectedLeagueApps } from "@/lib/club-fit";
+
+export { getClubThreshold, estimateAppsRatio, estimateExpectedLeagueApps };
+
+/**
+ * Influence proxy ∈ [0.35, 1] — bench stars pull less than nailed-on starters.
+ * Prefer known apps when present; else expected league apps from OVR×threshold.
+ */
+export function getInfluenceProxy(
+  ovr: number,
+  clubPrestige: number,
+  leagueSize: number,
+  knownApps?: number | null,
+): number {
+  const apps =
+    knownApps != null && knownApps > 0
+      ? knownApps
+      : estimateExpectedLeagueApps(ovr, clubPrestige, leagueSize);
+  return Math.min(1, Math.max(0.35, apps / 55));
+}
+
+export function getDomesticCupWeights(
+  prestige: number,
+  luckRating: number,
+  ovr: number,
+  influenceProxy: number,
+) {
+  const luck = Math.floor(luckRating / 4);
+  const diff = ovr - getClubThreshold(prestige);
+  // ~0.5× standing pull intensity; clamp so prestige-1 clubs stay cup underdogs
+  const pull = Math.round(Math.max(-10, Math.min(10, diff * 0.75 * influenceProxy)));
+  return {
+    wWin: Math.max(1, 5 + prestige * 3 + luck + Math.max(0, pull)),
+    wRun: Math.max(1, 8 + prestige * 3 + Math.max(0, Math.round(pull * 0.6))),
+    wSemi: Math.max(1, 15 + prestige * 2 + Math.round(pull * 0.25)),
+    wExit: Math.max(8, 72 - prestige * 8 - pull),
+  };
+}
+
+export function getContinentalCupWeights(
+  prestige: number,
+  luckRating: number,
+  ovr: number,
+  influenceProxy: number,
+) {
+  const luck = Math.floor(luckRating / 4);
+  // Harder reference than domestic (+4 OVR)
+  const diff = ovr - (getClubThreshold(prestige) + 4);
+  const pull = Math.round(Math.max(-8, Math.min(8, diff * 0.55 * influenceProxy)));
+  return {
+    wWin: Math.max(1, 3 + prestige * 3 + luck + Math.max(0, pull)),
+    wRun: Math.max(1, 7 + prestige * 2 + Math.max(0, Math.round(pull * 0.5))),
+    wSemi: Math.max(1, 15 + prestige * 2 + Math.round(pull * 0.2)),
+    wGroup: Math.max(8, 75 - prestige * 7 - pull),
+  };
+}
+
+export function getNationalTournamentWeights(
+  ovr: number,
+  luckRating: number,
+  midOvr: number,
+  influenceProxy = 1,
+) {
+  const luck = Math.floor(luckRating / 4);
+  const diff = ovr - midOvr;
+  const pull = Math.round(Math.max(-10, Math.min(14, diff * 0.4 * influenceProxy)));
+  return {
+    wWin: Math.max(1, 3 + luck + Math.max(0, pull)),
+    wRun: Math.max(1, 7 + Math.max(0, Math.round(pull * 0.7))),
+    wSemi: Math.max(5, 20 + Math.round(pull * 0.25)),
+    wGroup: Math.max(10, 70 - pull * 2),
+  };
+}
+
+/** Call-up weights — form from this-season standing (not yearSimResult). */
+export function getNationalCallupWeights(
+  ovr: number,
+  midOvr: number,
+  standingResult: number | null | undefined,
+  leagueSize: number,
+): { wCall: number; wMiss: number } {
+  const ovrDiff = ovr - midOvr;
+  let wCall = Math.max(5, Math.min(90, 50 + ovrDiff * 2));
+
+  if (standingResult != null && standingResult > 0 && leagueSize > 0) {
+    const topCut = Math.max(1, Math.round(leagueSize * 0.25));
+    const upperMid = Math.max(1, Math.round(leagueSize * 0.4));
+    const lowerMid = Math.max(1, Math.round(leagueSize * 0.55));
+    const botCut = Math.max(1, Math.round(leagueSize * 0.7));
+    if (standingResult <= topCut) wCall = Math.min(90, wCall + 18);
+    else if (standingResult <= upperMid) wCall = Math.min(90, wCall + 10);
+    else if (standingResult >= botCut) wCall = Math.max(5, wCall - 18);
+    else if (standingResult >= lowerMid) wCall = Math.max(5, wCall - 10);
+  }
+
+  const wMiss = Math.max(5, 100 - wCall);
+  return { wCall, wMiss };
+}
+
 export function getSeasonYearString(age: number, debutAge: number): string {
   const startYear = 2025 + (age - debutAge);
   const endYearShort = (startYear + 1) % 100;
@@ -91,12 +209,12 @@ export function getStandingWheelPool(
   clubPrestige: number,
   ovr: number,
   leagueSize: number,
-  apps: number = 38,
+  appsOrNull: number | null | undefined = null,
   lastYearStanding?: number | null,
 ) {
-  const targetOvr = 55 + clubPrestige * 6;
+  const targetOvr = getClubThreshold(clubPrestige);
   const diff = ovr - targetOvr;
-  const influenceFactor = Math.min(1.0, Math.max(0.0, apps / 55));
+  const influenceFactor = getInfluenceProxy(ovr, clubPrestige, leagueSize, appsOrNull);
 
   const prestigeExpectedPos = Math.max(1, Math.min(leagueSize, Math.round(leagueSize - clubPrestige * (leagueSize / 5) + 1)));
   // Kéo nhẹ theo thành tích mùa trước (nếu có) để tạo quán tính giữa các mùa —
@@ -146,52 +264,50 @@ export function getGrowthTier(rating: number): GrowthTier {
 }
 
 export function getIncreaseGateWeight(tier: GrowthTier): { yes: number; no: number } {
+  // Legacy table — increase path uses Development Score (§4.4) in growth-balance.ts.
+  // Kept for reference / any non-career callers; do not wire back into dir_increase.
   switch (tier) {
-    case "xuat_sac": return { yes: 80, no: 20 };
-    case "tot":       return { yes: 60, no: 40 };
-    case "trung_binh": return { yes: 40, no: 60 };
-    case "kem":       return { yes: 5, no: 95 };
+    case "xuat_sac": return { yes: 70, no: 30 };
+    case "tot":       return { yes: 50, no: 50 };
+    case "trung_binh": return { yes: 32, no: 68 };
+    case "kem":       return { yes: 8, no: 92 };
   }
 }
 
 export function getDecreaseGateWeight(tier: GrowthTier): { yes: number; no: number } {
-  // Nghịch đảo cùng tier — mùa kém dễ giảm, mùa xuất sắc gần như không giảm
   switch (tier) {
-    case "kem":       return { yes: 70, no: 30 };
-    case "trung_binh": return { yes: 30, no: 70 };
-    case "tot":       return { yes: 10, no: 90 };
-    case "xuat_sac":  return { yes: 5, no: 95 };
+    case "kem":       return { yes: 65, no: 35 };
+    case "trung_binh": return { yes: 35, no: 65 };
+    case "tot":       return { yes: 18, no: 82 };
+    case "xuat_sac":  return { yes: 8, no: 92 };
   }
 }
 
-// Increase: domain 1-6. Decrease: domain 1-3 (giảm càng lan rộng nhiều chỉ số
-// càng hiếm, và tier "kem" (mùa tệ) có xu hướng lan rộng hơn tier "xuất sắc"
-// (hiếm khi giảm, nếu có cũng chỉ là 1 điểm trừ lẻ tẻ) — nghịch đảo giống cách
-// getMagnitudeTierForDirection đã làm cho biên độ.
+// SoT §4.2 — narrow normal growth; count 3+ is a standout season
 export function getCountPool(tier: GrowthTier, isIncrease: boolean): { value: number; weight: number }[] {
   if (isIncrease) {
     switch (tier) {
-      case "xuat_sac":   return [{ value: 1, weight: 10 }, { value: 2, weight: 20 }, { value: 3, weight: 25 }, { value: 4, weight: 20 }, { value: 5, weight: 15 }, { value: 6, weight: 10 }];
-      case "tot":        return [{ value: 1, weight: 20 }, { value: 2, weight: 28 }, { value: 3, weight: 25 }, { value: 4, weight: 15 }, { value: 5, weight: 8 }, { value: 6, weight: 4 }];
-      case "trung_binh": return [{ value: 1, weight: 38 }, { value: 2, weight: 30 }, { value: 3, weight: 18 }, { value: 4, weight: 9 }, { value: 5, weight: 4 }, { value: 6, weight: 1 }];
-      case "kem":        return [{ value: 1, weight: 60 }, { value: 2, weight: 24 }, { value: 3, weight: 10 }, { value: 4, weight: 4 }, { value: 5, weight: 1 }, { value: 6, weight: 1 }];
+      case "xuat_sac":   return [{ value: 1, weight: 28 }, { value: 2, weight: 32 }, { value: 3, weight: 22 }, { value: 4, weight: 12 }, { value: 5, weight: 4 }, { value: 6, weight: 2 }];
+      case "tot":        return [{ value: 1, weight: 40 }, { value: 2, weight: 35 }, { value: 3, weight: 18 }, { value: 4, weight: 5 }, { value: 5, weight: 1 }, { value: 6, weight: 1 }];
+      case "trung_binh": return [{ value: 1, weight: 55 }, { value: 2, weight: 32 }, { value: 3, weight: 10 }, { value: 4, weight: 2 }, { value: 5, weight: 1 }, { value: 6, weight: 1 }];
+      case "kem":        return [{ value: 1, weight: 70 }, { value: 2, weight: 25 }, { value: 3, weight: 4 }, { value: 4, weight: 1 }, { value: 5, weight: 1 }, { value: 6, weight: 1 }];
     }
   }
   switch (tier) {
-    case "kem":        return [{ value: 1, weight: 30 }, { value: 2, weight: 40 }, { value: 3, weight: 30 }];
-    case "trung_binh": return [{ value: 1, weight: 45 }, { value: 2, weight: 35 }, { value: 3, weight: 20 }];
-    case "tot":        return [{ value: 1, weight: 60 }, { value: 2, weight: 28 }, { value: 3, weight: 12 }];
-    case "xuat_sac":   return [{ value: 1, weight: 70 }, { value: 2, weight: 22 }, { value: 3, weight: 8 }];
+    case "kem":        return [{ value: 1, weight: 25 }, { value: 2, weight: 40 }, { value: 3, weight: 35 }];
+    case "trung_binh": return [{ value: 1, weight: 40 }, { value: 2, weight: 40 }, { value: 3, weight: 20 }];
+    case "tot":        return [{ value: 1, weight: 55 }, { value: 2, weight: 35 }, { value: 3, weight: 10 }];
+    case "xuat_sac":   return [{ value: 1, weight: 70 }, { value: 2, weight: 25 }, { value: 3, weight: 5 }];
   }
 }
 
-// Domain 1-8 dùng chung cho mọi tier — chỉ đổi trọng số (Vấn đề F)
+// SoT §4.3 — domain 1–6 (rollback 7–8); weight mass on 1–3
 export function getMagnitudePool(tier: GrowthTier): { value: number; weight: number }[] {
   const weightsByTier: Record<GrowthTier, number[]> = {
-    xuat_sac:   [2, 4, 6, 12, 20, 25, 20, 11],
-    tot:        [6, 10, 18, 24, 22, 12, 6, 2],
-    trung_binh: [25, 28, 22, 13, 7, 3, 1, 1],
-    kem:        [55, 25, 12, 5, 2, 1, 1, 1],
+    xuat_sac:   [18, 28, 28, 16, 7, 3],
+    tot:        [30, 32, 24, 10, 3, 1],
+    trung_binh: [45, 32, 16, 5, 1, 1],
+    kem:        [60, 28, 9, 2, 1, 1],
   };
   return weightsByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
 }

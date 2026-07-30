@@ -1,10 +1,12 @@
 import { generateFictionalName } from "@/lib/name-gen";
 import { resolveRandomInt, resolveRandom } from "@/lib/wheel-engine/spin-resolver";
+import { calculateOvrByPosition } from "@/lib/wheel-engine/weight-calculator";
 
 export interface DraftDataInput {
   nationality: string;
   debutAge: number;
-  debutOvr: number;
+  /** Client-sent; ignored — server recomputes from stats (O9). */
+  debutOvr?: number;
   careerLength: number;
   clubId: string;
   clubName: string;
@@ -42,6 +44,8 @@ export interface StintInfo {
 export interface CareerSetupResult {
   playerName: string;
   preferredFoot: string;
+  /** Server-authoritative debut OVR from position + stats. */
+  debutOvr: number;
   hiddenStats: {
     luckRating: number;
     professionalism: number;
@@ -52,7 +56,11 @@ export interface CareerSetupResult {
   initTimeline: any[];
 }
 
-export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige: number, clubContinentalType: string): CareerSetupResult {
+export function startPlayerCareerService(
+  draftData: DraftDataInput,
+  _clubPrestige: number,
+  _clubContinentalType: string,
+): CareerSetupResult {
   const playerName = generateFictionalName(draftData.nationality);
   const preferredFoot = resolveRandom() > 0.8 ? "Left" : "Right";
   const luckRating = resolveRandomInt(1, 20);
@@ -66,6 +74,12 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
     personality,
   };
 
+  const initStats: Record<string, number> = draftData.position === "GK"
+    ? { div: draftData.div ?? 60, han: draftData.han ?? 60, kic: draftData.kic ?? 60, ref: draftData.ref ?? 60, spd: draftData.spd ?? 60, pos: draftData.pos ?? 60 }
+    : { pac: draftData.pac ?? 60, sho: draftData.sho ?? 60, pas: draftData.pas ?? 60, dri: draftData.dri ?? 60, def: draftData.def ?? 60, phy: draftData.phy ?? 60 };
+
+  const debutOvr = calculateOvrByPosition(draftData.position, initStats);
+
   const initStint: StintInfo = {
     clubId: draftData.clubId,
     clubName: draftData.clubName,
@@ -74,18 +88,14 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
     startAge: draftData.debutAge,
     endAge: draftData.debutAge,
     yearsAtClub: 1,
-    ovrAtJoining: draftData.debutOvr,
-    ovrAtLeaving: draftData.debutOvr,
+    ovrAtJoining: debutOvr,
+    ovrAtLeaving: debutOvr,
   };
-
-  const initStats: Record<string, number> = draftData.position === "GK"
-    ? { div: draftData.div ?? 60, han: draftData.han ?? 60, kic: draftData.kic ?? 60, ref: draftData.ref ?? 60, spd: draftData.spd ?? 60, pos: draftData.pos ?? 60 }
-    : { pac: draftData.pac ?? 60, sho: draftData.sho ?? 60, pas: draftData.pas ?? 60, dri: draftData.dri ?? 60, def: draftData.def ?? 60, phy: draftData.phy ?? 60 };
 
   const initTimeline = [
     {
       age: draftData.debutAge,
-      ovr: draftData.debutOvr,
+      ovr: debutOvr,
       ...initStats,
     },
   ];
@@ -93,6 +103,7 @@ export function startPlayerCareerService(draftData: DraftDataInput, clubPrestige
   return {
     playerName,
     preferredFoot,
+    debutOvr,
     hiddenStats,
     initStint,
     initStats,

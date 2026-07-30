@@ -231,6 +231,20 @@ export async function saveCareerPlayer(input: unknown) {
 - ❌ Không gọi `Math.random()` trong action.
 - ❌ Không return sensitive data (hidden stats, internal IDs không cần thiết).
 
+### Scale / latency (career year)
+
+Một mùa có thể có **hàng chục** bước spin. Server Action = **checkpoint**, không phải mỗi cú quay.
+
+| Được | Không được |
+|---|---|
+| 1× `simulatePlayerSeason` sau cụm competition | 1 Action / mỗi spin |
+| 1× `evolvePlayerStats` sau cụm growth | Query Prisma trong vòng spin UI |
+| 1× persist cuối mùa / debounce | Save DB mỗi sub-step |
+| Cache opponents/clubs (TTL dài) | `findMany` full clubs mỗi cup journey |
+| Seed đầu mùa + verify lúc commit (tương lai) | “Server-authoritative” = spam RTT |
+
+SoT đầy đủ: [`docs/core-game-logic-systems-map.md`](./core-game-logic-systems-map.md) §4b.
+
 ---
 
 ## 6. TanStack Query Hook Pattern

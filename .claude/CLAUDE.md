@@ -12,11 +12,17 @@ Stack: Next.js 15 App Router · TypeScript strict · Prisma 7 · PostgreSQL · Z
 
 ---
 
-## Trạng thái hiện tại (DEV PHASE)
+## Trạng thái hiện tại
 
-**Auth tạm thời bị tắt** — đang tập trung vào business logic. Server Actions KHÔNG có `auth()` check. Đây là cố ý, không phải bug. Sẽ bật lại khi logic game ổn định.
+**Auth ĐÃ được bật lại trên mọi Server Action** (cập nhật 2026-07-19 — mục "Auth tạm
+thời bị tắt" trước đây đã lỗi thời, không còn đúng). Mọi Server Action trong
+`actions/*.ts` đều bắt buộc `supabase.auth.getUser()` — action ghi dữ liệu gắn
+`gameId`/`playerId` còn check thêm ownership (`verifyGameOwnership`). Khi thêm Server
+Action mới, LUÔN copy pattern auth check này, không được bỏ qua.
 
-Khi thấy `// TODO: auth` hoặc thiếu auth check → KHÔNG tự thêm vào, để yên.
+**Vẫn chưa production-ready** — xem `docs/security-checklist.md` để biết đầy đủ những
+gì còn thiếu trước khi public (RLS, rate limiting cần config Upstash, leaked password
+protection...).
 
 ---
 
@@ -167,15 +173,23 @@ nhau (đã transfer đi) thì bỏ qua, giữ nguyên `currentContinentalCup` hi
 
 ## Các vi phạm hiện tại (technical debt — cần fix sau)
 
+*(Cập nhật 2026-07-19 — đã verify lại từng dòng qua code thật, xoá các mục đã fix
+nhưng chưa được ghi nhận trước đó.)*
+
 | File | Vi phạm | Priority |
 |---|---|---|
-| `features/career/services/career-setup.service.ts` | `Math.random()` không qua spin-resolver (luckRating, professionalism, personality) | Medium |
-| `features/transfer/services/transfer.service.ts` | `Math.random()` không qua spin-resolver | Medium |
-| `actions/season.actions.ts:generateLeagueTableAction` | `currentLeagueClubsRaw` từ client không qua Zod schema | High |
-| `features/wheel/lib/career-wheel-resolver.ts:263` | Cờ `🇸🇬` hardcode cho mọi quốc tịch | Low |
 | `lib/simulation-engine/match-simulator.ts` | Dead code — chưa xóa | Low |
 
-Chi tiết xem: `docs/code-review-findings.md`
+Đã fix (giữ lại dòng này để tránh báo nhầm lại): `Math.random()` ở
+`career-setup.service.ts` và `transfer.service.ts` đã dùng đúng
+`resolveRandom()`/`resolveRandomInt()`; `generateLeagueTableAction` đã Zod-validate
+đầy đủ; cờ quốc tịch ở `career-wheel-resolver.ts` đã dùng `getFlagEmoji()` động,
+không hardcode.
+
+Bảo mật/hạ tầng (không phải vi phạm invariant code, nhưng cần fix trước production):
+xem `docs/security-checklist.md`.
+
+Chi tiết code-review cũ hơn (có thể lỗi thời một phần): `docs/code-review-findings.md`
 
 ---
 

@@ -5,6 +5,7 @@ import { revalidatePath, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { checkRateLimit } from "@/lib/rate-limit";
 
 // ── Cup opponents caches (data thay đổi chỉ khi re-seed) ──────────────────
 
@@ -116,7 +117,8 @@ const generateLeagueTableSchema = z.object({
 const startPlayerCareerSchema = z.object({
   nationality: z.string(),
   debutAge: z.number().int(),
-  debutOvr: z.number().int(),
+  /** Optional / ignored — server recomputes from stats. */
+  debutOvr: z.number().int().optional(),
   careerLength: z.number().int(),
   clubId: z.string(),
   clubName: z.string(),
@@ -177,12 +179,23 @@ async function verifyGameOwnership(gameId: string): Promise<void> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
+  await checkRateLimit(user.id);
 
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
     select: { userId: true },
   });
   if (session?.userId !== user.id) throw new Error("Forbidden");
+}
+
+// Dùng cho action tính toán thuần (không ghi DB gắn với gameId cụ thể, nên
+// không check ownership) — chỉ cần chặn truy cập ẩn danh, tránh bot/script gọi
+// vô hạn lần gây nghẽn server.
+async function requireAuth(): Promise<void> {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+  await checkRateLimit(user.id);
 }
 
 export async function saveSeasonProgress(params: SaveProgressParams) {
@@ -214,6 +227,7 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) throw new Error("Unauthorized");
+  await checkRateLimit(user.id);
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
@@ -261,6 +275,7 @@ export async function completeGameSession(gameId: string) {
 }
 
 export async function simulatePlayerSeasonAction(input: unknown): Promise<SimulatedSeasonResult> {
+  await requireAuth();
   const validated = simulatePlayerSeasonSchema.parse(input);
 
   const clubsCount = await prisma.club.count({
@@ -289,6 +304,7 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
 }
 
 export async function generateLeagueTableAction(input: unknown): Promise<TableRow[]> {
+  await requireAuth();
   const validated = generateLeagueTableSchema.parse(input);
 
   const dbClubs = await prisma.club.findMany({
@@ -310,6 +326,7 @@ export async function generateLeagueTableAction(input: unknown): Promise<TableRo
 }
 
 export async function startPlayerCareerAction(input: unknown): Promise<CareerSetupResult> {
+  await requireAuth();
   const validated = startPlayerCareerSchema.parse(input);
 
   const dbClub = await prisma.club.findUnique({
@@ -325,6 +342,7 @@ export async function startPlayerCareerAction(input: unknown): Promise<CareerSet
 }
 
 export async function generateTransferOfferAction(input: unknown): Promise<TransferOfferResult> {
+  await requireAuth();
   const validated = generateTransferOfferSchema.parse(input);
 
   // Compute prestige range server-side to avoid full table scan (~292 clubs)
@@ -360,6 +378,7 @@ export async function generateTransferOfferAction(input: unknown): Promise<Trans
 }
 
 export async function generateCupJourneyAction(input: unknown): Promise<string[]> {
+  await requireAuth();
   const validated = generateCupJourneySchema.parse(input);
 
   if (validated.type === "domestic") {
@@ -423,6 +442,7 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
 }
 
 export async function evolvePlayerStatsAction(input: unknown): Promise<StatsEvolutionResult> {
+  await requireAuth();
   const validated = evolvePlayerStatsSchema.parse(input);
   return evolvePlayerStatsService(validated);
 }

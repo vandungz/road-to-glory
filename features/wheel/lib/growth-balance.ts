@@ -1,0 +1,287 @@
+/**
+ * Soft-cap, effective growth gates/pools, and shared balance helpers (SoT §§4–6).
+ * Preview (useCareerWheelItems) and resolve (career-wheel-resolver) MUST call these.
+ */
+
+import {
+  type GrowthTier,
+  getGrowthTier,
+  getDecreaseGateWeight,
+  getCountPool,
+  getCountPoolBoosted,
+  getMagnitudePool,
+  getMagnitudePoolBoosted,
+  getMagnitudeTierForDirection,
+  getAgeProgressThresholds,
+  getCareerProgress,
+  getGrowthBoost,
+} from "./simulation-helpers";
+
+export function getSoftCapFactor(ovr: number): number {
+  if (ovr >= 99) return 0;
+  if (ovr >= 96) return 0.1;
+  if (ovr >= 93) return 0.22;
+  if (ovr >= 89) return 0.4;
+  if (ovr >= 85) return 0.65;
+  if (ovr >= 80) return 0.85;
+  return 1;
+}
+
+/** Young boost only below soft-cap band start (SoT §4.5). */
+export function getEffectiveGrowthBoost(
+  progress: number,
+  youngThreshold: number,
+  currentOvr: number,
+): number {
+  if (currentOvr >= 82) return 0;
+  return getGrowthBoost(progress, youngThreshold);
+}
+
+export function applySoftCapToGate(
+  yesW: number,
+  noW: number,
+  softCap: number,
+): { yes: number; no: number } {
+  if (softCap >= 1) return { yes: yesW, no: noW };
+  // Band 99: no increase path
+  if (softCap <= 0) return { yes: 0, no: Math.max(1, yesW + noW) };
+  const yes = Math.max(2, Math.round(yesW * softCap));
+  const no = Math.max(1, yesW + noW - yes);
+  return { yes, no };
+}
+
+/** Scale weights for values ≥ 3 by softCap; keep small bumps relatively intact. */
+export function applySoftCapToIncreasePool(
+  pool: { value: number; weight: number }[],
+  softCap: number,
+): { value: number; weight: number }[] {
+  if (softCap >= 1) return pool;
+  if (softCap <= 0) {
+    return pool.map((p) => ({
+      value: p.value,
+      weight: p.value === 1 ? Math.max(1, p.weight) : 1,
+    }));
+  }
+  return pool.map((p) => ({
+    value: p.value,
+    weight: Math.max(1, Math.round(p.value >= 3 ? p.weight * softCap : p.weight)),
+  }));
+}
+
+// ── SoT §4.4 Development Score (increase gate only) ─────────────────────────
+
+type ProgressBand = "young" | "mid" | "old";
+type HeadroomBand = "low" | "mid" | "high" | "elite";
+
+const YES_FLOOR = 8;
+const YES_CEIL = 82;
+
+const DEVELOPMENT_BASE: Record<ProgressBand, Record<HeadroomBand, number>> = {
+  young: { low: 58, mid: 48, high: 28, elite: 12 },
+  mid: { low: 42, mid: 38, high: 30, elite: 14 },
+  old: { low: 18, mid: 16, high: 12, elite: 8 },
+};
+
+export function getProgressBand(
+  progress: number,
+  young: number,
+  old: number,
+): ProgressBand {
+  if (progress < young) return "young";
+  if (progress >= old) return "old";
+  return "mid";
+}
+
+export function getHeadroomBand(ovr: number): HeadroomBand {
+  if (ovr <= 74) return "low";
+  if (ovr <= 81) return "mid";
+  if (ovr <= 88) return "high";
+  return "elite";
+}
+
+export function getDevelopmentBaseYes(
+  progressBand: ProgressBand,
+  headroomBand: HeadroomBand,
+): number {
+  return DEVELOPMENT_BASE[progressBand][headroomBand];
+}
+
+/** Form is a modifier on base Yes — not the primary driver (SoT §4.4.4). */
+export function getFormMultiplier(rating: number): number {
+  const tier = getGrowthTier(rating);
+  switch (tier) {
+    case "xuat_sac": return 1.25;
+    case "tot": return 1.1;
+    case "trung_binh": return 1.0;
+    case "kem": return 0.75;
+  }
+}
+
+/**
+ * Increase Yes = DevelopmentBase(progress×headroom) × formMul, clamped, then soft-cap.
+ * Do NOT also apply legacy age ±10 (would double-count young).
+ */
+export function getEffectiveIncreaseGate(params: {
+  rating: number;
+  position: string;
+  currentAge: number;
+  debutAge: number;
+  careerLength: number;
+  currentOvr: number;
+}): { yes: number; no: number } {
+  const { young, old } = getAgeProgressThresholds(params.position);
+  const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
+  const progressBand = getProgressBand(progress, young, old);
+  const headroomBand = getHeadroomBand(params.currentOvr);
+
+  const baseYes = getDevelopmentBaseYes(progressBand, headroomBand);
+  const formMul = getFormMultiplier(params.rating);
+  const yesRaw = Math.max(YES_FLOOR, Math.min(YES_CEIL, Math.round(baseYes * formMul)));
+
+  const softCap = getSoftCapFactor(params.currentOvr);
+  return applySoftCapToGate(yesRaw, 100 - yesRaw, softCap);
+}
+
+export function getEffectiveDecreaseGate(params: {
+  rating: number;
+  position: string;
+  currentAge: number;
+  debutAge: number;
+  careerLength: number;
+  /** Total season apps — low opportunity softens decrease Yes (SoT §7.6). */
+  seasonApps?: number | null;
+}): { yes: number; no: number } {
+  const tier = getGrowthTier(params.rating);
+  let { yes: yesW, no: noW } = getDecreaseGateWeight(tier);
+  const { young, old } = getAgeProgressThresholds(params.position);
+  const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
+
+  if (progress < young) {
+    yesW = Math.max(5, yesW - 20);
+    noW = Math.min(95, noW + 20);
+  } else if (progress >= old) {
+    yesW = Math.min(95, yesW + 15);
+    noW = Math.max(5, noW - 15);
+    // SoT §6: late-career decline floor
+    yesW = Math.max(yesW, 55);
+    noW = Math.max(5, 100 - yesW);
+  }
+
+  // Sparse minutes: less likely forced into decrease (except old floor already applied)
+  const apps = params.seasonApps;
+  if (apps != null && apps < 16 && progress < old) {
+    yesW = Math.max(5, Math.round(yesW * 0.65));
+    noW = Math.max(5, 100 - yesW);
+  }
+
+  return { yes: yesW, no: noW };
+}
+
+/**
+ * Severity of decrease count/mag: 1 = full SoT table, 0.3 = mostly −1 light.
+ * Low apps = incomplete opportunity, not a full failed season (SoT §7.6.2).
+ */
+export function getDecreaseOpportunitySeverity(seasonApps: number | null | undefined): number {
+  if (seasonApps == null || seasonApps < 0) return 1;
+  if (seasonApps >= 24) return 1;
+  if (seasonApps <= 10) return 0.3;
+  return 0.3 + ((seasonApps - 10) / 14) * 0.7;
+}
+
+function blendWeightPools(
+  harsh: { value: number; weight: number }[],
+  gentle: { value: number; weight: number }[],
+  severity: number,
+): { value: number; weight: number }[] {
+  const s = Math.max(0, Math.min(1, severity));
+  const byValue = new Map<number, { harsh: number; gentle: number }>();
+  for (const p of harsh) {
+    byValue.set(p.value, { harsh: p.weight, gentle: 0 });
+  }
+  for (const p of gentle) {
+    const cur = byValue.get(p.value) ?? { harsh: 0, gentle: 0 };
+    cur.gentle = p.weight;
+    byValue.set(p.value, cur);
+  }
+  return [...byValue.entries()]
+    .sort((a, b) => a[0] - b[0])
+    .map(([value, w]) => ({
+      value,
+      weight: Math.max(1, Math.round(w.harsh * s + w.gentle * (1 - s))),
+    }));
+}
+
+export function getEffectiveCountPool(params: {
+  rating: number;
+  isIncrease: boolean;
+  position: string;
+  currentAge: number;
+  debutAge: number;
+  careerLength: number;
+  currentOvr: number;
+  seasonApps?: number | null;
+}): { value: number; weight: number }[] {
+  const tier = getGrowthTier(params.rating);
+  let pool = getCountPool(tier, params.isIncrease);
+  if (params.isIncrease) {
+    const { young } = getAgeProgressThresholds(params.position);
+    const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
+    const boost = getEffectiveGrowthBoost(progress, young, params.currentOvr);
+    pool = getCountPoolBoosted(tier, boost);
+    pool = applySoftCapToIncreasePool(pool, getSoftCapFactor(params.currentOvr));
+  } else {
+    const severity = getDecreaseOpportunitySeverity(params.seasonApps);
+    if (severity < 1) {
+      // Gentle = "xuat_sac" decrease count (mostly 1)
+      pool = blendWeightPools(pool, getCountPool("xuat_sac", false), severity);
+    }
+  }
+  return pool;
+}
+
+export function getEffectiveMagnitudePool(params: {
+  rating: number;
+  isIncrease: boolean;
+  position: string;
+  currentAge: number;
+  debutAge: number;
+  careerLength: number;
+  currentOvr: number;
+  seasonApps?: number | null;
+}): { value: number; weight: number }[] {
+  const magTier = getMagnitudeTierForDirection(params.rating, params.isIncrease);
+  let pool = getMagnitudePool(magTier);
+  if (params.isIncrease) {
+    const { young } = getAgeProgressThresholds(params.position);
+    const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
+    const boost = getEffectiveGrowthBoost(progress, young, params.currentOvr);
+    pool = getMagnitudePoolBoosted(magTier, boost);
+    pool = applySoftCapToIncreasePool(pool, getSoftCapFactor(params.currentOvr));
+  } else {
+    const severity = getDecreaseOpportunitySeverity(params.seasonApps);
+    if (severity < 1) {
+      // Gentle = kem-shaped mag pool (small deltas); harsh = mirrored tier
+      pool = blendWeightPools(pool, getMagnitudePool("kem"), severity);
+    }
+  }
+  return pool;
+}
+
+/**
+ * Selector weights — when decreasing late-career, prefer main stats so OVR drops.
+ * progress 0→old: main 25 / sec 10; at/after old: main 30 / sec 8 → reverse bias.
+ */
+export function getSelectorStatWeight(
+  isMain: boolean,
+  isIncrease: boolean,
+  progress: number,
+  oldThreshold: number,
+): number {
+  if (isIncrease || progress < oldThreshold) {
+    return isMain ? 25 : 10;
+  }
+  // Late decline: weight main stats higher when cutting
+  return isMain ? 32 : 8;
+}
+
+export type { GrowthTier };

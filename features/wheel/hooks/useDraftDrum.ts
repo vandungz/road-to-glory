@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
-import { getSeasonYearString } from "../lib/simulation-helpers";
+import { getSeasonYearString, getNationalTournamentName } from "../lib/simulation-helpers";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { useSetupStage } from "./useSetupStage";
 import { useCareerStats } from "./useCareerStats";
@@ -97,10 +97,11 @@ export function useDraftDrum(
     playerDebutAge, playerCareerLength,
     playerNationality, currentClub, currentOvr,
     leagueSize: currentClub ? (clubs.filter((c: any) => c.leagueId === currentClub.leagueId).length || 10) : 10,
-    lastYearStanding,
+    lastYearStanding, standingResult,
     selectedStatsList, position, yearSimResult, selectorIndex,
     yearEvolutionDirection: yearEvolution.direction, currentStats,
     ballonDorNominationWeight, ballonDorRankWeights,
+    luckRating: hiddenStats?.luckRating ?? 10,
   });
 
   const competitionFlow = useCompetitionFlow({
@@ -118,7 +119,9 @@ export function useDraftDrum(
   });
 
   const statFlow = useStatEvolutionFlow({
-    currentStats, currentClub, currentOvr, position, yearSimResult,
+    currentStats, currentClub, currentOvr, position,
+    currentAge, playerDebutAge, playerCareerLength,
+    yearSimResult,
     yearEvolution, selectorIndex, tempSelectedStat, evolvedStatsThisYear,
     standingResult, domesticCupResult, continentalCupResult,
     nationalCallupResult, nationalTournamentResult, ballonDorRank,
@@ -239,7 +242,6 @@ export function useDraftDrum(
     if (mode === "career" && currentClub) {
       statsProps.setSeasonRecords((prev) => {
         if (prev[currentAge]) return prev;
-        const currentYear = 2026 + (currentAge - playerDebutAge);
         return {
           ...prev,
           [currentAge]: {
@@ -247,7 +249,9 @@ export function useDraftDrum(
             standing: null, domesticCup: "Chờ quay",
             continentalCup: currentContinentalCup !== "none" ? { type: currentContinentalCup, result: "Chờ quay" } : null,
             nationalTeam: (currentAge % 2 === 0) ? {
-              type: currentYear % 4 === 2 ? "FIFA World Cup" : getNationalContinentalCup(playerNationality),
+              type: getNationalTournamentName(
+                playerNationality, currentAge, playerDebutAge, getNationalContinentalCup,
+              ),
               callup: "Chờ gọi", result: null,
             } : null,
           },
@@ -278,11 +282,12 @@ export function useDraftDrum(
       const draftData = setupProps.draftData;
       const selectedClub = clubs.find((c: any) => c.id === draftData.clubId);
       const initialContinentalCup = selectedClub?.continentalType ?? "none";
+      const debutOvr = initPayload.debutOvr;
 
       initCareerPlayerAction({
         gameId, slotIndex, position, name: initPayload.playerName,
         nationality: draftData.nationality!, debutAge: draftData.debutAge!,
-        careerLength: draftData.careerLength!, debutOvr: draftData.debutOvr!,
+        careerLength: draftData.careerLength!, debutOvr,
         height: draftData.height!, weight: draftData.weight!,
         preferredFoot: initPayload.preferredFoot,
         currentContinentalCup: initialContinentalCup,
@@ -312,7 +317,7 @@ export function useDraftDrum(
     const ctx = {
       currentAge, playerDebutAge, playerCareerLength, currentOvr, position, yearSimResult, hiddenStats, currentClub,
       leagueSize: currentClub ? (clubs.filter((c: any) => c.leagueId === currentClub.leagueId).length || 10) : 10,
-      lastYearStanding,
+      lastYearStanding, standingResult,
       currentContinentalCup, playerNationality, selectedStatsList, selectorIndex,
       yearEvolutionDirection: yearEvolution.direction, currentStats,
       ballonDorNominationWeight, ballonDorRankWeights,

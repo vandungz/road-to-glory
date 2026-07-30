@@ -1,7 +1,7 @@
 "use client";
 
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
-import { getContinentalCupLabel } from "../lib/simulation-helpers";
+import { getContinentalCupLabel, getNationalTournamentName } from "../lib/simulation-helpers";
 import {
   simulatePlayerSeasonAction,
   generateLeagueTableAction,
@@ -48,10 +48,10 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     tournament: string | null
   ) {
     const luck = p.hiddenStats?.luckRating ?? 10;
-    const nationCup = getNationalContinentalCup(p.playerNationality);
-    const currentYear = 2026 + (p.currentAge - p.playerDebutAge);
     const nationalTournamentType = callup === "called_up"
-      ? (currentYear % 4 === 2 ? "FIFA World Cup" : nationCup)
+      ? getNationalTournamentName(
+          p.playerNationality, p.currentAge, p.playerDebutAge, getNationalContinentalCup,
+        )
       : null;
 
     try {
@@ -222,9 +222,9 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     else if (subStep === "national_tournament") {
       const tournamentVal = result as string;
       p.setNationalTournamentResult(tournamentVal);
-      const nationCup = getNationalContinentalCup(p.playerNationality);
-      const currentYear = 2026 + (p.currentAge - p.playerDebutAge);
-      const tourney = currentYear % 4 === 2 ? "FIFA World Cup" : nationCup;
+      const tourney = getNationalTournamentName(
+        p.playerNationality, p.currentAge, p.playerDebutAge, getNationalContinentalCup,
+      );
       generateCupJourneyAction({
         type: "national",
         result: tournamentVal,

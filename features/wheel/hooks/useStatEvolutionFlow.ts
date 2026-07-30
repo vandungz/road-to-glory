@@ -7,6 +7,9 @@ interface StatEvolutionFlowProps {
   currentClub: any;
   currentOvr: number;
   position: string;
+  currentAge: number;
+  playerDebutAge: number;
+  playerCareerLength: number;
   yearSimResult: any;
   yearEvolution: { direction: "increase" | "decrease" | "maintain" | null; count: number | null };
   selectorIndex: number;
@@ -38,7 +41,21 @@ const COMPETITION_STEPS = new Set([
 ]);
 
 export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
+  /** Mùa đang chơi là mùa cuối (sau mùa này giải nghệ) — không còn năm tiếp theo để chuyển nhượng. */
+  function isFinalSeason(): boolean {
+    const retireAge = p.playerDebutAge + p.playerCareerLength;
+    return p.currentAge >= retireAge;
+  }
+
   async function triggerTransferCheck() {
+    // Mùa cuối: skip offer — accept sẽ tạo stint 1 năm “ma” trên UI giải nghệ.
+    if (isFinalSeason()) {
+      p.setTransferOffer(null);
+      p.setCareerSubStep("resolved");
+      p.setIsProcessing(false);
+      return;
+    }
+
     try {
       const res = await generateTransferOfferAction({
         currentClubId: p.currentClub.id,
