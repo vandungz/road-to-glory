@@ -1,0 +1,610 @@
+{
+  "nodes": [
+    {
+      "id": "file:app/(auth)/auth/callback/route.ts",
+      "type": "file",
+      "name": "route.ts",
+      "filePath": "app/(auth)/auth/callback/route.ts",
+      "summary": "OAuth callback route that exchanges an auth code for a Supabase session and redirects to the next path or login.",
+      "tags": ["api-handler", "auth", "middleware", "entry-point"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/(auth)/auth/callback/route.ts:GET",
+      "type": "function",
+      "name": "GET",
+      "filePath": "app/(auth)/auth/callback/route.ts",
+      "lineRange": [4, 17],
+      "summary": "Handles the auth callback GET request by exchanging the code for a session and redirecting the user.",
+      "tags": ["api-handler", "auth", "redirect"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "summary": "Server page for drafting a career player into a squad slot; validates ownership and loads leagues, clubs, and existing player data for DraftDrumScreen.",
+      "tags": ["entry-point", "component", "draft", "server-component"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:generateMetadata",
+      "type": "function",
+      "name": "generateMetadata",
+      "filePath": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "lineRange": [33, 36],
+      "summary": "Builds page metadata titled with the draft slot index.",
+      "tags": ["metadata", "nextjs", "seo"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:DraftSlotPage",
+      "type": "function",
+      "name": "DraftSlotPage",
+      "filePath": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "lineRange": [38, 81],
+      "summary": "Authenticates the user, loads the game session and slot context, then renders DraftDrumScreen with leagues and clubs.",
+      "tags": ["entry-point", "server-component", "draft", "auth"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/(game)/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "app/(game)/page.tsx",
+      "summary": "Lobby server page that lists the authenticated user's game sessions and provides create-game and logout UI.",
+      "tags": ["entry-point", "lobby", "server-component", "component"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(game)/page.tsx:getGameSessions",
+      "type": "function",
+      "name": "getGameSessions",
+      "filePath": "app/(game)/page.tsx",
+      "lineRange": [15, 34],
+      "summary": "Fetches the user's game sessions from Prisma and maps them into client-safe GameSession shapes.",
+      "tags": ["data-fetch", "prisma", "lobby"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/(game)/page.tsx:LobbyPage",
+      "type": "function",
+      "name": "LobbyPage",
+      "filePath": "app/(game)/page.tsx",
+      "lineRange": [40, 185],
+      "summary": "Renders the career lobby with user greeting, session list, create-game dialog, and logout controls after auth.",
+      "tags": ["entry-point", "lobby", "server-component", "ui"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/game/actions/createGameSession.ts",
+      "type": "file",
+      "name": "createGameSession.ts",
+      "filePath": "features/game/actions/createGameSession.ts",
+      "summary": "Server Action that validates create-game form data, creates a GameSession for the authenticated user, and redirects to the new game.",
+      "tags": ["api-handler", "service", "validation", "game-session"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/actions/createGameSession.ts:createGameSession",
+      "type": "function",
+      "name": "createGameSession",
+      "filePath": "features/game/actions/createGameSession.ts",
+      "lineRange": [18, 63],
+      "summary": "Parses and validates form input, creates a Prisma game session owned by the current user, then redirects to the squad board.",
+      "tags": ["server-action", "validation", "prisma", "auth"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/game/components/CreateGameDialog.tsx",
+      "type": "file",
+      "name": "CreateGameDialog.tsx",
+      "filePath": "features/game/components/CreateGameDialog.tsx",
+      "summary": "Client dialog for naming a new career and picking a formation, then submitting via the createGameSession server action.",
+      "tags": ["component", "dialog", "form", "game-session"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
+      "type": "function",
+      "name": "CreateGameDialog",
+      "filePath": "features/game/components/CreateGameDialog.tsx",
+      "lineRange": [23, 267],
+      "summary": "Modal UI that collects squad name and formation, manages open/error state with transitions, and invokes createGameSession.",
+      "tags": ["component", "dialog", "form", "client"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/game/components/GameList.tsx",
+      "type": "file",
+      "name": "GameList.tsx",
+      "filePath": "features/game/components/GameList.tsx",
+      "summary": "Client list of career sessions as squad cards with empty-state messaging and navigation into each game.",
+      "tags": ["component", "lobby", "list", "ui"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/game/components/GameList.tsx:EmptyState",
+      "type": "function",
+      "name": "EmptyState",
+      "filePath": "features/game/components/GameList.tsx",
+      "lineRange": [24, 80],
+      "summary": "Placeholder UI shown when the user has no career sessions yet.",
+      "tags": ["component", "empty-state", "ui"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/components/GameList.tsx:SquadCard",
+      "type": "function",
+      "name": "SquadCard",
+      "filePath": "features/game/components/GameList.tsx",
+      "lineRange": [91, 239],
+      "summary": "Clickable card summarizing a game session's name, formation, progress, and last update, navigating into that career.",
+      "tags": ["component", "card", "navigation", "lobby"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/components/GameList.tsx:GameList",
+      "type": "function",
+      "name": "GameList",
+      "filePath": "features/game/components/GameList.tsx",
+      "lineRange": [249, 261],
+      "summary": "Maps game sessions to SquadCard rows or renders EmptyState when the list is empty.",
+      "tags": ["component", "list", "lobby"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:lib/prisma.ts",
+      "type": "file",
+      "name": "prisma.ts",
+      "filePath": "lib/prisma.ts",
+      "summary": "Singleton PrismaClient factory with a PostgreSQL driver adapter, reused across hot reloads in development.",
+      "tags": ["singleton", "database", "prisma", "utility"],
+      "complexity": "simple",
+      "languageNotes": "Uses globalThis caching to avoid multiple PrismaClient instances under Next.js HMR."
+    },
+    {
+      "id": "file:lib/supabase/server.ts",
+      "type": "file",
+      "name": "server.ts",
+      "filePath": "lib/supabase/server.ts",
+      "summary": "Creates a cookie-backed Supabase server client for Server Components, Server Actions, and route handlers.",
+      "tags": ["auth", "supabase", "utility", "server"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/supabase/server.ts:createClient",
+      "type": "function",
+      "name": "createClient",
+      "filePath": "lib/supabase/server.ts",
+      "lineRange": [6, 28],
+      "summary": "Builds an async Supabase server client wired to Next.js cookies for session read/write.",
+      "tags": ["auth", "supabase", "factory", "server"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:prisma/seed.ts",
+      "type": "file",
+      "name": "seed.ts",
+      "filePath": "prisma/seed.ts",
+      "summary": "Database seed script that clears and upserts national teams, leagues, and clubs for the 2025/26 football dataset.",
+      "tags": ["seed", "database", "data-pipeline", "script"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:prisma/seed.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "prisma/seed.ts",
+      "lineRange": [500, 534],
+      "summary": "Deletes existing reference data then upserts national teams, leagues, and clubs in dependency order.",
+      "tags": ["seed", "database", "entry-point"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:scratch/test-db.ts",
+      "type": "file",
+      "name": "test-db.ts",
+      "filePath": "scratch/test-db.ts",
+      "summary": "Ad-hoc scratch script that queries career players via Prisma to verify database connectivity.",
+      "tags": ["script", "database", "scratch", "test"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:scratch/test-db.ts:main",
+      "type": "function",
+      "name": "main",
+      "filePath": "scratch/test-db.ts",
+      "lineRange": [3, 17],
+      "summary": "Fetches career players and logs a summary for quick local DB smoke testing.",
+      "tags": ["script", "database", "scratch"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:types/game.ts",
+      "type": "file",
+      "name": "game.ts",
+      "filePath": "types/game.ts",
+      "summary": "Shared game domain types, formation constants, Zod create-game schema, and career step label helpers.",
+      "tags": ["type-definition", "validation", "data-model", "game-session"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:types/game.ts:getStepLabels",
+      "type": "function",
+      "name": "getStepLabels",
+      "filePath": "types/game.ts",
+      "lineRange": [86, 91],
+      "summary": "Returns position-aware career step labels used across the season progression UI.",
+      "tags": ["utility", "type-definition", "career"],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:app/(auth)/auth/callback/route.ts",
+      "target": "file:lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "file:lib/prisma.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "file:lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:features/auth/components/LogoutButton.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:features/game/components/CreateGameDialog.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:features/game/components/GameList.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:lib/prisma.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/actions/createGameSession.ts",
+      "target": "file:lib/prisma.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/actions/createGameSession.ts",
+      "target": "file:lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/actions/createGameSession.ts",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/components/CreateGameDialog.tsx",
+      "target": "file:features/game/actions/createGameSession.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/components/CreateGameDialog.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/components/GameList.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:prisma/seed.ts",
+      "target": "file:lib/prisma.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:scratch/test-db.ts",
+      "target": "file:lib/prisma.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(auth)/auth/callback/route.ts",
+      "target": "function:app/(auth)/auth/callback/route.ts:GET",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:generateMetadata",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:DraftSlotPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "function:app/(game)/page.tsx:getGameSessions",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "function:app/(game)/page.tsx:LobbyPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/game/actions/createGameSession.ts",
+      "target": "function:features/game/actions/createGameSession.ts:createGameSession",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/game/components/CreateGameDialog.tsx",
+      "target": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/game/components/GameList.tsx",
+      "target": "function:features/game/components/GameList.tsx:EmptyState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/game/components/GameList.tsx",
+      "target": "function:features/game/components/GameList.tsx:SquadCard",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/game/components/GameList.tsx",
+      "target": "function:features/game/components/GameList.tsx:GameList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:lib/supabase/server.ts",
+      "target": "function:lib/supabase/server.ts:createClient",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:prisma/seed.ts",
+      "target": "function:prisma/seed.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:scratch/test-db.ts",
+      "target": "function:scratch/test-db.ts:main",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:types/game.ts",
+      "target": "function:types/game.ts:getStepLabels",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:app/(auth)/auth/callback/route.ts",
+      "target": "function:app/(auth)/auth/callback/route.ts:GET",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:generateMetadata",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "target": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:DraftSlotPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "function:app/(game)/page.tsx:LobbyPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/game/actions/createGameSession.ts",
+      "target": "function:features/game/actions/createGameSession.ts:createGameSession",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/game/components/CreateGameDialog.tsx",
+      "target": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/game/components/GameList.tsx",
+      "target": "function:features/game/components/GameList.tsx:GameList",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/supabase/server.ts",
+      "target": "function:lib/supabase/server.ts:createClient",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:types/game.ts",
+      "target": "function:types/game.ts:getStepLabels",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/(auth)/auth/callback/route.ts:GET",
+      "target": "function:lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:DraftSlotPage",
+      "target": "function:lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/(game)/page.tsx:LobbyPage",
+      "target": "function:lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/game/actions/createGameSession.ts:createGameSession",
+      "target": "function:lib/supabase/server.ts:createClient",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
+      "target": "function:features/game/actions/createGameSession.ts:createGameSession",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:app/(game)/[gameId]/draft/[slotIndex]/page.tsx:DraftSlotPage",
+      "target": "function:features/wheel/components/DraftDrumScreen.tsx:DraftDrumScreen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:app/(game)/page.tsx:LobbyPage",
+      "target": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:app/(game)/page.tsx:LobbyPage",
+      "target": "function:features/game/components/GameList.tsx:GameList",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "function:app/(game)/page.tsx:LobbyPage",
+      "target": "function:features/auth/components/LogoutButton.tsx:LogoutButton",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    }
+  ]
+}

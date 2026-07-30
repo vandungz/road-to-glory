@@ -1,0 +1,380 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 4,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 4,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 4,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "app/(auth)/login/LoginForm.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 295,
+      "nonEmptyLines": 274,
+      "functions": [
+        {
+          "name": "LoginForm",
+          "startLine": 15,
+          "endLine": 295,
+          "params": [
+            "{ initialError }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "LoginForm",
+          "line": 15,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 16
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 17
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 18
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 19
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 20
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 21
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 22
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 23
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useState",
+          "lineNumber": 24
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useRef",
+          "lineNumber": 25
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "useEffect",
+          "lineNumber": 27
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "clearInterval",
+          "lineNumber": 28
+        },
+        {
+          "caller": "startCooldown",
+          "callee": "setCooldown",
+          "lineNumber": 32
+        },
+        {
+          "caller": "startCooldown",
+          "callee": "setInterval",
+          "lineNumber": 33
+        },
+        {
+          "caller": "startCooldown",
+          "callee": "setCooldown",
+          "lineNumber": 34
+        },
+        {
+          "caller": "startCooldown",
+          "callee": "clearInterval",
+          "lineNumber": 35
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "e.preventDefault",
+          "lineNumber": 42
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 43
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setIsPending",
+          "lineNumber": 44
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "createClient",
+          "lineNumber": 45
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "supabase.auth.signInWithPassword",
+          "lineNumber": 48
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 50
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setIsPending",
+          "lineNumber": 51
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "supabase.auth.signUp",
+          "lineNumber": 56
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setError",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "authError.message.includes",
+          "lineNumber": 62
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setIsPending",
+          "lineNumber": 65
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setView",
+          "lineNumber": 68
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "startCooldown",
+          "lineNumber": 69
+        },
+        {
+          "caller": "handleSubmit",
+          "callee": "setIsPending",
+          "lineNumber": 70
+        },
+        {
+          "caller": "handleResend",
+          "callee": "setIsResending",
+          "lineNumber": 76
+        },
+        {
+          "caller": "handleResend",
+          "callee": "createClient",
+          "lineNumber": 77
+        },
+        {
+          "caller": "handleResend",
+          "callee": "supabase.auth.resend",
+          "lineNumber": 78
+        },
+        {
+          "caller": "handleResend",
+          "callee": "setIsResending",
+          "lineNumber": 79
+        },
+        {
+          "caller": "handleResend",
+          "callee": "startCooldown",
+          "lineNumber": 80
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "setView",
+          "lineNumber": 135
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "([\"login\", \"register\"] as Mode[]).map",
+          "lineNumber": 179
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "setMode",
+          "lineNumber": 183
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "setError",
+          "lineNumber": 183
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "setEmail",
+          "lineNumber": 215
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "setPassword",
+          "lineNumber": 234
+        },
+        {
+          "caller": "LoginForm",
+          "callee": "setShowPassword",
+          "lineNumber": 242
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "app/(auth)/login/page.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 15,
+      "nonEmptyLines": 12,
+      "functions": [
+        {
+          "name": "LoginPage",
+          "startLine": 12,
+          "endLine": 15,
+          "params": [
+            "{ searchParams }"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "metadata",
+          "line": 4,
+          "isDefault": false
+        },
+        {
+          "name": "LoginPage",
+          "line": 12,
+          "isDefault": true
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 2,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "features/auth/components/LogoutButton.tsx",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 45,
+      "nonEmptyLines": 41,
+      "functions": [
+        {
+          "name": "LogoutButton",
+          "startLine": 7,
+          "endLine": 45,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "LogoutButton",
+          "line": 7,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "LogoutButton",
+          "callee": "useState",
+          "lineNumber": 8
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "setIsPending",
+          "lineNumber": 11
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "createClient",
+          "lineNumber": 12
+        },
+        {
+          "caller": "handleLogout",
+          "callee": "supabase.auth.signOut",
+          "lineNumber": 13
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "lib/supabase/client.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 8,
+      "nonEmptyLines": 7,
+      "functions": [
+        {
+          "name": "createClient",
+          "startLine": 3,
+          "endLine": 8,
+          "params": []
+        }
+      ],
+      "exports": [
+        {
+          "name": "createClient",
+          "line": 3,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "createClient",
+          "callee": "createBrowserClient",
+          "lineNumber": 4
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

@@ -1,0 +1,2007 @@
+{
+  "schemaVersion": 1,
+  "algorithm": "louvain",
+  "totalFiles": 97,
+  "totalBatches": 11,
+  "exportsByPath": {
+    "actions/player.actions.ts": [
+      "initCareerPlayerAction",
+      "getCareerPlayerAction",
+      "saveCareerPlayer"
+    ],
+    "actions/season.actions.ts": [
+      "saveSeasonProgress",
+      "updateSeasonProgressAction",
+      "completeGameSession",
+      "simulatePlayerSeasonAction",
+      "generateLeagueTableAction",
+      "startPlayerCareerAction",
+      "generateTransferOfferAction",
+      "generateCupJourneyAction",
+      "evolvePlayerStatsAction"
+    ],
+    "app/(auth)/auth/callback/route.ts": [
+      "GET"
+    ],
+    "app/(auth)/layout.tsx": [
+      "AuthLayout"
+    ],
+    "app/(auth)/login/LoginForm.tsx": [
+      "LoginForm"
+    ],
+    "app/(auth)/login/page.tsx": [
+      "metadata",
+      "LoginPage"
+    ],
+    "app/(game)/[gameId]/draft/[slotIndex]/page.tsx": [
+      "generateMetadata",
+      "DraftSlotPage"
+    ],
+    "app/(game)/[gameId]/page.tsx": [
+      "generateMetadata",
+      "SquadBoardPage"
+    ],
+    "app/(game)/layout.tsx": [
+      "metadata",
+      "GameLayout"
+    ],
+    "app/(game)/page.tsx": [
+      "dynamic",
+      "LobbyPage"
+    ],
+    "app/layout.tsx": [
+      "metadata",
+      "RootLayout"
+    ],
+    "eslint.config.mjs": [],
+    "features/auth/components/LogoutButton.tsx": [
+      "LogoutButton"
+    ],
+    "features/career/services/career-setup.service.ts": [
+      "startPlayerCareerService"
+    ],
+    "features/game/actions/createGameSession.ts": [
+      "createGameSession"
+    ],
+    "features/game/components/CreateGameDialog.tsx": [
+      "CreateGameDialog"
+    ],
+    "features/game/components/GameList.tsx": [
+      "GameList"
+    ],
+    "features/player/components/PlayerCareerDialog.tsx": [
+      "PlayerCareerDialog"
+    ],
+    "features/player/components/PlayerOvrChart.tsx": [
+      "PlayerOvrChart"
+    ],
+    "features/player/components/PlayerStickerCard.tsx": [
+      "PlayerStickerCard"
+    ],
+    "features/player/services/stats-evolution.service.ts": [
+      "evolvePlayerStatsService"
+    ],
+    "features/season/services/cup-journey.service.ts": [
+      "generateCupScore",
+      "generateDomesticCupJourneyService",
+      "generateContinentalCupJourneyService",
+      "generateNationalTeamJourneyService"
+    ],
+    "features/season/services/season-simulator.service.ts": [
+      "simulatePlayerSeasonService"
+    ],
+    "features/season/services/table-simulator.service.ts": [
+      "simulateDynamicLeagueTableService"
+    ],
+    "features/squad/components/PitchBoard.tsx": [
+      "PitchBoard"
+    ],
+    "features/squad/components/SquadDashboard.tsx": [
+      "SquadDashboard"
+    ],
+    "features/transfer/services/transfer.service.ts": [
+      "generateTransferOfferService"
+    ],
+    "features/wheel/components/CareerActionsPanel.tsx": [
+      "CareerActionsPanel"
+    ],
+    "features/wheel/components/DraftDrumScreen.tsx": [
+      "DraftDrumScreen"
+    ],
+    "features/wheel/components/PaniniSticker.tsx": [
+      "PaniniSticker"
+    ],
+    "features/wheel/components/RetiredStage.tsx": [
+      "RetiredStage"
+    ],
+    "features/wheel/components/SeasonProfile.tsx": [
+      "SeasonProfile"
+    ],
+    "features/wheel/components/SeasonResultModal.tsx": [
+      "SeasonResultModal"
+    ],
+    "features/wheel/components/SeasonStatsModal.tsx": [
+      "SeasonStatsModal"
+    ],
+    "features/wheel/components/SetupStage.tsx": [
+      "SetupStage"
+    ],
+    "features/wheel/components/SpinnerWheel.tsx": [
+      "SpinnerWheel"
+    ],
+    "features/wheel/hooks/useCareerStats.ts": [
+      "useCareerStats"
+    ],
+    "features/wheel/hooks/useCareerWheelItems.ts": [
+      "useCareerWheelItems"
+    ],
+    "features/wheel/hooks/useCompetitionFlow.ts": [
+      "useCompetitionFlow"
+    ],
+    "features/wheel/hooks/useDraftDrum.ts": [
+      "useDraftDrum"
+    ],
+    "features/wheel/hooks/useSetupStage.ts": [
+      "useSetupStage"
+    ],
+    "features/wheel/hooks/useStatEvolutionFlow.ts": [
+      "useStatEvolutionFlow"
+    ],
+    "features/wheel/lib/career-wheel-resolver.ts": [
+      "getCareerWheelPoolAndValue"
+    ],
+    "features/wheel/lib/simulation-helpers.ts": [
+      "calculateContinentalQualification",
+      "getContinentalCupLabel",
+      "getSeasonYearString",
+      "getStandingWheelPool",
+      "getGrowthTier",
+      "getIncreaseGateWeight",
+      "getDecreaseGateWeight",
+      "getCountPool",
+      "getMagnitudePool",
+      "getMagnitudeTierForDirection",
+      "getCareerProgress",
+      "getAgeProgressThresholds",
+      "getGrowthBoost",
+      "getCountPoolBoosted",
+      "getMagnitudePoolBoosted",
+      "getDomesticCupName"
+    ],
+    "features/wheel/stores/useWheelUiStore.ts": [
+      "useWheelUiStore"
+    ],
+    "lib/name-gen.ts": [
+      "generateFictionalName"
+    ],
+    "lib/prisma.ts": [
+      "prisma"
+    ],
+    "lib/rate-limit.ts": [
+      "checkRateLimit"
+    ],
+    "lib/supabase/client.ts": [
+      "createClient"
+    ],
+    "lib/supabase/server.ts": [
+      "createClient"
+    ],
+    "lib/utils.ts": [
+      "cn"
+    ],
+    "lib/wheel-engine/spin-resolver.ts": [
+      "resolveRandom",
+      "resolveRandomFloat",
+      "resolveRandomInt",
+      "resolveWeightedOutcome"
+    ],
+    "lib/wheel-engine/weight-calculator.ts": [
+      "FIELD_STAT_KEYS",
+      "GK_STAT_KEYS",
+      "getStatKeys",
+      "getMainStatsByPosition",
+      "getStatLabel",
+      "getDefaultStats",
+      "NATIONALITY_POOL",
+      "DEBUT_AGE_POOL",
+      "DEBUT_OVR_POOL",
+      "CAREER_LENGTH_POOL",
+      "getLeagueWeights",
+      "getClubWeights",
+      "getDebutStatWeights",
+      "getNationalTier",
+      "getNationalContinentalCup",
+      "calculateOvrByPosition",
+      "HEIGHT_RANGE_BY_POSITION",
+      "getHeightWeights",
+      "getWeightRangeFromHeight",
+      "getWeightWeights",
+      "getPhysiqueModifier",
+      "applyPhysiqueModifier"
+    ],
+    "middleware.ts": [
+      "middleware",
+      "config"
+    ],
+    "next.config.ts": [],
+    "postcss.config.mjs": [],
+    "prisma.config.ts": [],
+    "prisma/seed.ts": [],
+    "scratch/test-db.ts": [],
+    "types/game.ts": [
+      "FORMATIONS",
+      "createGameSchema",
+      "getStepLabels",
+      "STEP_LABELS"
+    ],
+    "types/squad.ts": [
+      "FORMATION_SLOTS",
+      "getFlagEmoji",
+      "RARITY_ACCENT"
+    ]
+  },
+  "batches": [
+    {
+      "batchIndex": 1,
+      "files": [
+        {
+          "path": "features/season/services/season-simulator.service.ts",
+          "language": "typescript",
+          "sizeLines": 440,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/SeasonProfile.tsx",
+          "language": "typescript",
+          "sizeLines": 254,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/SeasonStatsModal.tsx",
+          "language": "typescript",
+          "sizeLines": 212,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/hooks/useCareerStats.ts",
+          "language": "typescript",
+          "sizeLines": 386,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/hooks/useCareerWheelItems.ts",
+          "language": "typescript",
+          "sizeLines": 252,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/hooks/useCompetitionFlow.ts",
+          "language": "typescript",
+          "sizeLines": 252,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/hooks/useDraftDrum.ts",
+          "language": "typescript",
+          "sizeLines": 388,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/hooks/useSetupStage.ts",
+          "language": "typescript",
+          "sizeLines": 206,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/lib/career-wheel-resolver.ts",
+          "language": "typescript",
+          "sizeLines": 273,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/lib/simulation-helpers.ts",
+          "language": "typescript",
+          "sizeLines": 301,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/stores/useWheelUiStore.ts",
+          "language": "typescript",
+          "sizeLines": 193,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/wheel-engine/weight-calculator.ts",
+          "language": "typescript",
+          "sizeLines": 453,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "features/season/services/season-simulator.service.ts": [
+          "lib/wheel-engine/spin-resolver.ts",
+          "lib/wheel-engine/weight-calculator.ts"
+        ],
+        "features/wheel/components/SeasonProfile.tsx": [
+          "features/wheel/hooks/useDraftDrum.ts",
+          "features/wheel/lib/simulation-helpers.ts",
+          "types/game.ts"
+        ],
+        "features/wheel/components/SeasonStatsModal.tsx": [
+          "features/season/services/season-simulator.service.ts",
+          "features/wheel/lib/simulation-helpers.ts",
+          "types/game.ts"
+        ],
+        "features/wheel/hooks/useCareerStats.ts": [
+          "actions/player.actions.ts",
+          "features/season/services/season-simulator.service.ts",
+          "features/wheel/lib/simulation-helpers.ts",
+          "lib/wheel-engine/weight-calculator.ts",
+          "types/game.ts"
+        ],
+        "features/wheel/hooks/useCareerWheelItems.ts": [
+          "features/wheel/lib/simulation-helpers.ts",
+          "lib/wheel-engine/weight-calculator.ts"
+        ],
+        "features/wheel/hooks/useCompetitionFlow.ts": [
+          "actions/season.actions.ts",
+          "features/wheel/hooks/useDraftDrum.ts",
+          "features/wheel/lib/simulation-helpers.ts",
+          "lib/wheel-engine/weight-calculator.ts"
+        ],
+        "features/wheel/hooks/useDraftDrum.ts": [
+          "actions/player.actions.ts",
+          "actions/season.actions.ts",
+          "features/season/services/season-simulator.service.ts",
+          "features/wheel/hooks/useCareerStats.ts",
+          "features/wheel/hooks/useCareerWheelItems.ts",
+          "features/wheel/hooks/useCompetitionFlow.ts",
+          "features/wheel/hooks/useSetupStage.ts",
+          "features/wheel/hooks/useStatEvolutionFlow.ts",
+          "features/wheel/lib/career-wheel-resolver.ts",
+          "features/wheel/lib/simulation-helpers.ts",
+          "features/wheel/stores/useWheelUiStore.ts",
+          "lib/wheel-engine/weight-calculator.ts",
+          "types/game.ts"
+        ],
+        "features/wheel/hooks/useSetupStage.ts": [
+          "features/wheel/stores/useWheelUiStore.ts",
+          "lib/wheel-engine/spin-resolver.ts",
+          "lib/wheel-engine/weight-calculator.ts",
+          "types/squad.ts"
+        ],
+        "features/wheel/lib/career-wheel-resolver.ts": [
+          "features/wheel/lib/simulation-helpers.ts",
+          "lib/wheel-engine/spin-resolver.ts",
+          "lib/wheel-engine/weight-calculator.ts",
+          "types/squad.ts"
+        ],
+        "features/wheel/lib/simulation-helpers.ts": [],
+        "features/wheel/stores/useWheelUiStore.ts": [
+          "lib/wheel-engine/weight-calculator.ts"
+        ],
+        "lib/wheel-engine/weight-calculator.ts": [
+          "lib/wheel-engine/spin-resolver.ts"
+        ]
+      },
+      "neighborMap": {
+        "features/season/services/season-simulator.service.ts": [
+          {
+            "path": "lib/wheel-engine/spin-resolver.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "resolveRandom",
+              "resolveRandomFloat",
+              "resolveRandomInt",
+              "resolveWeightedOutcome"
+            ]
+          },
+          {
+            "path": "actions/season.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "saveSeasonProgress",
+              "updateSeasonProgressAction",
+              "completeGameSession",
+              "simulatePlayerSeasonAction",
+              "generateLeagueTableAction",
+              "startPlayerCareerAction",
+              "generateTransferOfferAction",
+              "generateCupJourneyAction",
+              "evolvePlayerStatsAction"
+            ]
+          }
+        ],
+        "features/wheel/components/SeasonProfile.tsx": [
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          },
+          {
+            "path": "features/wheel/components/DraftDrumScreen.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "DraftDrumScreen"
+            ]
+          }
+        ],
+        "features/wheel/components/SeasonStatsModal.tsx": [
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          },
+          {
+            "path": "features/wheel/components/DraftDrumScreen.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "DraftDrumScreen"
+            ]
+          }
+        ],
+        "features/wheel/hooks/useCareerStats.ts": [
+          {
+            "path": "actions/player.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "initCareerPlayerAction",
+              "getCareerPlayerAction",
+              "saveCareerPlayer"
+            ]
+          },
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          }
+        ],
+        "features/wheel/hooks/useCompetitionFlow.ts": [
+          {
+            "path": "actions/season.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "saveSeasonProgress",
+              "updateSeasonProgressAction",
+              "completeGameSession",
+              "simulatePlayerSeasonAction",
+              "generateLeagueTableAction",
+              "startPlayerCareerAction",
+              "generateTransferOfferAction",
+              "generateCupJourneyAction",
+              "evolvePlayerStatsAction"
+            ]
+          }
+        ],
+        "features/wheel/hooks/useDraftDrum.ts": [
+          {
+            "path": "actions/player.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "initCareerPlayerAction",
+              "getCareerPlayerAction",
+              "saveCareerPlayer"
+            ]
+          },
+          {
+            "path": "actions/season.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "saveSeasonProgress",
+              "updateSeasonProgressAction",
+              "completeGameSession",
+              "simulatePlayerSeasonAction",
+              "generateLeagueTableAction",
+              "startPlayerCareerAction",
+              "generateTransferOfferAction",
+              "generateCupJourneyAction",
+              "evolvePlayerStatsAction"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useStatEvolutionFlow.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "useStatEvolutionFlow"
+            ]
+          },
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          },
+          {
+            "path": "features/wheel/components/DraftDrumScreen.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "DraftDrumScreen"
+            ]
+          }
+        ],
+        "features/wheel/hooks/useSetupStage.ts": [
+          {
+            "path": "lib/wheel-engine/spin-resolver.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "resolveRandom",
+              "resolveRandomFloat",
+              "resolveRandomInt",
+              "resolveWeightedOutcome"
+            ]
+          },
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ],
+        "features/wheel/lib/career-wheel-resolver.ts": [
+          {
+            "path": "lib/wheel-engine/spin-resolver.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "resolveRandom",
+              "resolveRandomFloat",
+              "resolveRandomInt",
+              "resolveWeightedOutcome"
+            ]
+          },
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ],
+        "features/wheel/lib/simulation-helpers.ts": [
+          {
+            "path": "features/wheel/components/CareerActionsPanel.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "CareerActionsPanel"
+            ]
+          },
+          {
+            "path": "features/wheel/components/SeasonResultModal.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "SeasonResultModal"
+            ]
+          }
+        ],
+        "lib/wheel-engine/weight-calculator.ts": [
+          {
+            "path": "lib/wheel-engine/spin-resolver.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "resolveRandom",
+              "resolveRandomFloat",
+              "resolveRandomInt",
+              "resolveWeightedOutcome"
+            ]
+          },
+          {
+            "path": "features/player/services/stats-evolution.service.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "evolvePlayerStatsService"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 2,
+      "files": [
+        {
+          "path": "actions/player.actions.ts",
+          "language": "typescript",
+          "sizeLines": 262,
+          "fileCategory": "code"
+        },
+        {
+          "path": "actions/season.actions.ts",
+          "language": "typescript",
+          "sizeLines": 447,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/career/services/career-setup.service.ts",
+          "language": "typescript",
+          "sizeLines": 101,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/player/services/stats-evolution.service.ts",
+          "language": "typescript",
+          "sizeLines": 37,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/season/services/cup-journey.service.ts",
+          "language": "typescript",
+          "sizeLines": 250,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/season/services/table-simulator.service.ts",
+          "language": "typescript",
+          "sizeLines": 94,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/transfer/services/transfer.service.ts",
+          "language": "typescript",
+          "sizeLines": 80,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/hooks/useStatEvolutionFlow.ts",
+          "language": "typescript",
+          "sizeLines": 154,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/name-gen.ts",
+          "language": "typescript",
+          "sizeLines": 42,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/rate-limit.ts",
+          "language": "typescript",
+          "sizeLines": 58,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/wheel-engine/spin-resolver.ts",
+          "language": "typescript",
+          "sizeLines": 55,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "actions/player.actions.ts": [
+          "lib/name-gen.ts",
+          "lib/prisma.ts",
+          "lib/rate-limit.ts",
+          "lib/supabase/server.ts"
+        ],
+        "actions/season.actions.ts": [
+          "features/career/services/career-setup.service.ts",
+          "features/player/services/stats-evolution.service.ts",
+          "features/season/services/cup-journey.service.ts",
+          "features/season/services/season-simulator.service.ts",
+          "features/season/services/table-simulator.service.ts",
+          "features/transfer/services/transfer.service.ts",
+          "lib/prisma.ts",
+          "lib/rate-limit.ts",
+          "lib/supabase/server.ts"
+        ],
+        "features/career/services/career-setup.service.ts": [
+          "lib/name-gen.ts",
+          "lib/wheel-engine/spin-resolver.ts"
+        ],
+        "features/player/services/stats-evolution.service.ts": [
+          "lib/wheel-engine/weight-calculator.ts"
+        ],
+        "features/season/services/cup-journey.service.ts": [
+          "lib/wheel-engine/spin-resolver.ts"
+        ],
+        "features/season/services/table-simulator.service.ts": [
+          "lib/wheel-engine/spin-resolver.ts"
+        ],
+        "features/transfer/services/transfer.service.ts": [
+          "lib/wheel-engine/spin-resolver.ts"
+        ],
+        "features/wheel/hooks/useStatEvolutionFlow.ts": [
+          "actions/season.actions.ts"
+        ],
+        "lib/name-gen.ts": [
+          "lib/wheel-engine/spin-resolver.ts"
+        ],
+        "lib/rate-limit.ts": [],
+        "lib/wheel-engine/spin-resolver.ts": []
+      },
+      "neighborMap": {
+        "actions/player.actions.ts": [
+          {
+            "path": "lib/prisma.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "prisma"
+            ]
+          },
+          {
+            "path": "lib/supabase/server.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "createClient"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useCareerStats.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useCareerStats"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useDraftDrum.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useDraftDrum"
+            ]
+          }
+        ],
+        "actions/season.actions.ts": [
+          {
+            "path": "features/season/services/season-simulator.service.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "simulatePlayerSeasonService"
+            ]
+          },
+          {
+            "path": "lib/prisma.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "prisma"
+            ]
+          },
+          {
+            "path": "lib/supabase/server.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "createClient"
+            ]
+          },
+          {
+            "path": "features/squad/components/SquadDashboard.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "SquadDashboard"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useCompetitionFlow.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useCompetitionFlow"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useDraftDrum.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useDraftDrum"
+            ]
+          }
+        ],
+        "features/player/services/stats-evolution.service.ts": [
+          {
+            "path": "lib/wheel-engine/weight-calculator.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "FIELD_STAT_KEYS",
+              "GK_STAT_KEYS",
+              "getStatKeys",
+              "getMainStatsByPosition",
+              "getStatLabel",
+              "getDefaultStats",
+              "NATIONALITY_POOL",
+              "DEBUT_AGE_POOL",
+              "DEBUT_OVR_POOL",
+              "CAREER_LENGTH_POOL",
+              "getLeagueWeights",
+              "getClubWeights",
+              "getDebutStatWeights",
+              "getNationalTier",
+              "getNationalContinentalCup",
+              "calculateOvrByPosition",
+              "HEIGHT_RANGE_BY_POSITION",
+              "getHeightWeights",
+              "getWeightRangeFromHeight",
+              "getWeightWeights",
+              "getPhysiqueModifier",
+              "applyPhysiqueModifier"
+            ]
+          }
+        ],
+        "features/wheel/hooks/useStatEvolutionFlow.ts": [
+          {
+            "path": "features/wheel/hooks/useDraftDrum.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useDraftDrum"
+            ]
+          }
+        ],
+        "lib/wheel-engine/spin-resolver.ts": [
+          {
+            "path": "features/season/services/season-simulator.service.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "simulatePlayerSeasonService"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useSetupStage.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useSetupStage"
+            ]
+          },
+          {
+            "path": "features/wheel/lib/career-wheel-resolver.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "getCareerWheelPoolAndValue"
+            ]
+          },
+          {
+            "path": "lib/wheel-engine/weight-calculator.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "FIELD_STAT_KEYS",
+              "GK_STAT_KEYS",
+              "getStatKeys",
+              "getMainStatsByPosition",
+              "getStatLabel",
+              "getDefaultStats",
+              "NATIONALITY_POOL",
+              "DEBUT_AGE_POOL",
+              "DEBUT_OVR_POOL",
+              "CAREER_LENGTH_POOL",
+              "getLeagueWeights",
+              "getClubWeights",
+              "getDebutStatWeights",
+              "getNationalTier",
+              "getNationalContinentalCup",
+              "calculateOvrByPosition",
+              "HEIGHT_RANGE_BY_POSITION",
+              "getHeightWeights",
+              "getWeightRangeFromHeight",
+              "getWeightWeights",
+              "getPhysiqueModifier",
+              "applyPhysiqueModifier"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 3,
+      "files": [
+        {
+          "path": "app/(auth)/auth/callback/route.ts",
+          "language": "typescript",
+          "sizeLines": 17,
+          "fileCategory": "code"
+        },
+        {
+          "path": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+          "language": "typescript",
+          "sizeLines": 81,
+          "fileCategory": "code"
+        },
+        {
+          "path": "app/(game)/page.tsx",
+          "language": "typescript",
+          "sizeLines": 185,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/game/actions/createGameSession.ts",
+          "language": "typescript",
+          "sizeLines": 63,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/game/components/CreateGameDialog.tsx",
+          "language": "typescript",
+          "sizeLines": 267,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/game/components/GameList.tsx",
+          "language": "typescript",
+          "sizeLines": 261,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/prisma.ts",
+          "language": "typescript",
+          "sizeLines": 23,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/supabase/server.ts",
+          "language": "typescript",
+          "sizeLines": 28,
+          "fileCategory": "code"
+        },
+        {
+          "path": "prisma/seed.ts",
+          "language": "typescript",
+          "sizeLines": 543,
+          "fileCategory": "code"
+        },
+        {
+          "path": "scratch/test-db.ts",
+          "language": "typescript",
+          "sizeLines": 19,
+          "fileCategory": "code"
+        },
+        {
+          "path": "types/game.ts",
+          "language": "typescript",
+          "sizeLines": 94,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "app/(auth)/auth/callback/route.ts": [
+          "lib/supabase/server.ts"
+        ],
+        "app/(game)/[gameId]/draft/[slotIndex]/page.tsx": [
+          "features/wheel/components/DraftDrumScreen.tsx",
+          "lib/prisma.ts",
+          "lib/supabase/server.ts",
+          "types/game.ts",
+          "types/squad.ts"
+        ],
+        "app/(game)/page.tsx": [
+          "features/auth/components/LogoutButton.tsx",
+          "features/game/components/CreateGameDialog.tsx",
+          "features/game/components/GameList.tsx",
+          "lib/prisma.ts",
+          "lib/supabase/server.ts",
+          "types/game.ts"
+        ],
+        "features/game/actions/createGameSession.ts": [
+          "lib/prisma.ts",
+          "lib/supabase/server.ts",
+          "types/game.ts"
+        ],
+        "features/game/components/CreateGameDialog.tsx": [
+          "features/game/actions/createGameSession.ts",
+          "types/game.ts"
+        ],
+        "features/game/components/GameList.tsx": [
+          "types/game.ts"
+        ],
+        "lib/prisma.ts": [],
+        "lib/supabase/server.ts": [],
+        "prisma/seed.ts": [
+          "lib/prisma.ts"
+        ],
+        "scratch/test-db.ts": [
+          "lib/prisma.ts"
+        ],
+        "types/game.ts": []
+      },
+      "neighborMap": {
+        "app/(game)/[gameId]/draft/[slotIndex]/page.tsx": [
+          {
+            "path": "features/wheel/components/DraftDrumScreen.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "DraftDrumScreen"
+            ]
+          },
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ],
+        "app/(game)/page.tsx": [
+          {
+            "path": "features/auth/components/LogoutButton.tsx",
+            "batchIndex": 6,
+            "symbols": [
+              "LogoutButton"
+            ]
+          }
+        ],
+        "lib/prisma.ts": [
+          {
+            "path": "actions/player.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "initCareerPlayerAction",
+              "getCareerPlayerAction",
+              "saveCareerPlayer"
+            ]
+          },
+          {
+            "path": "actions/season.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "saveSeasonProgress",
+              "updateSeasonProgressAction",
+              "completeGameSession",
+              "simulatePlayerSeasonAction",
+              "generateLeagueTableAction",
+              "startPlayerCareerAction",
+              "generateTransferOfferAction",
+              "generateCupJourneyAction",
+              "evolvePlayerStatsAction"
+            ]
+          },
+          {
+            "path": "app/(game)/[gameId]/page.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "generateMetadata",
+              "SquadBoardPage"
+            ]
+          }
+        ],
+        "lib/supabase/server.ts": [
+          {
+            "path": "actions/player.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "initCareerPlayerAction",
+              "getCareerPlayerAction",
+              "saveCareerPlayer"
+            ]
+          },
+          {
+            "path": "actions/season.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "saveSeasonProgress",
+              "updateSeasonProgressAction",
+              "completeGameSession",
+              "simulatePlayerSeasonAction",
+              "generateLeagueTableAction",
+              "startPlayerCareerAction",
+              "generateTransferOfferAction",
+              "generateCupJourneyAction",
+              "evolvePlayerStatsAction"
+            ]
+          },
+          {
+            "path": "app/(game)/[gameId]/page.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "generateMetadata",
+              "SquadBoardPage"
+            ]
+          }
+        ],
+        "types/game.ts": [
+          {
+            "path": "app/(game)/[gameId]/page.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "generateMetadata",
+              "SquadBoardPage"
+            ]
+          },
+          {
+            "path": "features/squad/components/PitchBoard.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "PitchBoard"
+            ]
+          },
+          {
+            "path": "features/squad/components/SquadDashboard.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "SquadDashboard"
+            ]
+          },
+          {
+            "path": "features/wheel/components/SeasonProfile.tsx",
+            "batchIndex": 1,
+            "symbols": [
+              "SeasonProfile"
+            ]
+          },
+          {
+            "path": "features/wheel/components/SeasonResultModal.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "SeasonResultModal"
+            ]
+          },
+          {
+            "path": "features/wheel/components/SeasonStatsModal.tsx",
+            "batchIndex": 1,
+            "symbols": [
+              "SeasonStatsModal"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useCareerStats.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useCareerStats"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useDraftDrum.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useDraftDrum"
+            ]
+          },
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 4,
+      "files": [
+        {
+          "path": "app/(game)/[gameId]/page.tsx",
+          "language": "typescript",
+          "sizeLines": 177,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/player/components/PlayerCareerDialog.tsx",
+          "language": "typescript",
+          "sizeLines": 340,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/player/components/PlayerOvrChart.tsx",
+          "language": "typescript",
+          "sizeLines": 180,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/player/components/PlayerStickerCard.tsx",
+          "language": "typescript",
+          "sizeLines": 165,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/squad/components/PitchBoard.tsx",
+          "language": "typescript",
+          "sizeLines": 328,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/squad/components/SquadDashboard.tsx",
+          "language": "typescript",
+          "sizeLines": 304,
+          "fileCategory": "code"
+        },
+        {
+          "path": "types/squad.ts",
+          "language": "typescript",
+          "sizeLines": 164,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "app/(game)/[gameId]/page.tsx": [
+          "features/auth/components/LogoutButton.tsx",
+          "features/squad/components/SquadDashboard.tsx",
+          "lib/prisma.ts",
+          "lib/supabase/server.ts",
+          "types/game.ts",
+          "types/squad.ts"
+        ],
+        "features/player/components/PlayerCareerDialog.tsx": [
+          "features/player/components/PlayerOvrChart.tsx",
+          "features/player/components/PlayerStickerCard.tsx",
+          "types/squad.ts"
+        ],
+        "features/player/components/PlayerOvrChart.tsx": [],
+        "features/player/components/PlayerStickerCard.tsx": [
+          "types/squad.ts"
+        ],
+        "features/squad/components/PitchBoard.tsx": [
+          "types/game.ts",
+          "types/squad.ts"
+        ],
+        "features/squad/components/SquadDashboard.tsx": [
+          "actions/season.actions.ts",
+          "features/player/components/PlayerCareerDialog.tsx",
+          "features/squad/components/PitchBoard.tsx",
+          "types/game.ts",
+          "types/squad.ts"
+        ],
+        "types/squad.ts": [
+          "types/game.ts"
+        ]
+      },
+      "neighborMap": {
+        "app/(game)/[gameId]/page.tsx": [
+          {
+            "path": "features/auth/components/LogoutButton.tsx",
+            "batchIndex": 6,
+            "symbols": [
+              "LogoutButton"
+            ]
+          },
+          {
+            "path": "lib/prisma.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "prisma"
+            ]
+          },
+          {
+            "path": "lib/supabase/server.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "createClient"
+            ]
+          },
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          }
+        ],
+        "features/squad/components/PitchBoard.tsx": [
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          }
+        ],
+        "features/squad/components/SquadDashboard.tsx": [
+          {
+            "path": "actions/season.actions.ts",
+            "batchIndex": 2,
+            "symbols": [
+              "saveSeasonProgress",
+              "updateSeasonProgressAction",
+              "completeGameSession",
+              "simulatePlayerSeasonAction",
+              "generateLeagueTableAction",
+              "startPlayerCareerAction",
+              "generateTransferOfferAction",
+              "generateCupJourneyAction",
+              "evolvePlayerStatsAction"
+            ]
+          },
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          }
+        ],
+        "types/squad.ts": [
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          },
+          {
+            "path": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+            "batchIndex": 3,
+            "symbols": [
+              "generateMetadata",
+              "DraftSlotPage"
+            ]
+          },
+          {
+            "path": "features/wheel/components/PaniniSticker.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "PaniniSticker"
+            ]
+          },
+          {
+            "path": "features/wheel/components/RetiredStage.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "RetiredStage"
+            ]
+          },
+          {
+            "path": "features/wheel/components/SetupStage.tsx",
+            "batchIndex": 5,
+            "symbols": [
+              "SetupStage"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useSetupStage.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useSetupStage"
+            ]
+          },
+          {
+            "path": "features/wheel/lib/career-wheel-resolver.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "getCareerWheelPoolAndValue"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 5,
+      "files": [
+        {
+          "path": "features/wheel/components/CareerActionsPanel.tsx",
+          "language": "typescript",
+          "sizeLines": 213,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/DraftDrumScreen.tsx",
+          "language": "typescript",
+          "sizeLines": 290,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/PaniniSticker.tsx",
+          "language": "typescript",
+          "sizeLines": 158,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/RetiredStage.tsx",
+          "language": "typescript",
+          "sizeLines": 127,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/SeasonResultModal.tsx",
+          "language": "typescript",
+          "sizeLines": 223,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/SetupStage.tsx",
+          "language": "typescript",
+          "sizeLines": 176,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/wheel/components/SpinnerWheel.tsx",
+          "language": "typescript",
+          "sizeLines": 265,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "features/wheel/components/CareerActionsPanel.tsx": [
+          "features/wheel/components/SpinnerWheel.tsx",
+          "features/wheel/lib/simulation-helpers.ts"
+        ],
+        "features/wheel/components/DraftDrumScreen.tsx": [
+          "features/wheel/components/CareerActionsPanel.tsx",
+          "features/wheel/components/PaniniSticker.tsx",
+          "features/wheel/components/RetiredStage.tsx",
+          "features/wheel/components/SeasonProfile.tsx",
+          "features/wheel/components/SeasonResultModal.tsx",
+          "features/wheel/components/SeasonStatsModal.tsx",
+          "features/wheel/components/SetupStage.tsx",
+          "features/wheel/hooks/useDraftDrum.ts"
+        ],
+        "features/wheel/components/PaniniSticker.tsx": [
+          "types/squad.ts"
+        ],
+        "features/wheel/components/RetiredStage.tsx": [
+          "types/squad.ts"
+        ],
+        "features/wheel/components/SeasonResultModal.tsx": [
+          "features/wheel/lib/simulation-helpers.ts",
+          "types/game.ts"
+        ],
+        "features/wheel/components/SetupStage.tsx": [
+          "features/wheel/components/SpinnerWheel.tsx",
+          "types/squad.ts"
+        ],
+        "features/wheel/components/SpinnerWheel.tsx": []
+      },
+      "neighborMap": {
+        "features/wheel/components/CareerActionsPanel.tsx": [
+          {
+            "path": "features/wheel/lib/simulation-helpers.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "calculateContinentalQualification",
+              "getContinentalCupLabel",
+              "getSeasonYearString",
+              "getStandingWheelPool",
+              "getGrowthTier",
+              "getIncreaseGateWeight",
+              "getDecreaseGateWeight",
+              "getCountPool",
+              "getMagnitudePool",
+              "getMagnitudeTierForDirection",
+              "getCareerProgress",
+              "getAgeProgressThresholds",
+              "getGrowthBoost",
+              "getCountPoolBoosted",
+              "getMagnitudePoolBoosted",
+              "getDomesticCupName"
+            ]
+          }
+        ],
+        "features/wheel/components/DraftDrumScreen.tsx": [
+          {
+            "path": "features/wheel/components/SeasonProfile.tsx",
+            "batchIndex": 1,
+            "symbols": [
+              "SeasonProfile"
+            ]
+          },
+          {
+            "path": "features/wheel/components/SeasonStatsModal.tsx",
+            "batchIndex": 1,
+            "symbols": [
+              "SeasonStatsModal"
+            ]
+          },
+          {
+            "path": "features/wheel/hooks/useDraftDrum.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "useDraftDrum"
+            ]
+          },
+          {
+            "path": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+            "batchIndex": 3,
+            "symbols": [
+              "generateMetadata",
+              "DraftSlotPage"
+            ]
+          }
+        ],
+        "features/wheel/components/PaniniSticker.tsx": [
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ],
+        "features/wheel/components/RetiredStage.tsx": [
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ],
+        "features/wheel/components/SeasonResultModal.tsx": [
+          {
+            "path": "features/wheel/lib/simulation-helpers.ts",
+            "batchIndex": 1,
+            "symbols": [
+              "calculateContinentalQualification",
+              "getContinentalCupLabel",
+              "getSeasonYearString",
+              "getStandingWheelPool",
+              "getGrowthTier",
+              "getIncreaseGateWeight",
+              "getDecreaseGateWeight",
+              "getCountPool",
+              "getMagnitudePool",
+              "getMagnitudeTierForDirection",
+              "getCareerProgress",
+              "getAgeProgressThresholds",
+              "getGrowthBoost",
+              "getCountPoolBoosted",
+              "getMagnitudePoolBoosted",
+              "getDomesticCupName"
+            ]
+          },
+          {
+            "path": "types/game.ts",
+            "batchIndex": 3,
+            "symbols": [
+              "FORMATIONS",
+              "createGameSchema",
+              "getStepLabels",
+              "STEP_LABELS"
+            ]
+          }
+        ],
+        "features/wheel/components/SetupStage.tsx": [
+          {
+            "path": "types/squad.ts",
+            "batchIndex": 4,
+            "symbols": [
+              "FORMATION_SLOTS",
+              "getFlagEmoji",
+              "RARITY_ACCENT"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 6,
+      "files": [
+        {
+          "path": "app/(auth)/login/LoginForm.tsx",
+          "language": "typescript",
+          "sizeLines": 295,
+          "fileCategory": "code"
+        },
+        {
+          "path": "app/(auth)/login/page.tsx",
+          "language": "typescript",
+          "sizeLines": 15,
+          "fileCategory": "code"
+        },
+        {
+          "path": "features/auth/components/LogoutButton.tsx",
+          "language": "typescript",
+          "sizeLines": 45,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/supabase/client.ts",
+          "language": "typescript",
+          "sizeLines": 8,
+          "fileCategory": "code"
+        }
+      ],
+      "batchImportData": {
+        "app/(auth)/login/LoginForm.tsx": [
+          "lib/supabase/client.ts"
+        ],
+        "app/(auth)/login/page.tsx": [
+          "app/(auth)/login/LoginForm.tsx"
+        ],
+        "features/auth/components/LogoutButton.tsx": [
+          "lib/supabase/client.ts"
+        ],
+        "lib/supabase/client.ts": []
+      },
+      "neighborMap": {
+        "features/auth/components/LogoutButton.tsx": [
+          {
+            "path": "app/(game)/[gameId]/page.tsx",
+            "batchIndex": 4,
+            "symbols": [
+              "generateMetadata",
+              "SquadBoardPage"
+            ]
+          },
+          {
+            "path": "app/(game)/page.tsx",
+            "batchIndex": 3,
+            "symbols": [
+              "dynamic",
+              "LobbyPage"
+            ]
+          }
+        ]
+      }
+    },
+    {
+      "batchIndex": 7,
+      "files": [
+        {
+          "path": ".claude/CLAUDE.md",
+          "language": "markdown",
+          "sizeLines": 237,
+          "fileCategory": "docs"
+        },
+        {
+          "path": ".claude/launch.json",
+          "language": "json",
+          "sizeLines": 11,
+          "fileCategory": "config"
+        },
+        {
+          "path": ".claude/settings.json",
+          "language": "json",
+          "sizeLines": 22,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        ".claude/CLAUDE.md": [],
+        ".claude/launch.json": [],
+        ".claude/settings.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 8,
+      "files": [
+        {
+          "path": "AGENTS.md",
+          "language": "markdown",
+          "sizeLines": 211,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "README.md",
+          "language": "markdown",
+          "sizeLines": 54,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "lint_out.txt",
+          "language": "txt",
+          "sizeLines": 200,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "package.json",
+          "language": "json",
+          "sizeLines": 48,
+          "fileCategory": "config"
+        },
+        {
+          "path": "pnpm-workspace.yaml",
+          "language": "yaml",
+          "sizeLines": 19,
+          "fileCategory": "config"
+        },
+        {
+          "path": "tsconfig.json",
+          "language": "json",
+          "sizeLines": 27,
+          "fileCategory": "config"
+        }
+      ],
+      "batchImportData": {
+        "AGENTS.md": [],
+        "README.md": [],
+        "lint_out.txt": [],
+        "package.json": [],
+        "pnpm-workspace.yaml": [],
+        "tsconfig.json": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 9,
+      "files": [
+        {
+          "path": "docs/FOOTBALL_LIFE_PROJECT_WIKI.md",
+          "language": "markdown",
+          "sizeLines": 608,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/Football_Life_Project_Planning_Document.md",
+          "language": "markdown",
+          "sizeLines": 187,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/ai-agent-rules.md",
+          "language": "markdown",
+          "sizeLines": 158,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/api-integration.md",
+          "language": "markdown",
+          "sizeLines": 485,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/architecture.md",
+          "language": "markdown",
+          "sizeLines": 105,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/auth-implementation-plan.md",
+          "language": "markdown",
+          "sizeLines": 488,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/auth-ui-plan.md",
+          "language": "markdown",
+          "sizeLines": 347,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/ballon-dor-wheel-plan.md",
+          "language": "markdown",
+          "sizeLines": 298,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/career-resume-plan.md",
+          "language": "markdown",
+          "sizeLines": 349,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/code-review-findings.md",
+          "language": "markdown",
+          "sizeLines": 203,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/core-growth-logic-review.md",
+          "language": "markdown",
+          "sizeLines": 554,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/environment-variables.md",
+          "language": "markdown",
+          "sizeLines": 83,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/frontend-style-system-guide.md",
+          "language": "markdown",
+          "sizeLines": 1005,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/game-design.md",
+          "language": "markdown",
+          "sizeLines": 819,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/loading-agent-guide.md",
+          "language": "markdown",
+          "sizeLines": 171,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/modal-agent-guide.md",
+          "language": "markdown",
+          "sizeLines": 356,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/module-boundaries.md",
+          "language": "markdown",
+          "sizeLines": 300,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/remove-events-plan.md",
+          "language": "markdown",
+          "sizeLines": 228,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/season-profile-modal-plan.md",
+          "language": "markdown",
+          "sizeLines": 311,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/security-checklist.md",
+          "language": "markdown",
+          "sizeLines": 92,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "docs/FOOTBALL_LIFE_PROJECT_WIKI.md": [],
+        "docs/Football_Life_Project_Planning_Document.md": [],
+        "docs/ai-agent-rules.md": [],
+        "docs/api-integration.md": [],
+        "docs/architecture.md": [],
+        "docs/auth-implementation-plan.md": [],
+        "docs/auth-ui-plan.md": [],
+        "docs/ballon-dor-wheel-plan.md": [],
+        "docs/career-resume-plan.md": [],
+        "docs/code-review-findings.md": [],
+        "docs/core-growth-logic-review.md": [],
+        "docs/environment-variables.md": [],
+        "docs/frontend-style-system-guide.md": [],
+        "docs/game-design.md": [],
+        "docs/loading-agent-guide.md": [],
+        "docs/modal-agent-guide.md": [],
+        "docs/module-boundaries.md": [],
+        "docs/remove-events-plan.md": [],
+        "docs/season-profile-modal-plan.md": [],
+        "docs/security-checklist.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 10,
+      "files": [
+        {
+          "path": "docs/source-code-architecture-guide.md",
+          "language": "markdown",
+          "sizeLines": 832,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/state-management.md",
+          "language": "markdown",
+          "sizeLines": 404,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "docs/ui-ux-flow.md",
+          "language": "markdown",
+          "sizeLines": 126,
+          "fileCategory": "docs"
+        }
+      ],
+      "batchImportData": {
+        "docs/source-code-architecture-guide.md": [],
+        "docs/state-management.md": [],
+        "docs/ui-ux-flow.md": []
+      },
+      "neighborMap": {}
+    },
+    {
+      "batchIndex": 11,
+      "files": [
+        {
+          "path": "app/(auth)/layout.tsx",
+          "language": "typescript",
+          "sizeLines": 23,
+          "fileCategory": "code"
+        },
+        {
+          "path": "app/(game)/layout.tsx",
+          "language": "typescript",
+          "sizeLines": 27,
+          "fileCategory": "code"
+        },
+        {
+          "path": "app/globals.css",
+          "language": "css",
+          "sizeLines": 306,
+          "fileCategory": "markup"
+        },
+        {
+          "path": "app/layout.tsx",
+          "language": "typescript",
+          "sizeLines": 46,
+          "fileCategory": "code"
+        },
+        {
+          "path": "docs/ui-plan/implementation-roadmap.md",
+          "language": "markdown",
+          "sizeLines": 91,
+          "fileCategory": "docs"
+        },
+        {
+          "path": "eslint.config.mjs",
+          "language": "javascript",
+          "sizeLines": 89,
+          "fileCategory": "code"
+        },
+        {
+          "path": "lib/utils.ts",
+          "language": "typescript",
+          "sizeLines": 6,
+          "fileCategory": "code"
+        },
+        {
+          "path": "middleware.ts",
+          "language": "typescript",
+          "sizeLines": 52,
+          "fileCategory": "code"
+        },
+        {
+          "path": "next.config.ts",
+          "language": "typescript",
+          "sizeLines": 7,
+          "fileCategory": "code"
+        },
+        {
+          "path": "postcss.config.mjs",
+          "language": "javascript",
+          "sizeLines": 5,
+          "fileCategory": "code"
+        },
+        {
+          "path": "prisma.config.ts",
+          "language": "typescript",
+          "sizeLines": 15,
+          "fileCategory": "code"
+        },
+        {
+          "path": "prisma/schema.prisma",
+          "language": "prisma",
+          "sizeLines": 97,
+          "fileCategory": "data"
+        },
+        {
+          "path": "supabase/rls-lockdown.sql",
+          "language": "sql",
+          "sizeLines": 33,
+          "fileCategory": "data"
+        }
+      ],
+      "batchImportData": {
+        "app/(auth)/layout.tsx": [],
+        "app/(game)/layout.tsx": [],
+        "app/globals.css": [],
+        "app/layout.tsx": [
+          "app/globals.css"
+        ],
+        "docs/ui-plan/implementation-roadmap.md": [],
+        "eslint.config.mjs": [],
+        "lib/utils.ts": [],
+        "middleware.ts": [],
+        "next.config.ts": [],
+        "postcss.config.mjs": [],
+        "prisma.config.ts": [],
+        "prisma/schema.prisma": [],
+        "supabase/rls-lockdown.sql": []
+      },
+      "neighborMap": {}
+    }
+  ]
+}

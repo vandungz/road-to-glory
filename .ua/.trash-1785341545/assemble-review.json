@@ -1,0 +1,11 @@
+{
+  "fixedSectionOk": true,
+  "nodesRecovered": 0,
+  "edgesRestored": 2,
+  "crossBatchEdgesAdded": 0,
+  "typesRemapped": 0,
+  "notes": [
+    "Merge dropped 2 documents edges targeting file:prisma/schema.prisma; restored to schema:prisma/schema.prisma",
+    "Import map recovery already ran in merge (0 recovered); secondary pass added 0 missing imports edges"
+  ]
+}

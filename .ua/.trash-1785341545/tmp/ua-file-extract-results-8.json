@@ -1,0 +1,255 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [
+    "lint_out.txt"
+  ],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 5,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 5
+    }
+  },
+  "results": [
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 211,
+      "nonEmptyLines": 158,
+      "sections": [
+        {
+          "heading": "AGENTS.md — Football Life Project Instructions",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Product Context",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Core Design Principles",
+          "level": 3,
+          "line": 19
+        },
+        {
+          "heading": "Tech Stack",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "Folder Structure",
+          "level": 2,
+          "line": 46
+        },
+        {
+          "heading": "Architecture Rules",
+          "level": 2,
+          "line": 86
+        },
+        {
+          "heading": "App Router Rules",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "State Management Rules",
+          "level": 3,
+          "line": 95
+        },
+        {
+          "heading": "Wheel Engine Rules",
+          "level": 3,
+          "line": 127
+        },
+        {
+          "heading": "Domain / Feature Service Rules",
+          "level": 3,
+          "line": 142
+        },
+        {
+          "heading": "Code Length Limitation Rules",
+          "level": 3,
+          "line": 148
+        },
+        {
+          "heading": "Data Scope",
+          "level": 2,
+          "line": 155
+        },
+        {
+          "heading": "Key Domain Models",
+          "level": 2,
+          "line": 163
+        },
+        {
+          "heading": "Wheel Types",
+          "level": 2,
+          "line": 182
+        },
+        {
+          "heading": "Output Expectations",
+          "level": 2,
+          "line": 195
+        },
+        {
+          "heading": "References",
+          "level": 2,
+          "line": 208
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 16
+      }
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 54,
+      "nonEmptyLines": 41,
+      "sections": [
+        {
+          "heading": "Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Tech Stack",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Commands",
+          "level": 2,
+          "line": 16
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    },
+    {
+      "path": "package.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 48,
+      "nonEmptyLines": 48,
+      "sections": [
+        {
+          "heading": "name",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "version",
+          "level": 1,
+          "line": 3
+        },
+        {
+          "heading": "private",
+          "level": 1,
+          "line": 4
+        },
+        {
+          "heading": "scripts",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "dependencies",
+          "level": 1,
+          "line": 11
+        },
+        {
+          "heading": "devDependencies",
+          "level": 1,
+          "line": 30
+        },
+        {
+          "heading": "prisma",
+          "level": 1,
+          "line": 40
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 7
+      }
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "language": "yaml",
+      "fileCategory": "config",
+      "totalLines": 19,
+      "nonEmptyLines": 19,
+      "sections": [
+        {
+          "heading": "allowBuilds",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "minimumReleaseAgeExclude",
+          "level": 1,
+          "line": 7
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 2
+      }
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "fileCategory": "config",
+      "totalLines": 27,
+      "nonEmptyLines": 27,
+      "sections": [
+        {
+          "heading": "compilerOptions",
+          "level": 1,
+          "line": 2
+        },
+        {
+          "heading": "include",
+          "level": 1,
+          "line": 25
+        },
+        {
+          "heading": "exclude",
+          "level": 1,
+          "line": 26
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 3
+      }
+    }
+  ]
+}

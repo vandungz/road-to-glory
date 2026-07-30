@@ -1,0 +1,1245 @@
+{
+  "nodes": [
+    {
+      "id": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "type": "file",
+      "name": "career-wheel-resolver.ts",
+      "filePath": "features/wheel/lib/career-wheel-resolver.ts",
+      "summary": "Resolves career wheel pools and outcome values per sub-step, combining growth gates, standing pools, and competition labels.",
+      "tags": [
+        "utility",
+        "wheel",
+        "resolver",
+        "career"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "type": "function",
+      "name": "getCareerWheelPoolAndValue",
+      "filePath": "features/wheel/lib/career-wheel-resolver.ts",
+      "lineRange": [
+        43,
+        273
+      ],
+      "summary": "Selects the weighted pool for a career sub-step and resolves a concrete outcome value.",
+      "tags": [
+        "resolver",
+        "wheel",
+        "outcome"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "file",
+      "name": "simulation-helpers.ts",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "summary": "Pure helpers for continental qualification, standing pools, growth/magnitude tiers, age progress, and cup naming used across career simulation.",
+      "tags": [
+        "utility",
+        "simulation",
+        "probability",
+        "helpers"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:calculateContinentalQualification",
+      "type": "function",
+      "name": "calculateContinentalQualification",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        3,
+        69
+      ],
+      "summary": "Maps league standing and cup results to next-season continental cup qualification by confederation.",
+      "tags": [
+        "continental",
+        "qualification"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "function",
+      "name": "getContinentalCupLabel",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        71,
+        81
+      ],
+      "summary": "Returns a display label for a continental cup type string.",
+      "tags": [
+        "label",
+        "continental"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getSeasonYearString",
+      "type": "function",
+      "name": "getSeasonYearString",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        83,
+        88
+      ],
+      "summary": "Formats a season year label from current age and debut age.",
+      "tags": [
+        "formatting",
+        "season"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getStandingWheelPool",
+      "type": "function",
+      "name": "getStandingWheelPool",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        90,
+        131
+      ],
+      "summary": "Builds weighted league-standing outcome pool from prestige, OVR, apps, and prior standing.",
+      "tags": [
+        "weights",
+        "standing",
+        "wheel"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getGrowthTier",
+      "type": "function",
+      "name": "getGrowthTier",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        141,
+        146
+      ],
+      "summary": "Maps a rating value to a discrete growth tier used by gate and pool helpers.",
+      "tags": [
+        "growth",
+        "tier"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getIncreaseGateWeight",
+      "type": "function",
+      "name": "getIncreaseGateWeight",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        148,
+        155
+      ],
+      "summary": "Returns the weight for rolling a stat increase at a given growth tier.",
+      "tags": [
+        "growth",
+        "weights"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getDecreaseGateWeight",
+      "type": "function",
+      "name": "getDecreaseGateWeight",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        157,
+        165
+      ],
+      "summary": "Returns the weight for rolling a stat decrease at a given growth tier.",
+      "tags": [
+        "growth",
+        "weights"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getCountPool",
+      "type": "function",
+      "name": "getCountPool",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        171,
+        186
+      ],
+      "summary": "Provides weighted counts of how many stats change for a growth tier and direction.",
+      "tags": [
+        "growth",
+        "weights",
+        "pool"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePool",
+      "type": "function",
+      "name": "getMagnitudePool",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        189,
+        197
+      ],
+      "summary": "Provides weighted magnitude steps for a single stat change at a growth tier.",
+      "tags": [
+        "growth",
+        "weights",
+        "pool"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudeTierForDirection",
+      "type": "function",
+      "name": "getMagnitudeTierForDirection",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        204,
+        209
+      ],
+      "summary": "Chooses magnitude tier based on current rating and whether the change is an increase.",
+      "tags": [
+        "growth",
+        "tier"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getCareerProgress",
+      "type": "function",
+      "name": "getCareerProgress",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        220,
+        223
+      ],
+      "summary": "Computes normalized career progress from age, debut age, and career length.",
+      "tags": [
+        "career",
+        "progress"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getAgeProgressThresholds",
+      "type": "function",
+      "name": "getAgeProgressThresholds",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        227,
+        232
+      ],
+      "summary": "Returns young/peak age progress thresholds by player position.",
+      "tags": [
+        "career",
+        "age",
+        "position"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getGrowthBoost",
+      "type": "function",
+      "name": "getGrowthBoost",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        245,
+        248
+      ],
+      "summary": "Derives a growth boost factor when career progress is still in the young window.",
+      "tags": [
+        "growth",
+        "boost"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:blendPools",
+      "type": "function",
+      "name": "blendPools",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        255,
+        264
+      ],
+      "summary": "Linearly blends two weighted pools by interpolation factor t.",
+      "tags": [
+        "weights",
+        "pool",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getCountPoolBoosted",
+      "type": "function",
+      "name": "getCountPoolBoosted",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        268,
+        274
+      ],
+      "summary": "Returns a count pool optionally shifted upward by growth boost.",
+      "tags": [
+        "growth",
+        "weights",
+        "boost"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePoolBoosted",
+      "type": "function",
+      "name": "getMagnitudePoolBoosted",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        276,
+        282
+      ],
+      "summary": "Returns a magnitude pool optionally shifted upward by growth boost.",
+      "tags": [
+        "growth",
+        "weights",
+        "boost"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "function",
+      "name": "getDomesticCupName",
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "lineRange": [
+        284,
+        301
+      ],
+      "summary": "Maps league name to the corresponding domestic cup competition name.",
+      "tags": [
+        "label",
+        "cup",
+        "league"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "file",
+      "name": "useWheelUiStore.ts",
+      "filePath": "features/wheel/stores/useWheelUiStore.ts",
+      "summary": "Zustand store for wheel UI state such as active modal, career sub-step, spin animation phase, and selector index.",
+      "tags": [
+        "store",
+        "ui-state",
+        "zustand",
+        "wheel"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "file",
+      "name": "weight-calculator.ts",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "summary": "Core weight pools and OVR formulas for leagues, clubs, debut stats, nationality tiers, physique modifiers, and position-based ratings.",
+      "tags": [
+        "wheel-engine",
+        "weights",
+        "ovr",
+        "probability"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Pure TypeScript with no Math.random; delegates randomness to spin-resolver."
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getStatKeys",
+      "type": "function",
+      "name": "getStatKeys",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        13,
+        15
+      ],
+      "summary": "Returns the ordered stat key list for outfield or goalkeeper positions.",
+      "tags": [
+        "stats",
+        "position"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getMainStatsByPosition",
+      "type": "function",
+      "name": "getMainStatsByPosition",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        34,
+        36
+      ],
+      "summary": "Returns the primary contributing stats for OVR by position group.",
+      "tags": [
+        "stats",
+        "ovr",
+        "position"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getStatLabel",
+      "type": "function",
+      "name": "getStatLabel",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        56,
+        59
+      ],
+      "summary": "Formats a human-readable label for a position-specific stat key.",
+      "tags": [
+        "label",
+        "stats"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getDefaultStats",
+      "type": "function",
+      "name": "getDefaultStats",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        61,
+        65
+      ],
+      "summary": "Builds a default zeroed stats object for the given position.",
+      "tags": [
+        "stats",
+        "defaults"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getLeagueWeights",
+      "type": "function",
+      "name": "getLeagueWeights",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        155,
+        177
+      ],
+      "summary": "Assigns draft league weights boosted by nationality region affinity.",
+      "tags": [
+        "weights",
+        "league",
+        "draft"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getClubWeights",
+      "type": "function",
+      "name": "getClubWeights",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        180,
+        186
+      ],
+      "summary": "Assigns draft club weights from club prestige and tier.",
+      "tags": [
+        "weights",
+        "club",
+        "draft"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:generateContinuousWeights",
+      "type": "function",
+      "name": "generateContinuousWeights",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        188,
+        199
+      ],
+      "summary": "Generates a continuous integer weight pool between min and max inclusive.",
+      "tags": [
+        "weights",
+        "pool",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getDebutStatWeights",
+      "type": "function",
+      "name": "getDebutStatWeights",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        202,
+        286
+      ],
+      "summary": "Builds per-stat debut weight distributions shaped by position and stat role.",
+      "tags": [
+        "weights",
+        "debut",
+        "stats"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getNationalTier",
+      "type": "function",
+      "name": "getNationalTier",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        289,
+        296
+      ],
+      "summary": "Maps nationality to a national-team strength tier.",
+      "tags": [
+        "nationality",
+        "tier"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "function",
+      "name": "getNationalContinentalCup",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        299,
+        324
+      ],
+      "summary": "Returns the continental cup type associated with a nationality region.",
+      "tags": [
+        "continental",
+        "nationality"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:calculateOvrByPosition",
+      "type": "function",
+      "name": "calculateOvrByPosition",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        327,
+        373
+      ],
+      "summary": "Computes overall rating from position-weighted stats using the official OVR formula.",
+      "tags": [
+        "ovr",
+        "formula",
+        "stats"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getHeightWeights",
+      "type": "function",
+      "name": "getHeightWeights",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        395,
+        398
+      ],
+      "summary": "Returns weighted height outcomes for a position during physique setup.",
+      "tags": [
+        "physique",
+        "weights"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getWeightRangeFromHeight",
+      "type": "function",
+      "name": "getWeightRangeFromHeight",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        401,
+        406
+      ],
+      "summary": "Derives a plausible weight range in kg from height in centimeters.",
+      "tags": [
+        "physique",
+        "utility"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getWeightWeights",
+      "type": "function",
+      "name": "getWeightWeights",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        408,
+        411
+      ],
+      "summary": "Builds weighted body-weight outcomes constrained by height.",
+      "tags": [
+        "physique",
+        "weights"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:getPhysiqueModifier",
+      "type": "function",
+      "name": "getPhysiqueModifier",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        414,
+        438
+      ],
+      "summary": "Computes position-aware physique modifiers from height and weight.",
+      "tags": [
+        "physique",
+        "modifier"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:lib/wheel-engine/weight-calculator.ts:applyPhysiqueModifier",
+      "type": "function",
+      "name": "applyPhysiqueModifier",
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "lineRange": [
+        442,
+        453
+      ],
+      "summary": "Applies physique modifiers onto a stats object and returns the updated stats.",
+      "tags": [
+        "physique",
+        "stats"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "target": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "target": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:calculateContinentalQualification",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:calculateContinentalQualification",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getSeasonYearString",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getSeasonYearString",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getStandingWheelPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getStandingWheelPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthTier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthTier",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getIncreaseGateWeight",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getIncreaseGateWeight",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDecreaseGateWeight",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDecreaseGateWeight",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudeTierForDirection",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudeTierForDirection",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCareerProgress",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCareerProgress",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getAgeProgressThresholds",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getAgeProgressThresholds",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthBoost",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthBoost",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:blendPools",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPoolBoosted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPoolBoosted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePoolBoosted",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePoolBoosted",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/lib/simulation-helpers.ts",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getStatKeys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getStatKeys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getMainStatsByPosition",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getMainStatsByPosition",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getStatLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getStatLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getDefaultStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getDefaultStats",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getLeagueWeights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getLeagueWeights",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getClubWeights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getClubWeights",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:generateContinuousWeights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getDebutStatWeights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getDebutStatWeights",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalTier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalTier",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:calculateOvrByPosition",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:calculateOvrByPosition",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getHeightWeights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getHeightWeights",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getWeightRangeFromHeight",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getWeightRangeFromHeight",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getWeightWeights",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getWeightWeights",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getPhysiqueModifier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getPhysiqueModifier",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:applyPhysiqueModifier",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:applyPhysiqueModifier",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/stores/useWheelUiStore.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:lib/wheel-engine/weight-calculator.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthTier",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getIncreaseGateWeight",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getAgeProgressThresholds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCareerProgress",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveWeightedOutcome",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDecreaseGateWeight",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPool",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPoolBoosted",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthBoost",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getMainStatsByPosition",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudeTierForDirection",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePool",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePoolBoosted",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getStandingWheelPool",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:types/squad.ts:getFlagEmoji",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

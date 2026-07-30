@@ -1,0 +1,3839 @@
+{
+  "version": "1.0.0",
+  "gitCommitHash": "45e7aef852803fdd5954a4acb1e422bc83f6ac7d",
+  "generatedAt": "2026-07-29T09:12:09.790Z",
+  "files": {
+    ".claude/CLAUDE.md": {
+      "filePath": ".claude/CLAUDE.md",
+      "contentHash": "f2a721116adbdd1ddeb5d845d0536453faab1476e47a65a07b0dcae39d416476",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 238,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/launch.json": {
+      "filePath": ".claude/launch.json",
+      "contentHash": "cac8cdf12aea2f5a9e1caf1e8ebd0775eff8a9e554bfca1e002bb210f1179d04",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 12,
+      "hasStructuralAnalysis": true
+    },
+    ".claude/settings.json": {
+      "filePath": ".claude/settings.json",
+      "contentHash": "8f304b6d867a06f86b32440b34ee6c27fe1237b8ca6f7622453d909e7759e5ff",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 23,
+      "hasStructuralAnalysis": true
+    },
+    "AGENTS.md": {
+      "filePath": "AGENTS.md",
+      "contentHash": "e59a62d8d18986ee1f625350281141fab0a7a27fe654d9f1ab976b17cfd31625",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 212,
+      "hasStructuralAnalysis": true
+    },
+    "README.md": {
+      "filePath": "README.md",
+      "contentHash": "bc4e81e7dff5c0a0ba18a7b953c45222b32b6a7704c619f914c25a8c628baff1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 55,
+      "hasStructuralAnalysis": true
+    },
+    "actions/player.actions.ts": {
+      "filePath": "actions/player.actions.ts",
+      "contentHash": "a094623e83e5a4c573b772fcd4c1de84726721be8b30570689b6221d2f76e3ec",
+      "functions": [
+        {
+          "name": "getCardRarity",
+          "params": [
+            "peak"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "verifyGameOwnership",
+          "params": [
+            "gameId"
+          ],
+          "returnType": "Promise<string>",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "initCareerPlayerAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<{ id: string }>",
+          "exported": true,
+          "lineCount": 47
+        },
+        {
+          "name": "getCareerPlayerAction",
+          "params": [
+            "input"
+          ],
+          "exported": true,
+          "lineCount": 29
+        },
+        {
+          "name": "saveCareerPlayer",
+          "params": [
+            "input"
+          ],
+          "exported": true,
+          "lineCount": 73
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "redirect"
+          ]
+        },
+        {
+          "source": "next/cache",
+          "specifiers": [
+            "revalidatePath"
+          ]
+        },
+        {
+          "source": "@/lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        },
+        {
+          "source": "@/lib/name-gen",
+          "specifiers": [
+            "generateFictionalName"
+          ]
+        },
+        {
+          "source": "@/lib/rate-limit",
+          "specifiers": [
+            "checkRateLimit"
+          ]
+        }
+      ],
+      "exports": [
+        "initCareerPlayerAction",
+        "getCareerPlayerAction",
+        "saveCareerPlayer"
+      ],
+      "totalLines": 263,
+      "hasStructuralAnalysis": true
+    },
+    "actions/season.actions.ts": {
+      "filePath": "actions/season.actions.ts",
+      "contentHash": "54bcdfddcc7a9901b2fbdf5f73fa9dcae136b6545336b731e6715042b3d83764",
+      "functions": [
+        {
+          "name": "verifyGameOwnership",
+          "params": [
+            "gameId"
+          ],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "requireAuth",
+          "params": [],
+          "returnType": "Promise<void>",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "saveSeasonProgress",
+          "params": [
+            "params"
+          ],
+          "exported": true,
+          "lineCount": 22
+        },
+        {
+          "name": "updateSeasonProgressAction",
+          "params": [
+            "params"
+          ],
+          "returnType": "Promise<void>",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "completeGameSession",
+          "params": [
+            "gameId"
+          ],
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "simulatePlayerSeasonAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<SimulatedSeasonResult>",
+          "exported": true,
+          "lineCount": 28
+        },
+        {
+          "name": "generateLeagueTableAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<TableRow[]>",
+          "exported": true,
+          "lineCount": 21
+        },
+        {
+          "name": "startPlayerCareerAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<CareerSetupResult>",
+          "exported": true,
+          "lineCount": 15
+        },
+        {
+          "name": "generateTransferOfferAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<TransferOfferResult>",
+          "exported": true,
+          "lineCount": 35
+        },
+        {
+          "name": "generateCupJourneyAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<string[]>",
+          "exported": true,
+          "lineCount": 63
+        },
+        {
+          "name": "evolvePlayerStatsAction",
+          "params": [
+            "input"
+          ],
+          "returnType": "Promise<StatsEvolutionResult>",
+          "exported": true,
+          "lineCount": 5
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod",
+          "specifiers": [
+            "z"
+          ]
+        },
+        {
+          "source": "next/cache",
+          "specifiers": [
+            "revalidatePath",
+            "unstable_cache"
+          ]
+        },
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "redirect"
+          ]
+        },
+        {
+          "source": "@/lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        },
+        {
+          "source": "@/lib/rate-limit",
+          "specifiers": [
+            "checkRateLimit"
+          ]
+        },
+        {
+          "source": "@/features/season/services/season-simulator.service",
+          "specifiers": [
+            "simulatePlayerSeasonService",
+            "SimulatedSeasonResult"
+          ]
+        },
+        {
+          "source": "@/features/season/services/table-simulator.service",
+          "specifiers": [
+            "simulateDynamicLeagueTableService",
+            "TableRow"
+          ]
+        },
+        {
+          "source": "@/features/career/services/career-setup.service",
+          "specifiers": [
+            "startPlayerCareerService",
+            "CareerSetupResult"
+          ]
+        },
+        {
+          "source": "@/features/transfer/services/transfer.service",
+          "specifiers": [
+            "generateTransferOfferService",
+            "TransferOfferResult"
+          ]
+        },
+        {
+          "source": "@/features/season/services/cup-journey.service",
+          "specifiers": [
+            "generateDomesticCupJourneyService",
+            "generateContinentalCupJourneyService",
+            "generateNationalTeamJourneyService"
+          ]
+        },
+        {
+          "source": "@/features/player/services/stats-evolution.service",
+          "specifiers": [
+            "evolvePlayerStatsService",
+            "StatsEvolutionResult"
+          ]
+        }
+      ],
+      "exports": [
+        "saveSeasonProgress",
+        "updateSeasonProgressAction",
+        "completeGameSession",
+        "simulatePlayerSeasonAction",
+        "generateLeagueTableAction",
+        "startPlayerCareerAction",
+        "generateTransferOfferAction",
+        "generateCupJourneyAction",
+        "evolvePlayerStatsAction"
+      ],
+      "totalLines": 448,
+      "hasStructuralAnalysis": true
+    },
+    "app/(auth)/auth/callback/route.ts": {
+      "filePath": "app/(auth)/auth/callback/route.ts",
+      "contentHash": "000f74c97b192413bca2571e7fdbc9fa6da1e763a71875f63b01f5dcb1c7be83",
+      "functions": [
+        {
+          "name": "GET",
+          "params": [
+            "request"
+          ],
+          "exported": true,
+          "lineCount": 14
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/server",
+          "specifiers": [
+            "NextResponse"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        }
+      ],
+      "exports": [
+        "GET"
+      ],
+      "totalLines": 18,
+      "hasStructuralAnalysis": true
+    },
+    "app/(auth)/layout.tsx": {
+      "filePath": "app/(auth)/layout.tsx",
+      "contentHash": "18d4ba68920865c9dc0cfa0c53a707e57c9a6136def3adeb91033ebecdda9b25",
+      "functions": [
+        {
+          "name": "AuthLayout",
+          "params": [
+            "{ children }"
+          ],
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "AuthLayout"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "app/(auth)/login/LoginForm.tsx": {
+      "filePath": "app/(auth)/login/LoginForm.tsx",
+      "contentHash": "90094bd688a7aeac1769752b38438f058d7dd8f36c0475c1b23f16915b83b3d5",
+      "functions": [
+        {
+          "name": "LoginForm",
+          "params": [
+            "{ initialError }"
+          ],
+          "exported": true,
+          "lineCount": 281
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState",
+            "useEffect",
+            "useRef"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "AlertCircle",
+            "AlertTriangle",
+            "Eye",
+            "EyeOff",
+            "Loader2",
+            "Mail"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/client",
+          "specifiers": [
+            "createClient"
+          ]
+        }
+      ],
+      "exports": [
+        "LoginForm"
+      ],
+      "totalLines": 296,
+      "hasStructuralAnalysis": true
+    },
+    "app/(auth)/login/page.tsx": {
+      "filePath": "app/(auth)/login/page.tsx",
+      "contentHash": "f6c90c14f3142a3847b181fdc30d91596f7eeaff50873582f55597111d95689a",
+      "functions": [
+        {
+          "name": "LoginPage",
+          "params": [
+            "{ searchParams }"
+          ],
+          "exported": true,
+          "lineCount": 4
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        },
+        {
+          "source": "./LoginForm",
+          "specifiers": [
+            "LoginForm"
+          ]
+        }
+      ],
+      "exports": [
+        "metadata",
+        "LoginPage"
+      ],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "app/(game)/[gameId]/draft/[slotIndex]/page.tsx": {
+      "filePath": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "contentHash": "495d49df95bd6783c622b086b67affa515b7e8441396a131e97cbcb11d7cf0e2",
+      "functions": [
+        {
+          "name": "generateMetadata",
+          "params": [
+            "{ params }"
+          ],
+          "returnType": "Promise<Metadata>",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "DraftSlotPage",
+          "params": [
+            "{ params }"
+          ],
+          "exported": true,
+          "lineCount": 44
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "notFound"
+          ]
+        },
+        {
+          "source": "next/cache",
+          "specifiers": [
+            "unstable_cache"
+          ]
+        },
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        },
+        {
+          "source": "@/lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "FORMATION_SLOTS"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "Formation"
+          ]
+        },
+        {
+          "source": "@/features/wheel/components/DraftDrumScreen",
+          "specifiers": [
+            "DraftDrumScreen"
+          ]
+        }
+      ],
+      "exports": [
+        "generateMetadata",
+        "DraftSlotPage"
+      ],
+      "totalLines": 82,
+      "hasStructuralAnalysis": true
+    },
+    "app/(game)/[gameId]/page.tsx": {
+      "filePath": "app/(game)/[gameId]/page.tsx",
+      "contentHash": "73ab28c281df5f2d178baa9aa50952052abbeb647a68494669b3473b70d6c9d8",
+      "functions": [
+        {
+          "name": "generateMetadata",
+          "params": [
+            "{ params }"
+          ],
+          "returnType": "Promise<Metadata>",
+          "exported": true,
+          "lineCount": 10
+        },
+        {
+          "name": "SquadBoardPage",
+          "params": [
+            "{ params }"
+          ],
+          "exported": true,
+          "lineCount": 138
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "notFound"
+          ]
+        },
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Trophy"
+          ]
+        },
+        {
+          "source": "@/lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        },
+        {
+          "source": "@/features/auth/components/LogoutButton",
+          "specifiers": [
+            "LogoutButton"
+          ]
+        },
+        {
+          "source": "@/features/squad/components/SquadDashboard",
+          "specifiers": [
+            "SquadDashboard"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "FORMATION_SLOTS"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "ClientSafePlayer"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "Formation"
+          ]
+        }
+      ],
+      "exports": [
+        "generateMetadata",
+        "SquadBoardPage"
+      ],
+      "totalLines": 178,
+      "hasStructuralAnalysis": true
+    },
+    "app/(game)/layout.tsx": {
+      "filePath": "app/(game)/layout.tsx",
+      "contentHash": "348065c59ce9226acc260264f059d74d68045f5a730345f76a3680ecf276b45f",
+      "functions": [
+        {
+          "name": "GameLayout",
+          "params": [
+            "{\n  children,\n}"
+          ],
+          "exported": true,
+          "lineCount": 16
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        }
+      ],
+      "exports": [
+        "metadata",
+        "GameLayout"
+      ],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "app/(game)/page.tsx": {
+      "filePath": "app/(game)/page.tsx",
+      "contentHash": "23ed37bfbab96cbfe340162754b0dc95205d9c7cfc186df072b3ee23ab5c8313",
+      "functions": [
+        {
+          "name": "getGameSessions",
+          "params": [
+            "userId"
+          ],
+          "returnType": "Promise<GameSessionSummary[]>",
+          "exported": false,
+          "lineCount": 20
+        },
+        {
+          "name": "LobbyPage",
+          "params": [],
+          "exported": true,
+          "lineCount": 146
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        },
+        {
+          "source": "@/features/game/components/GameList",
+          "specifiers": [
+            "GameList"
+          ]
+        },
+        {
+          "source": "@/features/game/components/CreateGameDialog",
+          "specifiers": [
+            "CreateGameDialog"
+          ]
+        },
+        {
+          "source": "@/features/auth/components/LogoutButton",
+          "specifiers": [
+            "LogoutButton"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "GameSessionSummary"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Trophy",
+            "Star"
+          ]
+        }
+      ],
+      "exports": [
+        "dynamic",
+        "LobbyPage"
+      ],
+      "totalLines": 186,
+      "hasStructuralAnalysis": true
+    },
+    "app/globals.css": {
+      "filePath": "app/globals.css",
+      "contentHash": "0b58005146948b8da39b8e70337a7be1c5f1a7956d798bc9698dba0d12b7443e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 307,
+      "hasStructuralAnalysis": false
+    },
+    "app/layout.tsx": {
+      "filePath": "app/layout.tsx",
+      "contentHash": "47b617df86aadeee9d2669777a45e9cb0054b2344dc8c5452d3e7d4e3adf7d37",
+      "functions": [
+        {
+          "name": "RootLayout",
+          "params": [
+            "{\n  children,\n}"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "Metadata"
+          ]
+        },
+        {
+          "source": "next/font/google",
+          "specifiers": [
+            "Oswald",
+            "Lora",
+            "Special_Elite"
+          ]
+        },
+        {
+          "source": "./globals.css",
+          "specifiers": []
+        }
+      ],
+      "exports": [
+        "metadata",
+        "RootLayout"
+      ],
+      "totalLines": 47,
+      "hasStructuralAnalysis": true
+    },
+    "docs/FOOTBALL_LIFE_PROJECT_WIKI.md": {
+      "filePath": "docs/FOOTBALL_LIFE_PROJECT_WIKI.md",
+      "contentHash": "5b52cfd1626400d8f5240e6677c5940a735649b2489cdb48dc6eba30100660d0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 609,
+      "hasStructuralAnalysis": true
+    },
+    "docs/Football_Life_Project_Planning_Document.md": {
+      "filePath": "docs/Football_Life_Project_Planning_Document.md",
+      "contentHash": "32d7f04f3255b2e266d715456f6b9790e3ca5ab6beeb99d604dba76ed5e1c28b",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 188,
+      "hasStructuralAnalysis": true
+    },
+    "docs/ai-agent-rules.md": {
+      "filePath": "docs/ai-agent-rules.md",
+      "contentHash": "149f4446b2ea2632a72533ffe80ad06d55d4e8fa3f93eee7d7f8e1bcdeb7b787",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 159,
+      "hasStructuralAnalysis": true
+    },
+    "docs/api-integration.md": {
+      "filePath": "docs/api-integration.md",
+      "contentHash": "2a165f099cde75f65c3788577e7d51b881cfcdc0ac8bab342b58779b1c66c84e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 486,
+      "hasStructuralAnalysis": true
+    },
+    "docs/architecture.md": {
+      "filePath": "docs/architecture.md",
+      "contentHash": "4ebcc51a6aed622a7c8756a3e2dab6f8e1801f1fb14965a59ca186f40d038e22",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 106,
+      "hasStructuralAnalysis": true
+    },
+    "docs/auth-implementation-plan.md": {
+      "filePath": "docs/auth-implementation-plan.md",
+      "contentHash": "48b95044be854a3d66fa15c3df5de1cea3e0ed486237b4d63537bd1f6a196c64",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 489,
+      "hasStructuralAnalysis": true
+    },
+    "docs/auth-ui-plan.md": {
+      "filePath": "docs/auth-ui-plan.md",
+      "contentHash": "ec663aa06742c329d6042fae66d6bf8857a029e2b6aace7ee755c41737006ee0",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 348,
+      "hasStructuralAnalysis": true
+    },
+    "docs/ballon-dor-wheel-plan.md": {
+      "filePath": "docs/ballon-dor-wheel-plan.md",
+      "contentHash": "5b6edbd06459f48bd4692541b24d7cb407facd244d2c586e2b8b1d752cbe43be",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 299,
+      "hasStructuralAnalysis": true
+    },
+    "docs/career-resume-plan.md": {
+      "filePath": "docs/career-resume-plan.md",
+      "contentHash": "a1fcd5850cf5470d730a44f3dee3f1f403d311ebbc741da25058e42963d38c04",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 350,
+      "hasStructuralAnalysis": true
+    },
+    "docs/code-review-findings.md": {
+      "filePath": "docs/code-review-findings.md",
+      "contentHash": "a88d19f1fb744586e1af578bd82149534b7a9b1238072fee0e1b083be78f0edb",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 204,
+      "hasStructuralAnalysis": true
+    },
+    "docs/core-growth-logic-review.md": {
+      "filePath": "docs/core-growth-logic-review.md",
+      "contentHash": "7d15df9e7921c2bc57d1bc5bed6ba6d4c79105126d7d61824252132d6655e30e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 555,
+      "hasStructuralAnalysis": true
+    },
+    "docs/environment-variables.md": {
+      "filePath": "docs/environment-variables.md",
+      "contentHash": "ad1a25df22a01619a32f3bb8a5f4d2fbfcd4c91ef493279d16e6d5d55690746d",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 84,
+      "hasStructuralAnalysis": true
+    },
+    "docs/frontend-style-system-guide.md": {
+      "filePath": "docs/frontend-style-system-guide.md",
+      "contentHash": "83c523bbc2aa57443ff733f915e605d6227ba1d2257554621b3b772186ad6410",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 1006,
+      "hasStructuralAnalysis": true
+    },
+    "docs/game-design.md": {
+      "filePath": "docs/game-design.md",
+      "contentHash": "b7530776b37277179b69c12badbce22f9a78cd3ae51297614940c228c18f6bae",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 820,
+      "hasStructuralAnalysis": true
+    },
+    "docs/loading-agent-guide.md": {
+      "filePath": "docs/loading-agent-guide.md",
+      "contentHash": "1828389d29b6f70a6f0f6f6fbc10956bb4476aebdf36ff13513c8b95d56a39d4",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 172,
+      "hasStructuralAnalysis": true
+    },
+    "docs/modal-agent-guide.md": {
+      "filePath": "docs/modal-agent-guide.md",
+      "contentHash": "76dc082b9812b4eddeb16e36eec8da2549951379b54e161dbd0bbede8b9f7445",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 357,
+      "hasStructuralAnalysis": true
+    },
+    "docs/module-boundaries.md": {
+      "filePath": "docs/module-boundaries.md",
+      "contentHash": "dcb438b7e181bd7958f819c507971d368e12d6066acd01a91f969e9280b1942e",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 301,
+      "hasStructuralAnalysis": true
+    },
+    "docs/remove-events-plan.md": {
+      "filePath": "docs/remove-events-plan.md",
+      "contentHash": "745d52151a21ce2044756c028a4aaaf38f72ac8b1ce5f6f1068ea2d53d035fdc",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 229,
+      "hasStructuralAnalysis": true
+    },
+    "docs/season-profile-modal-plan.md": {
+      "filePath": "docs/season-profile-modal-plan.md",
+      "contentHash": "38d1fcc8a604efe41ca0814bdbf20d9b9ae0c3cf319055d246623e28e1bc43fa",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 312,
+      "hasStructuralAnalysis": true
+    },
+    "docs/security-checklist.md": {
+      "filePath": "docs/security-checklist.md",
+      "contentHash": "6c5940c9e154e0f573e38c1f71f56e6bd0252598ee4cb5256b40364686af9257",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 93,
+      "hasStructuralAnalysis": true
+    },
+    "docs/source-code-architecture-guide.md": {
+      "filePath": "docs/source-code-architecture-guide.md",
+      "contentHash": "4133ffc80a3204f0fe664d1dcdf262b3e1ca0324f0679c0b3f78a26ae86d2c7f",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 833,
+      "hasStructuralAnalysis": true
+    },
+    "docs/state-management.md": {
+      "filePath": "docs/state-management.md",
+      "contentHash": "f7385a98bbb91bb682485aaee4e2bd6dfa5942e9e597dc581657bfa432f00948",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 405,
+      "hasStructuralAnalysis": true
+    },
+    "docs/ui-plan/implementation-roadmap.md": {
+      "filePath": "docs/ui-plan/implementation-roadmap.md",
+      "contentHash": "d9cf1baf7cff3c6e2087efa83e51a3f6d0d012cd5003421e1b9157fbf32f1514",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 92,
+      "hasStructuralAnalysis": true
+    },
+    "docs/ui-ux-flow.md": {
+      "filePath": "docs/ui-ux-flow.md",
+      "contentHash": "4c18c2544b44f4a55ba4167812afd22cd2eb3c4aad1980c6f1cfb0f91afb3d77",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 127,
+      "hasStructuralAnalysis": true
+    },
+    "eslint.config.mjs": {
+      "filePath": "eslint.config.mjs",
+      "contentHash": "9af135c81ad0b0f4d1b91dd34b9338f15eda69e4f2df0120f5440061a4c1ad18",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "path",
+          "specifiers": [
+            "dirname"
+          ]
+        },
+        {
+          "source": "url",
+          "specifiers": [
+            "fileURLToPath"
+          ]
+        },
+        {
+          "source": "@eslint/eslintrc",
+          "specifiers": [
+            "FlatCompat"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 90,
+      "hasStructuralAnalysis": true
+    },
+    "features/auth/components/LogoutButton.tsx": {
+      "filePath": "features/auth/components/LogoutButton.tsx",
+      "contentHash": "9071c4c7086ce3e5fcca655c44290bb3481cca91affcf17ab5b778bb2b8bff05",
+      "functions": [
+        {
+          "name": "LogoutButton",
+          "params": [],
+          "exported": true,
+          "lineCount": 39
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "LogOut"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/client",
+          "specifiers": [
+            "createClient"
+          ]
+        }
+      ],
+      "exports": [
+        "LogoutButton"
+      ],
+      "totalLines": 46,
+      "hasStructuralAnalysis": true
+    },
+    "features/career/services/career-setup.service.ts": {
+      "filePath": "features/career/services/career-setup.service.ts",
+      "contentHash": "ea94f0eef4e4c1998384a1d804e809411c3d19f98b5e055176be3a06d979125e",
+      "functions": [
+        {
+          "name": "startPlayerCareerService",
+          "params": [
+            "draftData",
+            "clubPrestige",
+            "clubContinentalType"
+          ],
+          "returnType": "CareerSetupResult",
+          "exported": true,
+          "lineCount": 47
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/name-gen",
+          "specifiers": [
+            "generateFictionalName"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveRandomInt",
+            "resolveRandom"
+          ]
+        }
+      ],
+      "exports": [
+        "startPlayerCareerService"
+      ],
+      "totalLines": 102,
+      "hasStructuralAnalysis": true
+    },
+    "features/game/actions/createGameSession.ts": {
+      "filePath": "features/game/actions/createGameSession.ts",
+      "contentHash": "66c897392675c73f289ee48c7f716545c29f39e7682b2fe744758258648d9c1a",
+      "functions": [
+        {
+          "name": "createGameSession",
+          "params": [
+            "formData"
+          ],
+          "returnType": "Promise<CreateGameResult>",
+          "exported": true,
+          "lineCount": 46
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "redirect"
+          ]
+        },
+        {
+          "source": "@/lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        },
+        {
+          "source": "@/lib/supabase/server",
+          "specifiers": [
+            "createClient"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "createGameSchema",
+            "CreateGameResult"
+          ]
+        }
+      ],
+      "exports": [
+        "createGameSession"
+      ],
+      "totalLines": 64,
+      "hasStructuralAnalysis": true
+    },
+    "features/game/components/CreateGameDialog.tsx": {
+      "filePath": "features/game/components/CreateGameDialog.tsx",
+      "contentHash": "dfa036d1f86f51327aabeb4153641f43295c0c14187cea70ed26e657796fefc2",
+      "functions": [
+        {
+          "name": "CreateGameDialog",
+          "params": [],
+          "exported": true,
+          "lineCount": 245
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState",
+            "useTransition"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "X",
+            "Plus",
+            "Loader2"
+          ]
+        },
+        {
+          "source": "framer-motion",
+          "specifiers": [
+            "motion",
+            "AnimatePresence"
+          ]
+        },
+        {
+          "source": "@/features/game/actions/createGameSession",
+          "specifiers": [
+            "createGameSession"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "FORMATIONS",
+            "Formation"
+          ]
+        }
+      ],
+      "exports": [
+        "CreateGameDialog"
+      ],
+      "totalLines": 268,
+      "hasStructuralAnalysis": true
+    },
+    "features/game/components/GameList.tsx": {
+      "filePath": "features/game/components/GameList.tsx",
+      "contentHash": "ca138d880eb865f7b4db586a5bd73c704d2da90221c4780580c530725be7fcd5",
+      "functions": [
+        {
+          "name": "formatDate",
+          "params": [
+            "date"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "EmptyState",
+          "params": [],
+          "exported": false,
+          "lineCount": 57
+        },
+        {
+          "name": "SquadCard",
+          "params": [
+            "{ session, index }"
+          ],
+          "exported": false,
+          "lineCount": 149
+        },
+        {
+          "name": "GameList",
+          "params": [
+            "{ sessions }"
+          ],
+          "exported": true,
+          "lineCount": 13
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "useRouter"
+          ]
+        },
+        {
+          "source": "framer-motion",
+          "specifiers": [
+            "motion"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Trophy",
+            "Users",
+            "Calendar",
+            "ChevronRight"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "GameSessionSummary"
+          ]
+        }
+      ],
+      "exports": [
+        "GameList"
+      ],
+      "totalLines": 262,
+      "hasStructuralAnalysis": true
+    },
+    "features/player/components/PlayerCareerDialog.tsx": {
+      "filePath": "features/player/components/PlayerCareerDialog.tsx",
+      "contentHash": "12a182209bf7478792a4c35b6e4fa5549a16881850aaab55e37c4c2fa4896daa",
+      "functions": [
+        {
+          "name": "PlayerCareerDialog",
+          "params": [
+            "{ player, isOpen, onClose }"
+          ],
+          "exported": true,
+          "lineCount": 325
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React",
+            "useMemo"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "X",
+            "CalendarDays",
+            "Sparkles"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "ClientSafePlayer"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "RARITY_ACCENT"
+          ]
+        },
+        {
+          "source": "./PlayerOvrChart",
+          "specifiers": [
+            "PlayerOvrChart"
+          ]
+        },
+        {
+          "source": "./PlayerStickerCard",
+          "specifiers": [
+            "PlayerStickerCard"
+          ]
+        }
+      ],
+      "exports": [
+        "PlayerCareerDialog"
+      ],
+      "totalLines": 341,
+      "hasStructuralAnalysis": true
+    },
+    "features/player/components/PlayerOvrChart.tsx": {
+      "filePath": "features/player/components/PlayerOvrChart.tsx",
+      "contentHash": "8d22ee9fb4c6255e56b3b1d5f5658646cd2e8828928b97d2ea2eda9271189a9f",
+      "functions": [
+        {
+          "name": "PlayerOvrChart",
+          "params": [
+            "{\n  statsTimeline,\n  debutAge,\n  retireAge,\n  peakOvr,\n}"
+          ],
+          "exported": true,
+          "lineCount": 169
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React",
+            "useMemo"
+          ]
+        }
+      ],
+      "exports": [
+        "PlayerOvrChart"
+      ],
+      "totalLines": 181,
+      "hasStructuralAnalysis": true
+    },
+    "features/player/components/PlayerStickerCard.tsx": {
+      "filePath": "features/player/components/PlayerStickerCard.tsx",
+      "contentHash": "090a3804ed4228c98e58fca8cfdfccb5088757fe0db9af197ba49802e59e0f51",
+      "functions": [
+        {
+          "name": "PlayerStickerCard",
+          "params": [
+            "{\n  player,\n  finalClub,\n  debutAge,\n  retireAge,\n  careerLength,\n  rarityColor,\n}"
+          ],
+          "exported": true,
+          "lineCount": 149
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Trophy"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "ClientSafePlayer"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "getFlagEmoji"
+          ]
+        }
+      ],
+      "exports": [
+        "PlayerStickerCard"
+      ],
+      "totalLines": 166,
+      "hasStructuralAnalysis": true
+    },
+    "features/player/services/stats-evolution.service.ts": {
+      "filePath": "features/player/services/stats-evolution.service.ts",
+      "contentHash": "065a96fee94e201dd7168a8d214df388eb3d71d6b91c344a93885638c2adbe16",
+      "functions": [
+        {
+          "name": "evolvePlayerStatsService",
+          "params": [
+            "params"
+          ],
+          "returnType": "StatsEvolutionResult",
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "calculateOvrByPosition"
+          ]
+        }
+      ],
+      "exports": [
+        "evolvePlayerStatsService"
+      ],
+      "totalLines": 38,
+      "hasStructuralAnalysis": true
+    },
+    "features/season/services/cup-journey.service.ts": {
+      "filePath": "features/season/services/cup-journey.service.ts",
+      "contentHash": "0ed46455ad3116c511824f70bbe1948afa672b340f6893ff1a3d49dae4480a50",
+      "functions": [
+        {
+          "name": "generateCupScore",
+          "params": [
+            "isWinner",
+            "playerPrestige",
+            "oppPrestige"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 31
+        },
+        {
+          "name": "generateDomesticCupJourneyService",
+          "params": [
+            "params"
+          ],
+          "returnType": "string[]",
+          "exported": true,
+          "lineCount": 71
+        },
+        {
+          "name": "generateContinentalCupJourneyService",
+          "params": [
+            "params"
+          ],
+          "returnType": "string[]",
+          "exported": true,
+          "lineCount": 67
+        },
+        {
+          "name": "generateNationalTeamJourneyService",
+          "params": [
+            "params"
+          ],
+          "returnType": "string[]",
+          "exported": true,
+          "lineCount": 59
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveRandom",
+            "resolveRandomInt"
+          ]
+        }
+      ],
+      "exports": [
+        "generateCupScore",
+        "generateDomesticCupJourneyService",
+        "generateContinentalCupJourneyService",
+        "generateNationalTeamJourneyService"
+      ],
+      "totalLines": 251,
+      "hasStructuralAnalysis": true
+    },
+    "features/season/services/season-simulator.service.ts": {
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "contentHash": "46307b1f5081260ea5383b6724332a4ed2fa0892db2b7caacf6c1c08bdf72249",
+      "functions": [
+        {
+          "name": "getCupMatches",
+          "params": [
+            "result"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "getContinentalMatches",
+          "params": [
+            "result"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "getNationalMatches",
+          "params": [
+            "callup",
+            "result"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 9
+        },
+        {
+          "name": "getStandingBonus",
+          "params": [
+            "standing"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "calcAttackStats",
+          "params": [
+            "position",
+            "ovr",
+            "playFactor",
+            "apps"
+          ],
+          "returnType": "{ goals: number; assists: number; cleanSheets: number }",
+          "exported": false,
+          "lineCount": 37
+        },
+        {
+          "name": "calcCleanSheets",
+          "params": [
+            "position",
+            "ovr",
+            "clubPrestige",
+            "baseLeagueMatches",
+            "playFactor"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "calcRating",
+          "params": [
+            "position",
+            "ovr",
+            "luckRating",
+            "compStats",
+            "standingBonus"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 26
+        },
+        {
+          "name": "calcTrophyScore",
+          "params": [
+            "standing",
+            "clubPrestige",
+            "domesticCup",
+            "continentalResult",
+            "continentalType",
+            "nationalResult",
+            "nationalType"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "calcBallonDorEligibility",
+          "params": [
+            "ovr",
+            "position",
+            "matchRating",
+            "totalGoals",
+            "standing",
+            "clubPrestige",
+            "domesticCup",
+            "continentalResult",
+            "continentalType",
+            "nationalResult",
+            "nationalType"
+          ],
+          "returnType": "BallonDorEligibility",
+          "exported": false,
+          "lineCount": 51
+        },
+        {
+          "name": "calcRankTrophyBonus",
+          "params": [
+            "continentalResult",
+            "continentalType",
+            "nationalResult",
+            "nationalType",
+            "standing",
+            "clubPrestige"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 14
+        },
+        {
+          "name": "getRankWeights",
+          "params": [
+            "rankScore"
+          ],
+          "returnType": "number[]",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "simulatePlayerSeasonService",
+          "params": [
+            "input"
+          ],
+          "returnType": "SimulatedSeasonResult",
+          "exported": true,
+          "lineCount": 136
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "getNationalTier"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveRandom",
+            "resolveRandomFloat"
+          ]
+        }
+      ],
+      "exports": [
+        "simulatePlayerSeasonService"
+      ],
+      "totalLines": 441,
+      "hasStructuralAnalysis": true
+    },
+    "features/season/services/table-simulator.service.ts": {
+      "filePath": "features/season/services/table-simulator.service.ts",
+      "contentHash": "9dd5cf0aa5323641350eab647ea06139912d3af227cd19905dd50a0d3218829d",
+      "functions": [
+        {
+          "name": "simulateDynamicLeagueTableService",
+          "params": [
+            "playerStanding",
+            "playerClubName",
+            "currentLeagueClubs"
+          ],
+          "returnType": "TableRow[]",
+          "exported": true,
+          "lineCount": 74
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveRandomFloat",
+            "resolveRandomInt"
+          ]
+        }
+      ],
+      "exports": [
+        "simulateDynamicLeagueTableService"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "features/squad/components/PitchBoard.tsx": {
+      "filePath": "features/squad/components/PitchBoard.tsx",
+      "contentHash": "b5257388d8d4e11b1f160857112215515fa6a3d71021c0efd5111dc439ef9986",
+      "functions": [
+        {
+          "name": "PitchSVG",
+          "params": [],
+          "exported": false,
+          "lineCount": 62
+        },
+        {
+          "name": "EmptySlot",
+          "params": [
+            "{ position, onClick }"
+          ],
+          "exported": false,
+          "lineCount": 41
+        },
+        {
+          "name": "InProgressSlot",
+          "params": [
+            "{ position, onClick }"
+          ],
+          "exported": false,
+          "lineCount": 39
+        },
+        {
+          "name": "FilledSlot",
+          "params": [
+            "{ player, onClick, disabled }"
+          ],
+          "exported": false,
+          "lineCount": 55
+        },
+        {
+          "name": "PitchBoard",
+          "params": [
+            "{ gameId, formation, players, status, inProgressSlots = [], onPlayerClick }"
+          ],
+          "exported": true,
+          "lineCount": 75
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "useRouter"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "Formation"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "FORMATION_SLOTS",
+            "getFlagEmoji",
+            "ClientSafePlayer"
+          ]
+        }
+      ],
+      "exports": [
+        "PitchBoard"
+      ],
+      "totalLines": 329,
+      "hasStructuralAnalysis": true
+    },
+    "features/squad/components/SquadDashboard.tsx": {
+      "filePath": "features/squad/components/SquadDashboard.tsx",
+      "contentHash": "7e08f37802d4ceb7a83e8e94119437e23b591055982da7cdb6f516fb974f6f2e",
+      "functions": [
+        {
+          "name": "SquadDashboard",
+          "params": [
+            "{\n  gameId,\n  formation,\n  status,\n  squadRating,\n  players,\n  slots,\n  inProgressSlots = [],\n}"
+          ],
+          "exported": true,
+          "lineCount": 283
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "React",
+            "useState"
+          ]
+        },
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "next/navigation",
+          "specifiers": [
+            "useRouter"
+          ]
+        },
+        {
+          "source": "./PitchBoard",
+          "specifiers": [
+            "PitchBoard"
+          ]
+        },
+        {
+          "source": "@/features/player/components/PlayerCareerDialog",
+          "specifiers": [
+            "PlayerCareerDialog"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "ClientSafePlayer",
+            "SlotConfig"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "Formation"
+          ]
+        },
+        {
+          "source": "@/actions/season.actions",
+          "specifiers": [
+            "completeGameSession"
+          ]
+        }
+      ],
+      "exports": [
+        "SquadDashboard"
+      ],
+      "totalLines": 305,
+      "hasStructuralAnalysis": true
+    },
+    "features/transfer/services/transfer.service.ts": {
+      "filePath": "features/transfer/services/transfer.service.ts",
+      "contentHash": "2da0b49666488ce7dcb0802fdad770117c29a46beb875150d8d19eb5cbeb87b9",
+      "functions": [
+        {
+          "name": "generateTransferOfferService",
+          "params": [
+            "params"
+          ],
+          "returnType": "TransferOfferResult",
+          "exported": true,
+          "lineCount": 60
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveRandom",
+            "resolveRandomInt"
+          ]
+        }
+      ],
+      "exports": [
+        "generateTransferOfferService"
+      ],
+      "totalLines": 81,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/CareerActionsPanel.tsx": {
+      "filePath": "features/wheel/components/CareerActionsPanel.tsx",
+      "contentHash": "8d123c20c1c8548e2bda37bcea530483819d7a87de7bbb9444ebcf929a9ec9c9",
+      "functions": [
+        {
+          "name": "CareerActionsPanel",
+          "params": [
+            "{\n  careerSubStep,\n  currentAge,\n  playerDebutAge,\n  currentClub,\n  currentContinentalCup,\n  careerSpinning,\n  isProcessing,\n  careerWheelItems,\n  careerTargetIndex,\n  handleCareerSpinComplete,\n  careerTempValue,\n  handleCareerSpin,\n  handleStartSeason,\n  transferOffer,\n  handleAcceptTransfer,\n  yearSimResult,\n  standingResult,\n  domesticCupResult,\n  continentalCupResult,\n  hasBallonDorWinner,\n  handleNextSeason,\n  position,\n  selectorIndex,\n  yearEvolutionCount,\n  tempSelectedStat,\n}"
+          ],
+          "exported": true,
+          "lineCount": 179
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Dices",
+            "Globe",
+            "Sparkles"
+          ]
+        },
+        {
+          "source": "./SpinnerWheel",
+          "specifiers": [
+            "SpinnerWheel"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getSeasonYearString",
+            "getContinentalCupLabel"
+          ]
+        }
+      ],
+      "exports": [
+        "CareerActionsPanel"
+      ],
+      "totalLines": 214,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/DraftDrumScreen.tsx": {
+      "filePath": "features/wheel/components/DraftDrumScreen.tsx",
+      "contentHash": "241e6c0690ee346b2632db579f67fdea8832ba855655bc74520de1063fe64e4d",
+      "functions": [
+        {
+          "name": "DraftDrumScreen",
+          "params": [
+            "{ gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup }"
+          ],
+          "exported": true,
+          "lineCount": 267
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next/link",
+          "specifiers": [
+            "Link"
+          ]
+        },
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "ArrowLeft"
+          ]
+        },
+        {
+          "source": "../hooks/useDraftDrum",
+          "specifiers": [
+            "useDraftDrum"
+          ]
+        },
+        {
+          "source": "./SetupStage",
+          "specifiers": [
+            "SetupStage"
+          ]
+        },
+        {
+          "source": "./CareerActionsPanel",
+          "specifiers": [
+            "CareerActionsPanel"
+          ]
+        },
+        {
+          "source": "./SeasonProfile",
+          "specifiers": [
+            "SeasonProfile"
+          ]
+        },
+        {
+          "source": "./PaniniSticker",
+          "specifiers": [
+            "PaniniSticker"
+          ]
+        },
+        {
+          "source": "./RetiredStage",
+          "specifiers": [
+            "RetiredStage"
+          ]
+        },
+        {
+          "source": "./SeasonResultModal",
+          "specifiers": [
+            "SeasonResultModal"
+          ]
+        },
+        {
+          "source": "./SeasonStatsModal",
+          "specifiers": [
+            "SeasonStatsModal"
+          ]
+        }
+      ],
+      "exports": [
+        "DraftDrumScreen"
+      ],
+      "totalLines": 291,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/PaniniSticker.tsx": {
+      "filePath": "features/wheel/components/PaniniSticker.tsx",
+      "contentHash": "5a57e55b5917874e66f8b6505f928054a0c28c3cf197d4e44972c6203c21e043",
+      "functions": [
+        {
+          "name": "getContinentalCupLabel",
+          "params": [
+            "cupType"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "getSeasonYearString",
+          "params": [
+            "age",
+            "debutAge"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "PaniniSticker",
+          "params": [
+            "{\n  playerName,\n  position,\n  playerNationality,\n  currentOvr,\n  currentAge,\n  playerDebutAge,\n  playerCareerLength,\n  currentContinentalCup,\n  standingResult,\n  domesticCupResult,\n  continentalCupResult,\n  nationalCallupResult,\n  nationalTournamentResult,\n  hasBallonDorWinner,\n  currentStats,\n  evolvedStatsThisYear,\n  currentClubName,\n  cleanSheets,\n}"
+          ],
+          "exported": true,
+          "lineCount": 114
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "getFlagEmoji"
+          ]
+        }
+      ],
+      "exports": [
+        "PaniniSticker"
+      ],
+      "totalLines": 159,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/RetiredStage.tsx": {
+      "filePath": "features/wheel/components/RetiredStage.tsx",
+      "contentHash": "7bc0f292e68e7d4d1ca8958d4763ddab2f2c6447cfaa00e1899281ce5758df2b",
+      "functions": [
+        {
+          "name": "RetiredStage",
+          "params": [
+            "{\n  position,\n  playerNationality,\n  peakOvrValue,\n  playerName,\n  careerTotalStats,\n  clubStints,\n  achievements,\n  isSaving,\n  handleSavePlayer,\n}"
+          ],
+          "exported": true,
+          "lineCount": 110
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Trophy",
+            "RefreshCw"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "getFlagEmoji"
+          ]
+        }
+      ],
+      "exports": [
+        "RetiredStage"
+      ],
+      "totalLines": 128,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/SeasonProfile.tsx": {
+      "filePath": "features/wheel/components/SeasonProfile.tsx",
+      "contentHash": "a4e714ddd29f89ea2a49cc354a07e004c12f67ec6c397b83a8e96881a00a3610",
+      "functions": [
+        {
+          "name": "getLeagueResultLabel",
+          "params": [
+            "standing"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 6
+        },
+        {
+          "name": "getCupResultLabel",
+          "params": [
+            "result"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "SeasonProfile",
+          "params": [
+            "{\n  seasonRecords,\n  currentAge,\n  playerDebutAge,\n  selectedAgeForStats,\n  setSelectedAgeForStats,\n  position,\n  onOpenModal,\n}"
+          ],
+          "exported": true,
+          "lineCount": 134
+        },
+        {
+          "name": "StatusRow",
+          "params": [
+            "{\n  icon,\n  label,\n  result,\n  hasResult,\n  isChampion,\n  isNational,\n  onClick,\n}"
+          ],
+          "exported": false,
+          "lineCount": 66
+        },
+        {
+          "name": "StatusRowInactive",
+          "params": [
+            "{ icon, label, note }"
+          ],
+          "exported": false,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Calendar",
+            "ChevronRight"
+          ]
+        },
+        {
+          "source": "../hooks/useDraftDrum",
+          "specifiers": [
+            "ModalType"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "SeasonRecord"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getDomesticCupName",
+            "getContinentalCupLabel",
+            "getSeasonYearString"
+          ]
+        }
+      ],
+      "exports": [
+        "SeasonProfile"
+      ],
+      "totalLines": 255,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/SeasonResultModal.tsx": {
+      "filePath": "features/wheel/components/SeasonResultModal.tsx",
+      "contentHash": "6ed0a81dcc38cb189cf156456d8a542a6ca7fd11f0a12faed26f321d2a6c3181",
+      "functions": [
+        {
+          "name": "getCupResultLabel",
+          "params": [
+            "result"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "StatsBar",
+          "params": [
+            "{ stats, position }"
+          ],
+          "exported": false,
+          "lineCount": 32
+        },
+        {
+          "name": "SeasonResultModal",
+          "params": [
+            "{ type, record, currentContinentalCup, playerDebutAge, onClose }"
+          ],
+          "exported": true,
+          "lineCount": 134
+        },
+        {
+          "name": "Overlay",
+          "params": [
+            "{ children, onClose }"
+          ],
+          "exported": false,
+          "lineCount": 31
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "X"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "SeasonRecord",
+            "CompetitionStats"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getDomesticCupName",
+            "getContinentalCupLabel"
+          ]
+        }
+      ],
+      "exports": [
+        "SeasonResultModal"
+      ],
+      "totalLines": 224,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/SeasonStatsModal.tsx": {
+      "filePath": "features/wheel/components/SeasonStatsModal.tsx",
+      "contentHash": "3c40893dba519f9032409834c6c0706d1fcf196c687fcf0cca15d4e6170555bb",
+      "functions": [
+        {
+          "name": "MiniStatRow",
+          "params": [
+            "{ label, value, highlight }"
+          ],
+          "exported": false,
+          "lineCount": 8
+        },
+        {
+          "name": "CompRow",
+          "params": [
+            "{ icon, label, stats, result }"
+          ],
+          "exported": false,
+          "lineCount": 31
+        },
+        {
+          "name": "getCupResultShort",
+          "params": [
+            "result"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 7
+        },
+        {
+          "name": "SeasonStatsModal",
+          "params": [
+            "{ record, yearSimResult, currentContinentalCup, onClose }"
+          ],
+          "exported": true,
+          "lineCount": 149
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "X",
+            "ChevronRight"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "SeasonRecord",
+            "CompetitionStats"
+          ]
+        },
+        {
+          "source": "@/features/season/services/season-simulator.service",
+          "specifiers": [
+            "SimulatedSeasonResult"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getDomesticCupName",
+            "getContinentalCupLabel"
+          ]
+        }
+      ],
+      "exports": [
+        "SeasonStatsModal"
+      ],
+      "totalLines": 213,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/SetupStage.tsx": {
+      "filePath": "features/wheel/components/SetupStage.tsx",
+      "contentHash": "5ba2f65536c415595f8d72251fa9e09158123ad9bf964aeaee53582749a98995",
+      "functions": [
+        {
+          "name": "SetupStage",
+          "params": [
+            "{\n  activeStep,\n  isSpinning,\n  wheelItems,\n  targetIndex,\n  handleSetupSpinComplete,\n  tempValue,\n  handleSetupSpin,\n  handleStartCareer,\n  isProcessing,\n  draftData,\n  position,\n  STEP_LABELS,\n}"
+          ],
+          "exported": true,
+          "lineCount": 155
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "lucide-react",
+          "specifiers": [
+            "Dices",
+            "Sparkles"
+          ]
+        },
+        {
+          "source": "./SpinnerWheel",
+          "specifiers": [
+            "SpinnerWheel"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "getFlagEmoji"
+          ]
+        }
+      ],
+      "exports": [
+        "SetupStage"
+      ],
+      "totalLines": 177,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/SpinnerWheel.tsx": {
+      "filePath": "features/wheel/components/SpinnerWheel.tsx",
+      "contentHash": "b2bc2a0cc4fd3a89f852b5c7b62c8865a5ad65837aadfe1aaa4c7aced70a3c53",
+      "functions": [
+        {
+          "name": "computeArcs",
+          "params": [
+            "items"
+          ],
+          "exported": false,
+          "lineCount": 11
+        },
+        {
+          "name": "getLabelAtAngle",
+          "params": [
+            "pointerAngle",
+            "items",
+            "startAngles",
+            "arcSizes"
+          ],
+          "returnType": "string",
+          "exported": false,
+          "lineCount": 15
+        },
+        {
+          "name": "SpinnerWheel",
+          "params": [
+            "{ isSpinning, items, targetIndex, onSpinComplete }"
+          ],
+          "exported": true,
+          "lineCount": 192
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "framer-motion",
+          "specifiers": [
+            "motion",
+            "useMotionValue",
+            "animate"
+          ]
+        },
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState",
+            "useMemo"
+          ]
+        }
+      ],
+      "exports": [
+        "SpinnerWheel"
+      ],
+      "totalLines": 266,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/hooks/useCareerStats.ts": {
+      "filePath": "features/wheel/hooks/useCareerStats.ts",
+      "contentHash": "ba20f6b8bd967f9de50f50a0de0634b2cbca990d08252be80a54c0d76aa3b147",
+      "functions": [
+        {
+          "name": "useCareerStats",
+          "params": [
+            "{ gameId, slotIndex, position }"
+          ],
+          "exported": true,
+          "lineCount": 367
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState",
+            "useMemo"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "SeasonRecord"
+          ]
+        },
+        {
+          "source": "@/features/season/services/season-simulator.service",
+          "specifiers": [
+            "SimulatedSeasonResult"
+          ]
+        },
+        {
+          "source": "@/actions/player.actions",
+          "specifiers": [
+            "saveCareerPlayer"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "getNationalContinentalCup"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "calculateContinentalQualification",
+            "getContinentalCupLabel",
+            "getDomesticCupName"
+          ]
+        }
+      ],
+      "exports": [
+        "useCareerStats"
+      ],
+      "totalLines": 387,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/hooks/useCareerWheelItems.ts": {
+      "filePath": "features/wheel/hooks/useCareerWheelItems.ts",
+      "contentHash": "4f6213881f4c2828ad27e2f166d9b50232c48bcb02d0ea39dea6e5cbd3449606",
+      "functions": [
+        {
+          "name": "useCareerWheelItems",
+          "params": [
+            "{\n  careerSubStep,\n  isMounted,\n  mode,\n  currentContinentalCup,\n  currentAge,\n  playerDebutAge,\n  playerCareerLength,\n  playerNationality,\n  currentClub,\n  currentOvr,\n  leagueSize,\n  lastYearStanding,\n  selectedStatsList,\n  position,\n  yearSimResult,\n  selectorIndex,\n  yearEvolutionDirection,\n  currentStats,\n  ballonDorNominationWeight,\n  ballonDorRankWeights,\n}"
+          ],
+          "exported": true,
+          "lineCount": 209
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "getNationalContinentalCup",
+            "getNationalTier",
+            "getMainStatsByPosition"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getStandingWheelPool",
+            "getContinentalCupLabel",
+            "getGrowthTier",
+            "getIncreaseGateWeight",
+            "getDecreaseGateWeight",
+            "getCountPool",
+            "getCountPoolBoosted",
+            "getMagnitudePool",
+            "getMagnitudePoolBoosted",
+            "getMagnitudeTierForDirection",
+            "getAgeProgressThresholds",
+            "getCareerProgress",
+            "getGrowthBoost"
+          ]
+        }
+      ],
+      "exports": [
+        "useCareerWheelItems"
+      ],
+      "totalLines": 253,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/hooks/useCompetitionFlow.ts": {
+      "filePath": "features/wheel/hooks/useCompetitionFlow.ts",
+      "contentHash": "cf3bfb28031bc5e6f3f2eb7c77a6dd0e5aa42f5142b11997215b17a9397a8ef6",
+      "functions": [
+        {
+          "name": "useCompetitionFlow",
+          "params": [
+            "p"
+          ],
+          "exported": true,
+          "lineCount": 211
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "getNationalContinentalCup"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getContinentalCupLabel"
+          ]
+        },
+        {
+          "source": "@/actions/season.actions",
+          "specifiers": [
+            "simulatePlayerSeasonAction",
+            "generateLeagueTableAction",
+            "generateCupJourneyAction"
+          ]
+        },
+        {
+          "source": "./useDraftDrum",
+          "specifiers": [
+            "ModalType"
+          ]
+        }
+      ],
+      "exports": [
+        "useCompetitionFlow"
+      ],
+      "totalLines": 253,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/hooks/useDraftDrum.ts": {
+      "filePath": "features/wheel/hooks/useDraftDrum.ts",
+      "contentHash": "a73df4d7562bcc847286c7dad2a59f5eab60e8c269c835801b4ef31f57fcb09e",
+      "functions": [
+        {
+          "name": "useDraftDrum",
+          "params": [
+            "gameId",
+            "slotIndex",
+            "position",
+            "leagues",
+            "clubs",
+            "savedPlayerId",
+            "savedContinentalCup"
+          ],
+          "exported": true,
+          "lineCount": 362
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useEffect",
+            "useRef",
+            "useState"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "getNationalContinentalCup"
+          ]
+        },
+        {
+          "source": "../lib/simulation-helpers",
+          "specifiers": [
+            "getSeasonYearString"
+          ]
+        },
+        {
+          "source": "../lib/career-wheel-resolver",
+          "specifiers": [
+            "getCareerWheelPoolAndValue"
+          ]
+        },
+        {
+          "source": "./useSetupStage",
+          "specifiers": [
+            "useSetupStage"
+          ]
+        },
+        {
+          "source": "./useCareerStats",
+          "specifiers": [
+            "useCareerStats"
+          ]
+        },
+        {
+          "source": "./useCareerWheelItems",
+          "specifiers": [
+            "useCareerWheelItems"
+          ]
+        },
+        {
+          "source": "./useCompetitionFlow",
+          "specifiers": [
+            "useCompetitionFlow"
+          ]
+        },
+        {
+          "source": "./useStatEvolutionFlow",
+          "specifiers": [
+            "useStatEvolutionFlow"
+          ]
+        },
+        {
+          "source": "../stores/useWheelUiStore",
+          "specifiers": [
+            "useWheelUiStore"
+          ]
+        },
+        {
+          "source": "@/actions/season.actions",
+          "specifiers": [
+            "startPlayerCareerAction",
+            "updateSeasonProgressAction"
+          ]
+        },
+        {
+          "source": "@/actions/player.actions",
+          "specifiers": [
+            "initCareerPlayerAction",
+            "getCareerPlayerAction"
+          ]
+        },
+        {
+          "source": "@/types/game",
+          "specifiers": [
+            "SeasonRecord",
+            "getStepLabels"
+          ]
+        },
+        {
+          "source": "@/features/season/services/season-simulator.service",
+          "specifiers": [
+            "SimulatedSeasonResult"
+          ]
+        }
+      ],
+      "exports": [
+        "useDraftDrum"
+      ],
+      "totalLines": 389,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/hooks/useSetupStage.ts": {
+      "filePath": "features/wheel/hooks/useSetupStage.ts",
+      "contentHash": "ba4e6b6f301d0eede5627579e0e22fe2f1e1b2245e623c58ec91b858db35b08a",
+      "functions": [
+        {
+          "name": "useSetupStage",
+          "params": [
+            "{ position, leagues, clubs, isMounted, mode }"
+          ],
+          "exported": true,
+          "lineCount": 181
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "react",
+          "specifiers": [
+            "useState",
+            "useEffect"
+          ]
+        },
+        {
+          "source": "../stores/useWheelUiStore",
+          "specifiers": [
+            "useWheelUiStore"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveWeightedOutcome"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "getFlagEmoji"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "NATIONALITY_POOL",
+            "DEBUT_AGE_POOL",
+            "CAREER_LENGTH_POOL",
+            "getLeagueWeights",
+            "getClubWeights",
+            "getDebutStatWeights",
+            "getHeightWeights",
+            "getWeightWeights"
+          ]
+        }
+      ],
+      "exports": [
+        "useSetupStage"
+      ],
+      "totalLines": 207,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/hooks/useStatEvolutionFlow.ts": {
+      "filePath": "features/wheel/hooks/useStatEvolutionFlow.ts",
+      "contentHash": "63cfe61b110a4ee7dd3bd535432d77ba9235644e4f71139805d7863e8f0c0a5c",
+      "functions": [
+        {
+          "name": "useStatEvolutionFlow",
+          "params": [
+            "p"
+          ],
+          "exported": true,
+          "lineCount": 115
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/actions/season.actions",
+          "specifiers": [
+            "evolvePlayerStatsAction",
+            "generateTransferOfferAction"
+          ]
+        }
+      ],
+      "exports": [
+        "useStatEvolutionFlow"
+      ],
+      "totalLines": 155,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/lib/career-wheel-resolver.ts": {
+      "filePath": "features/wheel/lib/career-wheel-resolver.ts",
+      "contentHash": "56aaf2c921808855f151253573305f5fc5718e271f720e17b0340fd9e3ae0d9e",
+      "functions": [
+        {
+          "name": "getCareerWheelPoolAndValue",
+          "params": [
+            "subStep",
+            "ctx"
+          ],
+          "exported": true,
+          "lineCount": 231
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@/lib/wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveWeightedOutcome"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "getNationalTier",
+            "getNationalContinentalCup",
+            "getMainStatsByPosition"
+          ]
+        },
+        {
+          "source": "@/types/squad",
+          "specifiers": [
+            "getFlagEmoji"
+          ]
+        },
+        {
+          "source": "./simulation-helpers",
+          "specifiers": [
+            "getStandingWheelPool",
+            "getContinentalCupLabel",
+            "getGrowthTier",
+            "getIncreaseGateWeight",
+            "getDecreaseGateWeight",
+            "getCountPool",
+            "getCountPoolBoosted",
+            "getMagnitudePool",
+            "getMagnitudePoolBoosted",
+            "getMagnitudeTierForDirection",
+            "getAgeProgressThresholds",
+            "getCareerProgress",
+            "getGrowthBoost"
+          ]
+        }
+      ],
+      "exports": [
+        "getCareerWheelPoolAndValue"
+      ],
+      "totalLines": 274,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/lib/simulation-helpers.ts": {
+      "filePath": "features/wheel/lib/simulation-helpers.ts",
+      "contentHash": "d1bed6872b40cd22d19df2a6422cb3899a386d50a4473115a749a7f0f86d4c24",
+      "functions": [
+        {
+          "name": "calculateContinentalQualification",
+          "params": [
+            "leagueId",
+            "standing",
+            "continentalCupResult",
+            "currentContinentalCup"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 67
+        },
+        {
+          "name": "getContinentalCupLabel",
+          "params": [
+            "cupType"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 11
+        },
+        {
+          "name": "getSeasonYearString",
+          "params": [
+            "age",
+            "debutAge"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getStandingWheelPool",
+          "params": [
+            "clubPrestige",
+            "ovr",
+            "leagueSize",
+            "apps",
+            "lastYearStanding"
+          ],
+          "exported": true,
+          "lineCount": 42
+        },
+        {
+          "name": "getGrowthTier",
+          "params": [
+            "rating"
+          ],
+          "returnType": "GrowthTier",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getIncreaseGateWeight",
+          "params": [
+            "tier"
+          ],
+          "returnType": "{ yes: number; no: number }",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "getDecreaseGateWeight",
+          "params": [
+            "tier"
+          ],
+          "returnType": "{ yes: number; no: number }",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getCountPool",
+          "params": [
+            "tier",
+            "isIncrease"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "getMagnitudePool",
+          "params": [
+            "tier"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getMagnitudeTierForDirection",
+          "params": [
+            "rating",
+            "isIncrease"
+          ],
+          "returnType": "GrowthTier",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getCareerProgress",
+          "params": [
+            "currentAge",
+            "debutAge",
+            "careerLength"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getAgeProgressThresholds",
+          "params": [
+            "position"
+          ],
+          "returnType": "{ young: number; old: number }",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getGrowthBoost",
+          "params": [
+            "progress",
+            "youngThreshold"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "bumpTierUp",
+          "params": [
+            "tier"
+          ],
+          "returnType": "GrowthTier",
+          "exported": false,
+          "lineCount": 4
+        },
+        {
+          "name": "blendPools",
+          "params": [
+            "poolA",
+            "poolB",
+            "t"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": false,
+          "lineCount": 10
+        },
+        {
+          "name": "getCountPoolBoosted",
+          "params": [
+            "tier",
+            "growthBoost"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "getMagnitudePoolBoosted",
+          "params": [
+            "tier",
+            "growthBoost"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "getDomesticCupName",
+          "params": [
+            "leagueName"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 18
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "calculateContinentalQualification",
+        "getContinentalCupLabel",
+        "getSeasonYearString",
+        "getStandingWheelPool",
+        "getGrowthTier",
+        "getIncreaseGateWeight",
+        "getDecreaseGateWeight",
+        "getCountPool",
+        "getMagnitudePool",
+        "getMagnitudeTierForDirection",
+        "getCareerProgress",
+        "getAgeProgressThresholds",
+        "getGrowthBoost",
+        "getCountPoolBoosted",
+        "getMagnitudePoolBoosted",
+        "getDomesticCupName"
+      ],
+      "totalLines": 302,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/stores/useWheelUiStore.ts": {
+      "filePath": "features/wheel/stores/useWheelUiStore.ts",
+      "contentHash": "b5bef28aa4e2826a7dfa3631ba31bdd0a6190630251ef1dbe8e73d812d0fcea8",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zustand",
+          "specifiers": [
+            "create"
+          ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "calculateOvrByPosition",
+            "getPhysiqueModifier",
+            "applyPhysiqueModifier"
+          ]
+        }
+      ],
+      "exports": [
+        "useWheelUiStore"
+      ],
+      "totalLines": 194,
+      "hasStructuralAnalysis": true
+    },
+    "lib/name-gen.ts": {
+      "filePath": "lib/name-gen.ts",
+      "contentHash": "60be2e31e6ed228ce8611c02e2dc8bc2906afa676c756f0aa96cb46e6b0ceacd",
+      "functions": [
+        {
+          "name": "generateFictionalName",
+          "params": [
+            "nationality"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./wheel-engine/spin-resolver",
+          "specifiers": [
+            "resolveRandomInt"
+          ]
+        }
+      ],
+      "exports": [
+        "generateFictionalName"
+      ],
+      "totalLines": 43,
+      "hasStructuralAnalysis": true
+    },
+    "lib/prisma.ts": {
+      "filePath": "lib/prisma.ts",
+      "contentHash": "0d248c098e63beca9c4b1a3d4aa9494436a4c104149ccc6c0a439f3c85142528",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "dotenv/config",
+          "specifiers": []
+        },
+        {
+          "source": "@/app/generated/prisma/client",
+          "specifiers": [
+            "PrismaClient"
+          ]
+        },
+        {
+          "source": "@prisma/adapter-pg",
+          "specifiers": [
+            "PrismaPg"
+          ]
+        },
+        {
+          "source": "pg",
+          "specifiers": [
+            "pg"
+          ]
+        }
+      ],
+      "exports": [
+        "prisma"
+      ],
+      "totalLines": 24,
+      "hasStructuralAnalysis": true
+    },
+    "lib/rate-limit.ts": {
+      "filePath": "lib/rate-limit.ts",
+      "contentHash": "462aba7b574ee85269ac32886dd3325d66d1fd562a7d461fe843594eac2522fb",
+      "functions": [
+        {
+          "name": "checkRateLimit",
+          "params": [
+            "identifier"
+          ],
+          "returnType": "Promise<void>",
+          "exported": true,
+          "lineCount": 17
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@upstash/ratelimit",
+          "specifiers": [
+            "Ratelimit"
+          ]
+        },
+        {
+          "source": "@upstash/redis",
+          "specifiers": [
+            "Redis"
+          ]
+        }
+      ],
+      "exports": [
+        "checkRateLimit"
+      ],
+      "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    "lib/supabase/client.ts": {
+      "filePath": "lib/supabase/client.ts",
+      "contentHash": "6c8e82752485cd20f048b345b4ed2037f0a969f26ad396e58f114e485a0a120e",
+      "functions": [
+        {
+          "name": "createClient",
+          "params": [],
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@supabase/ssr",
+          "specifiers": [
+            "createBrowserClient"
+          ]
+        }
+      ],
+      "exports": [
+        "createClient"
+      ],
+      "totalLines": 9,
+      "hasStructuralAnalysis": true
+    },
+    "lib/supabase/server.ts": {
+      "filePath": "lib/supabase/server.ts",
+      "contentHash": "8e4f89709106788a06a09f7c22138eda9bef3c4d4b132273622c647691e30324",
+      "functions": [
+        {
+          "name": "createClient",
+          "params": [],
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@supabase/ssr",
+          "specifiers": [
+            "createServerClient"
+          ]
+        },
+        {
+          "source": "next/headers",
+          "specifiers": [
+            "cookies"
+          ]
+        }
+      ],
+      "exports": [
+        "createClient"
+      ],
+      "totalLines": 29,
+      "hasStructuralAnalysis": true
+    },
+    "lib/utils.ts": {
+      "filePath": "lib/utils.ts",
+      "contentHash": "d1f1e0d62cb8d8d1e04c26e14de842d8a151f75812d81b046c65b5d1fe8e4b27",
+      "functions": [
+        {
+          "name": "cn",
+          "params": [
+            "...inputs"
+          ],
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "clsx",
+          "specifiers": [
+            "clsx",
+            "ClassValue"
+          ]
+        },
+        {
+          "source": "tailwind-merge",
+          "specifiers": [
+            "twMerge"
+          ]
+        }
+      ],
+      "exports": [
+        "cn"
+      ],
+      "totalLines": 7,
+      "hasStructuralAnalysis": true
+    },
+    "lib/wheel-engine/spin-resolver.ts": {
+      "filePath": "lib/wheel-engine/spin-resolver.ts",
+      "contentHash": "610277cfabeeedeee57132d3e49e2b58cc00388d095c44e700b3900277776f6e",
+      "functions": [
+        {
+          "name": "resolveRandom",
+          "params": [],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "resolveRandomFloat",
+          "params": [
+            "min",
+            "max"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "resolveRandomInt",
+          "params": [
+            "min",
+            "max"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "resolveWeightedOutcome",
+          "params": [
+            "items"
+          ],
+          "returnType": "T",
+          "exported": true,
+          "lineCount": 26
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "resolveRandom",
+        "resolveRandomFloat",
+        "resolveRandomInt",
+        "resolveWeightedOutcome"
+      ],
+      "totalLines": 56,
+      "hasStructuralAnalysis": true
+    },
+    "lib/wheel-engine/weight-calculator.ts": {
+      "filePath": "lib/wheel-engine/weight-calculator.ts",
+      "contentHash": "8909ee5019ccfbd2c6d571bf729fc8816b7fb76f3b12cb5155e5b766a2747e60",
+      "functions": [
+        {
+          "name": "getStatKeys",
+          "params": [
+            "position"
+          ],
+          "returnType": "readonly string[]",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getMainStatsByPosition",
+          "params": [
+            "position"
+          ],
+          "returnType": "readonly string[]",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getStatLabel",
+          "params": [
+            "position",
+            "key"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getDefaultStats",
+          "params": [
+            "position"
+          ],
+          "returnType": "Record<string, number>",
+          "exported": true,
+          "lineCount": 5
+        },
+        {
+          "name": "getLeagueWeights",
+          "params": [
+            "leagues",
+            "nationality"
+          ],
+          "returnType": "WeightedItem<{ id: string; name: string }>[]",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
+          "name": "getClubWeights",
+          "params": [
+            "clubs"
+          ],
+          "returnType": "WeightedItem<{ id: string; name: string }>[]",
+          "exported": true,
+          "lineCount": 7
+        },
+        {
+          "name": "generateContinuousWeights",
+          "params": [
+            "min",
+            "max"
+          ],
+          "returnType": "WeightedItem<number>[]",
+          "exported": false,
+          "lineCount": 12
+        },
+        {
+          "name": "getDebutStatWeights",
+          "params": [
+            "position",
+            "statName"
+          ],
+          "returnType": "WeightedItem<number>[]",
+          "exported": true,
+          "lineCount": 85
+        },
+        {
+          "name": "getNationalTier",
+          "params": [
+            "nationality"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "getNationalContinentalCup",
+          "params": [
+            "nationality"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 26
+        },
+        {
+          "name": "calculateOvrByPosition",
+          "params": [
+            "position",
+            "stats"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 47
+        },
+        {
+          "name": "getHeightWeights",
+          "params": [
+            "position"
+          ],
+          "returnType": "WeightedItem<number>[]",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getWeightRangeFromHeight",
+          "params": [
+            "heightCm"
+          ],
+          "returnType": "{ min: number; max: number }",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getWeightWeights",
+          "params": [
+            "heightCm"
+          ],
+          "returnType": "WeightedItem<number>[]",
+          "exported": true,
+          "lineCount": 4
+        },
+        {
+          "name": "getPhysiqueModifier",
+          "params": [
+            "heightCm",
+            "weightKg",
+            "position"
+          ],
+          "returnType": "Record<string, number>",
+          "exported": true,
+          "lineCount": 25
+        },
+        {
+          "name": "applyPhysiqueModifier",
+          "params": [
+            "stats",
+            "modifier"
+          ],
+          "returnType": "Record<string, number>",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./spin-resolver",
+          "specifiers": [
+            "WeightedItem"
+          ]
+        }
+      ],
+      "exports": [
+        "FIELD_STAT_KEYS",
+        "GK_STAT_KEYS",
+        "getStatKeys",
+        "getMainStatsByPosition",
+        "getStatLabel",
+        "getDefaultStats",
+        "NATIONALITY_POOL",
+        "DEBUT_AGE_POOL",
+        "DEBUT_OVR_POOL",
+        "CAREER_LENGTH_POOL",
+        "getLeagueWeights",
+        "getClubWeights",
+        "getDebutStatWeights",
+        "getNationalTier",
+        "getNationalContinentalCup",
+        "calculateOvrByPosition",
+        "HEIGHT_RANGE_BY_POSITION",
+        "getHeightWeights",
+        "getWeightRangeFromHeight",
+        "getWeightWeights",
+        "getPhysiqueModifier",
+        "applyPhysiqueModifier"
+      ],
+      "totalLines": 454,
+      "hasStructuralAnalysis": true
+    },
+    "lint_out.txt": {
+      "filePath": "lint_out.txt",
+      "contentHash": "390b0f489383b044bc10305ff4bcf52816150c838114321addf47bffd505c5d9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 201,
+      "hasStructuralAnalysis": false
+    },
+    "middleware.ts": {
+      "filePath": "middleware.ts",
+      "contentHash": "6958f1f34e0fc99e81655533a23eb0d819afd17646a4132678ee337b9e382ae9",
+      "functions": [
+        {
+          "name": "middleware",
+          "params": [
+            "request"
+          ],
+          "exported": true,
+          "lineCount": 43
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "@supabase/ssr",
+          "specifiers": [
+            "createServerClient"
+          ]
+        },
+        {
+          "source": "next/server",
+          "specifiers": [
+            "NextResponse",
+            "NextRequest"
+          ]
+        }
+      ],
+      "exports": [
+        "middleware",
+        "config"
+      ],
+      "totalLines": 53,
+      "hasStructuralAnalysis": true
+    },
+    "next.config.ts": {
+      "filePath": "next.config.ts",
+      "contentHash": "614bce25b089c3f19b1e17a6346c74b858034040154c6621e7d35303004767cc",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "next",
+          "specifiers": [
+            "NextConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 8,
+      "hasStructuralAnalysis": true
+    },
+    "package.json": {
+      "filePath": "package.json",
+      "contentHash": "5e6c33b1e65a539479a246b9799fb2d1f3118b843139ed92246de9ff07409052",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 49,
+      "hasStructuralAnalysis": true
+    },
+    "pnpm-workspace.yaml": {
+      "filePath": "pnpm-workspace.yaml",
+      "contentHash": "a6c5ff00383cefdc40326315e1c0bb8df12e0ae635add6025b7f67d94bfdb059",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "postcss.config.mjs": {
+      "filePath": "postcss.config.mjs",
+      "contentHash": "141ef24ca27a99d08962210fdf20212d3435fdcfa21b46cd88b44d22f751dfae",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 6,
+      "hasStructuralAnalysis": true
+    },
+    "prisma.config.ts": {
+      "filePath": "prisma.config.ts",
+      "contentHash": "2af55d9fec5dcab3bccb50bffac7a0151d31c5202f38462cbc5f44c9360cbb8b",
+      "functions": [],
+      "classes": [],
+      "imports": [
+        {
+          "source": "dotenv/config",
+          "specifiers": []
+        },
+        {
+          "source": "prisma/config",
+          "specifiers": [
+            "defineConfig"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 16,
+      "hasStructuralAnalysis": true
+    },
+    "prisma/schema.prisma": {
+      "filePath": "prisma/schema.prisma",
+      "contentHash": "d85648e5d472673b4e9144f2c43420a9a7eb0dccd63f0f8ef00f6b8b7074eaa1",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 98,
+      "hasStructuralAnalysis": false
+    },
+    "prisma/seed.ts": {
+      "filePath": "prisma/seed.ts",
+      "contentHash": "af11ef07df76391aaf65e5fd3c326cb8583cb405b3e9b6e036edf65ed0a6c3ff",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 35
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 544,
+      "hasStructuralAnalysis": true
+    },
+    "scratch/test-db.ts": {
+      "filePath": "scratch/test-db.ts",
+      "contentHash": "a5ed6e4c709d87747e76b5e8844b8a8d342dafb048c17645e156501c74538455",
+      "functions": [
+        {
+          "name": "main",
+          "params": [],
+          "exported": false,
+          "lineCount": 15
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "../lib/prisma",
+          "specifiers": [
+            "prisma"
+          ]
+        }
+      ],
+      "exports": [],
+      "totalLines": 20,
+      "hasStructuralAnalysis": true
+    },
+    "supabase/rls-lockdown.sql": {
+      "filePath": "supabase/rls-lockdown.sql",
+      "contentHash": "631695a4d9d12188cbad35a84ad7a7beadd02f2602f738ec59ef81be04c42a3a",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 34,
+      "hasStructuralAnalysis": true
+    },
+    "tsconfig.json": {
+      "filePath": "tsconfig.json",
+      "contentHash": "ed2bc19510589ae5c0940b5e4504c6c0413ba285ae35a3d4ad9db5f5d3a8eb51",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 28,
+      "hasStructuralAnalysis": true
+    },
+    "types/game.ts": {
+      "filePath": "types/game.ts",
+      "contentHash": "f7b27aea37afb45ceabe21d7a84a8a02c9768e2a90f9d5d3c887b2302f84fb87",
+      "functions": [
+        {
+          "name": "getStepLabels",
+          "params": [
+            "position"
+          ],
+          "returnType": "string[]",
+          "exported": true,
+          "lineCount": 6
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "zod/v4",
+          "specifiers": [
+            "z"
+          ]
+        }
+      ],
+      "exports": [
+        "FORMATIONS",
+        "createGameSchema",
+        "getStepLabels",
+        "STEP_LABELS"
+      ],
+      "totalLines": 95,
+      "hasStructuralAnalysis": true
+    },
+    "types/squad.ts": {
+      "filePath": "types/squad.ts",
+      "contentHash": "8ede2cbe1f2e780828c35e1f37d9a798ca37455811b5c295ee11dd64a8a25d4f",
+      "functions": [
+        {
+          "name": "getFlagEmoji",
+          "params": [
+            "nationality"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 3
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./game",
+          "specifiers": [
+            "Formation"
+          ]
+        }
+      ],
+      "exports": [
+        "FORMATION_SLOTS",
+        "getFlagEmoji",
+        "RARITY_ACCENT"
+      ],
+      "totalLines": 165,
+      "hasStructuralAnalysis": true
+    }
+  }
+}

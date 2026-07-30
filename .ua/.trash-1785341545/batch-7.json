@@ -1,0 +1,64 @@
+{
+  "nodes": [
+    {
+      "id": "document:.claude/CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": ".claude/CLAUDE.md",
+      "summary": "Primary AI agent project guide covering invariants, folder structure, auth rules, and how to extend game logic safely.",
+      "tags": [
+        "documentation",
+        "ai-agent",
+        "invariants"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:.claude/launch.json",
+      "type": "config",
+      "name": "launch.json",
+      "filePath": ".claude/launch.json",
+      "summary": "Claude Code launch configuration for this repository.",
+      "tags": [
+        "configuration",
+        "ai-agent"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:.claude/settings.json",
+      "type": "config",
+      "name": "settings.json",
+      "filePath": ".claude/settings.json",
+      "summary": "Claude Code workspace settings for agent behavior in this project.",
+      "tags": [
+        "configuration",
+        "ai-agent"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:.claude/CLAUDE.md",
+      "target": "document:AGENTS.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:.claude/settings.json",
+      "target": "document:.claude/CLAUDE.md",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:.claude/launch.json",
+      "target": "document:.claude/CLAUDE.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

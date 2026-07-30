@@ -1,0 +1,131 @@
+{
+  "nodes": [
+    {
+      "id": "document:AGENTS.md",
+      "type": "document",
+      "name": "AGENTS.md",
+      "filePath": "AGENTS.md",
+      "summary": "Senior engineer instructions for Football Life: stack, folder structure, wheel engine rules, and domain models.",
+      "tags": [
+        "documentation",
+        "ai-agent",
+        "architecture"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:README.md",
+      "type": "document",
+      "name": "README.md",
+      "filePath": "README.md",
+      "summary": "Project overview with tech stack, install/dev commands, Prisma tasks, and links to docs guides.",
+      "tags": [
+        "documentation",
+        "entry-point",
+        "overview"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:lint_out.txt",
+      "type": "document",
+      "name": "lint_out.txt",
+      "filePath": "lint_out.txt",
+      "summary": "Captured ESLint output log used for reviewing lint findings.",
+      "tags": [
+        "documentation",
+        "lint"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "config:package.json",
+      "type": "config",
+      "name": "package.json",
+      "filePath": "package.json",
+      "summary": "NPM package manifest defining football-life scripts and Next.js/Prisma/Supabase dependencies.",
+      "tags": [
+        "configuration",
+        "build-system",
+        "dependencies"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:pnpm-workspace.yaml",
+      "type": "config",
+      "name": "pnpm-workspace.yaml",
+      "filePath": "pnpm-workspace.yaml",
+      "summary": "pnpm workspace configuration for the repository package layout.",
+      "tags": [
+        "configuration",
+        "build-system"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "config:tsconfig.json",
+      "type": "config",
+      "name": "tsconfig.json",
+      "filePath": "tsconfig.json",
+      "summary": "TypeScript compiler config with Next.js plugin and path aliases for the App Router project.",
+      "tags": [
+        "configuration",
+        "typescript",
+        "build-system"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:README.md",
+      "target": "config:package.json",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:AGENTS.md",
+      "target": "document:README.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:AGENTS.md",
+      "target": "document:.claude/CLAUDE.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "config:package.json",
+      "target": "file:app/layout.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:tsconfig.json",
+      "target": "file:app/layout.tsx",
+      "type": "configures",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "config:pnpm-workspace.yaml",
+      "target": "config:package.json",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:lint_out.txt",
+      "target": "config:package.json",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

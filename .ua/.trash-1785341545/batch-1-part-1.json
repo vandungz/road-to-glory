@@ -1,0 +1,635 @@
+{
+  "nodes": [
+    {
+      "id": "file:features/season/services/season-simulator.service.ts",
+      "type": "file",
+      "name": "season-simulator.service.ts",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "summary": "Simulates a full player season including league apps, goals, assists, cups, trophies, and Ballon d'Or eligibility from OVR, position, and club prestige.",
+      "tags": [
+        "service",
+        "season-simulation",
+        "probability",
+        "awards"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Deterministic RNG only via resolveRandom/resolveRandomFloat from spin-resolver."
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:calcAttackStats",
+      "type": "function",
+      "name": "calcAttackStats",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        96,
+        132
+      ],
+      "summary": "Computes goals and assists from position, OVR, play factor, and appearances using weighted random rolls.",
+      "tags": [
+        "stats",
+        "goals",
+        "simulation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:calcCleanSheets",
+      "type": "function",
+      "name": "calcCleanSheets",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        134,
+        155
+      ],
+      "summary": "Estimates clean sheets for defensive and GK positions from OVR, club prestige, and match load.",
+      "tags": [
+        "stats",
+        "defense",
+        "simulation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:calcRating",
+      "type": "function",
+      "name": "calcRating",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        159,
+        184
+      ],
+      "summary": "Derives average match rating from position, OVR, luck, competition stats, and league standing bonus.",
+      "tags": [
+        "rating",
+        "simulation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:calcTrophyScore",
+      "type": "function",
+      "name": "calcTrophyScore",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        196,
+        227
+      ],
+      "summary": "Scores trophy haul across league, domestic cup, continental, and national results weighted by club prestige.",
+      "tags": [
+        "trophies",
+        "awards"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:calcBallonDorEligibility",
+      "type": "function",
+      "name": "calcBallonDorEligibility",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        229,
+        279
+      ],
+      "summary": "Evaluates Ballon d'Or nomination and rank weights from OVR, goals, rating, and major trophies.",
+      "tags": [
+        "ballon-dor",
+        "awards"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:calcRankTrophyBonus",
+      "type": "function",
+      "name": "calcRankTrophyBonus",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        281,
+        294
+      ],
+      "summary": "Adds rank-score bonuses for continental and national cup success plus league standing prestige.",
+      "tags": [
+        "awards",
+        "ranking"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "type": "function",
+      "name": "simulatePlayerSeasonService",
+      "filePath": "features/season/services/season-simulator.service.ts",
+      "lineRange": [
+        305,
+        440
+      ],
+      "summary": "Main season simulation entry that aggregates league/cup stats, ratings, trophies, and award eligibility into a season result.",
+      "tags": [
+        "service",
+        "entry-point",
+        "season"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/components/SeasonProfile.tsx",
+      "type": "file",
+      "name": "SeasonProfile.tsx",
+      "filePath": "features/wheel/components/SeasonProfile.tsx",
+      "summary": "Career season profile UI showing year-by-year competition results with selectable age and clickable status rows that open stats modals.",
+      "tags": [
+        "component",
+        "season",
+        "ui",
+        "career"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonProfile.tsx:SeasonProfile",
+      "type": "function",
+      "name": "SeasonProfile",
+      "filePath": "features/wheel/components/SeasonProfile.tsx",
+      "lineRange": [
+        33,
+        166
+      ],
+      "summary": "Renders the season timeline and competition status grid for the selected career age.",
+      "tags": [
+        "component",
+        "ui",
+        "season"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonProfile.tsx:StatusRow",
+      "type": "function",
+      "name": "StatusRow",
+      "filePath": "features/wheel/components/SeasonProfile.tsx",
+      "lineRange": [
+        170,
+        235
+      ],
+      "summary": "Clickable competition status row showing result label and champion styling.",
+      "tags": [
+        "component",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonProfile.tsx:StatusRowInactive",
+      "type": "function",
+      "name": "StatusRowInactive",
+      "filePath": "features/wheel/components/SeasonProfile.tsx",
+      "lineRange": [
+        237,
+        254
+      ],
+      "summary": "Inactive competition row with a note when the player did not enter that competition.",
+      "tags": [
+        "component",
+        "ui"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "type": "file",
+      "name": "SeasonStatsModal.tsx",
+      "filePath": "features/wheel/components/SeasonStatsModal.tsx",
+      "summary": "Modal presenting detailed season statistics across league, domestic cup, continental, and national competitions for a selected year.",
+      "tags": [
+        "component",
+        "modal",
+        "season",
+        "stats"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonStatsModal.tsx:CompRow",
+      "type": "function",
+      "name": "CompRow",
+      "filePath": "features/wheel/components/SeasonStatsModal.tsx",
+      "lineRange": [
+        24,
+        54
+      ],
+      "summary": "Displays per-competition apps, goals, assists, and rating inside the season stats modal.",
+      "tags": [
+        "component",
+        "stats"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonStatsModal.tsx:SeasonStatsModal",
+      "type": "function",
+      "name": "SeasonStatsModal",
+      "filePath": "features/wheel/components/SeasonStatsModal.tsx",
+      "lineRange": [
+        64,
+        212
+      ],
+      "summary": "Full-screen modal summarizing year simulation results across all competitions.",
+      "tags": [
+        "component",
+        "modal",
+        "season"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "file",
+      "name": "useCareerStats.ts",
+      "filePath": "features/wheel/hooks/useCareerStats.ts",
+      "summary": "Manages career player state including club, OVR, season records, transfers, and next-season progression with continental cup sync.",
+      "tags": [
+        "hook",
+        "career",
+        "state-management",
+        "season"
+      ],
+      "complexity": "complex",
+      "languageNotes": "Enforces setClubAndContinental invariant when changing clubs."
+    },
+    {
+      "id": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "type": "function",
+      "name": "useCareerStats",
+      "filePath": "features/wheel/hooks/useCareerStats.ts",
+      "lineRange": [
+        20,
+        386
+      ],
+      "summary": "Career stats hook owning player persistence, club/continental sync, season records, and next-season transitions.",
+      "tags": [
+        "hook",
+        "career",
+        "state"
+      ],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:calcAttackStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:calcCleanSheets",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:calcRating",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:calcTrophyScore",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:calcBallonDorEligibility",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:calcRankTrophyBonus",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "function:features/wheel/components/SeasonProfile.tsx:SeasonProfile",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "function:features/wheel/components/SeasonProfile.tsx:SeasonProfile",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "function:features/wheel/components/SeasonProfile.tsx:StatusRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "function:features/wheel/components/SeasonProfile.tsx:StatusRowInactive",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "target": "function:features/wheel/components/SeasonStatsModal.tsx:CompRow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "target": "function:features/wheel/components/SeasonStatsModal.tsx:SeasonStatsModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "target": "function:features/wheel/components/SeasonStatsModal.tsx:SeasonStatsModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/season/services/season-simulator.service.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonProfile.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "file:actions/player.actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerStats.ts",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:calcAttackStats",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveRandom",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:calcAttackStats",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveRandomFloat",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:calcCleanSheets",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveRandomFloat",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:calcRating",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveRandomFloat",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveRandomFloat",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/SeasonProfile.tsx:SeasonProfile",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getSeasonYearString",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/SeasonProfile.tsx:SeasonProfile",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/SeasonProfile.tsx:SeasonProfile",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/SeasonStatsModal.tsx:SeasonStatsModal",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/SeasonStatsModal.tsx:SeasonStatsModal",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "target": "function:actions/player.actions.ts:saveCareerPlayer",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:calculateContinentalQualification",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerStats.ts:useCareerStats",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:calcBallonDorEligibility",
+      "target": "function:features/season/services/season-simulator.service.ts:calcTrophyScore",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:calcBallonDorEligibility",
+      "target": "function:features/season/services/season-simulator.service.ts:calcRankTrophyBonus",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "target": "function:features/season/services/season-simulator.service.ts:calcAttackStats",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "target": "function:features/season/services/season-simulator.service.ts:calcCleanSheets",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "target": "function:features/season/services/season-simulator.service.ts:calcRating",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/season/services/season-simulator.service.ts:simulatePlayerSeasonService",
+      "target": "function:features/season/services/season-simulator.service.ts:calcBallonDorEligibility",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

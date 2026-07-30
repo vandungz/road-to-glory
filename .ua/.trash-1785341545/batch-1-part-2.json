@@ -1,0 +1,606 @@
+{
+  "nodes": [
+    {
+      "id": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "type": "file",
+      "name": "useCareerWheelItems.ts",
+      "filePath": "features/wheel/hooks/useCareerWheelItems.ts",
+      "summary": "Builds weighted wheel item pools for each career sub-step based on age progress, growth tiers, club standing, and competition context.",
+      "tags": [
+        "hook",
+        "wheel",
+        "weights",
+        "career"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "type": "function",
+      "name": "useCareerWheelItems",
+      "filePath": "features/wheel/hooks/useCareerWheelItems.ts",
+      "lineRange": [
+        44,
+        252
+      ],
+      "summary": "Memoizes and refreshes wheel item lists for the current career sub-step and player context.",
+      "tags": [
+        "hook",
+        "wheel",
+        "items"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "type": "file",
+      "name": "useCompetitionFlow.ts",
+      "filePath": "features/wheel/hooks/useCompetitionFlow.ts",
+      "summary": "Orchestrates competition spin flow: triggers season simulation, league/cup generation, and advances career sub-steps after spin completion.",
+      "tags": [
+        "hook",
+        "competition",
+        "season",
+        "wheel"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "type": "function",
+      "name": "useCompetitionFlow",
+      "filePath": "features/wheel/hooks/useCompetitionFlow.ts",
+      "lineRange": [
+        42,
+        252
+      ],
+      "summary": "Competition flow hook wiring spin completion to server actions and season result UI updates.",
+      "tags": [
+        "hook",
+        "competition",
+        "flow"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "file",
+      "name": "useDraftDrum.ts",
+      "filePath": "features/wheel/hooks/useDraftDrum.ts",
+      "summary": "Top-level career drum hook composing setup, stats, wheel items, competition, and stat evolution flows into the draft/career UI orchestration.",
+      "tags": [
+        "hook",
+        "orchestration",
+        "career",
+        "entry-point"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "type": "function",
+      "name": "useDraftDrum",
+      "filePath": "features/wheel/hooks/useDraftDrum.ts",
+      "lineRange": [
+        27,
+        388
+      ],
+      "summary": "Composes all career-stage hooks and exposes handlers for setup, spins, and career start.",
+      "tags": [
+        "hook",
+        "orchestration",
+        "career"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/hooks/useSetupStage.ts",
+      "type": "file",
+      "name": "useSetupStage.ts",
+      "filePath": "features/wheel/hooks/useSetupStage.ts",
+      "summary": "Handles player creation setup spins for nationality, physique, debut stats, league, and club using weighted pools from the wheel engine.",
+      "tags": [
+        "hook",
+        "setup",
+        "wheel",
+        "draft"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "type": "function",
+      "name": "useSetupStage",
+      "filePath": "features/wheel/hooks/useSetupStage.ts",
+      "lineRange": [
+        26,
+        206
+      ],
+      "summary": "Setup-stage hook managing draft spin steps and weighted outcome application for new players.",
+      "tags": [
+        "hook",
+        "setup",
+        "draft"
+      ],
+      "complexity": "moderate"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "target": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "target": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "target": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "target": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "target": "file:actions/season.actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "target": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getAgeProgressThresholds",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCareerProgress",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getIncreaseGateWeight",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthTier",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDecreaseGateWeight",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPool",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getCountPoolBoosted",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getGrowthBoost",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudeTierForDirection",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePool",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getMagnitudePoolBoosted",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getMainStatsByPosition",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getStandingWheelPool",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCareerWheelItems.ts:useCareerWheelItems",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "target": "function:actions/season.actions.ts:simulatePlayerSeasonAction",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "target": "function:actions/season.actions.ts:generateLeagueTableAction",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "target": "function:actions/season.actions.ts:generateCupJourneyAction",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useCompetitionFlow.ts:useCompetitionFlow",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:actions/player.actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:actions/season.actions.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useSetupStage.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useStatEvolutionFlow.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useSetupStage.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:features/wheel/hooks/useDraftDrum.ts",
+      "target": "file:features/wheel/hooks/useStatEvolutionFlow.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getNationalContinentalCup",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "target": "function:actions/season.actions.ts:startPlayerCareerAction",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "target": "function:features/wheel/lib/career-wheel-resolver.ts:getCareerWheelPoolAndValue",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/hooks/useSetupStage.ts",
+      "target": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:types/squad.ts:getFlagEmoji",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getHeightWeights",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getWeightWeights",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getDebutStatWeights",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getLeagueWeights",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:lib/wheel-engine/weight-calculator.ts:getClubWeights",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/hooks/useSetupStage.ts:useSetupStage",
+      "target": "function:lib/wheel-engine/spin-resolver.ts:resolveWeightedOutcome",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

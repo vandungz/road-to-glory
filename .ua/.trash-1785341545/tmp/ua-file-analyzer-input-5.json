@@ -1,0 +1,43 @@
+{
+  "projectRoot": "D:\\road-to-glory",
+  "batchFiles": [
+    {"path": "features/wheel/components/CareerActionsPanel.tsx", "language": "typescript", "sizeLines": 213, "fileCategory": "code"},
+    {"path": "features/wheel/components/DraftDrumScreen.tsx", "language": "typescript", "sizeLines": 290, "fileCategory": "code"},
+    {"path": "features/wheel/components/PaniniSticker.tsx", "language": "typescript", "sizeLines": 158, "fileCategory": "code"},
+    {"path": "features/wheel/components/RetiredStage.tsx", "language": "typescript", "sizeLines": 127, "fileCategory": "code"},
+    {"path": "features/wheel/components/SeasonResultModal.tsx", "language": "typescript", "sizeLines": 223, "fileCategory": "code"},
+    {"path": "features/wheel/components/SetupStage.tsx", "language": "typescript", "sizeLines": 176, "fileCategory": "code"},
+    {"path": "features/wheel/components/SpinnerWheel.tsx", "language": "typescript", "sizeLines": 265, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "features/wheel/components/CareerActionsPanel.tsx": [
+      "features/wheel/components/SpinnerWheel.tsx",
+      "features/wheel/lib/simulation-helpers.ts"
+    ],
+    "features/wheel/components/DraftDrumScreen.tsx": [
+      "features/wheel/components/CareerActionsPanel.tsx",
+      "features/wheel/components/PaniniSticker.tsx",
+      "features/wheel/components/RetiredStage.tsx",
+      "features/wheel/components/SeasonProfile.tsx",
+      "features/wheel/components/SeasonResultModal.tsx",
+      "features/wheel/components/SeasonStatsModal.tsx",
+      "features/wheel/components/SetupStage.tsx",
+      "features/wheel/hooks/useDraftDrum.ts"
+    ],
+    "features/wheel/components/PaniniSticker.tsx": [
+      "types/squad.ts"
+    ],
+    "features/wheel/components/RetiredStage.tsx": [
+      "types/squad.ts"
+    ],
+    "features/wheel/components/SeasonResultModal.tsx": [
+      "features/wheel/lib/simulation-helpers.ts",
+      "types/game.ts"
+    ],
+    "features/wheel/components/SetupStage.tsx": [
+      "features/wheel/components/SpinnerWheel.tsx",
+      "types/squad.ts"
+    ],
+    "features/wheel/components/SpinnerWheel.tsx": []
+  }
+}

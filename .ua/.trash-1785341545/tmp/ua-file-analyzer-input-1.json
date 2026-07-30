@@ -1,0 +1,31 @@
+{
+  "projectRoot": "D:\\road-to-glory",
+  "batchFiles": [
+    {"path": "features/season/services/season-simulator.service.ts", "language": "typescript", "sizeLines": 440, "fileCategory": "code"},
+    {"path": "features/wheel/components/SeasonProfile.tsx", "language": "typescript", "sizeLines": 254, "fileCategory": "code"},
+    {"path": "features/wheel/components/SeasonStatsModal.tsx", "language": "typescript", "sizeLines": 212, "fileCategory": "code"},
+    {"path": "features/wheel/hooks/useCareerStats.ts", "language": "typescript", "sizeLines": 386, "fileCategory": "code"},
+    {"path": "features/wheel/hooks/useCareerWheelItems.ts", "language": "typescript", "sizeLines": 252, "fileCategory": "code"},
+    {"path": "features/wheel/hooks/useCompetitionFlow.ts", "language": "typescript", "sizeLines": 252, "fileCategory": "code"},
+    {"path": "features/wheel/hooks/useDraftDrum.ts", "language": "typescript", "sizeLines": 388, "fileCategory": "code"},
+    {"path": "features/wheel/hooks/useSetupStage.ts", "language": "typescript", "sizeLines": 206, "fileCategory": "code"},
+    {"path": "features/wheel/lib/career-wheel-resolver.ts", "language": "typescript", "sizeLines": 273, "fileCategory": "code"},
+    {"path": "features/wheel/lib/simulation-helpers.ts", "language": "typescript", "sizeLines": 301, "fileCategory": "code"},
+    {"path": "features/wheel/stores/useWheelUiStore.ts", "language": "typescript", "sizeLines": 193, "fileCategory": "code"},
+    {"path": "lib/wheel-engine/weight-calculator.ts", "language": "typescript", "sizeLines": 453, "fileCategory": "code"}
+  ],
+  "batchImportData": {
+    "features/season/services/season-simulator.service.ts": ["lib/wheel-engine/spin-resolver.ts", "lib/wheel-engine/weight-calculator.ts"],
+    "features/wheel/components/SeasonProfile.tsx": ["features/wheel/hooks/useDraftDrum.ts", "features/wheel/lib/simulation-helpers.ts", "types/game.ts"],
+    "features/wheel/components/SeasonStatsModal.tsx": ["features/season/services/season-simulator.service.ts", "features/wheel/lib/simulation-helpers.ts", "types/game.ts"],
+    "features/wheel/hooks/useCareerStats.ts": ["actions/player.actions.ts", "features/season/services/season-simulator.service.ts", "features/wheel/lib/simulation-helpers.ts", "lib/wheel-engine/weight-calculator.ts", "types/game.ts"],
+    "features/wheel/hooks/useCareerWheelItems.ts": ["features/wheel/lib/simulation-helpers.ts", "lib/wheel-engine/weight-calculator.ts"],
+    "features/wheel/hooks/useCompetitionFlow.ts": ["actions/season.actions.ts", "features/wheel/hooks/useDraftDrum.ts", "features/wheel/lib/simulation-helpers.ts", "lib/wheel-engine/weight-calculator.ts"],
+    "features/wheel/hooks/useDraftDrum.ts": ["actions/player.actions.ts", "actions/season.actions.ts", "features/season/services/season-simulator.service.ts", "features/wheel/hooks/useCareerStats.ts", "features/wheel/hooks/useCareerWheelItems.ts", "features/wheel/hooks/useCompetitionFlow.ts", "features/wheel/hooks/useSetupStage.ts", "features/wheel/hooks/useStatEvolutionFlow.ts", "features/wheel/lib/career-wheel-resolver.ts", "features/wheel/lib/simulation-helpers.ts", "features/wheel/stores/useWheelUiStore.ts", "lib/wheel-engine/weight-calculator.ts", "types/game.ts"],
+    "features/wheel/hooks/useSetupStage.ts": ["features/wheel/stores/useWheelUiStore.ts", "lib/wheel-engine/spin-resolver.ts", "lib/wheel-engine/weight-calculator.ts", "types/squad.ts"],
+    "features/wheel/lib/career-wheel-resolver.ts": ["features/wheel/lib/simulation-helpers.ts", "lib/wheel-engine/spin-resolver.ts", "lib/wheel-engine/weight-calculator.ts", "types/squad.ts"],
+    "features/wheel/lib/simulation-helpers.ts": [],
+    "features/wheel/stores/useWheelUiStore.ts": ["lib/wheel-engine/weight-calculator.ts"],
+    "lib/wheel-engine/weight-calculator.ts": ["lib/wheel-engine/spin-resolver.ts"]
+  }
+}

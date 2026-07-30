@@ -1,0 +1,583 @@
+{
+  "nodes": [
+    {
+      "id": "document:docs/core-growth-logic-review.md",
+      "type": "document",
+      "name": "core-growth-logic-review.md",
+      "filePath": "docs/core-growth-logic-review.md",
+      "summary": "Deep design review of OVR debut formulas, per-position main stats, growth weight/magnitude tiers, yes/no gates, debut age coupling, and proposed height/weight setup wheels.",
+      "tags": [
+        "documentation",
+        "game-design",
+        "ovr",
+        "growth",
+        "wheel-engine"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/environment-variables.md",
+      "type": "document",
+      "name": "environment-variables.md",
+      "filePath": "docs/environment-variables.md",
+      "summary": "Catalog of required environment variables for Prisma, Supabase, app URL, and tooling, with scope rules and pointers to where each variable is read in code.",
+      "tags": [
+        "documentation",
+        "configuration",
+        "environment",
+        "supabase",
+        "prisma"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "document:docs/frontend-style-system-guide.md",
+      "type": "document",
+      "name": "frontend-style-system-guide.md",
+      "filePath": "docs/frontend-style-system-guide.md",
+      "summary": "Frontend style system covering dark-first tokens, rarity colors, typography, spacing, pitch/wheel layouts, component patterns, animation rules, Tailwind/CSS variables, and AI UI checklists.",
+      "tags": [
+        "documentation",
+        "frontend",
+        "design-system",
+        "tailwind",
+        "ui"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/game-design.md",
+      "type": "document",
+      "name": "game-design.md",
+      "filePath": "docs/game-design.md",
+      "summary": "Canonical game design document for Classic Mode: identity wheels, stint/year simulation loops, auto-generated attributes, career events, leagues, card display, wheel UX, and data model summary.",
+      "tags": [
+        "documentation",
+        "game-design",
+        "wheel",
+        "career",
+        "mechanics"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/loading-agent-guide.md",
+      "type": "document",
+      "name": "loading-agent-guide.md",
+      "filePath": "docs/loading-agent-guide.md",
+      "summary": "Agent guide for choosing PageLoading, ComponentLoading, global overlay, or async-flow loading patterns, plus state-management rules and references to shared loading components.",
+      "tags": [
+        "documentation",
+        "ai-agent",
+        "loading",
+        "ui",
+        "frontend"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/modal-agent-guide.md",
+      "type": "document",
+      "name": "modal-agent-guide.md",
+      "filePath": "docs/modal-agent-guide.md",
+      "summary": "Agent guide for modal patterns: Zustand-backed dialogs vs local-state dialogs, placement rules, data/mutation constraints, existing modals list, and a test checklist.",
+      "tags": [
+        "documentation",
+        "ai-agent",
+        "modal",
+        "zustand",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/module-boundaries.md",
+      "type": "document",
+      "name": "module-boundaries.md",
+      "filePath": "docs/module-boundaries.md",
+      "summary": "Defines ownership and allowed dependencies for features (game, squad, wheel, career, player, modal) and lib packages (wheel-engine, probability, name-gen, supabase), plus Zustand UI-state rules.",
+      "tags": [
+        "documentation",
+        "architecture",
+        "module-boundaries",
+        "features",
+        "lib"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/remove-events-plan.md",
+      "type": "document",
+      "name": "remove-events-plan.md",
+      "filePath": "docs/remove-events-plan.md",
+      "summary": "Plan to remove the legacy events array in favor of structured achievements (trophies and season awards), listing logic/UI files to delete or update and a done definition.",
+      "tags": [
+        "documentation",
+        "career",
+        "achievements",
+        "implementation-plan",
+        "refactor"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/season-profile-modal-plan.md",
+      "type": "document",
+      "name": "season-profile-modal-plan.md",
+      "filePath": "docs/season-profile-modal-plan.md",
+      "summary": "Redesign plan for SeasonProfile with competition and season-stats modals, per-competition sim stats, seasonHistory persistence, and useDraftDrum substep changes.",
+      "tags": [
+        "documentation",
+        "season",
+        "modal",
+        "implementation-plan",
+        "ui"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/security-checklist.md",
+      "type": "document",
+      "name": "security-checklist.md",
+      "filePath": "docs/security-checklist.md",
+      "summary": "Pre-production security checklist covering Server Action auth/ownership, Zod validation, Upstash rate-limit scaffold, pending RLS lockdown SQL, and remaining ops gaps.",
+      "tags": [
+        "documentation",
+        "security",
+        "auth",
+        "rate-limiting",
+        "rls"
+      ],
+      "complexity": "simple"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:features/wheel/hooks/useSetupStage.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:actions/season.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:types/squad.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/environment-variables.md",
+      "target": "file:prisma/schema.prisma",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/environment-variables.md",
+      "target": "file:lib/supabase/client.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/environment-variables.md",
+      "target": "file:lib/supabase/server.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/environment-variables.md",
+      "target": "file:app/layout.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend-style-system-guide.md",
+      "target": "file:app/globals.css",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend-style-system-guide.md",
+      "target": "file:features/squad/components/PitchBoard.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend-style-system-guide.md",
+      "target": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend-style-system-guide.md",
+      "target": "file:features/wheel/components/SeasonProfile.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/game-design.md",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/game-design.md",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/game-design.md",
+      "target": "file:types/game.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/game-design.md",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/loading-agent-guide.md",
+      "target": "file:app/layout.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/modal-agent-guide.md",
+      "target": "file:features/player/components/PlayerCareerDialog.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/modal-agent-guide.md",
+      "target": "file:app/(game)/layout.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/modal-agent-guide.md",
+      "target": "file:features/wheel/stores/useWheelUiStore.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:lib/name-gen.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:lib/supabase/client.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:lib/supabase/server.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:features/squad/components/PitchBoard.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "file:features/game/actions/createGameSession.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:actions/player.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:actions/season.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:features/career/services/career-setup.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "file:features/wheel/components/RetiredStage.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:prisma/schema.prisma",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:actions/player.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:actions/season.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/wheel/components/SeasonProfile.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/wheel/components/SeasonResultModal.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/security-checklist.md",
+      "target": "file:actions/player.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/security-checklist.md",
+      "target": "file:actions/season.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/security-checklist.md",
+      "target": "file:lib/rate-limit.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/security-checklist.md",
+      "target": "file:supabase/rls-lockdown.sql",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "document:docs/game-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend-style-system-guide.md",
+      "target": "document:docs/ai-agent-rules.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/frontend-style-system-guide.md",
+      "target": "document:docs/modal-agent-guide.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/loading-agent-guide.md",
+      "target": "document:docs/modal-agent-guide.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/loading-agent-guide.md",
+      "target": "document:docs/ai-agent-rules.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/modal-agent-guide.md",
+      "target": "document:docs/ai-agent-rules.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/module-boundaries.md",
+      "target": "document:docs/api-integration.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/remove-events-plan.md",
+      "target": "document:docs/game-design.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/season-profile-modal-plan.md",
+      "target": "document:docs/modal-agent-guide.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/security-checklist.md",
+      "target": "document:docs/environment-variables.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/game-design.md",
+      "target": "document:docs/architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

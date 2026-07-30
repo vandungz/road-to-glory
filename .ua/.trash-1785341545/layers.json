@@ -1,0 +1,179 @@
+[
+  {
+    "id": "layer:app-router",
+    "name": "App Router",
+    "description": "Next.js App Router pages and layouts for lobby, squad board, draft, and auth routes. Server Components fetch data and pass props to feature UI.",
+    "nodeIds": [
+      "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "file:app/(game)/page.tsx",
+      "file:app/(game)/[gameId]/page.tsx",
+      "file:app/(game)/layout.tsx",
+      "file:app/globals.css",
+      "file:app/layout.tsx"
+    ]
+  },
+  {
+    "id": "layer:feature-ui",
+    "name": "Feature UI",
+    "description": "Client components, hooks, and Zustand UI stores under features/ that render career wheels, squad board, and season flows without owning game truth.",
+    "nodeIds": [
+      "file:features/wheel/components/SeasonProfile.tsx",
+      "file:features/wheel/components/SeasonStatsModal.tsx",
+      "file:features/wheel/hooks/useCareerStats.ts",
+      "file:features/wheel/hooks/useCareerWheelItems.ts",
+      "file:features/wheel/hooks/useCompetitionFlow.ts",
+      "file:features/wheel/hooks/useDraftDrum.ts",
+      "file:features/wheel/hooks/useSetupStage.ts",
+      "file:features/wheel/lib/career-wheel-resolver.ts",
+      "file:features/wheel/lib/simulation-helpers.ts",
+      "file:features/wheel/stores/useWheelUiStore.ts",
+      "file:features/wheel/hooks/useStatEvolutionFlow.ts",
+      "file:features/game/actions/createGameSession.ts",
+      "file:features/game/components/CreateGameDialog.tsx",
+      "file:features/game/components/GameList.tsx",
+      "file:features/player/components/PlayerCareerDialog.tsx",
+      "file:features/player/components/PlayerOvrChart.tsx",
+      "file:features/player/components/PlayerStickerCard.tsx",
+      "file:features/squad/components/PitchBoard.tsx",
+      "file:features/squad/components/SquadDashboard.tsx",
+      "file:features/wheel/components/CareerActionsPanel.tsx",
+      "file:features/wheel/components/DraftDrumScreen.tsx",
+      "file:features/wheel/components/PaniniSticker.tsx",
+      "file:features/wheel/components/RetiredStage.tsx",
+      "file:features/wheel/components/SeasonResultModal.tsx",
+      "file:features/wheel/components/SetupStage.tsx",
+      "file:features/wheel/components/SpinnerWheel.tsx"
+    ]
+  },
+  {
+    "id": "layer:domain-services",
+    "name": "Domain Services",
+    "description": "Pure feature services for career setup, season simulation, transfers, cups, and stats evolution. No React/Next imports.",
+    "nodeIds": [
+      "file:features/season/services/season-simulator.service.ts",
+      "file:features/career/services/career-setup.service.ts",
+      "file:features/player/services/stats-evolution.service.ts",
+      "file:features/season/services/cup-journey.service.ts",
+      "file:features/season/services/table-simulator.service.ts",
+      "file:features/transfer/services/transfer.service.ts"
+    ]
+  },
+  {
+    "id": "layer:server-actions",
+    "name": "Server Actions",
+    "description": "Thin Next.js Server Actions that authenticate, Zod-validate input, verify ownership, and delegate to domain services.",
+    "nodeIds": [
+      "file:actions/player.actions.ts",
+      "file:actions/season.actions.ts"
+    ]
+  },
+  {
+    "id": "layer:wheel-engine",
+    "name": "Wheel Engine",
+    "description": "Deterministic weight calculation and the sole Math.random spin resolver that powers all weighted career outcomes.",
+    "nodeIds": [
+      "file:lib/wheel-engine/weight-calculator.ts",
+      "file:lib/wheel-engine/spin-resolver.ts"
+    ]
+  },
+  {
+    "id": "layer:shared-lib",
+    "name": "Shared Libraries",
+    "description": "Cross-cutting utilities: Prisma client, rate limiting, name generation, and general helpers.",
+    "nodeIds": [
+      "file:lib/name-gen.ts",
+      "file:lib/rate-limit.ts",
+      "file:lib/prisma.ts",
+      "file:lib/utils.ts"
+    ]
+  },
+  {
+    "id": "layer:domain-types",
+    "name": "Domain Types",
+    "description": "Shared TypeScript types and Zod schemas for game sessions, seasons, squad slots, and client-safe player shapes.",
+    "nodeIds": [
+      "file:types/game.ts",
+      "file:types/squad.ts"
+    ]
+  },
+  {
+    "id": "layer:auth",
+    "name": "Auth & Session",
+    "description": "Supabase auth clients, middleware session refresh/redirects, and login/logout UI.",
+    "nodeIds": [
+      "file:app/(auth)/auth/callback/route.ts",
+      "file:lib/supabase/server.ts",
+      "file:app/(auth)/login/LoginForm.tsx",
+      "file:app/(auth)/login/page.tsx",
+      "file:features/auth/components/LogoutButton.tsx",
+      "file:lib/supabase/client.ts",
+      "file:app/(auth)/layout.tsx",
+      "file:middleware.ts"
+    ]
+  },
+  {
+    "id": "layer:data-persistence",
+    "name": "Data & Persistence",
+    "description": "Prisma schema/models and Supabase RLS SQL defining GameSession, CareerPlayer, League, and Club persistence.",
+    "nodeIds": [
+      "file:prisma/seed.ts",
+      "file:prisma.config.ts",
+      "schema:prisma/schema.prisma",
+      "table:prisma/schema.prisma:GameSession",
+      "table:prisma/schema.prisma:CareerPlayer",
+      "table:supabase/rls-lockdown.sql:game_sessions",
+      "file:supabase/rls-lockdown.sql"
+    ]
+  },
+  {
+    "id": "layer:documentation",
+    "name": "Documentation",
+    "description": "Project guides, architecture docs, AI agent rules, and planning documents that explain invariants and workflows.",
+    "nodeIds": [
+      "document:.claude/CLAUDE.md",
+      "config:.claude/launch.json",
+      "config:.claude/settings.json",
+      "document:AGENTS.md",
+      "document:README.md",
+      "document:lint_out.txt",
+      "document:docs/FOOTBALL_LIFE_PROJECT_WIKI.md",
+      "document:docs/Football_Life_Project_Planning_Document.md",
+      "document:docs/ai-agent-rules.md",
+      "document:docs/api-integration.md",
+      "document:docs/architecture.md",
+      "document:docs/auth-implementation-plan.md",
+      "document:docs/auth-ui-plan.md",
+      "document:docs/ballon-dor-wheel-plan.md",
+      "document:docs/career-resume-plan.md",
+      "document:docs/code-review-findings.md",
+      "document:docs/core-growth-logic-review.md",
+      "document:docs/environment-variables.md",
+      "document:docs/frontend-style-system-guide.md",
+      "document:docs/game-design.md",
+      "document:docs/loading-agent-guide.md",
+      "document:docs/modal-agent-guide.md",
+      "document:docs/module-boundaries.md",
+      "document:docs/remove-events-plan.md",
+      "document:docs/season-profile-modal-plan.md",
+      "document:docs/security-checklist.md",
+      "document:docs/source-code-architecture-guide.md",
+      "document:docs/state-management.md",
+      "document:docs/ui-ux-flow.md",
+      "document:docs/ui-plan/implementation-roadmap.md"
+    ]
+  },
+  {
+    "id": "layer:tooling-config",
+    "name": "Tooling & Config",
+    "description": "Package manifests, TypeScript/Next/ESLint/PostCSS configuration that build and lint the application.",
+    "nodeIds": [
+      "file:scratch/test-db.ts",
+      "config:package.json",
+      "config:pnpm-workspace.yaml",
+      "config:tsconfig.json",
+      "file:eslint.config.mjs",
+      "file:next.config.ts",
+      "file:postcss.config.mjs"
+    ]
+  }
+]

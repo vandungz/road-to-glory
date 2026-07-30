@@ -1,0 +1,2743 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 20,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 20,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 20
+    }
+  },
+  "results": [
+    {
+      "path": "docs/FOOTBALL_LIFE_PROJECT_WIKI.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 608,
+      "nonEmptyLines": 436,
+      "sections": [
+        {
+          "heading": "Football Life — Project Wiki",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Mục lục",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "1. Tong quan du an",
+          "level": 2,
+          "line": 24
+        },
+        {
+          "heading": "2. Muc dich san pham",
+          "level": 2,
+          "line": 39
+        },
+        {
+          "heading": "Vấn đề của trend hiện tại",
+          "level": 3,
+          "line": 41
+        },
+        {
+          "heading": "Giải pháp của Football Life",
+          "level": 3,
+          "line": 50
+        },
+        {
+          "heading": "3. Cac khai niem cot loi",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "GameSession",
+          "level": 3,
+          "line": 73
+        },
+        {
+          "heading": "CareerPlayer",
+          "level": 3,
+          "line": 86
+        },
+        {
+          "heading": "WheelCascadeResult",
+          "level": 3,
+          "line": 110
+        },
+        {
+          "heading": "HiddenStats",
+          "level": 3,
+          "line": 125
+        },
+        {
+          "heading": "StatsTimeline & Peak OVR",
+          "level": 3,
+          "line": 137
+        },
+        {
+          "heading": "ClubStint",
+          "level": 3,
+          "line": 150
+        },
+        {
+          "heading": "CareerEvent",
+          "level": 3,
+          "line": 167
+        },
+        {
+          "heading": "CardRarity",
+          "level": 3,
+          "line": 184
+        },
+        {
+          "heading": "SquadRating",
+          "level": 3,
+          "line": 199
+        },
+        {
+          "heading": "Formation — 4-3-3",
+          "level": 3,
+          "line": 211
+        },
+        {
+          "heading": "4. Wheel System",
+          "level": 2,
+          "line": 241
+        },
+        {
+          "heading": "Dynamic Weighted Wheel",
+          "level": 3,
+          "line": 243
+        },
+        {
+          "heading": "Wheels & Simulation Loops",
+          "level": 3,
+          "line": 265
+        },
+        {
+          "heading": "Phase 1: Setup (Vòng quay cơ bản)",
+          "level": 4,
+          "line": 269
+        },
+        {
+          "heading": "Phase 2: Career Simulation Loop (Vòng quay Stint & Năm)",
+          "level": 4,
+          "line": 282
+        },
+        {
+          "heading": "Wheel Types",
+          "level": 3,
+          "line": 302
+        },
+        {
+          "heading": "Club & Stint Wheels (Trong Career Loop)",
+          "level": 3,
+          "line": 334
+        },
+        {
+          "heading": "5. Classic Mode — Game Flow",
+          "level": 2,
+          "line": 342
+        },
+        {
+          "heading": "Tổng quan",
+          "level": 3,
+          "line": 344
+        },
+        {
+          "heading": "Slot States",
+          "level": 3,
+          "line": 356
+        },
+        {
+          "heading": "Wheel Spin Screen",
+          "level": 3,
+          "line": 364
+        },
+        {
+          "heading": "Career Detail Modal",
+          "level": 3,
+          "line": 374
+        },
+        {
+          "heading": "6. Career Simulation & Generation Pipeline",
+          "level": 2,
+          "line": 385
+        },
+        {
+          "heading": "Year-by-Year OVR & Stats Progression",
+          "level": 3,
+          "line": 416
+        },
+        {
+          "heading": "Club Stint Distribution",
+          "level": 3,
+          "line": 427
+        },
+        {
+          "heading": "Career Event Linkage",
+          "level": 3,
+          "line": 440
+        },
+        {
+          "heading": "7. Data Scope",
+          "level": 2,
+          "line": 465
+        },
+        {
+          "heading": "Clubs và Leagues",
+          "level": 3,
+          "line": 467
+        },
+        {
+          "heading": "Player Data",
+          "level": 3,
+          "line": 506
+        },
+        {
+          "heading": "Trophy Data",
+          "level": 3,
+          "line": 510
+        },
+        {
+          "heading": "8. Tech Stack",
+          "level": 2,
+          "line": 520
+        },
+        {
+          "heading": "9. Phases san pham",
+          "level": 2,
+          "line": 539
+        },
+        {
+          "heading": "Phase 1 — Classic Mode MVP",
+          "level": 3,
+          "line": 541
+        },
+        {
+          "heading": "Phase 2 — Social & Polish",
+          "level": 3,
+          "line": 564
+        },
+        {
+          "heading": "Phase 3 — Extended Modes",
+          "level": 3,
+          "line": 572
+        },
+        {
+          "heading": "10. Quy tac build bat di bat dich",
+          "level": 2,
+          "line": 580
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 43
+      }
+    },
+    {
+      "path": "docs/Football_Life_Project_Planning_Document.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 187,
+      "nonEmptyLines": 128,
+      "sections": [
+        {
+          "heading": "Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Project Planning Document (MVP v1.0)",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "1. Overview",
+          "level": 1,
+          "line": 5
+        },
+        {
+          "heading": "Project Name",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Genre",
+          "level": 2,
+          "line": 11
+        },
+        {
+          "heading": "Platform",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Vision",
+          "level": 1,
+          "line": 20
+        },
+        {
+          "heading": "2. Project Goals",
+          "level": 1,
+          "line": 31
+        },
+        {
+          "heading": "MVP Goals",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "3. Data Scope",
+          "level": 1,
+          "line": 40
+        },
+        {
+          "heading": "Leagues",
+          "level": 2,
+          "line": 44
+        },
+        {
+          "heading": "Clubs",
+          "level": 2,
+          "line": 48
+        },
+        {
+          "heading": "Players",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "4. Gameplay Flow (Classic Mode)",
+          "level": 1,
+          "line": 57
+        },
+        {
+          "heading": "5. Core Systems",
+          "level": 1,
+          "line": 80
+        },
+        {
+          "heading": "6. Wheel Types",
+          "level": 1,
+          "line": 87
+        },
+        {
+          "heading": "7. Dynamic Weighted Wheel",
+          "level": 1,
+          "line": 92
+        },
+        {
+          "heading": "8. Transfer & Stint System",
+          "level": 1,
+          "line": 104
+        },
+        {
+          "heading": "9. Save System",
+          "level": 1,
+          "line": 108
+        },
+        {
+          "heading": "10. Tech Stack",
+          "level": 1,
+          "line": 112
+        },
+        {
+          "heading": "Frontend",
+          "level": 2,
+          "line": 114
+        },
+        {
+          "heading": "Backend",
+          "level": 2,
+          "line": 124
+        },
+        {
+          "heading": "Database",
+          "level": 2,
+          "line": 130
+        },
+        {
+          "heading": "Authentication",
+          "level": 2,
+          "line": 134
+        },
+        {
+          "heading": "ORM",
+          "level": 2,
+          "line": 138
+        },
+        {
+          "heading": "Storage",
+          "level": 2,
+          "line": 142
+        },
+        {
+          "heading": "Deployment",
+          "level": 2,
+          "line": 146
+        },
+        {
+          "heading": "11. Folder Structure",
+          "level": 1,
+          "line": 151
+        },
+        {
+          "heading": "12. Roadmap",
+          "level": 1,
+          "line": 166
+        },
+        {
+          "heading": "Phase 1 — Foundations & Core Logic",
+          "level": 2,
+          "line": 168
+        },
+        {
+          "heading": "Phase 2 — Interactive Game & Simulation Loop",
+          "level": 2,
+          "line": 175
+        },
+        {
+          "heading": "Phase 3 — Leaderboard & Polish",
+          "level": 2,
+          "line": 183
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 32
+      }
+    },
+    {
+      "path": "docs/ai-agent-rules.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 158,
+      "nonEmptyLines": 112,
+      "sections": [
+        {
+          "heading": "AI Agent Rules — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Required Behavior",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Before Making Changes",
+          "level": 3,
+          "line": 9
+        },
+        {
+          "heading": "Code Length Limitation",
+          "level": 3,
+          "line": 15
+        },
+        {
+          "heading": "Code Placement",
+          "level": 3,
+          "line": 20
+        },
+        {
+          "heading": "Wheel Engine Safety",
+          "level": 3,
+          "line": 28
+        },
+        {
+          "heading": "Career State Safety",
+          "level": 3,
+          "line": 35
+        },
+        {
+          "heading": "Type Safety",
+          "level": 3,
+          "line": 42
+        },
+        {
+          "heading": "Forbidden Behavior",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "Safe Change Pattern",
+          "level": 2,
+          "line": 64
+        },
+        {
+          "heading": "Wheel Change Pattern",
+          "level": 2,
+          "line": 80
+        },
+        {
+          "heading": "Data Import / Seeding Rules",
+          "level": 2,
+          "line": 93
+        },
+        {
+          "heading": "Framer Motion / Animation Rules",
+          "level": 2,
+          "line": 101
+        },
+        {
+          "heading": "Hydration Invariant — `AnimatePresence`",
+          "level": 3,
+          "line": 105
+        },
+        {
+          "heading": "References",
+          "level": 2,
+          "line": 155
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 15
+      }
+    },
+    {
+      "path": "docs/api-integration.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 485,
+      "nonEmptyLines": 374,
+      "sections": [
+        {
+          "heading": "API Integration Guide — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Kiến trúc Data Flow",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Read Flow (Server Component)",
+          "level": 3,
+          "line": 13
+        },
+        {
+          "heading": "Read Flow (Client Component)",
+          "level": 3,
+          "line": 21
+        },
+        {
+          "heading": "Write Flow (Mutations)",
+          "level": 3,
+          "line": 33
+        },
+        {
+          "heading": "2. Khi nào dùng gì",
+          "level": 2,
+          "line": 50
+        },
+        {
+          "heading": "Nguyên tắc",
+          "level": 3,
+          "line": 59
+        },
+        {
+          "heading": "3. Data Flow Cụ Thể — Football Life",
+          "level": 2,
+          "line": 69
+        },
+        {
+          "heading": "3.1 Load danh sách Game Sessions",
+          "level": 3,
+          "line": 71
+        },
+        {
+          "heading": "3.2 Load Squad XI của một game",
+          "level": 3,
+          "line": 79
+        },
+        {
+          "heading": "3.3 Generate và save Career Player (Wheel Spin Flow)",
+          "level": 3,
+          "line": 87
+        },
+        {
+          "heading": "3.4 Xóa một game session",
+          "level": 3,
+          "line": 104
+        },
+        {
+          "heading": "4. File Layout",
+          "level": 2,
+          "line": 117
+        },
+        {
+          "heading": "5. Server Action Pattern",
+          "level": 2,
+          "line": 166
+        },
+        {
+          "heading": "Cấu trúc chuẩn",
+          "level": 3,
+          "line": 168
+        },
+        {
+          "heading": "Rules cho Server Actions",
+          "level": 3,
+          "line": 225
+        },
+        {
+          "heading": "6. TanStack Query Hook Pattern",
+          "level": 2,
+          "line": 236
+        },
+        {
+          "heading": "Query hook (reads)",
+          "level": 3,
+          "line": 238
+        },
+        {
+          "heading": "Mutation hook (writes via Server Action)",
+          "level": 3,
+          "line": 258
+        },
+        {
+          "heading": "7. Route Handlers (app/api/) — Scope & Rules",
+          "level": 2,
+          "line": 284
+        },
+        {
+          "heading": "Route Handler pattern chuẩn",
+          "level": 3,
+          "line": 295
+        },
+        {
+          "heading": "8. Zod Schema Validation",
+          "level": 2,
+          "line": 328
+        },
+        {
+          "heading": "Vị trí schema",
+          "level": 3,
+          "line": 332
+        },
+        {
+          "heading": "Pattern",
+          "level": 3,
+          "line": 342
+        },
+        {
+          "heading": "9. Error Shape",
+          "level": 2,
+          "line": 366
+        },
+        {
+          "heading": "Error codes chuẩn",
+          "level": 3,
+          "line": 378
+        },
+        {
+          "heading": "10. Danh sách Endpoints Hiện Tại",
+          "level": 2,
+          "line": 392
+        },
+        {
+          "heading": "Server Actions (Internal Mutations)",
+          "level": 3,
+          "line": 394
+        },
+        {
+          "heading": "Route Handlers (External / Client Refetch)",
+          "level": 3,
+          "line": 403
+        },
+        {
+          "heading": "11. Hidden Stats Rule",
+          "level": 2,
+          "line": 415
+        },
+        {
+          "heading": "12. Checklist",
+          "level": 2,
+          "line": 435
+        },
+        {
+          "heading": "Trước khi thêm Server Action mới",
+          "level": 3,
+          "line": 437
+        },
+        {
+          "heading": "Trước khi thêm Route Handler mới",
+          "level": 3,
+          "line": 446
+        },
+        {
+          "heading": "Trước khi thêm TanStack Query hook mới",
+          "level": 3,
+          "line": 454
+        },
+        {
+          "heading": "13. AI Agent Rules",
+          "level": 2,
+          "line": 463
+        },
+        {
+          "heading": "Common mistakes cần tránh",
+          "level": 3,
+          "line": 478
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 36
+      }
+    },
+    {
+      "path": "docs/architecture.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 105,
+      "nonEmptyLines": 64,
+      "sections": [
+        {
+          "heading": "Football Life — Architecture",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Layer Boundaries",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "App Layer (`app/`)",
+          "level": 3,
+          "line": 9
+        },
+        {
+          "heading": "Feature Layer (`features/`)",
+          "level": 3,
+          "line": 17
+        },
+        {
+          "heading": "Actions Layer (`actions/`)",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "Library Layer (`lib/`)",
+          "level": 3,
+          "line": 31
+        },
+        {
+          "heading": "Component Layer (`components/`)",
+          "level": 3,
+          "line": 41
+        },
+        {
+          "heading": "Types Layer (`types/`)",
+          "level": 3,
+          "line": 48
+        },
+        {
+          "heading": "Truth Model",
+          "level": 2,
+          "line": 54
+        },
+        {
+          "heading": "State Management",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "Wheel Engine Invariant",
+          "level": 2,
+          "line": 78
+        },
+        {
+          "heading": "Current Scaffold",
+          "level": 2,
+          "line": 94
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "docs/auth-implementation-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 488,
+      "nonEmptyLines": 373,
+      "sections": [
+        {
+          "heading": "Auth Implementation Plan — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Tổng quan chiến lược",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Hiện trạng codebase (trước khi implement)",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "Packages cần cài",
+          "level": 2,
+          "line": 35
+        },
+        {
+          "heading": "Files cần tạo mới",
+          "level": 2,
+          "line": 45
+        },
+        {
+          "heading": "Files cần sửa",
+          "level": 2,
+          "line": 68
+        },
+        {
+          "heading": "Chi tiết implementation",
+          "level": 2,
+          "line": 81
+        },
+        {
+          "heading": "Bước 1 — Tạo Supabase clients",
+          "level": 3,
+          "line": 83
+        },
+        {
+          "heading": "Bước 2 — Middleware bảo vệ routes",
+          "level": 3,
+          "line": 125
+        },
+        {
+          "heading": "Bước 3 — Login/Register page",
+          "level": 3,
+          "line": 174
+        },
+        {
+          "heading": "Bước 4 — Callback route (cho Magic Link / OAuth nếu dùng sau)",
+          "level": 3,
+          "line": 192
+        },
+        {
+          "heading": "Bước 5 — Lấy userId trong Server Actions",
+          "level": 3,
+          "line": 214
+        },
+        {
+          "heading": "Bước 6 — Server Components: lấy user + filter data",
+          "level": 3,
+          "line": 242
+        },
+        {
+          "heading": "Auth Flow Diagrams",
+          "level": 2,
+          "line": 264
+        },
+        {
+          "heading": "Flow 0 — Sign Up (2 lớp verify)",
+          "level": 3,
+          "line": 266
+        },
+        {
+          "heading": "Flow 1 — Login",
+          "level": 3,
+          "line": 322
+        },
+        {
+          "heading": "Flow 2 — Token Refresh (tự động, mỗi request)",
+          "level": 3,
+          "line": 358
+        },
+        {
+          "heading": "Flow 3 — Logout",
+          "level": 3,
+          "line": 383
+        },
+        {
+          "heading": "Thứ tự implement",
+          "level": 2,
+          "line": 410
+        },
+        {
+          "heading": "Supabase RLS (Optional — tầng bảo vệ thứ 2)",
+          "level": 2,
+          "line": 429
+        },
+        {
+          "heading": "Env vars cần có trước khi bắt đầu",
+          "level": 2,
+          "line": 459
+        },
+        {
+          "heading": "Không làm trong phase này",
+          "level": 2,
+          "line": 471
+        },
+        {
+          "heading": "Kiểm tra xong khi",
+          "level": 2,
+          "line": 481
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 23
+      }
+    },
+    {
+      "path": "docs/auth-ui-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 347,
+      "nonEmptyLines": 288,
+      "sections": [
+        {
+          "heading": "Auth UI/UX Plan — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Tổng quan",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Layout Shell cho Auth Pages",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "Screen 1 — Login / Register (`/login`)",
+          "level": 2,
+          "line": 57
+        },
+        {
+          "heading": "Cấu trúc",
+          "level": 3,
+          "line": 59
+        },
+        {
+          "heading": "Tab Toggle",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "Form Inputs",
+          "level": 3,
+          "line": 119
+        },
+        {
+          "heading": "Error State",
+          "level": 3,
+          "line": 159
+        },
+        {
+          "heading": "Submit Button",
+          "level": 3,
+          "line": 172
+        },
+        {
+          "heading": "Quên mật khẩu",
+          "level": 3,
+          "line": 193
+        },
+        {
+          "heading": "Screen 2 — Confirm Email State",
+          "level": 2,
+          "line": 212
+        },
+        {
+          "heading": "Screen 3 — Expired Link Error",
+          "level": 2,
+          "line": 270
+        },
+        {
+          "heading": "Auth Card Wrapper",
+          "level": 2,
+          "line": 289
+        },
+        {
+          "heading": "States cần hỗ trợ (§10)",
+          "level": 2,
+          "line": 305
+        },
+        {
+          "heading": "Responsive (§12)",
+          "level": 2,
+          "line": 319
+        },
+        {
+          "heading": "Files cần tạo",
+          "level": 2,
+          "line": 327
+        },
+        {
+          "heading": "Không làm trong phase này",
+          "level": 2,
+          "line": 342
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 17
+      }
+    },
+    {
+      "path": "docs/ballon-dor-wheel-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 298,
+      "nonEmptyLines": 216,
+      "sections": [
+        {
+          "heading": "Ballon d'Or Wheel Feature — Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Mục tiêu",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Điều kiện thay đổi so với hiện tại",
+          "level": 2,
+          "line": 18
+        },
+        {
+          "heading": "Career Flow mới",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "Phần 1 — Server: Eligibility & Weights",
+          "level": 2,
+          "line": 56
+        },
+        {
+          "heading": "1.1 eligibilityScore — Score-based, gate = 75",
+          "level": 3,
+          "line": 58
+        },
+        {
+          "heading": "1.2 nominationWeight — Xác suất Yes trong Wheel 1",
+          "level": 3,
+          "line": 114
+        },
+        {
+          "heading": "1.3 rankScore — Weight cho Wheel 2 (#1–#10)",
+          "level": 3,
+          "line": 136
+        },
+        {
+          "heading": "Phần 2 — Client: State & Wheels",
+          "level": 2,
+          "line": 170
+        },
+        {
+          "heading": "2.1 State mới cần thêm",
+          "level": 3,
+          "line": 172
+        },
+        {
+          "heading": "2.2 Trigger point",
+          "level": 3,
+          "line": 182
+        },
+        {
+          "heading": "2.3 Wheel 1 — \"ballon_dor_nomination\"",
+          "level": 3,
+          "line": 188
+        },
+        {
+          "heading": "2.4 Wheel 2 — \"ballon_dor_ranking\"",
+          "level": 3,
+          "line": 202
+        },
+        {
+          "heading": "Phần 3 — Server Action thay đổi",
+          "level": 2,
+          "line": 221
+        },
+        {
+          "heading": "3.1 `simulatePlayerSeasonAction` — thay đổi return",
+          "level": 3,
+          "line": 223
+        },
+        {
+          "heading": "3.2 Không còn random Ballon d'Or trong service",
+          "level": 3,
+          "line": 234
+        },
+        {
+          "heading": "Phần 4 — UI / UX",
+          "level": 2,
+          "line": 240
+        },
+        {
+          "heading": "4.1 CareerActionsPanel — label mới",
+          "level": 3,
+          "line": 242
+        },
+        {
+          "heading": "4.2 SeasonStatsModal",
+          "level": 3,
+          "line": 249
+        },
+        {
+          "heading": "4.3 Celebration sau Wheel 2",
+          "level": 3,
+          "line": 253
+        },
+        {
+          "heading": "Phần 5 — Achievements / Lưu trữ",
+          "level": 2,
+          "line": 259
+        },
+        {
+          "heading": "Files cần thay đổi",
+          "level": 2,
+          "line": 278
+        },
+        {
+          "heading": "Open Questions",
+          "level": 2,
+          "line": 293
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 23
+      }
+    },
+    {
+      "path": "docs/career-resume-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 349,
+      "nonEmptyLines": 270,
+      "sections": [
+        {
+          "heading": "Career Resume — Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Bối cảnh",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Root Cause",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Những gì BE đã lưu",
+          "level": 2,
+          "line": 27
+        },
+        {
+          "heading": "Các thay đổi cần làm",
+          "level": 2,
+          "line": 41
+        },
+        {
+          "heading": "[ ] Fix 1 — Thêm `achievements` vào `updateSeasonProgressAction`",
+          "level": 3,
+          "line": 43
+        },
+        {
+          "heading": "[ ] Fix 2 — New Server Action: `getCareerPlayerAction`",
+          "level": 3,
+          "line": 68
+        },
+        {
+          "heading": "[ ] Fix 3 — Conditional logic trong mount useEffect",
+          "level": 3,
+          "line": 107
+        },
+        {
+          "heading": "Trade-off chấp nhận được",
+          "level": 2,
+          "line": 199
+        },
+        {
+          "heading": "Edge cases phải handle",
+          "level": 2,
+          "line": 211
+        },
+        {
+          "heading": "[ ] Fix 4 — Squad Board: hiển thị trạng thái \"Đang chơi\" cho in-progress slot",
+          "level": 3,
+          "line": 224
+        },
+        {
+          "heading": "4a — Data layer: fetch in-progress slots",
+          "level": 4,
+          "line": 228
+        },
+        {
+          "heading": "4b — UI: `InProgressSlot` component trong `PitchBoard.tsx`",
+          "level": 4,
+          "line": 248
+        },
+        {
+          "heading": "4c — Starting XI list (SquadSheet / SquadDashboard)",
+          "level": 4,
+          "line": 292
+        },
+        {
+          "heading": "4d — Logic trong `SquadDashboard.tsx`",
+          "level": 4,
+          "line": 300
+        },
+        {
+          "heading": "Files bị ảnh hưởng",
+          "level": 2,
+          "line": 317
+        },
+        {
+          "heading": "Thứ tự implement",
+          "level": 2,
+          "line": 332
+        },
+        {
+          "heading": "Định nghĩa \"done\"",
+          "level": 2,
+          "line": 341
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 18
+      }
+    },
+    {
+      "path": "docs/code-review-findings.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 203,
+      "nonEmptyLines": 145,
+      "sections": [
+        {
+          "heading": "Code Review Findings",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Tóm tắt",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "Danh sách vấn đề",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "[BUG-01] World Cup year check không nhất quán",
+          "level": 3,
+          "line": 17
+        },
+        {
+          "heading": "[BUG-02] Cờ quốc gia Singapore hardcode",
+          "level": 3,
+          "line": 43
+        },
+        {
+          "heading": "[BUG-03] Personality distribution bị bias",
+          "level": 3,
+          "line": 65
+        },
+        {
+          "heading": "[CODE-01] Typo / duplicate field trong hiddenStats",
+          "level": 3,
+          "line": 84
+        },
+        {
+          "heading": "[CODE-02] Global window hack trong career spin",
+          "level": 3,
+          "line": 105
+        },
+        {
+          "heading": "[CODE-03] Dead code — match-simulator.ts",
+          "level": 3,
+          "line": 133
+        },
+        {
+          "heading": "[SEC-01] Dữ liệu club từ client không được validate trong Server Action",
+          "level": 3,
+          "line": 146
+        },
+        {
+          "heading": "Điểm tốt cần giữ nguyên",
+          "level": 2,
+          "line": 190
+        },
+        {
+          "heading": "Vấn đề kiến trúc chưa giải quyết (ghi chú thêm)",
+          "level": 2,
+          "line": 200
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "docs/core-growth-logic-review.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 554,
+      "nonEmptyLines": 430,
+      "sections": [
+        {
+          "heading": "Review: OVR Debut, Growth Weights & Formation Position Granularity",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Vấn đề A — Vị trí không được xử lý đủ chi tiết (gộp Vấn đề 1 + 6 cũ)",
+          "level": 2,
+          "line": 25
+        },
+        {
+          "heading": "A.1 — Gốc rễ chung",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "A.2 — Vì sao chỉ ST/LW/RW/CAM có 3 main-stat mà CB/CDM/CM/GK chỉ có 2?",
+          "level": 3,
+          "line": 56
+        },
+        {
+          "heading": "A.3 — Đề xuất: công thức OVR mới, MỌI vị trí đều có đúng 3 main-stat",
+          "level": 3,
+          "line": 76
+        },
+        {
+          "heading": "A.4 — Đề xuất định nghĩa mới cho LM/RM",
+          "level": 3,
+          "line": 107
+        },
+        {
+          "heading": "A.5 — Đề xuất fix Formation board (CDM/CM/CAM ở 4-3-3)",
+          "level": 3,
+          "line": 128
+        },
+        {
+          "heading": "Vấn đề B — Magnitude là gì? (giải thích, không phải lỗi)",
+          "level": 2,
+          "line": 157
+        },
+        {
+          "heading": "Vấn đề C — Thiết kế lại Weight Count cho logic hơn",
+          "level": 2,
+          "line": 186
+        },
+        {
+          "heading": "Hiện trạng",
+          "level": 3,
+          "line": 188
+        },
+        {
+          "heading": "Đề xuất thiết kế lại — Count tỉ lệ theo rating (cùng logic với Magnitude)",
+          "level": 3,
+          "line": 194
+        },
+        {
+          "heading": "Vấn đề F — Có nên mở rộng biên độ Magnitude từ 1-6 lên 1-8?",
+          "level": 2,
+          "line": 220
+        },
+        {
+          "heading": "Hiện trạng",
+          "level": 3,
+          "line": 222
+        },
+        {
+          "heading": "Quyết định: mở domain 1-8 đồng đều cho MỌI tier, chỉ đổi trọng số",
+          "level": 3,
+          "line": 228
+        },
+        {
+          "heading": "Vấn đề D — Yes/No gate: đào sâu bản chất bug + đề xuất fix (mở rộng từ bản trước)",
+          "level": 2,
+          "line": 249
+        },
+        {
+          "heading": "D.1 — Bug hiển thị cần fix",
+          "level": 3,
+          "line": 251
+        },
+        {
+          "heading": "D.2 — Ngưỡng rating rời rạc gây bước nhảy gắt",
+          "level": 3,
+          "line": 260
+        },
+        {
+          "heading": "D.3 — Đề xuất: hợp nhất về 1 khung tier rating duy nhất dùng chung cho gate + count + magnitude",
+          "level": 3,
+          "line": 268
+        },
+        {
+          "heading": "D.4 — Bucket rời rạc vs nội suy liên tục",
+          "level": 3,
+          "line": 293
+        },
+        {
+          "heading": "D.5 — Age curve theo vị trí (giữ nguyên đề xuất từ bản trước, bổ sung số cụ thể)",
+          "level": 3,
+          "line": 308
+        },
+        {
+          "heading": "Vấn đề E — Selector weight không đều giữa vị trí (ĐÃ GIẢI QUYẾT bởi A.3)",
+          "level": 2,
+          "line": 323
+        },
+        {
+          "heading": "Vấn đề G — Review logic Debut Age & Debut OVR",
+          "level": 2,
+          "line": 336
+        },
+        {
+          "heading": "G.1 — `DEBUT_OVR_POOL` là dead code",
+          "level": 3,
+          "line": 338
+        },
+        {
+          "heading": "G.2 — Debut Age và Debut Stats được roll hoàn toàn độc lập, không liên quan nhau",
+          "level": 3,
+          "line": 354
+        },
+        {
+          "heading": "G.3 — Mở rộng dải tuổi debut xuống 15",
+          "level": 3,
+          "line": 374
+        },
+        {
+          "heading": "G.4 — Debut OVR của LM/RM và CB/CM/ST sẽ tự động đúng sau khi fix A.3/A.4",
+          "level": 3,
+          "line": 392
+        },
+        {
+          "heading": "Vấn đề H — Thêm vòng quay Height & Weight, ảnh hưởng debut stats",
+          "level": 2,
+          "line": 401
+        },
+        {
+          "heading": "H.1 — Hiện trạng thực tế KHÔNG phải \"FE random\" — mà là 2 bug khác",
+          "level": 3,
+          "line": 403
+        },
+        {
+          "heading": "H.2 — Đề xuất: 2 wheel mới ở bước setup, chèn ngay sau bước chọn Debut Age",
+          "level": 3,
+          "line": 422
+        },
+        {
+          "heading": "H.3 — Dải chiều cao theo vị trí (cm)",
+          "level": 3,
+          "line": 439
+        },
+        {
+          "heading": "H.4 — Cân nặng: wheel riêng nhưng dải phụ thuộc chiều cao vừa roll",
+          "level": 3,
+          "line": 456
+        },
+        {
+          "heading": "H.5 — Height/Weight tạo modifier lên debut stats",
+          "level": 3,
+          "line": 477
+        },
+        {
+          "heading": "H.6 — Việc cần làm khi triển khai (liệt kê trước, chưa code)",
+          "level": 3,
+          "line": 509
+        },
+        {
+          "heading": "Tổng kết mức ưu tiên đề xuất",
+          "level": 2,
+          "line": 532
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 34
+      }
+    },
+    {
+      "path": "docs/environment-variables.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 83,
+      "nonEmptyLines": 62,
+      "sections": [
+        {
+          "heading": "Environment Variables",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Usage",
+          "level": 2,
+          "line": 5
+        },
+        {
+          "heading": "Variables",
+          "level": 2,
+          "line": 23
+        },
+        {
+          "heading": "Scope Rules",
+          "level": 2,
+          "line": 42
+        },
+        {
+          "heading": ".env.example Template",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "Current Code References",
+          "level": 2,
+          "line": 76
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 6
+      }
+    },
+    {
+      "path": "docs/frontend-style-system-guide.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 1005,
+      "nonEmptyLines": 790,
+      "sections": [
+        {
+          "heading": "Frontend Style System Guide — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Mục tiêu của tài liệu",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "2. Design Philosophy",
+          "level": 2,
+          "line": 19
+        },
+        {
+          "heading": "3. Theme System",
+          "level": 2,
+          "line": 51
+        },
+        {
+          "heading": "3.1 Color Palette",
+          "level": 3,
+          "line": 53
+        },
+        {
+          "heading": "Semantic Tokens",
+          "level": 4,
+          "line": 57
+        },
+        {
+          "heading": "Palette Values (HSL — Dark mode là primary)",
+          "level": 4,
+          "line": 82
+        },
+        {
+          "heading": "Dark mode",
+          "level": 4,
+          "line": 124
+        },
+        {
+          "heading": "3.2 Card Rarity Colors",
+          "level": 3,
+          "line": 141
+        },
+        {
+          "heading": "3.3 Usage Rules",
+          "level": 3,
+          "line": 154
+        },
+        {
+          "heading": "4. Typography System",
+          "level": 2,
+          "line": 182
+        },
+        {
+          "heading": "4.1 Font Stack",
+          "level": 3,
+          "line": 184
+        },
+        {
+          "heading": "4.2 Typography Scale",
+          "level": 3,
+          "line": 212
+        },
+        {
+          "heading": "4.3 Font Weight",
+          "level": 3,
+          "line": 225
+        },
+        {
+          "heading": "4.4 Sport-Specific Typography Patterns",
+          "level": 3,
+          "line": 235
+        },
+        {
+          "heading": "4.5 Rules",
+          "level": 3,
+          "line": 266
+        },
+        {
+          "heading": "5. Spacing System",
+          "level": 2,
+          "line": 275
+        },
+        {
+          "heading": "Spacing thường dùng",
+          "level": 3,
+          "line": 279
+        },
+        {
+          "heading": "Vertical rhythm",
+          "level": 3,
+          "line": 300
+        },
+        {
+          "heading": "Rules",
+          "level": 3,
+          "line": 307
+        },
+        {
+          "heading": "6. Layout System",
+          "level": 2,
+          "line": 315
+        },
+        {
+          "heading": "6.1 App Shell",
+          "level": 3,
+          "line": 317
+        },
+        {
+          "heading": "6.2 Squad XI Board Layout",
+          "level": 3,
+          "line": 330
+        },
+        {
+          "heading": "6.3 Pitch / Formation Board",
+          "level": 3,
+          "line": 343
+        },
+        {
+          "heading": "6.4 Wheel Spin View",
+          "level": 3,
+          "line": 369
+        },
+        {
+          "heading": "6.5 Career Detail Modal",
+          "level": 3,
+          "line": 384
+        },
+        {
+          "heading": "6.6 Max Width Constraints",
+          "level": 3,
+          "line": 398
+        },
+        {
+          "heading": "7. Component Patterns",
+          "level": 2,
+          "line": 410
+        },
+        {
+          "heading": "7.1 Player Card",
+          "level": 3,
+          "line": 412
+        },
+        {
+          "heading": "7.2 Slot Disc (Formation Slot)",
+          "level": 3,
+          "line": 466
+        },
+        {
+          "heading": "7.3 Wheel Component",
+          "level": 3,
+          "line": 493
+        },
+        {
+          "heading": "7.4 Chip / Mode Selector",
+          "level": 3,
+          "line": 515
+        },
+        {
+          "heading": "7.5 Eyebrow + Heading Pattern",
+          "level": 3,
+          "line": 538
+        },
+        {
+          "heading": "7.6 Buttons",
+          "level": 3,
+          "line": 551
+        },
+        {
+          "heading": "8. Animation Rules",
+          "level": 2,
+          "line": 596
+        },
+        {
+          "heading": "8.1 Game Animations (Framer Motion)",
+          "level": 3,
+          "line": 600
+        },
+        {
+          "heading": "8.2 UI Animations (Tailwind transition)",
+          "level": 3,
+          "line": 610
+        },
+        {
+          "heading": "8.3 Rules",
+          "level": 3,
+          "line": 618
+        },
+        {
+          "heading": "8.4 Wheel Spin Easing",
+          "level": 3,
+          "line": 628
+        },
+        {
+          "heading": "9. Icon System",
+          "level": 2,
+          "line": 640
+        },
+        {
+          "heading": "Icon sizes",
+          "level": 3,
+          "line": 644
+        },
+        {
+          "heading": "Icon usage trong game context",
+          "level": 3,
+          "line": 653
+        },
+        {
+          "heading": "10. State Styling Rules",
+          "level": 2,
+          "line": 662
+        },
+        {
+          "heading": "States cần hỗ trợ",
+          "level": 3,
+          "line": 664
+        },
+        {
+          "heading": "Standard states",
+          "level": 3,
+          "line": 677
+        },
+        {
+          "heading": "11. Empty State Rules",
+          "level": 2,
+          "line": 719
+        },
+        {
+          "heading": "Empty slot trên pitch",
+          "level": 3,
+          "line": 723
+        },
+        {
+          "heading": "No games yet",
+          "level": 3,
+          "line": 731
+        },
+        {
+          "heading": "Wheel has no result yet",
+          "level": 3,
+          "line": 741
+        },
+        {
+          "heading": "12. Responsive Rules",
+          "level": 2,
+          "line": 751
+        },
+        {
+          "heading": "Breakpoint strategy",
+          "level": 3,
+          "line": 755
+        },
+        {
+          "heading": "Pitch board responsive",
+          "level": 3,
+          "line": 765
+        },
+        {
+          "heading": "Wheel spin",
+          "level": 3,
+          "line": 781
+        },
+        {
+          "heading": "Career modal",
+          "level": 3,
+          "line": 786
+        },
+        {
+          "heading": "13. Tailwind Config",
+          "level": 2,
+          "line": 793
+        },
+        {
+          "heading": "tailwind.config.ts",
+          "level": 3,
+          "line": 795
+        },
+        {
+          "heading": "CSS Variables setup (globals.css)",
+          "level": 3,
+          "line": 871
+        },
+        {
+          "heading": "Z-index scale",
+          "level": 3,
+          "line": 927
+        },
+        {
+          "heading": "14. Tailwind Usage Rules",
+          "level": 2,
+          "line": 940
+        },
+        {
+          "heading": "15. AI Agent Frontend Rules",
+          "level": 2,
+          "line": 951
+        },
+        {
+          "heading": "Bắt buộc",
+          "level": 3,
+          "line": 955
+        },
+        {
+          "heading": "Cấm",
+          "level": 3,
+          "line": 966
+        },
+        {
+          "heading": "Khi AI agent chỉnh UI",
+          "level": 3,
+          "line": 976
+        },
+        {
+          "heading": "16. UI Consistency Checklist",
+          "level": 2,
+          "line": 986
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 64
+      }
+    },
+    {
+      "path": "docs/game-design.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 819,
+      "nonEmptyLines": 664,
+      "sections": [
+        {
+          "heading": "Football Life — Game Design Document",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Game Modes Overview",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "2. Classic Mode — Core Concept",
+          "level": 2,
+          "line": 20
+        },
+        {
+          "heading": "Session Structure",
+          "level": 3,
+          "line": 24
+        },
+        {
+          "heading": "3. Player Generation — The Wheel Cascade",
+          "level": 2,
+          "line": 41
+        },
+        {
+          "heading": "4. Phase 1 — Identity Wheels",
+          "level": 2,
+          "line": 88
+        },
+        {
+          "heading": "4.1 Nationality Wheel",
+          "level": 3,
+          "line": 90
+        },
+        {
+          "heading": "4.2 Debut Age Wheel",
+          "level": 3,
+          "line": 97
+        },
+        {
+          "heading": "4.3 Debut Stats Wheel",
+          "level": 3,
+          "line": 115
+        },
+        {
+          "heading": "4.4 Career Length Wheel",
+          "level": 3,
+          "line": 182
+        },
+        {
+          "heading": "4.5 Number of Clubs Wheel",
+          "level": 3,
+          "line": 198
+        },
+        {
+          "heading": "5. Phase 2 — Career Simulation Loop (Stint & Year Loop)",
+          "level": 2,
+          "line": 215
+        },
+        {
+          "heading": "5.1 Stint Level Wheels (League, Club, & Years)",
+          "level": 3,
+          "line": 221
+        },
+        {
+          "heading": "5.2 Year-by-Year Simulation Loop",
+          "level": 3,
+          "line": 240
+        },
+        {
+          "heading": "A. Interactive Team & Cup Wheels (Spins)",
+          "level": 4,
+          "line": 247
+        },
+        {
+          "heading": "B. Personal Match Performance (BE Auto-Calculation, No Spin)",
+          "level": 4,
+          "line": 266
+        },
+        {
+          "heading": "C. Ballon d'Or Wheel (Optional)",
+          "level": 4,
+          "line": 283
+        },
+        {
+          "heading": "D. End-of-Year Stats Update Wheels",
+          "level": 4,
+          "line": 287
+        },
+        {
+          "heading": "E. International National Team Wheels (Every 2/4 Years)",
+          "level": 4,
+          "line": 300
+        },
+        {
+          "heading": "6. Phase 3 — Auto Generation (Computed, No Spin)",
+          "level": 2,
+          "line": 307
+        },
+        {
+          "heading": "6.1 Name Generation",
+          "level": 3,
+          "line": 309
+        },
+        {
+          "heading": "6.2 Physical Attributes",
+          "level": 3,
+          "line": 318
+        },
+        {
+          "heading": "6.3 Year-by-Year OVR Progression & Peak OVR",
+          "level": 3,
+          "line": 325
+        },
+        {
+          "heading": "6.4 Sub-Stats (FIFA-Style 6 Attributes)",
+          "level": 3,
+          "line": 335
+        },
+        {
+          "heading": "6.5 Hidden Stats",
+          "level": 3,
+          "line": 352
+        },
+        {
+          "heading": "7. Career Events — Club Stint Events",
+          "level": 2,
+          "line": 364
+        },
+        {
+          "heading": "7.1 Event Categories",
+          "level": 3,
+          "line": 372
+        },
+        {
+          "heading": "7.2 Trophy Linkage to Real Club Data",
+          "level": 3,
+          "line": 383
+        },
+        {
+          "heading": "7.3 National Team & International Tournament Events",
+          "level": 3,
+          "line": 399
+        },
+        {
+          "heading": "Call-Up & Simulation Logic",
+          "level": 4,
+          "line": 411
+        },
+        {
+          "heading": "7.4 Club Continental Qualification Logic",
+          "level": 3,
+          "line": 426
+        },
+        {
+          "heading": "A. Europe (UEFA Leagues)",
+          "level": 4,
+          "line": 430
+        },
+        {
+          "heading": "B. South America (CONMEBOL Leagues)",
+          "level": 4,
+          "line": 446
+        },
+        {
+          "heading": "C. Asia (AFC) & North America (CONCACAF Leagues)",
+          "level": 4,
+          "line": 451
+        },
+        {
+          "heading": "8. Supported Leagues & Clubs",
+          "level": 2,
+          "line": 457
+        },
+        {
+          "heading": "EUROPE",
+          "level": 3,
+          "line": 459
+        },
+        {
+          "heading": "SOUTH AMERICA",
+          "level": 3,
+          "line": 480
+        },
+        {
+          "heading": "NORTH AMERICA",
+          "level": 3,
+          "line": 492
+        },
+        {
+          "heading": "ASIA",
+          "level": 3,
+          "line": 500
+        },
+        {
+          "heading": "MIDDLE EAST",
+          "level": 3,
+          "line": 511
+        },
+        {
+          "heading": "AFRICA",
+          "level": 3,
+          "line": 519
+        },
+        {
+          "heading": "9. Player Card — Display Format",
+          "level": 2,
+          "line": 528
+        },
+        {
+          "heading": "10. Wheel Spin UX",
+          "level": 2,
+          "line": 566
+        },
+        {
+          "heading": "Flow per player slot",
+          "level": 3,
+          "line": 570
+        },
+        {
+          "heading": "Wheel UI Component Rules",
+          "level": 3,
+          "line": 612
+        },
+        {
+          "heading": "11. Career Detail Modal",
+          "level": 2,
+          "line": 623
+        },
+        {
+          "heading": "Modal Sections",
+          "level": 3,
+          "line": 628
+        },
+        {
+          "heading": "Modal Data Display",
+          "level": 3,
+          "line": 670
+        },
+        {
+          "heading": "12. Squad XI — Formation & Display",
+          "level": 2,
+          "line": 682
+        },
+        {
+          "heading": "Formation: 4-3-3 (Fixed)",
+          "level": 3,
+          "line": 684
+        },
+        {
+          "heading": "Slot Definition (11 slots)",
+          "level": 3,
+          "line": 696
+        },
+        {
+          "heading": "Display Rules",
+          "level": 3,
+          "line": 712
+        },
+        {
+          "heading": "11. Open Questions (To Be Resolved)",
+          "level": 2,
+          "line": 721
+        },
+        {
+          "heading": "12. Data Model Summary",
+          "level": 2,
+          "line": 735
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 54
+      }
+    },
+    {
+      "path": "docs/loading-agent-guide.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 171,
+      "nonEmptyLines": 132,
+      "sections": [
+        {
+          "heading": "Loading Agent Guide — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Import chuẩn",
+          "level": 2,
+          "line": 9
+        },
+        {
+          "heading": "2. Phân loại và Cách Sử dụng Loading",
+          "level": 2,
+          "line": 25
+        },
+        {
+          "heading": "2.1. App/Page Loading (`PageLoading`)",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "2.2. Component Loading (`ComponentLoading`)",
+          "level": 3,
+          "line": 48
+        },
+        {
+          "heading": "2.3. Global Overlay Loading (`useGlobalLoading`)",
+          "level": 3,
+          "line": 67
+        },
+        {
+          "heading": "2.4. Async Flow Loading (`useAsyncLoading`)",
+          "level": 3,
+          "line": 88
+        },
+        {
+          "heading": "3. Quy tắc Quản lý Trạng thái (State Management Rules)",
+          "level": 2,
+          "line": 115
+        },
+        {
+          "heading": "4. Custom UI cho các Module",
+          "level": 2,
+          "line": 123
+        },
+        {
+          "heading": "5. Ví dụ về Governing Writes & Loading",
+          "level": 2,
+          "line": 133
+        },
+        {
+          "heading": "6. Quy tắc dành cho AI Agent",
+          "level": 2,
+          "line": 156
+        },
+        {
+          "heading": "7. File tham chiếu",
+          "level": 2,
+          "line": 168
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 12
+      }
+    },
+    {
+      "path": "docs/modal-agent-guide.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 356,
+      "nonEmptyLines": 275,
+      "sections": [
+        {
+          "heading": "Modal Agent Guide — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Khi nào dùng pattern nào",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "Pattern A — Zustand Store + Dialog",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "Pattern B — Local State + Dialog",
+          "level": 3,
+          "line": 31
+        },
+        {
+          "heading": "Không dùng modal cho",
+          "level": 3,
+          "line": 44
+        },
+        {
+          "heading": "2. Pattern A — Zustand Store + Dialog",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "Bước 1: Tạo Zustand store",
+          "level": 3,
+          "line": 54
+        },
+        {
+          "heading": "Bước 2: Trigger từ bất kỳ component nào",
+          "level": 3,
+          "line": 75
+        },
+        {
+          "heading": "Bước 3: Đặt Dialog component ở root game layout",
+          "level": 3,
+          "line": 117
+        },
+        {
+          "heading": "Bước 4: Tạo Dialog component",
+          "level": 3,
+          "line": 133
+        },
+        {
+          "heading": "3. Pattern B — Local State + Dialog",
+          "level": 2,
+          "line": 190
+        },
+        {
+          "heading": "4. Quy tắc khi tạo modal mới",
+          "level": 2,
+          "line": 254
+        },
+        {
+          "heading": "Về Zustand store",
+          "level": 3,
+          "line": 256
+        },
+        {
+          "heading": "Về Dialog component",
+          "level": 3,
+          "line": 262
+        },
+        {
+          "heading": "Về data fetching trong modal",
+          "level": 3,
+          "line": 268
+        },
+        {
+          "heading": "Về mutation trong modal",
+          "level": 3,
+          "line": 280
+        },
+        {
+          "heading": "5. Danh sách modals trong Football Life",
+          "level": 2,
+          "line": 297
+        },
+        {
+          "heading": "6. Rules cho AI agent",
+          "level": 2,
+          "line": 307
+        },
+        {
+          "heading": "7. Test checklist",
+          "level": 2,
+          "line": 325
+        },
+        {
+          "heading": "8. File tham khảo",
+          "level": 2,
+          "line": 347
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 20
+      }
+    },
+    {
+      "path": "docs/module-boundaries.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 300,
+      "nonEmptyLines": 218,
+      "sections": [
+        {
+          "heading": "Module Boundaries — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "`features/game`",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "`features/squad`",
+          "level": 2,
+          "line": 32
+        },
+        {
+          "heading": "`features/wheel`",
+          "level": 2,
+          "line": 51
+        },
+        {
+          "heading": "`features/career`",
+          "level": 2,
+          "line": 77
+        },
+        {
+          "heading": "`features/player`",
+          "level": 2,
+          "line": 99
+        },
+        {
+          "heading": "`features/modal` (Career Detail Modal)",
+          "level": 2,
+          "line": 119
+        },
+        {
+          "heading": "`lib/wheel-engine`",
+          "level": 2,
+          "line": 136
+        },
+        {
+          "heading": "`lib/probability`",
+          "level": 2,
+          "line": 165
+        },
+        {
+          "heading": "`lib/name-gen`",
+          "level": 2,
+          "line": 184
+        },
+        {
+          "heading": "`lib/supabase`",
+          "level": 2,
+          "line": 200
+        },
+        {
+          "heading": "`actions/`",
+          "level": 2,
+          "line": 212
+        },
+        {
+          "heading": "Dependency Graph",
+          "level": 2,
+          "line": 239
+        },
+        {
+          "heading": "Cross-Module Rules",
+          "level": 2,
+          "line": 275
+        },
+        {
+          "heading": "Zustand UI State — Allowed vs Forbidden",
+          "level": 2,
+          "line": 288
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 15
+      }
+    },
+    {
+      "path": "docs/remove-events-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 228,
+      "nonEmptyLines": 181,
+      "sections": [
+        {
+          "heading": "Remove Events Array — Implementation Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Bối cảnh & Mục tiêu",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Audit kết quả — Những gì bị ảnh hưởng",
+          "level": 2,
+          "line": 16
+        },
+        {
+          "heading": "Những gì CÓ THỂ xóa hoàn toàn (không cần thay thế)",
+          "level": 3,
+          "line": 18
+        },
+        {
+          "heading": "Những gì CẦN THAY THẾ (có nguy cơ mất feature)",
+          "level": 3,
+          "line": 27
+        },
+        {
+          "heading": "⚠️ Điểm quan trọng nhất: Individual Awards bị mất nếu không xử lý",
+          "level": 2,
+          "line": 42
+        },
+        {
+          "heading": "Schema mới cho `achievements`",
+          "level": 2,
+          "line": 58
+        },
+        {
+          "heading": "Hiện tại (không thể biết mùa giải nào)",
+          "level": 3,
+          "line": 60
+        },
+        {
+          "heading": "Mới (có ngữ cảnh đầy đủ)",
+          "level": 3,
+          "line": 71
+        },
+        {
+          "heading": "Verify: Tất cả feature hiện có có bị mất không?",
+          "level": 2,
+          "line": 100
+        },
+        {
+          "heading": "Files bị ảnh hưởng — chi tiết",
+          "level": 2,
+          "line": 119
+        },
+        {
+          "heading": "XÓA",
+          "level": 3,
+          "line": 121
+        },
+        {
+          "heading": "SỬA — Logic",
+          "level": 3,
+          "line": 126
+        },
+        {
+          "heading": "SỬA — UI",
+          "level": 3,
+          "line": 174
+        },
+        {
+          "heading": "Thứ tự implement",
+          "level": 2,
+          "line": 203
+        },
+        {
+          "heading": "Định nghĩa \"done\"",
+          "level": 2,
+          "line": 219
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 16
+      }
+    },
+    {
+      "path": "docs/season-profile-modal-plan.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 311,
+      "nonEmptyLines": 250,
+      "sections": [
+        {
+          "heading": "Season Profile — Modal Redesign Plan",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Vấn đề hiện tại",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "Quyết định đã thống nhất",
+          "level": 2,
+          "line": 17
+        },
+        {
+          "heading": "Flow mùa giải mới",
+          "level": 2,
+          "line": 34
+        },
+        {
+          "heading": "Logic fix: Stats generation",
+          "level": 2,
+          "line": 78
+        },
+        {
+          "heading": "SimulatedSeasonResult mới",
+          "level": 3,
+          "line": 80
+        },
+        {
+          "heading": "Input mới cho simulatePlayerSeasonService",
+          "level": 3,
+          "line": 109
+        },
+        {
+          "heading": "High impact logic",
+          "level": 3,
+          "line": 123
+        },
+        {
+          "heading": "DB persistence: seasonHistory",
+          "level": 2,
+          "line": 142
+        },
+        {
+          "heading": "Schema change",
+          "level": 3,
+          "line": 144
+        },
+        {
+          "heading": "Save/Load",
+          "level": 3,
+          "line": 153
+        },
+        {
+          "heading": "Kiến trúc UI",
+          "level": 2,
+          "line": 161
+        },
+        {
+          "heading": "Cột giữa mới (SeasonProfile)",
+          "level": 3,
+          "line": 163
+        },
+        {
+          "heading": "Competition Result Modal (Loại A)",
+          "level": 3,
+          "line": 184
+        },
+        {
+          "heading": "Season Stats Modal (Loại B)",
+          "level": 3,
+          "line": 206
+        },
+        {
+          "heading": "Tên giải",
+          "level": 2,
+          "line": 229
+        },
+        {
+          "heading": "Modal state management",
+          "level": 2,
+          "line": 244
+        },
+        {
+          "heading": "Substep mới trong useDraftDrum",
+          "level": 2,
+          "line": 266
+        },
+        {
+          "heading": "Files cần thay đổi",
+          "level": 2,
+          "line": 283
+        },
+        {
+          "heading": "Thứ tự implement",
+          "level": 2,
+          "line": 300
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 20
+      }
+    },
+    {
+      "path": "docs/security-checklist.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 92,
+      "nonEmptyLines": 68,
+      "sections": [
+        {
+          "heading": "Security Checklist",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "✅ Đã fix trong đợt này",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "1. Auth trên Server Actions",
+          "level": 3,
+          "line": 10
+        },
+        {
+          "heading": "2. Zod validation cho `player.actions.ts`",
+          "level": 3,
+          "line": 23
+        },
+        {
+          "heading": "3. Rate limiting (scaffold sẵn, cần bạn config)",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "⚠️ Chưa fix — cần bạn tự làm (ngoài phạm vi code repo)",
+          "level": 2,
+          "line": 55
+        },
+        {
+          "heading": "4. RLS (Row Level Security) — file `supabase/rls-lockdown.sql` đã chuẩn bị sẵn",
+          "level": 3,
+          "line": 57
+        },
+        {
+          "heading": "5. Leaked Password Protection",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "📋 Còn lại — chưa làm, chưa nằm trong đợt này",
+          "level": 2,
+          "line": 77
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    }
+  ]
+}

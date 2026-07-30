@@ -1,0 +1,498 @@
+{
+  "nodes": [
+    {
+      "id": "file:features/wheel/components/CareerActionsPanel.tsx",
+      "type": "file",
+      "name": "CareerActionsPanel.tsx",
+      "filePath": "features/wheel/components/CareerActionsPanel.tsx",
+      "summary": "Career-phase action UI that drives mid-career wheel spins for standing, cups, Ballon d'Or, transfers, and season progression, embedding SpinnerWheel for each sub-step.",
+      "tags": ["component", "career", "wheel", "ui"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/CareerActionsPanel.tsx:CareerActionsPanel",
+      "type": "function",
+      "name": "CareerActionsPanel",
+      "filePath": "features/wheel/components/CareerActionsPanel.tsx",
+      "lineRange": [35, 213],
+      "summary": "Renders career sub-step controls and SpinnerWheel, labeling outcomes via season/cup helpers and wiring spin, transfer, and next-season handlers.",
+      "tags": ["component", "career", "wheel"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "type": "file",
+      "name": "DraftDrumScreen.tsx",
+      "filePath": "features/wheel/components/DraftDrumScreen.tsx",
+      "summary": "Top-level draft/career screen that orchestrates setup, career actions, sticker, season modals, and retirement via the useDraftDrum hook.",
+      "tags": ["component", "entry-point", "career", "wheel"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/components/DraftDrumScreen.tsx:DraftDrumScreen",
+      "type": "function",
+      "name": "DraftDrumScreen",
+      "filePath": "features/wheel/components/DraftDrumScreen.tsx",
+      "lineRange": [24, 290],
+      "summary": "Composes stage UI from useDraftDrum state, switching between SetupStage, CareerActionsPanel, PaniniSticker, season modals, and RetiredStage.",
+      "tags": ["component", "orchestrator", "career"],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/wheel/components/PaniniSticker.tsx",
+      "type": "file",
+      "name": "PaniniSticker.tsx",
+      "filePath": "features/wheel/components/PaniniSticker.tsx",
+      "summary": "Panini-style player sticker card showing OVR, nationality flag, season year, position stats, and competition results for the current career year.",
+      "tags": ["component", "ui", "player", "sticker"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/PaniniSticker.tsx:getContinentalCupLabel",
+      "type": "function",
+      "name": "getContinentalCupLabel",
+      "filePath": "features/wheel/components/PaniniSticker.tsx",
+      "lineRange": [26, 36],
+      "summary": "Maps a continental cup type string to a short display label for the sticker card.",
+      "tags": ["utility", "label", "cup"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/components/PaniniSticker.tsx:PaniniSticker",
+      "type": "function",
+      "name": "PaniniSticker",
+      "filePath": "features/wheel/components/PaniniSticker.tsx",
+      "lineRange": [45, 158],
+      "summary": "Renders the career sticker with flag emoji, GK vs outfield stat rows, evolved-stat highlights, and club/season footer.",
+      "tags": ["component", "player", "sticker"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/wheel/components/RetiredStage.tsx",
+      "type": "file",
+      "name": "RetiredStage.tsx",
+      "filePath": "features/wheel/components/RetiredStage.tsx",
+      "summary": "End-of-career retirement screen summarizing peak OVR, career totals, club stints, achievements, and a save-player action.",
+      "tags": ["component", "career", "retirement", "ui"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/RetiredStage.tsx:RetiredStage",
+      "type": "function",
+      "name": "RetiredStage",
+      "filePath": "features/wheel/components/RetiredStage.tsx",
+      "lineRange": [18, 127],
+      "summary": "Displays retirement summary with nationality flag, career stats, club stint list, achievements, and save button.",
+      "tags": ["component", "retirement", "summary"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/wheel/components/SeasonResultModal.tsx",
+      "type": "file",
+      "name": "SeasonResultModal.tsx",
+      "filePath": "features/wheel/components/SeasonResultModal.tsx",
+      "summary": "Modal overlays for season stats and league/cup journey results, including a stats bar and overlay wrapper.",
+      "tags": ["component", "modal", "season", "ui"],
+      "complexity": "complex"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonResultModal.tsx:StatsBar",
+      "type": "function",
+      "name": "StatsBar",
+      "filePath": "features/wheel/components/SeasonResultModal.tsx",
+      "lineRange": [23, 54],
+      "summary": "Compact season stats row showing apps, goals, assists, optional clean sheets, and rating.",
+      "tags": ["component", "stats", "ui"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonResultModal.tsx:SeasonResultModal",
+      "type": "function",
+      "name": "SeasonResultModal",
+      "filePath": "features/wheel/components/SeasonResultModal.tsx",
+      "lineRange": [56, 189],
+      "summary": "Shows season summary or league-table/cup-journey views using domestic/continental cup labels from simulation helpers.",
+      "tags": ["component", "modal", "season"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/SeasonResultModal.tsx:Overlay",
+      "type": "function",
+      "name": "Overlay",
+      "filePath": "features/wheel/components/SeasonResultModal.tsx",
+      "lineRange": [193, 223],
+      "summary": "Full-screen click-to-dismiss overlay shell used by SeasonResultModal content.",
+      "tags": ["component", "modal", "ui"],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:features/wheel/components/SetupStage.tsx",
+      "type": "file",
+      "name": "SetupStage.tsx",
+      "filePath": "features/wheel/components/SetupStage.tsx",
+      "summary": "Career setup stage UI for spinning draft attributes via SpinnerWheel and previewing the assembled player card before starting the career.",
+      "tags": ["component", "setup", "wheel", "ui"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/wheel/components/SetupStage.tsx:SetupStage",
+      "type": "function",
+      "name": "SetupStage",
+      "filePath": "features/wheel/components/SetupStage.tsx",
+      "lineRange": [22, 176],
+      "summary": "Renders setup step progress, SpinnerWheel for the active draft spin, and a draft player preview with flag and position stats.",
+      "tags": ["component", "setup", "wheel"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/wheel/components/SpinnerWheel.tsx",
+      "type": "file",
+      "name": "SpinnerWheel.tsx",
+      "filePath": "features/wheel/components/SpinnerWheel.tsx",
+      "summary": "Framer Motion weighted spinner wheel that animates rotation to a target index and reports the landed label on complete.",
+      "tags": ["component", "wheel", "animation", "ui"],
+      "complexity": "complex",
+      "languageNotes": "Uses Framer Motion useMotionValue/animate for continuous rotation tracking and SVG arc segments."
+    },
+    {
+      "id": "function:features/wheel/components/SpinnerWheel.tsx:computeArcs",
+      "type": "function",
+      "name": "computeArcs",
+      "filePath": "features/wheel/components/SpinnerWheel.tsx",
+      "lineRange": [42, 52],
+      "summary": "Computes start angles and arc sizes for weighted wheel items from their relative weights.",
+      "tags": ["utility", "wheel", "geometry"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/components/SpinnerWheel.tsx:getLabelAtAngle",
+      "type": "function",
+      "name": "getLabelAtAngle",
+      "filePath": "features/wheel/components/SpinnerWheel.tsx",
+      "lineRange": [54, 68],
+      "summary": "Resolves which wheel item label sits under the pointer for a given rotation angle.",
+      "tags": ["utility", "wheel", "geometry"],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:features/wheel/components/SpinnerWheel.tsx:SpinnerWheel",
+      "type": "function",
+      "name": "SpinnerWheel",
+      "filePath": "features/wheel/components/SpinnerWheel.tsx",
+      "lineRange": [74, 265],
+      "summary": "Animated SVG wheel component that spins to targetIndex, updates the active label during motion, and invokes onSpinComplete.",
+      "tags": ["component", "wheel", "animation"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "file:features/wheel/components/CareerActionsPanel.tsx",
+      "target": "function:features/wheel/components/CareerActionsPanel.tsx:CareerActionsPanel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/CareerActionsPanel.tsx",
+      "target": "function:features/wheel/components/CareerActionsPanel.tsx:CareerActionsPanel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/CareerActionsPanel.tsx",
+      "target": "file:features/wheel/components/SpinnerWheel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/CareerActionsPanel.tsx",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/components/CareerActionsPanel.tsx:CareerActionsPanel",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getSeasonYearString",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/CareerActionsPanel.tsx:CareerActionsPanel",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "function:features/wheel/components/DraftDrumScreen.tsx:DraftDrumScreen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "function:features/wheel/components/DraftDrumScreen.tsx:DraftDrumScreen",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/CareerActionsPanel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/PaniniSticker.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/RetiredStage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/SeasonProfile.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/SeasonResultModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/SeasonStatsModal.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/components/SetupStage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/components/DraftDrumScreen.tsx:DraftDrumScreen",
+      "target": "function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/DraftDrumScreen.tsx",
+      "target": "file:features/wheel/hooks/useDraftDrum.ts",
+      "type": "depends_on",
+      "direction": "forward",
+      "weight": 0.6
+    },
+    {
+      "source": "file:features/wheel/components/PaniniSticker.tsx",
+      "target": "function:features/wheel/components/PaniniSticker.tsx:getContinentalCupLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/PaniniSticker.tsx",
+      "target": "function:features/wheel/components/PaniniSticker.tsx:PaniniSticker",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/PaniniSticker.tsx",
+      "target": "function:features/wheel/components/PaniniSticker.tsx:PaniniSticker",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/PaniniSticker.tsx",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/components/PaniniSticker.tsx:PaniniSticker",
+      "target": "function:types/squad.ts:getFlagEmoji",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/RetiredStage.tsx",
+      "target": "function:features/wheel/components/RetiredStage.tsx:RetiredStage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/RetiredStage.tsx",
+      "target": "function:features/wheel/components/RetiredStage.tsx:RetiredStage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/RetiredStage.tsx",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/components/RetiredStage.tsx:RetiredStage",
+      "target": "function:types/squad.ts:getFlagEmoji",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SeasonResultModal.tsx",
+      "target": "function:features/wheel/components/SeasonResultModal.tsx:StatsBar",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SeasonResultModal.tsx",
+      "target": "function:features/wheel/components/SeasonResultModal.tsx:SeasonResultModal",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SeasonResultModal.tsx",
+      "target": "function:features/wheel/components/SeasonResultModal.tsx:Overlay",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SeasonResultModal.tsx",
+      "target": "function:features/wheel/components/SeasonResultModal.tsx:SeasonResultModal",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SeasonResultModal.tsx",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SeasonResultModal.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/components/SeasonResultModal.tsx:SeasonResultModal",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getDomesticCupName",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "function:features/wheel/components/SeasonResultModal.tsx:SeasonResultModal",
+      "target": "function:features/wheel/lib/simulation-helpers.ts:getContinentalCupLabel",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SetupStage.tsx",
+      "target": "function:features/wheel/components/SetupStage.tsx:SetupStage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SetupStage.tsx",
+      "target": "function:features/wheel/components/SetupStage.tsx:SetupStage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SetupStage.tsx",
+      "target": "file:features/wheel/components/SpinnerWheel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/wheel/components/SetupStage.tsx",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "function:features/wheel/components/SetupStage.tsx:SetupStage",
+      "target": "function:types/squad.ts:getFlagEmoji",
+      "type": "calls",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/wheel/components/SpinnerWheel.tsx",
+      "target": "function:features/wheel/components/SpinnerWheel.tsx:computeArcs",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SpinnerWheel.tsx",
+      "target": "function:features/wheel/components/SpinnerWheel.tsx:getLabelAtAngle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SpinnerWheel.tsx",
+      "target": "function:features/wheel/components/SpinnerWheel.tsx:SpinnerWheel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1.0
+    },
+    {
+      "source": "file:features/wheel/components/SpinnerWheel.tsx",
+      "target": "function:features/wheel/components/SpinnerWheel.tsx:SpinnerWheel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    }
+  ]
+}

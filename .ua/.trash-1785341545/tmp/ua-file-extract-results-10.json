@@ -1,0 +1,441 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 3,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 3,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 3
+    }
+  },
+  "results": [
+    {
+      "path": "docs/source-code-architecture-guide.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 832,
+      "nonEmptyLines": 643,
+      "sections": [
+        {
+          "heading": "Source Code Architecture Guide — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Mục tiêu của tài liệu",
+          "level": 2,
+          "line": 3
+        },
+        {
+          "heading": "2. Tổng quan kiến trúc",
+          "level": 2,
+          "line": 21
+        },
+        {
+          "heading": "3. Cấu trúc thư mục tổng quan",
+          "level": 2,
+          "line": 52
+        },
+        {
+          "heading": "4. App Router (`app/`) — Rules",
+          "level": 2,
+          "line": 101
+        },
+        {
+          "heading": "Server Components (mặc định)",
+          "level": 3,
+          "line": 103
+        },
+        {
+          "heading": "Client Components (`\"use client\"`)",
+          "level": 3,
+          "line": 142
+        },
+        {
+          "heading": "Route Handlers (`app/api/`)",
+          "level": 3,
+          "line": 182
+        },
+        {
+          "heading": "5. Features Layer (`features/`) — Structure",
+          "level": 2,
+          "line": 193
+        },
+        {
+          "heading": "`features/career/` — Core Domain",
+          "level": 3,
+          "line": 210
+        },
+        {
+          "heading": "`features/wheel/` — Spin UI",
+          "level": 3,
+          "line": 228
+        },
+        {
+          "heading": "`features/squad/` — Pitch Board",
+          "level": 3,
+          "line": 247
+        },
+        {
+          "heading": "`features/player/` — Display",
+          "level": 3,
+          "line": 259
+        },
+        {
+          "heading": "`features/game/` — Session Management",
+          "level": 3,
+          "line": 270
+        },
+        {
+          "heading": "6. Actions Layer (`actions/`) — Rules",
+          "level": 2,
+          "line": 288
+        },
+        {
+          "heading": "7. Lib Layer (`lib/`) — Rules",
+          "level": 2,
+          "line": 353
+        },
+        {
+          "heading": "`lib/wheel-engine/`",
+          "level": 3,
+          "line": 355
+        },
+        {
+          "heading": "`lib/probability/`",
+          "level": 3,
+          "line": 392
+        },
+        {
+          "heading": "`lib/name-gen/`",
+          "level": 3,
+          "line": 407
+        },
+        {
+          "heading": "`lib/prisma.ts`",
+          "level": 3,
+          "line": 416
+        },
+        {
+          "heading": "8. State Management — Rules",
+          "level": 2,
+          "line": 433
+        },
+        {
+          "heading": "Zustand — Chỉ cho UI state",
+          "level": 3,
+          "line": 443
+        },
+        {
+          "heading": "TanStack Query — Server State",
+          "level": 3,
+          "line": 489
+        },
+        {
+          "heading": "9. Query và Mutation Hooks",
+          "level": 2,
+          "line": 515
+        },
+        {
+          "heading": "Naming convention",
+          "level": 3,
+          "line": 517
+        },
+        {
+          "heading": "Mutation hook — gọi Server Action + invalidate",
+          "level": 3,
+          "line": 522
+        },
+        {
+          "heading": "10. UI Component Rules",
+          "level": 2,
+          "line": 557
+        },
+        {
+          "heading": "Page Components (Server Component)",
+          "level": 3,
+          "line": 559
+        },
+        {
+          "heading": "Feature Components (Client Component)",
+          "level": 3,
+          "line": 565
+        },
+        {
+          "heading": "Shared Components",
+          "level": 3,
+          "line": 572
+        },
+        {
+          "heading": "11. Cách thêm screen mới",
+          "level": 2,
+          "line": 591
+        },
+        {
+          "heading": "12. Cách thêm Server Action mới",
+          "level": 2,
+          "line": 613
+        },
+        {
+          "heading": "13. Cách thêm Wheel outcome mới",
+          "level": 2,
+          "line": 627
+        },
+        {
+          "heading": "14. Testing Rules",
+          "level": 2,
+          "line": 641
+        },
+        {
+          "heading": "Unit Tests (Vitest)",
+          "level": 3,
+          "line": 645
+        },
+        {
+          "heading": "Component Tests (React Testing Library + Vitest)",
+          "level": 3,
+          "line": 703
+        },
+        {
+          "heading": "E2E Tests (Playwright) — Chỉ cho critical flows",
+          "level": 3,
+          "line": 712
+        },
+        {
+          "heading": "15. Naming Conventions",
+          "level": 2,
+          "line": 723
+        },
+        {
+          "heading": "16. Import Rules",
+          "level": 2,
+          "line": 742
+        },
+        {
+          "heading": "17. AI Agent Rules",
+          "level": 2,
+          "line": 776
+        },
+        {
+          "heading": "18. Common Mistakes To Avoid",
+          "level": 2,
+          "line": 798
+        },
+        {
+          "heading": "19. PR Checklist",
+          "level": 2,
+          "line": 816
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 42
+      }
+    },
+    {
+      "path": "docs/state-management.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 404,
+      "nonEmptyLines": 327,
+      "sections": [
+        {
+          "heading": "State Management — Football Life",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Zustand — UI State Only",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Allowed in Zustand",
+          "level": 3,
+          "line": 19
+        },
+        {
+          "heading": "Forbidden in Zustand",
+          "level": 3,
+          "line": 35
+        },
+        {
+          "heading": "Store locations",
+          "level": 3,
+          "line": 46
+        },
+        {
+          "heading": "Ví dụ Wheel UI Store",
+          "level": 3,
+          "line": 53
+        },
+        {
+          "heading": "Ví dụ Career Modal Store",
+          "level": 3,
+          "line": 90
+        },
+        {
+          "heading": "Selector pattern — tránh re-render không cần thiết",
+          "level": 3,
+          "line": 111
+        },
+        {
+          "heading": "TanStack Query — Server / Cache State",
+          "level": 2,
+          "line": 124
+        },
+        {
+          "heading": "Managed by TanStack Query",
+          "level": 3,
+          "line": 128
+        },
+        {
+          "heading": "Query Key Registry",
+          "level": 3,
+          "line": 137
+        },
+        {
+          "heading": "Query hooks",
+          "level": 3,
+          "line": 151
+        },
+        {
+          "heading": "Mutation hooks — gọi Server Action + invalidate",
+          "level": 3,
+          "line": 172
+        },
+        {
+          "heading": "Rules",
+          "level": 3,
+          "line": 200
+        },
+        {
+          "heading": "Feature Services — Game Logic",
+          "level": 2,
+          "line": 211
+        },
+        {
+          "heading": "Managed by Feature Services",
+          "level": 3,
+          "line": 215
+        },
+        {
+          "heading": "Pattern",
+          "level": 3,
+          "line": 224
+        },
+        {
+          "heading": "Luồng State Hoàn Chỉnh — Wheel Spin",
+          "level": 2,
+          "line": 269
+        },
+        {
+          "heading": "Bảng phân loại nhanh",
+          "level": 2,
+          "line": 309
+        },
+        {
+          "heading": "React Key Reset — Automatic State Clearing",
+          "level": 2,
+          "line": 329
+        },
+        {
+          "heading": "Why it is used:",
+          "level": 3,
+          "line": 347
+        },
+        {
+          "heading": "Anti-patterns",
+          "level": 2,
+          "line": 353
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 22
+      }
+    },
+    {
+      "path": "docs/ui-ux-flow.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 126,
+      "nonEmptyLines": 103,
+      "sections": [
+        {
+          "heading": "Football Life — UI/UX Flow Document",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "1. Ngôn Ngữ Thiết Kế & Visual Theme",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "2. Bản Đồ Luồng Giao Diện (UI Flow Map)",
+          "level": 2,
+          "line": 14
+        },
+        {
+          "heading": "3. Chi Tiết Từng Bước Trải Nghiệm (Step-by-Step UI/UX Flow)",
+          "level": 2,
+          "line": 33
+        },
+        {
+          "heading": "3.1. Bước 1: Màn hình Bắt đầu & Chọn Chế độ (Game Start & Mode Selection)",
+          "level": 3,
+          "line": 35
+        },
+        {
+          "heading": "3.2. Bước 2: Màn hình Danh sách Đội hình & Tạo mới (Squad List & Creation)",
+          "level": 3,
+          "line": 46
+        },
+        {
+          "heading": "3.3. Bước 3: Màn hình Quản lý Đội hình (Squad Management Screen)",
+          "level": 3,
+          "line": 58
+        },
+        {
+          "heading": "3.4. Bước 4: Luồng Bốc Thăm Cầu Thủ Mới (Draft Setup Drum Flow)",
+          "level": 3,
+          "line": 81
+        },
+        {
+          "heading": "3.5. Bước 5: Luồng Giả Lập Trận Đấu & Tiến Trình Sự Nghiệp (Yearly Simulation Loop)",
+          "level": 3,
+          "line": 98
+        },
+        {
+          "heading": "3.6. Bước 6: Modal Chi Tiết Sự Nghiệp Cầu Thủ (Player Career Modal)",
+          "level": 3,
+          "line": 112
+        },
+        {
+          "heading": "5. Cách Liên Kết Các Tài Liệu Kỹ Thuật Liên Quan",
+          "level": 2,
+          "line": 122
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 11
+      }
+    }
+  ]
+}
