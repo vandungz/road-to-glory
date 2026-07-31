@@ -1,0 +1,14 @@
+{
+  "projectRoot": "D:/road-to-glory",
+  "batchFiles": [
+    {
+      "path": "package.json",
+      "language": "json",
+      "sizeLines": 48,
+      "fileCategory": "config"
+    }
+  ],
+  "batchImportData": {
+    "package.json": []
+  }
+}

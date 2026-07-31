@@ -1,0 +1,57 @@
+{
+  "nodes": [
+    {
+      "id": "document:.claude/CLAUDE.md",
+      "type": "document",
+      "name": "CLAUDE.md",
+      "filePath": ".claude/CLAUDE.md",
+      "summary": "Primary AI agent project guide for Football Life covering implemented structure, hard invariants (Math.random, hiddenStats, club/continental sync), auth on Server Actions, and safe extension workflows.",
+      "tags": [
+        "documentation",
+        "ai-agent",
+        "invariants",
+        "architecture",
+        "security"
+      ],
+      "complexity": "moderate",
+      "languageNotes": "Vietnamese primary guide with English code examples; documents seven non-negotiable engineering invariants."
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:.claude/CLAUDE.md",
+      "target": "document:AGENTS.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:.claude/CLAUDE.md",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:.claude/CLAUDE.md",
+      "target": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:.claude/CLAUDE.md",
+      "target": "document:docs/security-checklist.md",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:.claude/CLAUDE.md",
+      "target": "document:docs/ai-agent-rules.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

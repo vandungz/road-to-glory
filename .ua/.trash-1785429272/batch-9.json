@@ -1,0 +1,290 @@
+{
+  "nodes": [
+    {
+      "id": "document:docs/api-integration.md",
+      "type": "document",
+      "name": "api-integration.md",
+      "filePath": "docs/api-integration.md",
+      "summary": "API integration guide covering Next.js App Router data-flow patterns: Server Component Prisma reads, TanStack Query refetch via Route Handlers, Server Action mutations with Zod validation, error shapes, and the hidden-stats client ban.",
+      "tags": ["documentation", "api", "server-actions", "tanstack-query", "data-flow"],
+      "complexity": "complex",
+      "languageNotes": "Vietnamese primary prose with English technical terms for Server Actions, Route Handlers, and Zod."
+    },
+    {
+      "id": "document:docs/architecture.md",
+      "type": "document",
+      "name": "architecture.md",
+      "filePath": "docs/architecture.md",
+      "summary": "High-level architecture overview of Football Life layer boundaries (app, features, actions, lib, components, types), truth model for CareerPlayer/GameSession/Wheel Engine, Zustand vs TanStack Query rules, and wheel RNG invariants.",
+      "tags": ["documentation", "architecture", "layering", "state-management", "wheel-engine"],
+      "complexity": "moderate"
+    },
+    {
+      "id": "document:docs/core-game-logic-systems-map.md",
+      "type": "document",
+      "name": "core-game-logic-systems-map.md",
+      "filePath": "docs/core-game-logic-systems-map.md",
+      "summary": "Full interconnection audit of career year-loop subsystems: dependency matrix across OVR, apps, G/A, matchRating, growth, cups, call-up, and transfer, plus client/server latency notes and implementation file map.",
+      "tags": ["documentation", "game-design", "systems-map", "career-loop", "audit"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/core-growth-balance.md",
+      "type": "document",
+      "name": "core-growth-balance.md",
+      "filePath": "docs/core-growth-balance.md",
+      "summary": "Source of truth for OVR/growth balance: peak-99 rarity targets, Development Score increase gates, soft-cap/decline, position-aware G/A/CS per competition, and club-fit apps recovery — design decisions for backend sim only.",
+      "tags": ["documentation", "game-design", "balance", "ovr", "growth"],
+      "complexity": "complex"
+    },
+    {
+      "id": "document:docs/core-growth-logic-review.md",
+      "type": "document",
+      "name": "core-growth-logic-review.md",
+      "filePath": "docs/core-growth-logic-review.md",
+      "summary": "Design review of position granularity, OVR-by-position formulas (3 main-stats), growth count/magnitude/gates, debut age coupling, and proposed height/weight physique wheels — SoT for position/OVR formula, superseded on peak balance by core-growth-balance.",
+      "tags": ["documentation", "game-design", "ovr", "position", "wheel-engine"],
+      "complexity": "complex"
+    }
+  ],
+  "edges": [
+    {
+      "source": "document:docs/api-integration.md",
+      "target": "file:actions/player.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-integration.md",
+      "target": "file:features/game/actions/createGameSession.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-integration.md",
+      "target": "file:lib/prisma.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-integration.md",
+      "target": "file:app/(game)/page.tsx",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/architecture.md",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/architecture.md",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/architecture.md",
+      "target": "file:lib/prisma.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/architecture.md",
+      "target": "file:actions/player.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:features/wheel/hooks/useCareerStats.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:features/player/services/stats-evolution.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "file:actions/season.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:features/season/services/season-simulator.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:features/wheel/lib/growth-balance.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:features/wheel/lib/simulation-helpers.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:features/player/services/stats-evolution.service.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:lib/club-fit.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "file:lib/season-stat-rates.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:features/wheel/lib/career-wheel-resolver.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:types/squad.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "file:actions/player.actions.ts",
+      "type": "documents",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/api-integration.md",
+      "target": "document:docs/architecture.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/architecture.md",
+      "target": "document:docs/api-integration.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "document:docs/core-growth-balance.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-game-logic-systems-map.md",
+      "target": "document:docs/core-growth-logic-review.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "document:docs/core-game-logic-systems-map.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-balance.md",
+      "target": "document:docs/core-growth-logic-review.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    },
+    {
+      "source": "document:docs/core-growth-logic-review.md",
+      "target": "document:docs/core-growth-balance.md",
+      "type": "related",
+      "direction": "forward",
+      "weight": 0.5
+    }
+  ]
+}

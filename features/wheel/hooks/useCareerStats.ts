@@ -47,10 +47,18 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   const [currentContinentalCup, setCurrentContinentalCup] = useState<string>("none");
   const [lastYearStanding, setLastYearStanding] = useState<number>(10);
 
+  // Contract economy (€ nghìn)
+  const [contractYearsTotal, setContractYearsTotal] = useState(3);
+  const [contractYearsRemaining, setContractYearsRemaining] = useState(3);
+  const [currentWageAnnual, setCurrentWageAnnual] = useState(0);
+  const [marketValue, setMarketValue] = useState(0);
+  const [isUnemployed, setIsUnemployed] = useState(false);
+
   // Club và continental cup PHẢI đổi cùng nhau — vé cúp châu lục thuộc về CLB,
   // không thuộc về cầu thủ. Đây là điểm duy nhất được phép set currentClub,
   // để tránh currentContinentalCup bị lệch (bug: giữ nguyên vé cúp của CLB cũ
   // sau khi transfer sang CLB mới).
+  // Ngoại lệ: enterUnemployed() clear cả cặp khi FA không ký được.
   function setClubAndContinental(club: {
     id: string;
     name: string;
@@ -61,6 +69,26 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   }) {
     setCurrentClub(club);
     setCurrentContinentalCup(club.continentalType ?? "none");
+    setIsUnemployed(false);
+  }
+
+  /** FA window không ký — clear club cho mùa tới. Stint cuối đã đóng ở tuổi hiện tại. */
+  function enterUnemployed() {
+    setClubStints((prev) => {
+      if (prev.length === 0) return prev;
+      const updated = [...prev];
+      const last = { ...updated[updated.length - 1] };
+      last.endAge = currentAge;
+      last.yearsAtClub = last.endAge - last.startAge + 1;
+      last.ovrAtLeaving = currentOvr;
+      updated[updated.length - 1] = last;
+      return updated;
+    });
+    setCurrentClub(null);
+    setCurrentContinentalCup("none");
+    setCurrentWageAnnual(0);
+    setContractYearsRemaining(0);
+    setIsUnemployed(true);
   }
 
   const [seasonRecords, setSeasonRecords] = useState<Record<number, SeasonRecord>>({});
@@ -101,9 +129,14 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         peakOvr,
         statsTimeline,
         clubStints,
-        hiddenStats,
+        ...(hiddenStats ? { hiddenStats } : {}),
         achievements,
         currentContinentalCup,
+        contractYearsTotal,
+        contractYearsRemaining,
+        currentWageAnnual,
+        marketValue,
+        isUnemployed,
       });
     } catch (err) {
       console.error("Save player error:", err);
@@ -153,6 +186,11 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setPlayerNationality(draftData.nationality!);
     setPlayerDebutAge(draftData.debutAge!);
     setPlayerCareerLength(draftData.careerLength!);
+
+    setContractYearsTotal(initPayload.contractYearsTotal ?? 3);
+    setContractYearsRemaining(initPayload.contractYearsRemaining ?? 3);
+    setCurrentWageAnnual(initPayload.currentWageAnnual ?? 0);
+    setMarketValue(initPayload.marketValue ?? 0);
 
     setLastYearStanding(10);
 
@@ -233,7 +271,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         trophies.push({ type: "league", name: actualLeagueName || "Giải vô địch quốc gia", club: actualClubName, age: currentAge });
       }
       if (domesticCupResult === "Winner") {
-        trophies.push({ type: "cup", name: getDomesticCupName(actualLeagueName), club: actualClubName, age: currentAge });
+        trophies.push({ type: "cup", name: getDomesticCupName(actualLeagueName, actualStintLeagueId), club: actualClubName, age: currentAge });
       }
       if (continentalCupResult === "Winner") {
         trophies.push({ type: "continental", name: getContinentalCupLabel(currentContinentalCup), club: actualClubName, age: currentAge });
@@ -297,6 +335,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     });
 
     setCurrentAge(nextAge);
+    // HĐ: mỗi mùa trừ 1 năm còn lại (sàn 0 = FA window)
+    setContractYearsRemaining((prev) => Math.max(0, prev - 1));
     return { isRetire: false, nextContinentalCup };
   }
 
@@ -310,13 +350,29 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     transferOffer: any,
     clubs: any[],
     setTransferOffer: (offer: any) => void,
-    setCareerSubStep: (step: any) => void
+    setCareerSubStep: (step: any) => void,
+    clearMarket?: () => void,
   ) {
     const retireAge = playerDebutAge + playerCareerLength;
     const onFinalSeason = currentAge >= retireAge;
 
-    // Mùa cuối không còn năm tiếp theo — không ghi stint CLB mới.
     if (accept && transferOffer && !onFinalSeason) {
+      const kind = transferOffer.kind as string | undefined;
+
+      if (kind === "renewal") {
+        setContractYearsTotal(transferOffer.contractYears ?? contractYearsTotal);
+        setContractYearsRemaining(transferOffer.contractYears ?? contractYearsRemaining);
+        setCurrentWageAnnual(transferOffer.wageAnnual ?? currentWageAnnual);
+        if (typeof transferOffer.marketValue === "number") {
+          setMarketValue(transferOffer.marketValue);
+        }
+        setIsUnemployed(false);
+        setTransferOffer(null);
+        clearMarket?.();
+        setCareerSubStep("resolved");
+        return;
+      }
+
       setClubStints((prevStints) => {
         const updated = [...prevStints];
         const last = { ...updated[updated.length - 1] };
@@ -335,26 +391,34 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
           yearsAtClub: 1,
           ovrAtJoining: currentOvr,
           ovrAtLeaving: currentOvr,
+          wageAtJoining: transferOffer.wageAnnual,
+          feePaid: transferOffer.transferFee,
         });
 
         return updated;
       });
 
-      // Vé cúp châu lục thuộc về CLB, không đi theo cầu thủ khi transfer —
-      // luôn dùng setClubAndContinental để tránh currentContinentalCup giữ
-      // nguyên giá trị của CLB cũ.
       const fullClub = clubs.find((c) => c.id === transferOffer.clubId);
       setClubAndContinental({
         id: transferOffer.clubId,
         name: transferOffer.clubName,
         leagueId: transferOffer.leagueId,
         leagueName: transferOffer.leagueName,
-        prestige: fullClub?.prestige ?? 3,
+        prestige: fullClub?.prestige ?? transferOffer.prestige ?? 3,
         continentalType: fullClub?.continentalType ?? "none",
       });
+
+      if (typeof transferOffer.contractYears === "number") {
+        setContractYearsTotal(transferOffer.contractYears);
+        setContractYearsRemaining(transferOffer.contractYears);
+      }
+      if (typeof transferOffer.wageAnnual === "number") {
+        setCurrentWageAnnual(transferOffer.wageAnnual);
+      }
     }
 
     setTransferOffer(null);
+    clearMarket?.();
     setCareerSubStep("resolved");
   }
 
@@ -404,5 +468,16 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     handleNextSeason,
     checkNationalCallupTransition,
     handleAcceptTransfer,
+    contractYearsTotal,
+    setContractYearsTotal,
+    contractYearsRemaining,
+    setContractYearsRemaining,
+    currentWageAnnual,
+    setCurrentWageAnnual,
+    marketValue,
+    setMarketValue,
+    isUnemployed,
+    setIsUnemployed,
+    enterUnemployed,
   };
 }

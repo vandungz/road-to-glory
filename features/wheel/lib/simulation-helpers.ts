@@ -1,5 +1,17 @@
 // features/wheel/lib/simulation-helpers.ts
 
+import {
+  getContinentalCupLabel,
+  getDomesticCupNameByLeagueId,
+  getDomesticCupNameFromLeagueName,
+} from "@/lib/competitions";
+
+export {
+  getContinentalCupLabel,
+  getDomesticCupNameByLeagueId,
+  getDomesticCupNameFromLeagueName,
+};
+
 export function calculateContinentalQualification(
   leagueId: string,
   standing: number,
@@ -39,12 +51,14 @@ export function calculateContinentalQualification(
     if (standing === 3) return "UECL";
   }
   
-  // 4. Nhóm Nam Mỹ (Brazil, Argentina)
+  // 4. Nhóm Nam Mỹ (Brazil, Argentina) — Libertadores + Sudamericana
   if (["BRA1", "ARG1"].includes(id)) {
     if (standing <= 6) return "Libertadores";
+    if (standing <= 12) return "Sudamericana";
   }
   if (["COL1", "ECU1", "URU1", "CHI1"].includes(id)) {
     if (standing <= 2) return "Libertadores";
+    if (standing <= 6) return "Sudamericana";
   }
   
   // 5. Nhóm Châu Á (Nhật Bản, Hàn Quốc, Saudi Arabia...)
@@ -68,16 +82,18 @@ export function calculateContinentalQualification(
   return "none";
 }
 
-export function getContinentalCupLabel(cupType: string): string {
-  switch (cupType) {
-    case "UCL": return "UEFA Champions League";
-    case "UEL": return "UEFA Europa League";
-    case "UECL": return "UEFA Conference League";
-    case "Libertadores": return "Copa Libertadores";
-    case "AFC_CL": return "AFC Champions League";
-    case "CONCACAF_CC": return "CONCACAF Champions Cup";
-    default: return "Cúp Châu Lục CLB";
+/** Resolve domestic cup label — prefer leagueId when available. */
+export function getDomesticCupName(
+  leagueNameOrId: string,
+  leagueId?: string | null,
+): string {
+  if (leagueId) {
+    const byId = getDomesticCupNameByLeagueId(leagueId);
+    if (byId !== "Cup Quốc Gia") return byId;
   }
+  const asId = getDomesticCupNameByLeagueId(leagueNameOrId);
+  if (asId !== "Cup Quốc Gia") return asId;
+  return getDomesticCupNameFromLeagueName(leagueNameOrId);
 }
 
 /** Calendar year of a career season (debutAge → 2026). Shared by preview + resolve. */
@@ -301,8 +317,21 @@ export function getCountPool(tier: GrowthTier, isIncrease: boolean): { value: nu
   }
 }
 
-// SoT §4.3 — domain 1–6 (rollback 7–8); weight mass on 1–3
-export function getMagnitudePool(tier: GrowthTier): { value: number; weight: number }[] {
+// SoT §4.3 — increase domain 1–6 (weight mass on 1–3); decrease domain 1–3 only
+export function getMagnitudePool(
+  tier: GrowthTier,
+  isIncrease = true,
+): { value: number; weight: number }[] {
+  if (!isIncrease) {
+    const decreaseByTier: Record<GrowthTier, number[]> = {
+      // After getMagnitudeTierForDirection mirror: xuat_sac = harshest drop, kem = gentlest
+      xuat_sac:   [22, 38, 40],
+      tot:        [35, 40, 25],
+      trung_binh: [50, 35, 15],
+      kem:        [65, 28, 7],
+    };
+    return decreaseByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
+  }
   const weightsByTier: Record<GrowthTier, number[]> = {
     xuat_sac:   [18, 28, 28, 16, 7, 3],
     tot:        [30, 32, 24, 10, 3, 1],
@@ -390,28 +419,10 @@ export function getCountPoolBoosted(tier: GrowthTier, growthBoost: number): { va
 }
 
 export function getMagnitudePoolBoosted(tier: GrowthTier, growthBoost: number): { value: number; weight: number }[] {
-  const base = getMagnitudePool(tier);
+  const base = getMagnitudePool(tier, true);
   if (growthBoost <= 0) return base;
   const boostedTier = bumpTierUp(tier);
   if (boostedTier === tier) return base;
-  return blendPools(base, getMagnitudePool(boostedTier), growthBoost);
+  return blendPools(base, getMagnitudePool(boostedTier, true), growthBoost);
 }
 
-export function getDomesticCupName(leagueName: string): string {
-  if (!leagueName) return "Cup Quốc Gia";
-  const name = leagueName.toLowerCase();
-  if (name.includes("premier league") || name.includes("championship")) return "FA Cup";
-  if (name.includes("laliga") || name.includes("segunda")) return "Copa del Rey";
-  if (name.includes("serie a") || name.includes("serie b")) {
-    if (name.includes("brazil") || name.includes("brasileirão")) return "Copa do Brasil";
-    return "Coppa Italia";
-  }
-  if (name.includes("ligue")) return "Coupe de France";
-  if (name.includes("bundesliga")) return "DFB-Pokal";
-  if (name.includes("portugal")) return "Taça de Portugal";
-  if (name.includes("eredivisie")) return "KNVB Beker";
-  if (name.includes("primera") || name.includes("argentina")) return "Copa Argentina";
-  if (name.includes("saudi") || name.includes("pro league")) return "King Cup";
-  if (name.includes("mls") || name.includes("major league")) return "US Open Cup";
-  return "Cup Quốc Gia";
-}

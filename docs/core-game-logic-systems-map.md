@@ -139,6 +139,9 @@ retired peak — đều đọc state đã được wheel/sim ghi.
 - Chance từ rating + OVR vs expected prestige CLB hiện tại.
 - Accept → `setClubAndContinental` (invariant cup theo CLB).
 - Đổi môi trường → đổi threshold/apps/standing pull mùa sau — **core**.
+- **Nâng cấp đang bàn:** market browse + **soft contract + fee/wage** clamp theo
+  buying power (prestige × league tier) — [`core-transfer-design.md`](./core-transfer-design.md)
+  (chưa SoT số cuối / chưa code). Wage/fee **không** buff OVR/apps.
 
 ### 3.8 Continental qualification / next season
 
@@ -382,7 +385,7 @@ Aligned với balance SoT:
 | Club/continental/next season | `features/wheel/hooks/useCareerStats.ts` |
 | Season sim BE | `features/season/services/season-simulator.service.ts` |
 | Evolve stats | `features/player/services/stats-evolution.service.ts` |
-| Transfer | `features/transfer/services/transfer.service.ts` |
+| Transfer | `features/transfer/services/transfer.service.ts` — design: `docs/core-transfer-design.md` |
 | Actions / auth / zod | `actions/season.actions.ts`, `actions/player.actions.ts` |
 | Spin RNG only | `lib/wheel-engine/spin-resolver.ts` |
 
@@ -412,3 +415,6 @@ Aligned với balance SoT:
 | 2026-07-30 | SoT §4.4 **Development Score** chốt giấy (chưa code): Yes tăng = cửa sổ tuổi×headroom × form modifier × soft-cap; không training/U; không rollback OP count/mag. Xem `docs/core-growth-balance.md`. |
 | 2026-07-30 | **Ship §4.4** Development Score trong `growth-balance.ts` (`getEffectiveIncreaseGate`). |
 | 2026-07-30 | **§7.6** player↔club fit / apps recovery / decrease softener khi ít phút — `lib/club-fit.ts` + growth-balance. |
+| 2026-07-31 | Link **transfer redesign** discussion: `docs/core-transfer-design.md` (market browse + soft contract feasibility). |
+| 2026-07-31 | Transfer design **v1.1:** fee + wage bắt buộc; buying power derive prestige×tier (chống đội yếu chi 100M). |
+| 2026-07-31 | Transfer design **v1.3:** lock buying power §5.3. |

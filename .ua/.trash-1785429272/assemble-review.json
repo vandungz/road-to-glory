@@ -1,0 +1,10 @@
+{
+  "status": "ok",
+  "notes": [
+    "Incremental merge: 269 nodes, 727 edges after import recovery",
+    "Dropped 2 dangling edges during merge (useWheelUiStore target; match-simulator dead file)",
+    "New balance modules present: growth-balance, club-fit, season-stat-rates"
+  ],
+  "danglingEdgeCount": 0,
+  "warnings": []
+}

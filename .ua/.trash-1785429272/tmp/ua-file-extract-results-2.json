@@ -1,0 +1,1055 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 5,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 5,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 5,
+      "failed": 0,
+      "skipped": 0
+    }
+  },
+  "results": [
+    {
+      "path": "actions/player.actions.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 266,
+      "nonEmptyLines": 238,
+      "functions": [
+        {
+          "name": "getCardRarity",
+          "startLine": 15,
+          "endLine": 22,
+          "params": [
+            "peak"
+          ]
+        },
+        {
+          "name": "verifyGameOwnership",
+          "startLine": 97,
+          "endLine": 110,
+          "params": [
+            "gameId"
+          ]
+        },
+        {
+          "name": "initCareerPlayerAction",
+          "startLine": 112,
+          "endLine": 158,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "getCareerPlayerAction",
+          "startLine": 160,
+          "endLine": 188,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "saveCareerPlayer",
+          "startLine": 190,
+          "endLine": 266,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "initCareerPlayerAction",
+          "line": 112,
+          "isDefault": false
+        },
+        {
+          "name": "getCareerPlayerAction",
+          "line": 160,
+          "isDefault": false
+        },
+        {
+          "name": "saveCareerPlayer",
+          "line": 190,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "createClient",
+          "lineNumber": 98
+        },
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 99
+        },
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "checkRateLimit",
+          "lineNumber": 101
+        },
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "prisma.gameSession.findUnique",
+          "lineNumber": 103
+        },
+        {
+          "caller": "initCareerPlayerAction",
+          "callee": "initCareerPlayerSchema.parse",
+          "lineNumber": 113
+        },
+        {
+          "caller": "initCareerPlayerAction",
+          "callee": "verifyGameOwnership",
+          "lineNumber": 114
+        },
+        {
+          "caller": "initCareerPlayerAction",
+          "callee": "prisma.careerPlayer.upsert",
+          "lineNumber": 122
+        },
+        {
+          "caller": "getCareerPlayerAction",
+          "callee": "getCareerPlayerSchema.parse",
+          "lineNumber": 161
+        },
+        {
+          "caller": "getCareerPlayerAction",
+          "callee": "createClient",
+          "lineNumber": 163
+        },
+        {
+          "caller": "getCareerPlayerAction",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 164
+        },
+        {
+          "caller": "getCareerPlayerAction",
+          "callee": "checkRateLimit",
+          "lineNumber": 166
+        },
+        {
+          "caller": "getCareerPlayerAction",
+          "callee": "prisma.careerPlayer.findUnique",
+          "lineNumber": 168
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "saveCareerPlayerSchema.parse",
+          "lineNumber": 191
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "verifyGameOwnership",
+          "lineNumber": 192
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "Math.max",
+          "lineNumber": 210
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "statsTimeline.map",
+          "lineNumber": 212
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "getCardRarity",
+          "lineNumber": 214
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "prisma.careerPlayer.upsert",
+          "lineNumber": 216
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "revalidatePath",
+          "lineNumber": 264
+        },
+        {
+          "caller": "saveCareerPlayer",
+          "callee": "redirect",
+          "lineNumber": 265
+        }
+      ],
+      "metrics": {
+        "importCount": 4,
+        "exportCount": 3,
+        "functionCount": 5,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "actions/season.actions.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 448,
+      "nonEmptyLines": 394,
+      "functions": [
+        {
+          "name": "verifyGameOwnership",
+          "startLine": 178,
+          "endLine": 189,
+          "params": [
+            "gameId"
+          ]
+        },
+        {
+          "name": "requireAuth",
+          "startLine": 194,
+          "endLine": 199,
+          "params": []
+        },
+        {
+          "name": "saveSeasonProgress",
+          "startLine": 201,
+          "endLine": 222,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "updateSeasonProgressAction",
+          "startLine": 224,
+          "endLine": 248,
+          "params": [
+            "params"
+          ]
+        },
+        {
+          "name": "completeGameSession",
+          "startLine": 250,
+          "endLine": 275,
+          "params": [
+            "gameId"
+          ]
+        },
+        {
+          "name": "simulatePlayerSeasonAction",
+          "startLine": 277,
+          "endLine": 304,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "generateLeagueTableAction",
+          "startLine": 306,
+          "endLine": 326,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "startPlayerCareerAction",
+          "startLine": 328,
+          "endLine": 342,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "generateTransferOfferAction",
+          "startLine": 344,
+          "endLine": 378,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "generateCupJourneyAction",
+          "startLine": 380,
+          "endLine": 442,
+          "params": [
+            "input"
+          ]
+        },
+        {
+          "name": "evolvePlayerStatsAction",
+          "startLine": 444,
+          "endLine": 448,
+          "params": [
+            "input"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "saveSeasonProgress",
+          "line": 201,
+          "isDefault": false
+        },
+        {
+          "name": "updateSeasonProgressAction",
+          "line": 224,
+          "isDefault": false
+        },
+        {
+          "name": "completeGameSession",
+          "line": 250,
+          "isDefault": false
+        },
+        {
+          "name": "simulatePlayerSeasonAction",
+          "line": 277,
+          "isDefault": false
+        },
+        {
+          "name": "generateLeagueTableAction",
+          "line": 306,
+          "isDefault": false
+        },
+        {
+          "name": "startPlayerCareerAction",
+          "line": 328,
+          "isDefault": false
+        },
+        {
+          "name": "generateTransferOfferAction",
+          "line": 344,
+          "isDefault": false
+        },
+        {
+          "name": "generateCupJourneyAction",
+          "line": 380,
+          "isDefault": false
+        },
+        {
+          "name": "evolvePlayerStatsAction",
+          "line": 444,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "createClient",
+          "lineNumber": 179
+        },
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 180
+        },
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "checkRateLimit",
+          "lineNumber": 182
+        },
+        {
+          "caller": "verifyGameOwnership",
+          "callee": "prisma.gameSession.findUnique",
+          "lineNumber": 184
+        },
+        {
+          "caller": "requireAuth",
+          "callee": "createClient",
+          "lineNumber": 195
+        },
+        {
+          "caller": "requireAuth",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 196
+        },
+        {
+          "caller": "requireAuth",
+          "callee": "checkRateLimit",
+          "lineNumber": 198
+        },
+        {
+          "caller": "saveSeasonProgress",
+          "callee": "verifyGameOwnership",
+          "lineNumber": 203
+        },
+        {
+          "caller": "saveSeasonProgress",
+          "callee": "prisma.$transaction",
+          "lineNumber": 205
+        },
+        {
+          "caller": "saveSeasonProgress",
+          "callee": "playersUpdate.map",
+          "lineNumber": 206
+        },
+        {
+          "caller": "saveSeasonProgress",
+          "callee": "prisma.careerPlayer.update",
+          "lineNumber": 207
+        },
+        {
+          "caller": "saveSeasonProgress",
+          "callee": "revalidatePath",
+          "lineNumber": 220
+        },
+        {
+          "caller": "saveSeasonProgress",
+          "callee": "redirect",
+          "lineNumber": 221
+        },
+        {
+          "caller": "updateSeasonProgressAction",
+          "callee": "createClient",
+          "lineNumber": 227
+        },
+        {
+          "caller": "updateSeasonProgressAction",
+          "callee": "supabase.auth.getUser",
+          "lineNumber": 228
+        },
+        {
+          "caller": "updateSeasonProgressAction",
+          "callee": "checkRateLimit",
+          "lineNumber": 230
+        },
+        {
+          "caller": "updateSeasonProgressAction",
+          "callee": "prisma.careerPlayer.findUnique",
+          "lineNumber": 232
+        },
+        {
+          "caller": "updateSeasonProgressAction",
+          "callee": "prisma.careerPlayer.update",
+          "lineNumber": 238
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "verifyGameOwnership",
+          "lineNumber": 251
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "console.log",
+          "lineNumber": 252
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "prisma.careerPlayer.findMany",
+          "lineNumber": 254
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "Math.round",
+          "lineNumber": 263
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "players.reduce",
+          "lineNumber": 263
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "prisma.gameSession.update",
+          "lineNumber": 266
+        },
+        {
+          "caller": "completeGameSession",
+          "callee": "revalidatePath",
+          "lineNumber": 274
+        },
+        {
+          "caller": "simulatePlayerSeasonAction",
+          "callee": "requireAuth",
+          "lineNumber": 278
+        },
+        {
+          "caller": "simulatePlayerSeasonAction",
+          "callee": "simulatePlayerSeasonSchema.parse",
+          "lineNumber": 279
+        },
+        {
+          "caller": "simulatePlayerSeasonAction",
+          "callee": "prisma.club.count",
+          "lineNumber": 281
+        },
+        {
+          "caller": "simulatePlayerSeasonAction",
+          "callee": "simulatePlayerSeasonService",
+          "lineNumber": 285
+        },
+        {
+          "caller": "generateLeagueTableAction",
+          "callee": "requireAuth",
+          "lineNumber": 307
+        },
+        {
+          "caller": "generateLeagueTableAction",
+          "callee": "generateLeagueTableSchema.parse",
+          "lineNumber": 308
+        },
+        {
+          "caller": "generateLeagueTableAction",
+          "callee": "prisma.club.findMany",
+          "lineNumber": 310
+        },
+        {
+          "caller": "generateLeagueTableAction",
+          "callee": "simulateDynamicLeagueTableService",
+          "lineNumber": 321
+        },
+        {
+          "caller": "startPlayerCareerAction",
+          "callee": "requireAuth",
+          "lineNumber": 329
+        },
+        {
+          "caller": "startPlayerCareerAction",
+          "callee": "startPlayerCareerSchema.parse",
+          "lineNumber": 330
+        },
+        {
+          "caller": "startPlayerCareerAction",
+          "callee": "prisma.club.findUnique",
+          "lineNumber": 332
+        },
+        {
+          "caller": "startPlayerCareerAction",
+          "callee": "startPlayerCareerService",
+          "lineNumber": 337
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "requireAuth",
+          "lineNumber": 345
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "generateTransferOfferSchema.parse",
+          "lineNumber": 346
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "Math.min",
+          "lineNumber": 349
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "Math.max",
+          "lineNumber": 349
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "Math.round",
+          "lineNumber": 349
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "Math.max",
+          "lineNumber": 350
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "Math.min",
+          "lineNumber": 351
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "prisma.club.findMany",
+          "lineNumber": 353
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "generateTransferOfferService",
+          "lineNumber": 367
+        },
+        {
+          "caller": "generateTransferOfferAction",
+          "callee": "dbClubs.map",
+          "lineNumber": 376
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "requireAuth",
+          "lineNumber": 381
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "generateCupJourneySchema.parse",
+          "lineNumber": 382
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "getCachedClubCountry",
+          "lineNumber": 385
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "getCachedDomesticOpponents",
+          "lineNumber": 387
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "generateDomesticCupJourneyService",
+          "lineNumber": 389
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "[\"UCL\", \"UEL\", \"UECL\"].includes",
+          "lineNumber": 400
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "getCachedContinentalOpponents",
+          "lineNumber": 414
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "generateContinentalCupJourneyService",
+          "lineNumber": 416
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "getCachedNationalTeams",
+          "lineNumber": 434
+        },
+        {
+          "caller": "generateCupJourneyAction",
+          "callee": "generateNationalTeamJourneyService",
+          "lineNumber": 436
+        },
+        {
+          "caller": "evolvePlayerStatsAction",
+          "callee": "requireAuth",
+          "lineNumber": 445
+        },
+        {
+          "caller": "evolvePlayerStatsAction",
+          "callee": "evolvePlayerStatsSchema.parse",
+          "lineNumber": 446
+        },
+        {
+          "caller": "evolvePlayerStatsAction",
+          "callee": "evolvePlayerStatsService",
+          "lineNumber": 447
+        }
+      ],
+      "metrics": {
+        "importCount": 9,
+        "exportCount": 9,
+        "functionCount": 11,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "features/career/services/career-setup.service.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 112,
+      "nonEmptyLines": 102,
+      "functions": [
+        {
+          "name": "startPlayerCareerService",
+          "startLine": 59,
+          "endLine": 112,
+          "params": [
+            "draftData",
+            "_clubPrestige",
+            "_clubContinentalType"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "startPlayerCareerService",
+          "line": 59,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "startPlayerCareerService",
+          "callee": "generateFictionalName",
+          "lineNumber": 64
+        },
+        {
+          "caller": "startPlayerCareerService",
+          "callee": "resolveRandom",
+          "lineNumber": 65
+        },
+        {
+          "caller": "startPlayerCareerService",
+          "callee": "resolveRandomInt",
+          "lineNumber": 66
+        },
+        {
+          "caller": "startPlayerCareerService",
+          "callee": "resolveRandomInt",
+          "lineNumber": 67
+        },
+        {
+          "caller": "startPlayerCareerService",
+          "callee": "resolveRandomInt",
+          "lineNumber": 69
+        },
+        {
+          "caller": "startPlayerCareerService",
+          "callee": "calculateOvrByPosition",
+          "lineNumber": 81
+        }
+      ],
+      "metrics": {
+        "importCount": 3,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "features/wheel/hooks/useStatEvolutionFlow.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 171,
+      "nonEmptyLines": 161,
+      "functions": [
+        {
+          "name": "useStatEvolutionFlow",
+          "startLine": 43,
+          "endLine": 171,
+          "params": [
+            "p"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "useStatEvolutionFlow",
+          "line": 43,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "isFinalSeason",
+          "lineNumber": 52
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setTransferOffer",
+          "lineNumber": 53
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 54
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 55
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "generateTransferOfferAction",
+          "lineNumber": 60
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setTransferOffer",
+          "lineNumber": 71
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 72
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 74
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "console.error",
+          "lineNumber": 77
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 78
+        },
+        {
+          "caller": "triggerTransferCheck",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 80
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "COMPETITION_STEPS.has",
+          "lineNumber": 85
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setYearEvolution",
+          "lineNumber": 89
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 90
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 92
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 94
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setYearEvolution",
+          "lineNumber": 98
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 99
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 100
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setYearEvolution",
+          "lineNumber": 102
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "triggerTransferCheck",
+          "lineNumber": 103
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "Object.values(p.currentStats).filter",
+          "lineNumber": 113
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "Object.values",
+          "lineNumber": 113
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "Math.min",
+          "lineNumber": 114
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "Math.max",
+          "lineNumber": 114
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setYearEvolution",
+          "lineNumber": 116
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setSelectorIndex",
+          "lineNumber": 117
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setSelectedStatsList",
+          "lineNumber": 118
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setTempSelectedStat",
+          "lineNumber": 119
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 120
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 121
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setTempSelectedStat",
+          "lineNumber": 124
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setSelectedStatsList",
+          "lineNumber": 125
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 126
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 127
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setEvolvedStatsThisYear",
+          "lineNumber": 132
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setSelectorIndex",
+          "lineNumber": 136
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setTempSelectedStat",
+          "lineNumber": 137
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 138
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 139
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "evolvePlayerStatsAction({ currentStats: p.currentStats, position: p.position, evolutions })\n          .then((res) => {\n            p.setCurrentStats(res.nextStats);\n            p.setCurrentOvr(res.nextOvr);\n            triggerTransferCheck();\n          })\n          .catch",
+          "lineNumber": 141
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "evolvePlayerStatsAction({ currentStats: p.currentStats, position: p.position, evolutions })\n          .then",
+          "lineNumber": 141
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "evolvePlayerStatsAction",
+          "lineNumber": 141
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCurrentStats",
+          "lineNumber": 143
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCurrentOvr",
+          "lineNumber": 144
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "triggerTransferCheck",
+          "lineNumber": 145
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "console.error",
+          "lineNumber": 148
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "triggerTransferCheck",
+          "lineNumber": 149
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 155
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 157
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 159
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setBallonDorRank",
+          "lineNumber": 163
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setHasBallonDorWinner",
+          "lineNumber": 164
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setCareerSubStep",
+          "lineNumber": 165
+        },
+        {
+          "caller": "handleSpinComplete",
+          "callee": "p.setIsProcessing",
+          "lineNumber": 166
+        }
+      ],
+      "metrics": {
+        "importCount": 1,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    },
+    {
+      "path": "lib/rate-limit.ts",
+      "language": "typescript",
+      "fileCategory": "code",
+      "totalLines": 58,
+      "nonEmptyLines": 52,
+      "functions": [
+        {
+          "name": "checkRateLimit",
+          "startLine": 42,
+          "endLine": 58,
+          "params": [
+            "identifier"
+          ]
+        }
+      ],
+      "exports": [
+        {
+          "name": "checkRateLimit",
+          "line": 42,
+          "isDefault": false
+        }
+      ],
+      "callGraph": [
+        {
+          "caller": "checkRateLimit",
+          "callee": "console.warn",
+          "lineNumber": 45
+        },
+        {
+          "caller": "checkRateLimit",
+          "callee": "ratelimit.limit",
+          "lineNumber": 54
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 1,
+        "functionCount": 1,
+        "classCount": 0
+      }
+    }
+  ]
+}

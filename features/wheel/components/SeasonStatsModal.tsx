@@ -129,7 +129,7 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
           />
           <CompRow
             icon="🛡️"
-            label={getDomesticCupName(record.leagueName)}
+            label={getDomesticCupName(record.leagueName, record.leagueId)}
             stats={yearSimResult.domesticCupStats}
             result={getCupResultShort(record.domesticCup)}
           />

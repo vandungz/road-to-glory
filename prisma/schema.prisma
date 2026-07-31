@@ -48,6 +48,13 @@ model CareerPlayer {
   cardRarity        String      // bronze, silver, gold, rare_gold, epic, legendary
   currentContinentalCup String @default("none") // "UCL" | "UEL" | "UECL" | "Libertadores" | "AFC_CL" | "CONCACAF_CC" | "CAF_CL" | "none"
 
+  // Contract & transfer economy (€ nghìn)
+  contractYearsTotal    Int         @default(3)
+  contractYearsRemaining Int        @default(3)
+  currentWageAnnual     Int         @default(0) // € thousands / year
+  marketValue           Int         @default(0) // € thousands, cached
+  isUnemployed          Boolean     @default(false) // FA không ký — mùa 0 apps
+
   // Timelines & Logs (Stored as JSON)
   statsTimeline     Json        // Array of StatsSnapshot: { age, ovr, pac, sho, pas, dri, def, phy, ... }
   clubStints        Json        // Array of ClubStint: { clubId, clubName, leagueId, leagueName, startAge, endAge, yearsAtClub, ovrAtJoining, ovrAtLeaving }
@@ -62,12 +69,14 @@ model CareerPlayer {
 }
 
 model League {
-  id        String   @id // e.g., "ENG1", "ESP1"
-  name      String
-  country   String
-  tier      Int      // 1 or 2
-  prestige  Int      // 1 to 5 stars
-  clubs     Club[]
+  id              String   @id // e.g., "ENG1", "ESP1"
+  name            String
+  country         String
+  tier            Int      // 1 or 2
+  prestige        Int      // 1 to 5 stars
+  domesticCupName String   @default("Cup Quốc Gia")
+  confederation   String   @default("UEFA") // UEFA | CONMEBOL | CONCACAF | AFC | CAF
+  clubs           Club[]
 
   @@map("leagues")
 }
@@ -91,7 +100,7 @@ model Club {
   leagueTitlesCount      Int      @default(0)
   domesticCupsCount      Int      @default(0)
   continentalTitlesCount Int      @default(0)
-  continentalType        String   @default("none") // "UCL" | "UEL" | "UECL" | "Libertadores" | "AFC_CL" | "none"
+  continentalType        String   @default("none") // "UCL" | "UEL" | "UECL" | "Libertadores" | "Sudamericana" | "AFC_CL" | "CONCACAF_CC" | "CAF_CL" | "none"
 
   @@map("clubs")
 }

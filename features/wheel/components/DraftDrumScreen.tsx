@@ -62,6 +62,12 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     peakOvrValue,
     yearSimResult,
     transferOffer,
+    transferMarket,
+    willingToMove,
+    showShortlist,
+    approachRejects,
+    approachBanner,
+    isUnemployed,
     clubStints,
     nationalCallupResult,
     nationalTournamentResult,
@@ -73,6 +79,11 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     handleCareerSpin,
     handleCareerSpinComplete,
     handleAcceptTransfer,
+    handleAcceptMarketOffer,
+    handleRejectTransferWindow,
+    handleApproachShortlist,
+    handleSetWillingToMove,
+    setShowShortlist,
     handleNextSeason,
     handleSeasonStatsModalClose,
     handleSavePlayer,
@@ -200,8 +211,17 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
               careerTempValue={careerTempValue}
               handleCareerSpin={handleCareerSpin}
               handleStartSeason={handleStartSeason}
-              transferOffer={transferOffer}
-              handleAcceptTransfer={handleAcceptTransfer}
+              transferMarket={transferMarket}
+              willingToMove={willingToMove}
+              setWillingToMove={handleSetWillingToMove}
+              showShortlist={showShortlist}
+              setShowShortlist={setShowShortlist}
+              handleAcceptMarketOffer={handleAcceptMarketOffer}
+              handleRejectTransferWindow={handleRejectTransferWindow}
+              handleApproachShortlist={handleApproachShortlist}
+              approachRejects={approachRejects}
+              approachBanner={approachBanner}
+              isUnemployed={isUnemployed}
               yearSimResult={yearSimResult}
               standingResult={standingResult}
               domesticCupResult={domesticCupResult}

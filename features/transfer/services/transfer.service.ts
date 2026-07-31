@@ -1,14 +1,188 @@
-import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+/**
+ * Transfer market builder — SoT docs/core-transfer-design.md
+ * Inbound ≤ 3, renewal, mandatoryBuyout (not player-discountable).
+ */
 
-export interface ClubDbInfo {
+import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+import { estimateAppsRatio } from "@/lib/club-fit";
+import {
+  MAX_INBOUND_OFFERS,
+  clubCanAffordBuyout,
+  computeApproachAcceptChance,
+  computeMandatoryBuyout,
+  computeMarketValue,
+  expectedAppsAtClub,
+  isDistressSale,
+  proposeContractYears,
+  proposeWageAnnual,
+  seasonsLeftInCareer,
+  wantsRenewal,
+} from "@/lib/transfer-economy";
+
+export interface ClubMarketInfo {
   id: string;
   name: string;
   leagueId: string;
   prestige: number;
   leagueName?: string | null;
+  leagueTier: number;
+  leagueSize?: number;
 }
 
-export interface TransferOfferResult {
+export type ContractOfferKind = "transfer" | "free_agent" | "renewal";
+
+export interface ContractOfferCard {
+  kind: ContractOfferKind;
+  clubId: string;
+  clubName: string;
+  leagueId: string;
+  leagueName: string;
+  prestige: number;
+  leagueTier: number;
+  transferFee: number;
+  wageAnnual: number;
+  contractYears: number;
+  expectedLeagueApps: number;
+  reason: string;
+  canAffordBuyout: boolean;
+}
+
+export interface ShortlistClubCard {
+  clubId: string;
+  clubName: string;
+  leagueId: string;
+  leagueName: string;
+  prestige: number;
+  leagueTier: number;
+  expectedLeagueApps: number;
+  canApproach: boolean;
+  canAffordBuyout: boolean;
+  previewFee: number;
+  previewWage: number;
+  previewYears: number;
+  blockReason: string | null;
+  /** 0–1; only meaningful when canApproach. UI shows as %. */
+  acceptChance: number | null;
+}
+
+export interface TransferMarketResult {
+  hasWindow: boolean;
+  marketValue: number;
+  mandatoryBuyout: number;
+  isUnemployedMarket: boolean;
+  contract: {
+    yearsRemaining: number;
+    yearsTotal: number;
+    currentWageAnnual: number;
+    marketValue: number;
+    seasonsLeftInCareer: number;
+  };
+  renewal: ContractOfferCard | null;
+  inbound: ContractOfferCard[];
+  shortlist: ShortlistClubCard[];
+}
+
+export interface GenerateTransferMarketParams {
+  currentClubId: string | null;
+  currentClubPrestige: number;
+  currentClubLeagueTier: number;
+  currentClubLeagueSize?: number;
+  currentOvr: number;
+  currentAge: number;
+  retireAge: number;
+  matchRating: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  position: string;
+  contractYearsRemaining: number;
+  contractYearsTotal: number;
+  currentWageAnnual: number;
+  willingToMove?: boolean;
+  isUnemployed?: boolean;
+  clubs: ClubMarketInfo[];
+}
+
+function reasonForMove(params: {
+  matchRating: number;
+  currentPrestige: number;
+  destPrestige: number;
+  distress: boolean;
+  remaining: number;
+}): string {
+  if (params.distress) return "CLB muốn thanh lý hợp đồng";
+  if (params.remaining <= 0) return "Cầu thủ tự do — ký mới";
+  if (params.destPrestige > params.currentPrestige) return "Bước tiến sự nghiệp";
+  if (params.destPrestige < params.currentPrestige) return "Tìm môi trường đá chính";
+  if (params.matchRating >= 7.5) return "Phong độ cao thu hút CLB";
+  return "Quan tâm chuyển nhượng";
+}
+
+function scoreClubInterest(params: {
+  club: ClubMarketInfo;
+  currentOvr: number;
+  currentPrestige: number;
+  matchRating: number;
+  remaining: number;
+  distress: boolean;
+  willingToMove: boolean;
+  mandatoryBuyout: number;
+}): number {
+  const { club, currentOvr, currentPrestige, matchRating, remaining, distress, willingToMove, mandatoryBuyout } =
+    params;
+
+  if (!clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout)) {
+    return -1;
+  }
+
+  const apps = expectedAppsAtClub(currentOvr, club.prestige, club.leagueSize ?? 20);
+  const fit = estimateAppsRatio(currentOvr, club.prestige);
+  let score = fit * 40 + Math.min(38, apps) * 0.5;
+
+  const prestigeDelta = club.prestige - currentPrestige;
+  if (prestigeDelta > 0 && matchRating >= 7.0) score += 18 * prestigeDelta;
+  if (prestigeDelta < 0 && (distress || matchRating < 6.5 || fit > 0.7)) score += 12;
+  if (Math.abs(prestigeDelta) <= 1) score += 8;
+
+  if (matchRating >= 7.5) score += 15;
+  if (matchRating < 6.3) score += distress ? 20 : 5;
+  if (remaining <= 1) score += 10;
+  if (remaining >= 3 && !distress && matchRating < 7.2) score *= 0.45;
+  if (willingToMove) score += 12;
+
+  score += resolveRandom() * 6;
+  return score;
+}
+
+function buildOfferCard(params: {
+  kind: ContractOfferKind;
+  club: ClubMarketInfo;
+  fee: number;
+  wage: number;
+  years: number;
+  ovr: number;
+  reason: string;
+}): ContractOfferCard {
+  const { club } = params;
+  return {
+    kind: params.kind,
+    clubId: club.id,
+    clubName: club.name,
+    leagueId: club.leagueId,
+    leagueName: club.leagueName ?? "Giải đấu",
+    prestige: club.prestige,
+    leagueTier: club.leagueTier,
+    transferFee: params.fee,
+    wageAnnual: params.wage,
+    contractYears: params.years,
+    expectedLeagueApps: expectedAppsAtClub(params.ovr, club.prestige, club.leagueSize ?? 20),
+    reason: params.reason,
+    canAffordBuyout: true,
+  };
+}
+
+/** @deprecated Use generateTransferMarketService */
+export type TransferOfferResult = {
   hasOffer: boolean;
   offer: {
     clubId: string;
@@ -16,8 +190,392 @@ export interface TransferOfferResult {
     leagueId: string;
     leagueName: string;
   } | null;
+};
+
+export function generateTransferMarketService(
+  params: GenerateTransferMarketParams,
+): TransferMarketResult {
+  const {
+    currentClubId,
+    currentClubPrestige,
+    currentClubLeagueTier,
+    currentClubLeagueSize = 20,
+    currentOvr,
+    currentAge,
+    retireAge,
+    matchRating,
+    contractYearsRemaining,
+    contractYearsTotal,
+    currentWageAnnual,
+    willingToMove = false,
+    isUnemployed = false,
+    clubs,
+  } = params;
+
+  const unemployed = isUnemployed || !currentClubId;
+  const seasonsLeft = seasonsLeftInCareer(currentAge, retireAge);
+  const emptyContract = {
+    yearsRemaining: contractYearsRemaining,
+    yearsTotal: contractYearsTotal,
+    currentWageAnnual,
+    marketValue: 0,
+    seasonsLeftInCareer: seasonsLeft,
+  };
+
+  if (seasonsLeft <= 0) {
+    return {
+      hasWindow: false,
+      marketValue: 0,
+      mandatoryBuyout: 0,
+      isUnemployedMarket: unemployed,
+      contract: emptyContract,
+      renewal: null,
+      inbound: [],
+      shortlist: [],
+    };
+  }
+
+  const marketValue = computeMarketValue({
+    ovr: currentOvr,
+    age: currentAge,
+    matchRating,
+    contractYearsRemaining,
+  });
+  const mandatoryBuyout = computeMandatoryBuyout(marketValue, contractYearsRemaining);
+  const effectivePrestige = unemployed ? 2 : currentClubPrestige;
+  const distress = unemployed
+    ? false
+    : isDistressSale(matchRating, estimateAppsRatio(currentOvr, effectivePrestige));
+  const appsRatioCurrent = unemployed
+    ? 0
+    : estimateAppsRatio(currentOvr, effectivePrestige);
+
+  const contractSnap = {
+    yearsRemaining: contractYearsRemaining,
+    yearsTotal: contractYearsTotal,
+    currentWageAnnual,
+    marketValue,
+    seasonsLeftInCareer: seasonsLeft,
+  };
+
+  // --- Renewal (not when unemployed / no current club) ---
+  let renewal: ContractOfferCard | null = null;
+  const currentClub =
+    currentClubId != null
+      ? clubs.find((c) => c.id === currentClubId) ?? {
+          id: currentClubId,
+          name: "Current",
+          leagueId: "",
+          prestige: currentClubPrestige,
+          leagueTier: currentClubLeagueTier,
+          leagueSize: currentClubLeagueSize,
+          leagueName: "",
+        }
+      : null;
+
+  if (!unemployed && currentClub) {
+    const renewYears = proposeContractYears({
+      currentAge,
+      retireAge,
+      matchRating,
+      isRenewal: true,
+    });
+    const renewWage = proposeWageAnnual({
+      ovr: currentOvr,
+      age: currentAge,
+      currentWage: currentWageAnnual,
+      prestige: currentClubPrestige,
+      leagueTier: currentClubLeagueTier,
+      matchRating,
+      stepUpPrestige: 0,
+    });
+
+    if (
+      renewYears > 0 &&
+      wantsRenewal({
+        seasonsLeft,
+        contractYearsRemaining,
+        appsRatio: appsRatioCurrent,
+        matchRating,
+        ovr: currentOvr,
+        clubPrestige: currentClubPrestige,
+        proposedWage: renewWage,
+        leagueTier: currentClubLeagueTier,
+        isDistressSale: distress,
+      })
+    ) {
+      renewal = buildOfferCard({
+        kind: "renewal",
+        club: { ...currentClub, prestige: currentClubPrestige, leagueTier: currentClubLeagueTier },
+        fee: 0,
+        wage: renewWage,
+        years: renewYears,
+        ovr: currentOvr,
+        reason: contractYearsRemaining <= 1 ? "Gia hạn hợp đồng" : "Gia hạn sớm — giữ chân",
+      });
+    }
+  }
+
+  // --- Inbound ---
+  const eligible = clubs.filter((c) => (currentClubId ? c.id !== currentClubId : true));
+  const scored = eligible
+    .map((club) => ({
+      club,
+      score: scoreClubInterest({
+        club,
+        currentOvr,
+        currentPrestige: effectivePrestige,
+        matchRating,
+        remaining: contractYearsRemaining,
+        distress,
+        willingToMove: willingToMove || unemployed,
+        mandatoryBuyout,
+      }),
+    }))
+    .filter((x) => x.score >= 0)
+    .sort((a, b) => b.score - a.score);
+
+  let windowChance = unemployed ? 0.35 : 0.22;
+  if (matchRating >= 7.5) windowChance += 0.18;
+  if (matchRating < 6.3) windowChance += 0.12;
+  const expectedPrestige = Math.min(5, Math.max(1, Math.round((currentOvr - 50) / 8)));
+  if (expectedPrestige > effectivePrestige) windowChance += 0.14;
+  if (contractYearsRemaining <= 1) windowChance += 0.1;
+  if (contractYearsRemaining >= 3 && !distress) windowChance -= 0.08;
+  if (willingToMove || unemployed) windowChance += 0.1;
+  windowChance = Math.min(0.55, Math.max(0.08, windowChance));
+
+  const inbound: ContractOfferCard[] = [];
+  const rollInbound = resolveRandom() < windowChance || distress || unemployed;
+  if (rollInbound && scored.length > 0) {
+    const take = Math.min(MAX_INBOUND_OFFERS, scored.length);
+    const pool = scored.slice(0, Math.min(8, scored.length));
+    const picked: ClubMarketInfo[] = [];
+    const temp = [...pool];
+    while (picked.length < take && temp.length > 0) {
+      const idx = resolveRandomInt(0, Math.min(2, temp.length - 1));
+      picked.push(temp[idx].club);
+      temp.splice(idx, 1);
+    }
+
+    for (const club of picked) {
+      const years = proposeContractYears({ currentAge, retireAge, matchRating });
+      if (years <= 0) continue;
+      const fee = mandatoryBuyout;
+      const wage = proposeWageAnnual({
+        ovr: currentOvr,
+        age: currentAge,
+        currentWage: currentWageAnnual,
+        prestige: club.prestige,
+        leagueTier: club.leagueTier,
+        matchRating,
+        stepUpPrestige: club.prestige - effectivePrestige,
+        acceptLowerWage: willingToMove || unemployed,
+      });
+      const kind = contractYearsRemaining <= 0 || unemployed ? "free_agent" : "transfer";
+      inbound.push(
+        buildOfferCard({
+          kind,
+          club,
+          fee: kind === "free_agent" ? 0 : fee,
+          wage,
+          years,
+          ovr: currentOvr,
+          reason: unemployed
+            ? "Cầu thủ tự do — tìm CLB mới"
+            : reasonForMove({
+                matchRating,
+                currentPrestige: effectivePrestige,
+                destPrestige: club.prestige,
+                distress,
+                remaining: contractYearsRemaining,
+              }),
+        }),
+      );
+    }
+  }
+
+  // --- Shortlist (fit-oriented, up to 8) ---
+  const shortlist: ShortlistClubCard[] = eligible
+    .map((club) => {
+      const apps = expectedAppsAtClub(currentOvr, club.prestige, club.leagueSize ?? 20);
+      const fit = estimateAppsRatio(currentOvr, club.prestige);
+      const canAfford = clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout);
+      const canApproachGate = contractYearsRemaining <= 1 || unemployed;
+      const years = proposeContractYears({ currentAge, retireAge, matchRating });
+      const wage = proposeWageAnnual({
+        ovr: currentOvr,
+        age: currentAge,
+        currentWage: currentWageAnnual,
+        prestige: club.prestige,
+        leagueTier: club.leagueTier,
+        matchRating,
+        stepUpPrestige: club.prestige - effectivePrestige,
+        acceptLowerWage: true,
+      });
+      const acceptChance =
+        canApproachGate && canAfford && years > 0
+          ? computeApproachAcceptChance({
+              ovr: currentOvr,
+              age: currentAge,
+              matchRating,
+              destPrestige: club.prestige,
+              destLeagueTier: club.leagueTier,
+              expectedAppsRatio: fit,
+            })
+          : null;
+      let blockReason: string | null = null;
+      if (!canApproachGate) {
+        blockReason = "Chỉ chủ động ngỏ lời khi còn ≤1 năm HĐ hoặc hết hạn";
+      } else if (!canAfford) {
+        blockReason = `Phí phá HĐ vượt ngân sách CLB — không thể tự giảm`;
+      } else if (years <= 0) {
+        blockReason = "Không còn mùa nghề để ký HĐ";
+      }
+      return {
+        club,
+        apps,
+        fit,
+        card: {
+          clubId: club.id,
+          clubName: club.name,
+          leagueId: club.leagueId,
+          leagueName: club.leagueName ?? "Giải đấu",
+          prestige: club.prestige,
+          leagueTier: club.leagueTier,
+          expectedLeagueApps: apps,
+          canApproach: canApproachGate && canAfford && years > 0,
+          canAffordBuyout: canAfford,
+          previewFee: contractYearsRemaining <= 0 || unemployed ? 0 : mandatoryBuyout,
+          previewWage: wage,
+          previewYears: years,
+          blockReason,
+          acceptChance,
+        } satisfies ShortlistClubCard,
+      };
+    })
+    .sort((a, b) => b.fit - a.fit || b.apps - a.apps)
+    .slice(0, 8)
+    .map((x) => x.card);
+
+  return {
+    hasWindow: true,
+    marketValue,
+    mandatoryBuyout,
+    isUnemployedMarket: unemployed,
+    contract: contractSnap,
+    renewal,
+    inbound,
+    shortlist,
+  };
 }
 
+export interface ResolveApproachParams {
+  clubId: string;
+  clubName: string;
+  leagueId: string;
+  leagueName: string;
+  prestige: number;
+  leagueTier: number;
+  leagueSize?: number;
+  previewFee: number;
+  previewWage: number;
+  previewYears: number;
+  clientAcceptChance: number;
+  currentOvr: number;
+  currentAge: number;
+  matchRating: number;
+  contractYearsRemaining: number;
+  isUnemployed?: boolean;
+}
+
+export type ResolveApproachResult =
+  | { accepted: true; acceptChance: number; offer: ContractOfferCard }
+  | { accepted: false; acceptChance: number; rejectReason: string };
+
+/** Resolve outbound approach: recompute chance, roll once via resolveRandom. */
+export function resolveApproachService(params: ResolveApproachParams): ResolveApproachResult {
+  const remaining = params.contractYearsRemaining;
+  const unemployed = !!params.isUnemployed;
+  if (remaining > 1 && !unemployed) {
+    return {
+      accepted: false,
+      acceptChance: 0,
+      rejectReason: "Chỉ chủ động ngỏ lời khi còn ≤1 năm HĐ hoặc hết hạn",
+    };
+  }
+
+  const feeAsk = remaining <= 0 || unemployed ? 0 : params.previewFee;
+  if (feeAsk > 0 && !clubCanAffordBuyout(params.prestige, params.leagueTier, feeAsk)) {
+    return {
+      accepted: false,
+      acceptChance: 0,
+      rejectReason: "Phí phá HĐ vượt ngân sách CLB — không thể tự giảm",
+    };
+  }
+
+  if (params.previewYears <= 0) {
+    return {
+      accepted: false,
+      acceptChance: 0,
+      rejectReason: "Không còn mùa nghề để ký HĐ",
+    };
+  }
+
+  const fit = estimateAppsRatio(params.currentOvr, params.prestige);
+  const acceptChance = computeApproachAcceptChance({
+    ovr: params.currentOvr,
+    age: params.currentAge,
+    matchRating: params.matchRating,
+    destPrestige: params.prestige,
+    destLeagueTier: params.leagueTier,
+    expectedAppsRatio: fit,
+  });
+
+  if (Math.abs(acceptChance - params.clientAcceptChance) > 0.02) {
+    return {
+      accepted: false,
+      acceptChance,
+      rejectReason: "Xác suất đã đổi — mở lại cửa sổ chuyển nhượng",
+    };
+  }
+
+  const accepted = resolveRandom() < acceptChance;
+  if (!accepted) {
+    return {
+      accepted: false,
+      acceptChance,
+      rejectReason: "CLB chọn phương án khác",
+    };
+  }
+
+  const kind = remaining <= 0 || unemployed ? "free_agent" : "transfer";
+  const club: ClubMarketInfo = {
+    id: params.clubId,
+    name: params.clubName,
+    leagueId: params.leagueId,
+    leagueName: params.leagueName,
+    prestige: params.prestige,
+    leagueTier: params.leagueTier,
+    leagueSize: params.leagueSize ?? 20,
+  };
+
+  return {
+    accepted: true,
+    acceptChance,
+    offer: buildOfferCard({
+      kind,
+      club,
+      fee: kind === "free_agent" ? 0 : feeAsk,
+      wage: params.previewWage,
+      years: params.previewYears,
+      ovr: params.currentOvr,
+      reason: "Chủ động ngỏ lời — CLB đồng ý",
+    }),
+  };
+}
+
+/** Backward-compatible thin wrapper for older callers. */
 export function generateTransferOfferService(params: {
   currentClubId: string;
   currentClubPrestige: number;
@@ -27,54 +585,40 @@ export function generateTransferOfferService(params: {
   assists: number;
   cleanSheets: number;
   position: string;
-  clubs: ClubDbInfo[];
+  clubs: Array<{
+    id: string;
+    name: string;
+    leagueId: string;
+    prestige: number;
+    leagueName?: string | null;
+  }>;
 }): TransferOfferResult {
-  const { currentClubId, currentClubPrestige, currentOvr, matchRating, clubs } = params;
-
-  // 1. Tính toán cơ hội nhận Transfer Offer dựa trên OVR và phong độ thực tế
-  let offerChance = 0.20; // Cơ hội cơ bản 20%
-  
-  if (matchRating >= 7.50) offerChance += 0.15; // Phong độ cao thu hút CLB khác
-  if (matchRating < 6.30) offerChance += 0.10;  // Phong độ thấp dễ bị thanh lý/muốn ra đi
-  
-  // Nếu OVR vượt trội so với uy tín của CLB hiện tại -> muốn tìm bến đỗ lớn hơn
-  const expectedPrestige = Math.min(5, Math.max(1, Math.round((currentOvr - 50) / 8)));
-  if (expectedPrestige > currentClubPrestige) {
-    offerChance += 0.15;
-  }
-
-  const hasOffer = resolveRandom() < offerChance;
-  if (!hasOffer) {
-    return { hasOffer: false, offer: null };
-  }
-
-  // 2. Lọc các CLB hợp lệ (khác CLB hiện tại)
-  const eligibleClubs = clubs.filter((c) => c.id !== currentClubId);
-  if (eligibleClubs.length === 0) {
-    return { hasOffer: false, offer: null };
-  }
-
-  // Lọc các CLB có prestige phù hợp với trình độ cầu thủ (OVR)
-  // Cầu thủ OVR cao sẽ nhận được lời mời từ các CLB có prestige tương xứng (+-1 sao so với expectedPrestige)
-  let targetClubs = eligibleClubs.filter(
-    (c) => Math.abs(c.prestige - expectedPrestige) <= 1
-  );
-
-  // Nếu không tìm thấy CLB phù hợp, lấy CLB bất kỳ
-  if (targetClubs.length === 0) {
-    targetClubs = eligibleClubs;
-  }
-
-  // Chọn CLB ngẫu nhiên
-  const chosenClub = targetClubs[resolveRandomInt(0, targetClubs.length - 1)];
-
+  const market = generateTransferMarketService({
+    currentClubId: params.currentClubId,
+    currentClubPrestige: params.currentClubPrestige,
+    currentClubLeagueTier: 1,
+    currentOvr: params.currentOvr,
+    currentAge: 24,
+    retireAge: 36,
+    matchRating: params.matchRating,
+    goals: params.goals,
+    assists: params.assists,
+    cleanSheets: params.cleanSheets,
+    position: params.position,
+    contractYearsRemaining: 1,
+    contractYearsTotal: 3,
+    currentWageAnnual: 500,
+    clubs: params.clubs.map((c) => ({ ...c, leagueTier: 1 })),
+  });
+  const offer = market.inbound[0];
+  if (!offer) return { hasOffer: false, offer: null };
   return {
     hasOffer: true,
     offer: {
-      clubId: chosenClub.id,
-      clubName: chosenClub.name,
-      leagueId: chosenClub.leagueId,
-      leagueName: chosenClub.leagueName ?? "Giải Vô Địch",
+      clubId: offer.clubId,
+      clubName: offer.clubName,
+      leagueId: offer.leagueId,
+      leagueName: offer.leagueName,
     },
   };
 }

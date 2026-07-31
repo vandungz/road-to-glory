@@ -1,6 +1,7 @@
 "use client";
 
-import { evolvePlayerStatsAction, generateTransferOfferAction } from "@/actions/season.actions";
+import { evolvePlayerStatsAction, generateTransferMarketAction } from "@/actions/season.actions";
+import type { TransferMarketResult } from "@/features/transfer/services/transfer.service";
 
 interface StatEvolutionFlowProps {
   currentStats: Record<string, number>;
@@ -21,6 +22,12 @@ interface StatEvolutionFlowProps {
   nationalCallupResult: string | null;
   nationalTournamentResult: string | null;
   ballonDorRank: number | null;
+  contractYearsRemaining: number;
+  contractYearsTotal: number;
+  currentWageAnnual: number;
+  willingToMove: boolean;
+  isUnemployed: boolean;
+  clubs: any[];
   setYearEvolution: (fn: (prev: any) => any) => void;
   setSelectorIndex: (v: number) => void;
   setTempSelectedStat: (v: string | null) => void;
@@ -29,6 +36,8 @@ interface StatEvolutionFlowProps {
   setCareerSubStep: (v: any) => void;
   setIsProcessing: (v: boolean) => void;
   setTransferOffer: (v: any) => void;
+  setTransferMarket: (v: TransferMarketResult | null) => void;
+  setMarketValue: (v: number) => void;
   setBallonDorRank: (v: number | null) => void;
   setHasBallonDorWinner: (v: boolean) => void;
   setCurrentStats: (v: Record<string, number>) => void;
@@ -41,40 +50,66 @@ const COMPETITION_STEPS = new Set([
 ]);
 
 export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
-  /** Mùa đang chơi là mùa cuối (sau mùa này giải nghệ) — không còn năm tiếp theo để chuyển nhượng. */
   function isFinalSeason(): boolean {
     const retireAge = p.playerDebutAge + p.playerCareerLength;
     return p.currentAge >= retireAge;
   }
 
-  async function triggerTransferCheck() {
-    // Mùa cuối: skip offer — accept sẽ tạo stint 1 năm “ma” trên UI giải nghệ.
+  function resolveLeagueTier(): number {
+    const leagueId = p.currentClub?.leagueId as string | undefined;
+    if (!leagueId) return 1;
+    const sample = p.clubs.find((c: any) => c.leagueId === leagueId || c.id === p.currentClub?.id);
+    return sample?.leagueTier ?? sample?.league?.tier ?? 1;
+  }
+
+  async function triggerTransferCheck(overrides?: { willingToMove?: boolean; stayOnWindow?: boolean }) {
     if (isFinalSeason()) {
       p.setTransferOffer(null);
+      p.setTransferMarket(null);
       p.setCareerSubStep("resolved");
       p.setIsProcessing(false);
       return;
     }
 
     try {
-      const res = await generateTransferOfferAction({
-        currentClubId: p.currentClub.id,
-        currentClubPrestige: p.currentClub.prestige ?? 3,
+      const retireAge = p.playerDebutAge + p.playerCareerLength;
+      const unemployed = p.isUnemployed || !p.currentClub;
+      const res = await generateTransferMarketAction({
+        currentClubId: p.currentClub?.id ?? null,
+        currentClubPrestige: unemployed ? 2 : (p.currentClub?.prestige ?? 3),
+        currentClubLeagueTier: unemployed ? 1 : resolveLeagueTier(),
         currentOvr: p.currentOvr,
-        matchRating: p.yearSimResult?.matchRating ?? 6.0,
+        currentAge: p.currentAge,
+        retireAge,
+        matchRating: p.yearSimResult?.matchRating ?? (unemployed ? 6.0 : 6.0),
         goals: p.yearSimResult?.goals ?? 0,
         assists: p.yearSimResult?.assists ?? 0,
         cleanSheets: p.yearSimResult?.cleanSheets ?? 0,
         position: p.position,
+        contractYearsRemaining: p.contractYearsRemaining,
+        contractYearsTotal: p.contractYearsTotal,
+        currentWageAnnual: p.currentWageAnnual,
+        willingToMove: overrides?.willingToMove ?? p.willingToMove,
+        isUnemployed: unemployed,
       });
-      if (res.hasOffer && res.offer) {
-        p.setTransferOffer(res.offer);
+
+      p.setTransferMarket(res);
+      p.setMarketValue(res.marketValue);
+
+      const hasAny =
+        !!res.renewal ||
+        res.inbound.length > 0 ||
+        ((res.contract.yearsRemaining <= 1 || unemployed) && res.shortlist.length > 0);
+      // FA / unemployed luôn mở cửa sổ để quyết định (kể cả shortlist rỗng → thất nghiệp)
+      if (overrides?.stayOnWindow || (res.hasWindow && (hasAny || unemployed || res.contract.yearsRemaining <= 0))) {
+        p.setTransferOffer(res.inbound[0] ?? res.renewal ?? null);
         p.setCareerSubStep("transfer");
       } else {
+        p.setTransferOffer(null);
         p.setCareerSubStep("resolved");
       }
     } catch (err) {
-      console.error("Error checking transfer offer:", err);
+      console.error("Error checking transfer market:", err);
       p.setCareerSubStep("resolved");
     } finally {
       p.setIsProcessing(false);
@@ -92,8 +127,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         p.setCareerSubStep("dir_decrease");
       }
       p.setIsProcessing(false);
-    }
-    else if (subStep === "dir_decrease") {
+    } else if (subStep === "dir_decrease") {
       if (result === "yes") {
         p.setYearEvolution((prev) => ({ ...prev, direction: "decrease" }));
         p.setCareerSubStep("count");
@@ -102,12 +136,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         p.setYearEvolution((prev) => ({ ...prev, direction: "maintain" }));
         triggerTransferCheck();
       }
-    }
-    else if (subStep === "count") {
-      // Clamp theo số chỉ số CHƯA đạt max 99 (chỉ khi tăng) — domain count giờ
-      // lên tới 6, nếu cầu thủ đã có ≥1 chỉ số max mà roll trúng 6 thì vòng lặp
-      // "selector" sẽ không đủ chỉ số hợp lệ để chọn, gây lỗi resolveWeightedOutcome
-      // (pool rỗng).
+    } else if (subStep === "count") {
       let count = result as number;
       if (p.yearEvolution.direction === "increase") {
         const availableCount = Object.values(p.currentStats).filter((v) => v < 99).length;
@@ -119,14 +148,12 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
       p.setTempSelectedStat(null);
       p.setCareerSubStep("selector");
       p.setIsProcessing(false);
-    }
-    else if (subStep === "selector") {
+    } else if (subStep === "selector") {
       p.setTempSelectedStat(result);
       p.setSelectedStatsList((prev) => [...prev, result]);
       p.setCareerSubStep("magnitude");
       p.setIsProcessing(false);
-    }
-    else if (subStep === "magnitude") {
+    } else if (subStep === "magnitude") {
       const delta = p.yearEvolution.direction === "increase" ? result : -result;
       const evolutions = [...p.evolvedStatsThisYear, { stat: p.tempSelectedStat!, delta }];
       p.setEvolvedStatsThisYear(evolutions);
@@ -138,7 +165,11 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         p.setCareerSubStep("selector");
         p.setIsProcessing(false);
       } else {
-        evolvePlayerStatsAction({ currentStats: p.currentStats, position: p.position, evolutions })
+        evolvePlayerStatsAction({
+          currentStats: p.currentStats,
+          position: p.position,
+          evolutions,
+        })
           .then((res) => {
             p.setCurrentStats(res.nextStats);
             p.setCurrentOvr(res.nextOvr);
@@ -149,16 +180,14 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
             triggerTransferCheck();
           });
       }
-    }
-    else if (subStep === "ballon_dor_nomination") {
+    } else if (subStep === "ballon_dor_nomination") {
       if (result === "yes") {
         p.setCareerSubStep("ballon_dor_ranking");
       } else {
         p.setCareerSubStep("dir_increase");
       }
       p.setIsProcessing(false);
-    }
-    else if (subStep === "ballon_dor_ranking") {
+    } else if (subStep === "ballon_dor_ranking") {
       const rank = result as number;
       p.setBallonDorRank(rank);
       if (rank === 1) p.setHasBallonDorWinner(true);

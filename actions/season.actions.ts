@@ -51,7 +51,7 @@ const getCachedClubCountry = unstable_cache(
 import { simulatePlayerSeasonService, type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { simulateDynamicLeagueTableService, type TableRow } from "@/features/season/services/table-simulator.service";
 import { startPlayerCareerService, type CareerSetupResult } from "@/features/career/services/career-setup.service";
-import { generateTransferOfferService, type TransferOfferResult } from "@/features/transfer/services/transfer.service";
+import { generateTransferMarketService, resolveApproachService, type TransferMarketResult, type ResolveApproachResult } from "@/features/transfer/services/transfer.service";
 import { 
   generateDomesticCupJourneyService, 
   generateContinentalCupJourneyService, 
@@ -70,6 +70,11 @@ interface PlayerUpdateInput {
   events: any[];
   slotIndex: number;
   currentContinentalCup?: string;
+  contractYearsTotal?: number;
+  contractYearsRemaining?: number;
+  currentWageAnnual?: number;
+  marketValue?: number;
+  isUnemployed?: boolean;
 }
 
 interface SaveProgressParams {
@@ -84,6 +89,11 @@ interface SeasonProgressUpdate {
   achievements: any;
   currentContinentalCup: string;
   seasonHistory: Record<number, any>;
+  contractYearsTotal?: number;
+  contractYearsRemaining?: number;
+  currentWageAnnual?: number;
+  marketValue?: number;
+  isUnemployed?: boolean;
 }
 
 const simulatePlayerSeasonSchema = z.object({
@@ -141,15 +151,42 @@ const startPlayerCareerSchema = z.object({
   pos: z.number().int().nullish(),
 });
 
-const generateTransferOfferSchema = z.object({
-  currentClubId: z.string(),
+const generateTransferMarketSchema = z.object({
+  currentClubId: z.string().nullable(),
   currentClubPrestige: z.number().int(),
+  currentClubLeagueTier: z.number().int().min(1).max(2).default(1),
   currentOvr: z.number().int(),
+  currentAge: z.number().int().min(14).max(50),
+  retireAge: z.number().int().min(15).max(60),
   matchRating: z.number().min(0),
   goals: z.number().int(),
   assists: z.number().int(),
   cleanSheets: z.number().int(),
   position: z.string(),
+  contractYearsRemaining: z.number().int().min(0).max(10),
+  contractYearsTotal: z.number().int().min(0).max(10),
+  currentWageAnnual: z.number().int().min(0),
+  willingToMove: z.boolean().optional().default(false),
+  isUnemployed: z.boolean().optional().default(false),
+});
+
+const resolveShortlistApproachSchema = z.object({
+  clubId: z.string(),
+  clubName: z.string(),
+  leagueId: z.string(),
+  leagueName: z.string(),
+  prestige: z.number().int().min(1).max(5),
+  leagueTier: z.number().int().min(1).max(2),
+  leagueSize: z.number().int().min(2).max(40).optional(),
+  previewFee: z.number().int().min(0),
+  previewWage: z.number().int().min(0),
+  previewYears: z.number().int().min(0).max(10),
+  clientAcceptChance: z.number().min(0).max(1),
+  currentOvr: z.number().int().min(10).max(99),
+  currentAge: z.number().int().min(14).max(50),
+  matchRating: z.number().min(0).max(10),
+  contractYearsRemaining: z.number().int().min(0).max(10),
+  isUnemployed: z.boolean().optional().default(false),
 });
 
 const generateCupJourneySchema = z.object({
@@ -212,6 +249,17 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
           events: player.events,
           slotIndex: player.slotIndex,
           currentContinentalCup: player.currentContinentalCup,
+          ...(player.contractYearsTotal !== undefined
+            ? { contractYearsTotal: player.contractYearsTotal }
+            : {}),
+          ...(player.contractYearsRemaining !== undefined
+            ? { contractYearsRemaining: player.contractYearsRemaining }
+            : {}),
+          ...(player.currentWageAnnual !== undefined
+            ? { currentWageAnnual: player.currentWageAnnual }
+            : {}),
+          ...(player.marketValue !== undefined ? { marketValue: player.marketValue } : {}),
+          ...(player.isUnemployed !== undefined ? { isUnemployed: player.isUnemployed } : {}),
         },
       })
     )
@@ -222,7 +270,19 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
 }
 
 export async function updateSeasonProgressAction(params: SeasonProgressUpdate): Promise<void> {
-  const { playerId, statsTimeline, clubStints, achievements, currentContinentalCup, seasonHistory } = params;
+  const {
+    playerId,
+    statsTimeline,
+    clubStints,
+    achievements,
+    currentContinentalCup,
+    seasonHistory,
+    contractYearsTotal,
+    contractYearsRemaining,
+    currentWageAnnual,
+    marketValue,
+    isUnemployed,
+  } = params;
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -243,6 +303,11 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
       achievements,
       currentContinentalCup,
       seasonHistory,
+      ...(contractYearsTotal !== undefined ? { contractYearsTotal } : {}),
+      ...(contractYearsRemaining !== undefined ? { contractYearsRemaining } : {}),
+      ...(currentWageAnnual !== undefined ? { currentWageAnnual } : {}),
+      ...(marketValue !== undefined ? { marketValue } : {}),
+      ...(isUnemployed !== undefined ? { isUnemployed } : {}),
     },
   });
 }
@@ -331,50 +396,105 @@ export async function startPlayerCareerAction(input: unknown): Promise<CareerSet
 
   const dbClub = await prisma.club.findUnique({
     where: { id: validated.clubId },
-    select: { prestige: true, continentalType: true },
+    select: {
+      prestige: true,
+      continentalType: true,
+      league: { select: { tier: true } },
+    },
   });
 
   return startPlayerCareerService(
     validated,
     dbClub?.prestige ?? 3,
-    dbClub?.continentalType ?? "none"
+    dbClub?.continentalType ?? "none",
+    dbClub?.league?.tier ?? 1,
   );
 }
 
-export async function generateTransferOfferAction(input: unknown): Promise<TransferOfferResult> {
+export async function generateTransferMarketAction(input: unknown): Promise<TransferMarketResult> {
   await requireAuth();
-  const validated = generateTransferOfferSchema.parse(input);
+  const validated = generateTransferMarketSchema.parse(input);
+  const isUnemployed = validated.isUnemployed || !validated.currentClubId;
 
-  // Compute prestige range server-side to avoid full table scan (~292 clubs)
   const expectedPrestige = Math.min(5, Math.max(1, Math.round((validated.currentOvr - 50) / 8)));
-  const minPrestige = Math.max(1, expectedPrestige - 1);
-  const maxPrestige = Math.min(5, expectedPrestige + 1);
+  const minPrestige = Math.max(1, expectedPrestige - 2);
+  const maxPrestige = Math.min(5, expectedPrestige + 2);
 
   const dbClubs = await prisma.club.findMany({
-    where: {
-      prestige: { gte: minPrestige, lte: maxPrestige },
-      id: { not: validated.currentClubId },
-    },
+    where: isUnemployed
+      ? { prestige: { gte: minPrestige, lte: maxPrestige } }
+      : {
+          OR: [
+            { id: validated.currentClubId! },
+            { prestige: { gte: minPrestige, lte: maxPrestige } },
+          ],
+        },
     select: {
       id: true,
       name: true,
       leagueId: true,
       prestige: true,
-      league: { select: { name: true } },
+      league: { select: { name: true, tier: true } },
     },
   });
 
-  return generateTransferOfferService({
+  const leagueIds = [...new Set(dbClubs.map((c) => c.leagueId))];
+  const leagueSizes = leagueIds.length
+    ? await prisma.club.groupBy({
+        by: ["leagueId"],
+        where: { leagueId: { in: leagueIds } },
+        _count: { _all: true },
+      })
+    : [];
+  const leagueSizeById = new Map(
+    leagueSizes.map((row) => [row.leagueId, row._count._all] as const),
+  );
+
+  const currentClubRow = validated.currentClubId
+    ? dbClubs.find((c) => c.id === validated.currentClubId)
+    : undefined;
+  const currentClubLeagueSize =
+    (currentClubRow && leagueSizeById.get(currentClubRow.leagueId)) || 20;
+
+  return generateTransferMarketService({
     currentClubId: validated.currentClubId,
     currentClubPrestige: validated.currentClubPrestige,
+    currentClubLeagueTier: validated.currentClubLeagueTier,
+    currentClubLeagueSize,
     currentOvr: validated.currentOvr,
+    currentAge: validated.currentAge,
+    retireAge: validated.retireAge,
     matchRating: validated.matchRating,
     goals: validated.goals,
     assists: validated.assists,
     cleanSheets: validated.cleanSheets,
     position: validated.position,
-    clubs: dbClubs.map((c) => ({ ...c, leagueName: c.league?.name })),
+    contractYearsRemaining: validated.contractYearsRemaining,
+    contractYearsTotal: validated.contractYearsTotal,
+    currentWageAnnual: validated.currentWageAnnual,
+    willingToMove: validated.willingToMove,
+    isUnemployed,
+    clubs: dbClubs.map((c) => ({
+      id: c.id,
+      name: c.name,
+      leagueId: c.leagueId,
+      prestige: c.prestige,
+      leagueName: c.league?.name,
+      leagueTier: c.league?.tier ?? 1,
+      leagueSize: leagueSizeById.get(c.leagueId) ?? 20,
+    })),
   });
+}
+
+export async function resolveShortlistApproachAction(input: unknown): Promise<ResolveApproachResult> {
+  await requireAuth();
+  const validated = resolveShortlistApproachSchema.parse(input);
+  return resolveApproachService(validated);
+}
+
+/** @deprecated Prefer generateTransferMarketAction */
+export async function generateTransferOfferAction(input: unknown): Promise<TransferMarketResult> {
+  return generateTransferMarketAction(input);
 }
 
 export async function generateCupJourneyAction(input: unknown): Promise<string[]> {
@@ -399,8 +519,8 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
     let allowedTypes: string[];
     if (["UCL", "UEL", "UECL"].includes(cupType)) {
       allowedTypes = ["UCL", "UEL", "UECL"];
-    } else if (cupType === "Libertadores") {
-      allowedTypes = ["Libertadores"];
+    } else if (cupType === "Libertadores" || cupType === "Sudamericana") {
+      allowedTypes = ["Libertadores", "Sudamericana"];
     } else if (cupType === "AFC_CL") {
       allowedTypes = ["AFC_CL"];
     } else if (cupType === "CONCACAF_CC") {

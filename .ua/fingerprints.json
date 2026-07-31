@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "45e7aef852803fdd5954a4acb1e422bc83f6ac7d",
-  "generatedAt": "2026-07-29T09:12:09.790Z",
+  "gitCommitHash": "fcd6986b1464ba9bc0c3f905e6483f478dcab183",
+  "generatedAt": "2026-07-30T09:34:31.978Z",
   "files": {
     ".claude/CLAUDE.md": {
       "filePath": ".claude/CLAUDE.md",
@@ -55,7 +55,7 @@
     },
     "actions/player.actions.ts": {
       "filePath": "actions/player.actions.ts",
-      "contentHash": "a094623e83e5a4c573b772fcd4c1de84726721be8b30570689b6221d2f76e3ec",
+      "contentHash": "8faa9d5101b3b95bbdd04aace2e18cf4d250b54432b4a9bf74589ead2d07d67d",
       "functions": [
         {
           "name": "getCardRarity",
@@ -98,7 +98,7 @@
             "input"
           ],
           "exported": true,
-          "lineCount": 73
+          "lineCount": 77
         }
       ],
       "classes": [],
@@ -151,12 +151,12 @@
         "getCareerPlayerAction",
         "saveCareerPlayer"
       ],
-      "totalLines": 263,
+      "totalLines": 267,
       "hasStructuralAnalysis": true
     },
     "actions/season.actions.ts": {
       "filePath": "actions/season.actions.ts",
-      "contentHash": "54bcdfddcc7a9901b2fbdf5f73fa9dcae136b6545336b731e6715042b3d83764",
+      "contentHash": "312beeebd1bae8e6142ccfff6a5bee0c24bf6fc83cbcb8bf587c87ec09f7be7d",
       "functions": [
         {
           "name": "verifyGameOwnership",
@@ -348,7 +348,7 @@
         "generateCupJourneyAction",
         "evolvePlayerStatsAction"
       ],
-      "totalLines": 448,
+      "totalLines": 449,
       "hasStructuralAnalysis": true
     },
     "app/(auth)/auth/callback/route.ts": {
@@ -857,22 +857,22 @@
     },
     "docs/api-integration.md": {
       "filePath": "docs/api-integration.md",
-      "contentHash": "2a165f099cde75f65c3788577e7d51b881cfcdc0ac8bab342b58779b1c66c84e",
+      "contentHash": "26fea4591641d095785cd1b769aa2ec8e68339d1ec53693f17cc68d0aba3850d",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 486,
+      "totalLines": 500,
       "hasStructuralAnalysis": true
     },
     "docs/architecture.md": {
       "filePath": "docs/architecture.md",
-      "contentHash": "4ebcc51a6aed622a7c8756a3e2dab6f8e1801f1fb14965a59ca186f40d038e22",
+      "contentHash": "d6e550bb56fe0c2d26458a257fda118f011c6b2a8b68816fddcfda4dcc00f1c1",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 106,
+      "totalLines": 128,
       "hasStructuralAnalysis": true
     },
     "docs/auth-implementation-plan.md": {
@@ -925,14 +925,34 @@
       "totalLines": 204,
       "hasStructuralAnalysis": true
     },
-    "docs/core-growth-logic-review.md": {
-      "filePath": "docs/core-growth-logic-review.md",
-      "contentHash": "7d15df9e7921c2bc57d1bc5bed6ba6d4c79105126d7d61824252132d6655e30e",
+    "docs/core-game-logic-systems-map.md": {
+      "filePath": "docs/core-game-logic-systems-map.md",
+      "contentHash": "d8496f5f2cf7804e5077dc5ef7907881442bf84b45ff520be64c2810eca23fda",
       "functions": [],
       "classes": [],
       "imports": [],
       "exports": [],
-      "totalLines": 555,
+      "totalLines": 415,
+      "hasStructuralAnalysis": true
+    },
+    "docs/core-growth-balance.md": {
+      "filePath": "docs/core-growth-balance.md",
+      "contentHash": "8c7013c3191b8073e23c5ec688d93925f66f31fa296c5bcc409e4a1c986a1f09",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 858,
+      "hasStructuralAnalysis": true
+    },
+    "docs/core-growth-logic-review.md": {
+      "filePath": "docs/core-growth-logic-review.md",
+      "contentHash": "aff8f64c51a0fa2c42add1524750ea52c5eafa33b8ba23e855331bf9d19422c7",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 561,
       "hasStructuralAnalysis": true
     },
     "docs/environment-variables.md": {
@@ -1134,18 +1154,18 @@
     },
     "features/career/services/career-setup.service.ts": {
       "filePath": "features/career/services/career-setup.service.ts",
-      "contentHash": "ea94f0eef4e4c1998384a1d804e809411c3d19f98b5e055176be3a06d979125e",
+      "contentHash": "3265b9cd21af7779bbc91a63cf728a4a27e51a221f6d6a4269a507f6d5a19370",
       "functions": [
         {
           "name": "startPlayerCareerService",
           "params": [
             "draftData",
-            "clubPrestige",
-            "clubContinentalType"
+            "_clubPrestige",
+            "_clubContinentalType"
           ],
           "returnType": "CareerSetupResult",
           "exported": true,
-          "lineCount": 47
+          "lineCount": 54
         }
       ],
       "classes": [],
@@ -1162,12 +1182,18 @@
             "resolveRandomInt",
             "resolveRandom"
           ]
+        },
+        {
+          "source": "@/lib/wheel-engine/weight-calculator",
+          "specifiers": [
+            "calculateOvrByPosition"
+          ]
         }
       ],
       "exports": [
         "startPlayerCareerService"
       ],
-      "totalLines": 102,
+      "totalLines": 113,
       "hasStructuralAnalysis": true
     },
     "features/game/actions/createGameSession.ts": {
@@ -1576,7 +1602,7 @@
     },
     "features/season/services/season-simulator.service.ts": {
       "filePath": "features/season/services/season-simulator.service.ts",
-      "contentHash": "46307b1f5081260ea5383b6724332a4ed2fa0892db2b7caacf6c1c08bdf72249",
+      "contentHash": "7ed4dda7a33650fe67369e3a3522e4e1864065701bf6becbd529a860b8bc9159",
       "functions": [
         {
           "name": "getCupMatches",
@@ -1616,29 +1642,27 @@
           "lineCount": 8
         },
         {
-          "name": "calcAttackStats",
-          "params": [
-            "position",
-            "ovr",
-            "playFactor",
-            "apps"
-          ],
-          "returnType": "{ goals: number; assists: number; cleanSheets: number }",
-          "exported": false,
-          "lineCount": 37
-        },
-        {
-          "name": "calcCleanSheets",
+          "name": "rollCompetitionOutput",
           "params": [
             "position",
             "ovr",
             "clubPrestige",
-            "baseLeagueMatches",
-            "playFactor"
+            "apps",
+            "context"
+          ],
+          "returnType": "{ goals: number; assists: number; cleanSheets: number }",
+          "exported": false,
+          "lineCount": 27
+        },
+        {
+          "name": "getOverqualifyPerfScale",
+          "params": [
+            "ovr",
+            "clubPrestige"
           ],
           "returnType": "number",
           "exported": false,
-          "lineCount": 22
+          "lineCount": 8
         },
         {
           "name": "calcRating",
@@ -1646,12 +1670,13 @@
             "position",
             "ovr",
             "luckRating",
+            "clubPrestige",
             "compStats",
             "standingBonus"
           ],
           "returnType": "number",
           "exported": false,
-          "lineCount": 26
+          "lineCount": 32
         },
         {
           "name": "calcTrophyScore",
@@ -1717,7 +1742,7 @@
           ],
           "returnType": "SimulatedSeasonResult",
           "exported": true,
-          "lineCount": 136
+          "lineCount": 117
         }
       ],
       "classes": [],
@@ -1734,12 +1759,27 @@
             "resolveRandom",
             "resolveRandomFloat"
           ]
+        },
+        {
+          "source": "@/lib/season-stat-rates",
+          "specifiers": [
+            "getPerAppRates",
+            "applyPrestigeToCsRate",
+            "clampCompetitionStats",
+            "CompContext"
+          ]
+        },
+        {
+          "source": "@/lib/club-fit",
+          "specifiers": [
+            "estimateAppsRatio"
+          ]
         }
       ],
       "exports": [
         "simulatePlayerSeasonService"
       ],
-      "totalLines": 441,
+      "totalLines": 412,
       "hasStructuralAnalysis": true
     },
     "features/season/services/table-simulator.service.ts": {
@@ -2481,7 +2521,7 @@
     },
     "features/wheel/hooks/useCareerStats.ts": {
       "filePath": "features/wheel/hooks/useCareerStats.ts",
-      "contentHash": "ba20f6b8bd967f9de50f50a0de0634b2cbca990d08252be80a54c0d76aa3b147",
+      "contentHash": "d9e77f7d45c56cf19342f92597b308a9114eca2f1ffbba74205e2a61da97b97b",
       "functions": [
         {
           "name": "useCareerStats",
@@ -2489,7 +2529,7 @@
             "{ gameId, slotIndex, position }"
           ],
           "exported": true,
-          "lineCount": 367
+          "lineCount": 388
         }
       ],
       "classes": [],
@@ -2530,27 +2570,28 @@
           "specifiers": [
             "calculateContinentalQualification",
             "getContinentalCupLabel",
-            "getDomesticCupName"
+            "getDomesticCupName",
+            "getNationalTournamentName"
           ]
         }
       ],
       "exports": [
         "useCareerStats"
       ],
-      "totalLines": 387,
+      "totalLines": 409,
       "hasStructuralAnalysis": true
     },
     "features/wheel/hooks/useCareerWheelItems.ts": {
       "filePath": "features/wheel/hooks/useCareerWheelItems.ts",
-      "contentHash": "4f6213881f4c2828ad27e2f166d9b50232c48bcb02d0ea39dea6e5cbd3449606",
+      "contentHash": "21525691135f23f02e63e002045728b62e872b1468c57f924ef603ea478b83f3",
       "functions": [
         {
           "name": "useCareerWheelItems",
           "params": [
-            "{\n  careerSubStep,\n  isMounted,\n  mode,\n  currentContinentalCup,\n  currentAge,\n  playerDebutAge,\n  playerCareerLength,\n  playerNationality,\n  currentClub,\n  currentOvr,\n  leagueSize,\n  lastYearStanding,\n  selectedStatsList,\n  position,\n  yearSimResult,\n  selectorIndex,\n  yearEvolutionDirection,\n  currentStats,\n  ballonDorNominationWeight,\n  ballonDorRankWeights,\n}"
+            "{\n  careerSubStep,\n  isMounted,\n  mode,\n  currentContinentalCup,\n  currentAge,\n  playerDebutAge,\n  playerCareerLength,\n  playerNationality,\n  currentClub,\n  currentOvr,\n  leagueSize,\n  lastYearStanding,\n  standingResult = null,\n  selectedStatsList,\n  position,\n  yearSimResult,\n  selectorIndex,\n  yearEvolutionDirection,\n  currentStats,\n  ballonDorNominationWeight,\n  ballonDorRankWeights,\n  luckRating = 10,\n}"
           ],
           "exported": true,
-          "lineCount": 209
+          "lineCount": 216
         }
       ],
       "classes": [],
@@ -2575,29 +2616,36 @@
           "specifiers": [
             "getStandingWheelPool",
             "getContinentalCupLabel",
-            "getGrowthTier",
-            "getIncreaseGateWeight",
-            "getDecreaseGateWeight",
-            "getCountPool",
-            "getCountPoolBoosted",
-            "getMagnitudePool",
-            "getMagnitudePoolBoosted",
-            "getMagnitudeTierForDirection",
+            "getNationalTournamentName",
+            "getDomesticCupWeights",
+            "getContinentalCupWeights",
+            "getNationalTournamentWeights",
+            "getNationalCallupWeights",
+            "getInfluenceProxy",
             "getAgeProgressThresholds",
-            "getCareerProgress",
-            "getGrowthBoost"
+            "getCareerProgress"
+          ]
+        },
+        {
+          "source": "../lib/growth-balance",
+          "specifiers": [
+            "getEffectiveIncreaseGate",
+            "getEffectiveDecreaseGate",
+            "getEffectiveCountPool",
+            "getEffectiveMagnitudePool",
+            "getSelectorStatWeight"
           ]
         }
       ],
       "exports": [
         "useCareerWheelItems"
       ],
-      "totalLines": 253,
+      "totalLines": 266,
       "hasStructuralAnalysis": true
     },
     "features/wheel/hooks/useCompetitionFlow.ts": {
       "filePath": "features/wheel/hooks/useCompetitionFlow.ts",
-      "contentHash": "cf3bfb28031bc5e6f3f2eb7c77a6dd0e5aa42f5142b11997215b17a9397a8ef6",
+      "contentHash": "6b2402b825b9eebf9eb802105473a473dcc9475f4424758dc279ff94a1dc2ad9",
       "functions": [
         {
           "name": "useCompetitionFlow",
@@ -2619,7 +2667,8 @@
         {
           "source": "../lib/simulation-helpers",
           "specifiers": [
-            "getContinentalCupLabel"
+            "getContinentalCupLabel",
+            "getNationalTournamentName"
           ]
         },
         {
@@ -2645,7 +2694,7 @@
     },
     "features/wheel/hooks/useDraftDrum.ts": {
       "filePath": "features/wheel/hooks/useDraftDrum.ts",
-      "contentHash": "a73df4d7562bcc847286c7dad2a59f5eab60e8c269c835801b4ef31f57fcb09e",
+      "contentHash": "4439286ca4bd5097b9c28e73ab4d0f03dd3fd08212357c02882e4f3b3c70f55a",
       "functions": [
         {
           "name": "useDraftDrum",
@@ -2659,7 +2708,7 @@
             "savedContinentalCup"
           ],
           "exported": true,
-          "lineCount": 362
+          "lineCount": 367
         }
       ],
       "classes": [],
@@ -2681,7 +2730,8 @@
         {
           "source": "../lib/simulation-helpers",
           "specifiers": [
-            "getSeasonYearString"
+            "getSeasonYearString",
+            "getNationalTournamentName"
           ]
         },
         {
@@ -2757,7 +2807,7 @@
       "exports": [
         "useDraftDrum"
       ],
-      "totalLines": 389,
+      "totalLines": 394,
       "hasStructuralAnalysis": true
     },
     "features/wheel/hooks/useSetupStage.ts": {
@@ -2822,7 +2872,7 @@
     },
     "features/wheel/hooks/useStatEvolutionFlow.ts": {
       "filePath": "features/wheel/hooks/useStatEvolutionFlow.ts",
-      "contentHash": "63cfe61b110a4ee7dd3bd535432d77ba9235644e4f71139805d7863e8f0c0a5c",
+      "contentHash": "d266ec72f0345a8e1e59881d40ae71d8edca24dddeaa860af10dd9b349d72835",
       "functions": [
         {
           "name": "useStatEvolutionFlow",
@@ -2830,7 +2880,7 @@
             "p"
           ],
           "exported": true,
-          "lineCount": 115
+          "lineCount": 129
         }
       ],
       "classes": [],
@@ -2846,12 +2896,12 @@
       "exports": [
         "useStatEvolutionFlow"
       ],
-      "totalLines": 155,
+      "totalLines": 172,
       "hasStructuralAnalysis": true
     },
     "features/wheel/lib/career-wheel-resolver.ts": {
       "filePath": "features/wheel/lib/career-wheel-resolver.ts",
-      "contentHash": "56aaf2c921808855f151253573305f5fc5718e271f720e17b0340fd9e3ae0d9e",
+      "contentHash": "08b0010a8aefff8d0eb443eda24cf36324654e722c7595acdc3de3295db47517",
       "functions": [
         {
           "name": "getCareerWheelPoolAndValue",
@@ -2860,7 +2910,7 @@
             "ctx"
           ],
           "exported": true,
-          "lineCount": 231
+          "lineCount": 211
         }
       ],
       "classes": [],
@@ -2890,8 +2940,193 @@
           "specifiers": [
             "getStandingWheelPool",
             "getContinentalCupLabel",
+            "getNationalTournamentName",
+            "getDomesticCupWeights",
+            "getContinentalCupWeights",
+            "getNationalTournamentWeights",
+            "getNationalCallupWeights",
+            "getInfluenceProxy",
+            "getAgeProgressThresholds",
+            "getCareerProgress"
+          ]
+        },
+        {
+          "source": "./growth-balance",
+          "specifiers": [
+            "getEffectiveIncreaseGate",
+            "getEffectiveDecreaseGate",
+            "getEffectiveCountPool",
+            "getEffectiveMagnitudePool",
+            "getSelectorStatWeight"
+          ]
+        }
+      ],
+      "exports": [
+        "getCareerWheelPoolAndValue"
+      ],
+      "totalLines": 259,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/lib/growth-balance.ts": {
+      "filePath": "features/wheel/lib/growth-balance.ts",
+      "contentHash": "c79630c4fccbedd15ea51b9f8551daf1e39305d431fe4adece86acaef631f3d5",
+      "functions": [
+        {
+          "name": "getSoftCapFactor",
+          "params": [
+            "ovr"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getEffectiveGrowthBoost",
+          "params": [
+            "progress",
+            "youngThreshold",
+            "currentOvr"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 8
+        },
+        {
+          "name": "applySoftCapToGate",
+          "params": [
+            "yesW",
+            "noW",
+            "softCap"
+          ],
+          "returnType": "{ yes: number; no: number }",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "applySoftCapToIncreasePool",
+          "params": [
+            "pool",
+            "softCap"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "getProgressBand",
+          "params": [
+            "progress",
+            "young",
+            "old"
+          ],
+          "returnType": "ProgressBand",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getHeadroomBand",
+          "params": [
+            "ovr"
+          ],
+          "returnType": "HeadroomBand",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getDevelopmentBaseYes",
+          "params": [
+            "progressBand",
+            "headroomBand"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "getFormMultiplier",
+          "params": [
+            "rating"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getEffectiveIncreaseGate",
+          "params": [
+            "params"
+          ],
+          "returnType": "{ yes: number; no: number }",
+          "exported": true,
+          "lineCount": 20
+        },
+        {
+          "name": "getEffectiveDecreaseGate",
+          "params": [
+            "params"
+          ],
+          "returnType": "{ yes: number; no: number }",
+          "exported": true,
+          "lineCount": 34
+        },
+        {
+          "name": "getDecreaseOpportunitySeverity",
+          "params": [
+            "seasonApps"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 6
+        },
+        {
+          "name": "blendWeightPools",
+          "params": [
+            "harsh",
+            "gentle",
+            "severity"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": false,
+          "lineCount": 22
+        },
+        {
+          "name": "getEffectiveCountPool",
+          "params": [
+            "params"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "getEffectiveMagnitudePool",
+          "params": [
+            "params"
+          ],
+          "returnType": "{ value: number; weight: number }[]",
+          "exported": true,
+          "lineCount": 27
+        },
+        {
+          "name": "getSelectorStatWeight",
+          "params": [
+            "isMain",
+            "isIncrease",
+            "progress",
+            "oldThreshold"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 12
+        }
+      ],
+      "classes": [],
+      "imports": [
+        {
+          "source": "./simulation-helpers",
+          "specifiers": [
+            "GrowthTier",
             "getGrowthTier",
-            "getIncreaseGateWeight",
             "getDecreaseGateWeight",
             "getCountPool",
             "getCountPoolBoosted",
@@ -2905,14 +3140,28 @@
         }
       ],
       "exports": [
-        "getCareerWheelPoolAndValue"
+        "getSoftCapFactor",
+        "getEffectiveGrowthBoost",
+        "applySoftCapToGate",
+        "applySoftCapToIncreasePool",
+        "getProgressBand",
+        "getHeadroomBand",
+        "getDevelopmentBaseYes",
+        "getFormMultiplier",
+        "getEffectiveIncreaseGate",
+        "getEffectiveDecreaseGate",
+        "getDecreaseOpportunitySeverity",
+        "getEffectiveCountPool",
+        "getEffectiveMagnitudePool",
+        "getSelectorStatWeight",
+        "GrowthTier"
       ],
-      "totalLines": 274,
+      "totalLines": 288,
       "hasStructuralAnalysis": true
     },
     "features/wheel/lib/simulation-helpers.ts": {
       "filePath": "features/wheel/lib/simulation-helpers.ts",
-      "contentHash": "d1bed6872b40cd22d19df2a6422cb3899a386d50a4473115a749a7f0f86d4c24",
+      "contentHash": "50aa0d6a1de98c060f2250782697a51a56f1d6b84ba9db2ecc8dd4c7f4de6863",
       "functions": [
         {
           "name": "calculateContinentalQualification",
@@ -2936,6 +3185,85 @@
           "lineCount": 11
         },
         {
+          "name": "getSeasonCalendarYear",
+          "params": [
+            "currentAge",
+            "debutAge"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "getNationalTournamentName",
+          "params": [
+            "nationality",
+            "currentAge",
+            "debutAge",
+            "getContinentalCup"
+          ],
+          "returnType": "string",
+          "exported": true,
+          "lineCount": 9
+        },
+        {
+          "name": "getInfluenceProxy",
+          "params": [
+            "ovr",
+            "clubPrestige",
+            "leagueSize",
+            "knownApps"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 12
+        },
+        {
+          "name": "getDomesticCupWeights",
+          "params": [
+            "prestige",
+            "luckRating",
+            "ovr",
+            "influenceProxy"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "getContinentalCupWeights",
+          "params": [
+            "prestige",
+            "luckRating",
+            "ovr",
+            "influenceProxy"
+          ],
+          "exported": true,
+          "lineCount": 17
+        },
+        {
+          "name": "getNationalTournamentWeights",
+          "params": [
+            "ovr",
+            "luckRating",
+            "midOvr",
+            "influenceProxy"
+          ],
+          "exported": true,
+          "lineCount": 16
+        },
+        {
+          "name": "getNationalCallupWeights",
+          "params": [
+            "ovr",
+            "midOvr",
+            "standingResult",
+            "leagueSize"
+          ],
+          "returnType": "{ wCall: number; wMiss: number }",
+          "exported": true,
+          "lineCount": 23
+        },
+        {
           "name": "getSeasonYearString",
           "params": [
             "age",
@@ -2951,7 +3279,7 @@
             "clubPrestige",
             "ovr",
             "leagueSize",
-            "apps",
+            "appsOrNull",
             "lastYearStanding"
           ],
           "exported": true,
@@ -2973,7 +3301,7 @@
           ],
           "returnType": "{ yes: number; no: number }",
           "exported": true,
-          "lineCount": 8
+          "lineCount": 10
         },
         {
           "name": "getDecreaseGateWeight",
@@ -2982,7 +3310,7 @@
           ],
           "returnType": "{ yes: number; no: number }",
           "exported": true,
-          "lineCount": 9
+          "lineCount": 8
         },
         {
           "name": "getCountPool",
@@ -3094,10 +3422,29 @@
         }
       ],
       "classes": [],
-      "imports": [],
+      "imports": [
+        {
+          "source": "@/lib/club-fit",
+          "specifiers": [
+            "getClubThreshold",
+            "estimateAppsRatio",
+            "estimateExpectedLeagueApps"
+          ]
+        }
+      ],
       "exports": [
         "calculateContinentalQualification",
         "getContinentalCupLabel",
+        "getSeasonCalendarYear",
+        "getNationalTournamentName",
+        "getClubThreshold",
+        "estimateAppsRatio",
+        "estimateExpectedLeagueApps",
+        "getInfluenceProxy",
+        "getDomesticCupWeights",
+        "getContinentalCupWeights",
+        "getNationalTournamentWeights",
+        "getNationalCallupWeights",
         "getSeasonYearString",
         "getStandingWheelPool",
         "getGrowthTier",
@@ -3113,7 +3460,7 @@
         "getMagnitudePoolBoosted",
         "getDomesticCupName"
       ],
-      "totalLines": 302,
+      "totalLines": 418,
       "hasStructuralAnalysis": true
     },
     "features/wheel/stores/useWheelUiStore.ts": {
@@ -3141,6 +3488,51 @@
         "useWheelUiStore"
       ],
       "totalLines": 194,
+      "hasStructuralAnalysis": true
+    },
+    "lib/club-fit.ts": {
+      "filePath": "lib/club-fit.ts",
+      "contentHash": "dae14ff64cdd2e4d5f175b8846cf656e01ac2fa06ef7126a2fd583e133100faa",
+      "functions": [
+        {
+          "name": "getClubThreshold",
+          "params": [
+            "prestige"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "estimateAppsRatio",
+          "params": [
+            "ovr",
+            "clubPrestige"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 19
+        },
+        {
+          "name": "estimateExpectedLeagueApps",
+          "params": [
+            "ovr",
+            "clubPrestige",
+            "leagueSize"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 8
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getClubThreshold",
+        "estimateAppsRatio",
+        "estimateExpectedLeagueApps"
+      ],
+      "totalLines": 39,
       "hasStructuralAnalysis": true
     },
     "lib/name-gen.ts": {
@@ -3240,6 +3632,84 @@
         "checkRateLimit"
       ],
       "totalLines": 59,
+      "hasStructuralAnalysis": true
+    },
+    "lib/season-stat-rates.ts": {
+      "filePath": "lib/season-stat-rates.ts",
+      "contentHash": "d89c21fa308f568b75aa35fc47e95ed8d0675582414e680d9fd27f1e086b4449",
+      "functions": [
+        {
+          "name": "clamp01",
+          "params": [
+            "t"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "ovrT",
+          "params": [
+            "ovr"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "lerp",
+          "params": [
+            "a",
+            "b",
+            "t"
+          ],
+          "returnType": "number",
+          "exported": false,
+          "lineCount": 3
+        },
+        {
+          "name": "getPerAppRates",
+          "params": [
+            "position",
+            "ovr",
+            "context"
+          ],
+          "returnType": "PerAppRates",
+          "exported": true,
+          "lineCount": 58
+        },
+        {
+          "name": "applyPrestigeToCsRate",
+          "params": [
+            "rateCs",
+            "clubPrestige"
+          ],
+          "returnType": "number",
+          "exported": true,
+          "lineCount": 3
+        },
+        {
+          "name": "clampCompetitionStats",
+          "params": [
+            "position",
+            "apps",
+            "goals",
+            "assists",
+            "cleanSheets"
+          ],
+          "returnType": "{ goals: number; assists: number; cleanSheets: number }",
+          "exported": true,
+          "lineCount": 23
+        }
+      ],
+      "classes": [],
+      "imports": [],
+      "exports": [
+        "getPerAppRates",
+        "applyPrestigeToCsRate",
+        "clampCompetitionStats"
+      ],
+      "totalLines": 122,
       "hasStructuralAnalysis": true
     },
     "lib/supabase/client.ts": {

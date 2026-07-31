@@ -1,0 +1,9 @@
+{
+  "projectRoot": "D:\\road-to-glory",
+  "batchFiles": [
+    {"path": "docs/security-checklist.md", "language": "markdown", "sizeLines": 92, "fileCategory": "docs"}
+  ],
+  "batchImportData": {
+    "docs/security-checklist.md": []
+  }
+}

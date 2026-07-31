@@ -1,7 +1,9 @@
 "use client";
 
-import { Dices, Globe, Sparkles } from "lucide-react";
+import { Globe } from "lucide-react";
+import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import { SpinnerWheel } from "./SpinnerWheel";
+import { TransferWindowPanel } from "./TransferWindowPanel";
 import { getSeasonYearString, getContinentalCupLabel } from "../lib/simulation-helpers";
 
 interface CareerActionsPanelProps {
@@ -18,8 +20,14 @@ interface CareerActionsPanelProps {
   careerTempValue: string | null;
   handleCareerSpin: () => void;
   handleStartSeason: () => void;
-  transferOffer: any;
-  handleAcceptTransfer: (accept: boolean) => void;
+  transferMarket: TransferMarketResult | null;
+  willingToMove: boolean;
+  setWillingToMove: (v: boolean) => void;
+  showShortlist: boolean;
+  setShowShortlist: (v: boolean) => void;
+  handleAcceptMarketOffer: (offer: ContractOfferCard) => void;
+  handleRejectTransferWindow: () => void;
+  handleApproachShortlist: (club: ShortlistClubCard) => void;
   yearSimResult: any;
   standingResult: number | null;
   domesticCupResult: string | null;
@@ -30,6 +38,9 @@ interface CareerActionsPanelProps {
   selectorIndex: number;
   yearEvolutionCount?: number | null;
   tempSelectedStat?: string | null;
+  approachRejects: import("./TransferWindowPanel").ApproachRejectState;
+  approachBanner: string | null;
+  isUnemployed: boolean;
 }
 
 export function CareerActionsPanel({
@@ -46,8 +57,14 @@ export function CareerActionsPanel({
   careerTempValue,
   handleCareerSpin,
   handleStartSeason,
-  transferOffer,
-  handleAcceptTransfer,
+  transferMarket,
+  willingToMove,
+  setWillingToMove,
+  showShortlist,
+  setShowShortlist,
+  handleAcceptMarketOffer,
+  handleRejectTransferWindow,
+  handleApproachShortlist,
   yearSimResult,
   standingResult,
   domesticCupResult,
@@ -58,6 +75,9 @@ export function CareerActionsPanel({
   selectorIndex,
   yearEvolutionCount,
   tempSelectedStat,
+  approachRejects,
+  approachBanner,
+  isUnemployed,
 }: CareerActionsPanelProps) {
   const currentSeasonStr = getSeasonYearString(currentAge, playerDebutAge);
   const totalNeed = yearEvolutionCount ?? 1;
@@ -68,10 +88,10 @@ export function CareerActionsPanel({
         
         <div style={{ textAlign: "center", width: "100%" }}>
           <p style={{ fontFamily: "var(--font-stamp)", fontSize: "0.58rem", color: "var(--coral)", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>
-            MÙA GIẢI {currentSeasonStr} (TUỔI {currentAge}) · CLB: {currentClub?.name}
+            MÙA GIẢI {currentSeasonStr} (TUỔI {currentAge}) · CLB: {isUnemployed || !currentClub ? "KHÔNG CLB" : currentClub?.name}
           </p>
           <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "1.3rem", fontWeight: 900, textTransform: "uppercase", marginTop: "4px", margin: 0, lineHeight: 1.25 }}>
-            {careerSubStep === "idle" && "SẴN SÀNG KHỞI ĐỘNG MÙA GIẢI"}
+            {careerSubStep === "idle" && (isUnemployed || !currentClub ? "KHÔNG CLB · MÙA THẤT NGHIỆP" : "SẴN SÀNG KHỞI ĐỘNG MÙA GIẢI")}
             {careerSubStep === "dir_increase" && "Stats: Có Tăng Chỉ Số Không? (Yes/No)"}
             {careerSubStep === "dir_decrease" && "Stats: Có Giảm Chỉ Số Không? (Yes/No)"}
             {careerSubStep === "count" && "Stats: Số Lượng Stats Ảnh Hưởng"}
@@ -85,18 +105,24 @@ export function CareerActionsPanel({
             {careerSubStep === "ballon_dor_nomination" && "🏅 QUẢ BÓNG VÀNG: Vào Top 10?"}
             {careerSubStep === "ballon_dor_ranking" && "🏆 QUẢ BÓNG VÀNG: Hạng Bao Nhiêu?"}
             {careerSubStep === "season_stats" && "📊 Xem thống kê mùa giải..."}
-            {careerSubStep === "transfer" && "Lời Mời Chuyển Nhượng"}
-            {careerSubStep === "resolved" && "Mùa giải đã hoàn thành"}
+            {careerSubStep === "transfer" && "Thị Trường Chuyển Nhượng"}
+            {careerSubStep === "resolved" && (isUnemployed || !currentClub ? "Mùa thất nghiệp đã ghi nhận" : "Mùa giải đã hoàn thành")}
           </h3>
         </div>
 
         {/* Idle Mode */}
         {careerSubStep === "idle" && (
           <div style={{ display: "flex", flexDirection: "column", gap: "10px", alignItems: "center" }}>
-            {currentContinentalCup !== "none" && (
-              <div style={{ backgroundColor: "var(--cream-dark)", border: "1px solid var(--charcoal)", padding: "6px 16px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}>
-                <Globe size={14} color="var(--coral)" /> Đạt vé dự {getContinentalCupLabel(currentContinentalCup)}
-              </div>
+            {(isUnemployed || !currentClub) ? (
+              <p style={{ margin: 0, fontSize: "0.8rem", opacity: 0.8, textAlign: "center" }}>
+                Không có CLB — mùa này 0 apps. Sau evol sẽ vào cửa sổ FA.
+              </p>
+            ) : (
+              currentContinentalCup !== "none" && (
+                <div style={{ backgroundColor: "var(--cream-dark)", border: "1px solid var(--charcoal)", padding: "6px 16px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}>
+                  <Globe size={14} color="var(--coral)" /> Đạt vé dự {getContinentalCupLabel(currentContinentalCup)}
+                </div>
+              )
             )}
             <button
               type="button"
@@ -105,7 +131,7 @@ export function CareerActionsPanel({
               className="btn-primary"
               style={{ fontSize: "1.1rem", padding: "14px 40px", backgroundColor: "var(--coral)", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}
             >
-              TIẾN VÀO MÙA GIẢI
+              {(isUnemployed || !currentClub) ? "BẮT ĐẦU MÙA THẤT NGHIỆP" : "TIẾN VÀO MÙA GIẢI"}
             </button>
           </div>
         )}
@@ -136,20 +162,20 @@ export function CareerActionsPanel({
           </>
         )}
 
-        {/* Transfer offer */}
-        {careerSubStep === "transfer" && transferOffer && (
-          <div style={{ width: "100%", border: "2px solid var(--charcoal)", borderRadius: "4px", padding: "20px 14px", textAlign: "center", display: "flex", flexDirection: "column", gap: "16px" }}>
-            <h4 style={{ fontFamily: "var(--font-headline)", fontSize: "1.15rem", fontWeight: 900, textTransform: "uppercase", color: "var(--charcoal)", margin: 0 }}>
-              ĐỀ NGHỊ CHUYỂN NHƯỢNG TỪ {transferOffer.clubName}
-            </h4>
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "0.85rem", color: "var(--charcoal)", lineHeight: 1.5, margin: 0 }}>
-              CLB <strong>{transferOffer.clubName}</strong> ({transferOffer.leagueName}) muốn ký hợp đồng với bạn. Bạn có đồng ý chuyển nhượng?
-            </p>
-            <div style={{ display: "flex", gap: "10px" }}>
-              <button type="button" onClick={() => handleAcceptTransfer(true)} disabled={isProcessing} className="btn-primary" style={{ flex: 1, padding: "10px", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}>ĐỒNG Ý</button>
-              <button type="button" onClick={() => handleAcceptTransfer(false)} disabled={isProcessing} className="btn-secondary" style={{ flex: 1, padding: "10px", opacity: isProcessing ? 0.6 : 1, cursor: isProcessing ? "not-allowed" : "pointer" }}>TỪ CHỐI</button>
-            </div>
-          </div>
+        {careerSubStep === "transfer" && transferMarket && (
+          <TransferWindowPanel
+            market={transferMarket}
+            willingToMove={willingToMove}
+            setWillingToMove={setWillingToMove}
+            isProcessing={isProcessing}
+            onAcceptOffer={handleAcceptMarketOffer}
+            onRejectAll={handleRejectTransferWindow}
+            onApproachShortlist={handleApproachShortlist}
+            showShortlist={showShortlist}
+            setShowShortlist={setShowShortlist}
+            approachRejects={approachRejects}
+            approachBanner={approachBanner}
+          />
         )}
 
         {/* Resolved reporting */}

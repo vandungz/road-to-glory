@@ -250,7 +250,7 @@ export function getEffectiveMagnitudePool(params: {
   seasonApps?: number | null;
 }): { value: number; weight: number }[] {
   const magTier = getMagnitudeTierForDirection(params.rating, params.isIncrease);
-  let pool = getMagnitudePool(magTier);
+  let pool = getMagnitudePool(magTier, params.isIncrease);
   if (params.isIncrease) {
     const { young } = getAgeProgressThresholds(params.position);
     const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
@@ -261,7 +261,7 @@ export function getEffectiveMagnitudePool(params: {
     const severity = getDecreaseOpportunitySeverity(params.seasonApps);
     if (severity < 1) {
       // Gentle = kem-shaped mag pool (small deltas); harsh = mirrored tier
-      pool = blendWeightPools(pool, getMagnitudePool("kem"), severity);
+      pool = blendWeightPools(pool, getMagnitudePool("kem", false), severity);
     }
   }
   return pool;

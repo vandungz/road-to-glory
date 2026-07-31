@@ -16,13 +16,20 @@ const getCachedLeaguesAndClubs = unstable_cache(
         orderBy: { name: "asc" },
       }),
       prisma.club.findMany({
-        select: { id: true, name: true, leagueId: true, prestige: true, continentalType: true },
+        select: {
+          id: true,
+          name: true,
+          leagueId: true,
+          prestige: true,
+          continentalType: true,
+          league: { select: { tier: true, name: true } },
+        },
         orderBy: { name: "asc" },
       }),
     ]);
     return { leagues, clubs };
   },
-  ["leagues-clubs-pool"],
+  ["leagues-clubs-pool-v2"],
   { revalidate: 3600 }
 );
 

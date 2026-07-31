@@ -69,6 +69,10 @@ const initCareerPlayerSchema = z.object({
   statsTimeline: z.array(statSnapshotSchema),
   clubStints: z.array(clubStintSchema),
   hiddenStats: hiddenStatsSchema,
+  contractYearsTotal: z.number().int().min(1).max(10).optional(),
+  contractYearsRemaining: z.number().int().min(0).max(10).optional(),
+  currentWageAnnual: z.number().int().min(0).optional(),
+  marketValue: z.number().int().min(0).optional(),
 });
 type InitCareerParams = z.infer<typeof initCareerPlayerSchema>;
 
@@ -84,9 +88,15 @@ const saveCareerPlayerSchema = z.object({
   peakOvr: z.number().int().min(1).max(99).optional(),
   statsTimeline: z.array(statSnapshotSchema),
   clubStints: z.array(clubStintSchema),
-  hiddenStats: hiddenStatsSchema,
+  // Client resume không có hiddenStats (server-only invariant) → null khi save thẻ
+  hiddenStats: hiddenStatsSchema.nullish(),
   achievements: z.any().optional(),
   currentContinentalCup: z.string().optional(),
+  contractYearsTotal: z.number().int().min(0).max(10).optional(),
+  contractYearsRemaining: z.number().int().min(0).max(10).optional(),
+  currentWageAnnual: z.number().int().min(0).optional(),
+  marketValue: z.number().int().min(0).optional(),
+  isUnemployed: z.boolean().optional(),
 });
 type SavePlayerParams = z.infer<typeof saveCareerPlayerSchema>;
 
@@ -117,6 +127,10 @@ export async function initCareerPlayerAction(input: unknown): Promise<{ id: stri
     gameId, slotIndex, position, name, nationality,
     debutAge, careerLength, debutOvr, height, weight, preferredFoot,
     currentContinentalCup, statsTimeline, clubStints, hiddenStats,
+    contractYearsTotal = 3,
+    contractYearsRemaining = 3,
+    currentWageAnnual = 0,
+    marketValue = 0,
   } = params;
 
   const player = await prisma.careerPlayer.upsert({
@@ -142,6 +156,10 @@ export async function initCareerPlayerAction(input: unknown): Promise<{ id: stri
       events: [],
       hiddenStats,
       achievements: { ballonDor: 0, trophies: [], seasonAwards: [] },
+      contractYearsTotal,
+      contractYearsRemaining,
+      currentWageAnnual,
+      marketValue,
     },
     update: {
       name,
@@ -150,6 +168,10 @@ export async function initCareerPlayerAction(input: unknown): Promise<{ id: stri
       statsTimeline,
       clubStints,
       hiddenStats,
+      contractYearsTotal,
+      contractYearsRemaining,
+      currentWageAnnual,
+      marketValue,
     },
     select: { id: true },
   });
@@ -178,6 +200,11 @@ export async function getCareerPlayerAction(input: unknown) {
       achievements: true,
       seasonHistory: true,
       currentContinentalCup: true,
+      contractYearsTotal: true,
+      contractYearsRemaining: true,
+      currentWageAnnual: true,
+      marketValue: true,
+      isUnemployed: true,
       // hiddenStats: không trả về client — invariant
     },
   });
@@ -204,6 +231,11 @@ export async function saveCareerPlayer(input: unknown) {
     clubStints,
     hiddenStats,
     achievements,
+    contractYearsTotal,
+    contractYearsRemaining,
+    currentWageAnnual,
+    marketValue,
+    isUnemployed,
   } = params;
 
   // Server-derived peak — ignore client peakOvr (integrity)
@@ -213,11 +245,30 @@ export async function saveCareerPlayer(input: unknown) {
   );
   const cardRarity = getCardRarity(peakOvr);
 
+  const contractData = {
+    ...(contractYearsTotal !== undefined ? { contractYearsTotal } : {}),
+    ...(contractYearsRemaining !== undefined ? { contractYearsRemaining } : {}),
+    ...(currentWageAnnual !== undefined ? { currentWageAnnual } : {}),
+    ...(marketValue !== undefined ? { marketValue } : {}),
+    ...(isUnemployed !== undefined ? { isUnemployed } : {}),
+  };
+
+  // Giữ hiddenStats trong DB nếu client không gửi (resume path)
+  let resolvedHiddenStats = hiddenStats ?? null;
+  if (!resolvedHiddenStats) {
+    const existing = await prisma.careerPlayer.findUnique({
+      where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+      select: { hiddenStats: true },
+    });
+    resolvedHiddenStats = (existing?.hiddenStats as z.infer<typeof hiddenStatsSchema> | null) ?? {
+      luckRating: 10,
+      professionalism: 10,
+      personality: "Balanced",
+    };
+  }
+
   await prisma.careerPlayer.upsert({
     where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
-    // height/weight/preferredFoot KHÔNG được set lại ở đây — đã roll đúng lúc
-    // debut qua initCareerPlayerAction. Nhánh `create` dưới đây chỉ là fallback
-    // phòng khi upsert chưa từng insert row (không nên xảy ra ở flow bình thường).
     create: {
       gameSessionId: gameId,
       slotIndex,
@@ -237,9 +288,14 @@ export async function saveCareerPlayer(input: unknown) {
       statsTimeline,
       clubStints,
       events: [],
-      hiddenStats,
+      hiddenStats: resolvedHiddenStats,
       achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
       isRetired: true,
+      contractYearsTotal: contractYearsTotal ?? 1,
+      contractYearsRemaining: contractYearsRemaining ?? 0,
+      currentWageAnnual: currentWageAnnual ?? 0,
+      marketValue: marketValue ?? 0,
+      isUnemployed: isUnemployed ?? false,
     },
     update: {
       name,
@@ -254,9 +310,10 @@ export async function saveCareerPlayer(input: unknown) {
       currentContinentalCup: params.currentContinentalCup ?? "none",
       statsTimeline,
       clubStints,
-      hiddenStats,
+      ...(hiddenStats ? { hiddenStats } : {}),
       achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
       isRetired: true,
+      ...contractData,
     },
   });
 

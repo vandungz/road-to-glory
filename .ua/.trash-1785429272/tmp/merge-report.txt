@@ -1,0 +1,31 @@
+python : Found 8 batch files (8 logical batches, 0 multi-part):
+At C:\Users\Lenovo\AppData\Local\Temp\ps-script-427d29a1-d0ec-41b6-a809-0f8981f5fd30.ps1:147 char:1
++ python "$SKILL_DIR\merge-batch-graphs.py" "$PROJECT_ROOT" 2> "$UA_DIR ...
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Found 8 batch f... 0 multi-part)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  batch-existing.json: 157 nodes, 361 edges
+  batch-1.json: 76 nodes, 233 edges
+  batch-2.json: 22 nodes, 69 edges
+  batch-7.json: 1 nodes, 5 edges
+  batch-8.json: 1 nodes, 4 edges
+  batch-9.json: 5 nodes, 34 edges
+  batch-10.json: 1 nodes, 5 edges
+  batch-11.json: 6 nodes, 10 edges
+
+Input: 269 nodes, 721 edges
+
+Could not fix (2 issues ù needs agent review):
+  - Edge function:features/wheel/hooks/useDraftDrum.ts:useDraftDrum \u2192 
+function:features/wheel/stores/useWheelUiStore.ts:useWheelUiStore (calls): dropped, missing target 
+'function:features/wheel/stores/useWheelUiStore.ts:useWheelUiStore'
+  - Edge document:docs/security-checklist.md \u2192 file:lib/simulation-engine/match-simulator.ts (documents): 
+dropped, missing target 'file:lib/simulation-engine/match-simulator.ts'
+
+Output: 269 nodes, 719 edges
+
+Imports edge recovery:
+  Recovered 8 `imports` edges from importMap (102 entries scanned)
+
+Written to D:\road-to-glory\.ua\intermediate\assembled-graph.json (294 KB)

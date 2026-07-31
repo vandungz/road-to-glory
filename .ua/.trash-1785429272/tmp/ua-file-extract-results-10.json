@@ -1,0 +1,79 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 1,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 1,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 1
+    }
+  },
+  "results": [
+    {
+      "path": "docs/security-checklist.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 92,
+      "nonEmptyLines": 68,
+      "sections": [
+        {
+          "heading": "Security Checklist",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "✅ Đã fix trong đợt này",
+          "level": 2,
+          "line": 8
+        },
+        {
+          "heading": "1. Auth trên Server Actions",
+          "level": 3,
+          "line": 10
+        },
+        {
+          "heading": "2. Zod validation cho `player.actions.ts`",
+          "level": 3,
+          "line": 23
+        },
+        {
+          "heading": "3. Rate limiting (scaffold sẵn, cần bạn config)",
+          "level": 3,
+          "line": 37
+        },
+        {
+          "heading": "⚠️ Chưa fix — cần bạn tự làm (ngoài phạm vi code repo)",
+          "level": 2,
+          "line": 55
+        },
+        {
+          "heading": "4. RLS (Row Level Security) — file `supabase/rls-lockdown.sql` đã chuẩn bị sẵn",
+          "level": 3,
+          "line": 57
+        },
+        {
+          "heading": "5. Leaked Password Protection",
+          "level": 3,
+          "line": 69
+        },
+        {
+          "heading": "📋 Còn lại — chưa làm, chưa nằm trong đợt này",
+          "level": 2,
+          "line": 77
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 9
+      }
+    }
+  ]
+}

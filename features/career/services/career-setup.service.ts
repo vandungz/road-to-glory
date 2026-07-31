@@ -1,6 +1,12 @@
 import { generateFictionalName } from "@/lib/name-gen";
 import { resolveRandomInt, resolveRandom } from "@/lib/wheel-engine/spin-resolver";
 import { calculateOvrByPosition } from "@/lib/wheel-engine/weight-calculator";
+import {
+  clampContractYears,
+  computeMarketValue,
+  proposeContractYears,
+  proposeWageAnnual,
+} from "@/lib/transfer-economy";
 
 export interface DraftDataInput {
   nationality: string;
@@ -13,14 +19,12 @@ export interface DraftDataInput {
   leagueId: string;
   leagueName: string;
   position: string;
-  // Field player stats (null when not applicable)
   pac?: number | null;
   sho?: number | null;
   pas?: number | null;
   dri?: number | null;
   def?: number | null;
   phy?: number | null;
-  // GK stats (null when not applicable)
   div?: number | null;
   han?: number | null;
   kic?: number | null;
@@ -44,7 +48,6 @@ export interface StintInfo {
 export interface CareerSetupResult {
   playerName: string;
   preferredFoot: string;
-  /** Server-authoritative debut OVR from position + stats. */
   debutOvr: number;
   hiddenStats: {
     luckRating: number;
@@ -54,12 +57,17 @@ export interface CareerSetupResult {
   initStint: StintInfo;
   initStats: Record<string, number>;
   initTimeline: any[];
+  contractYearsTotal: number;
+  contractYearsRemaining: number;
+  currentWageAnnual: number;
+  marketValue: number;
 }
 
 export function startPlayerCareerService(
   draftData: DraftDataInput,
-  _clubPrestige: number,
+  clubPrestige: number,
   _clubContinentalType: string,
+  leagueTier = 1,
 ): CareerSetupResult {
   const playerName = generateFictionalName(draftData.nationality);
   const preferredFoot = resolveRandom() > 0.8 ? "Left" : "Right";
@@ -79,6 +87,31 @@ export function startPlayerCareerService(
     : { pac: draftData.pac ?? 60, sho: draftData.sho ?? 60, pas: draftData.pas ?? 60, dri: draftData.dri ?? 60, def: draftData.def ?? 60, phy: draftData.phy ?? 60 };
 
   const debutOvr = calculateOvrByPosition(draftData.position, initStats);
+  const retireAge = draftData.debutAge + draftData.careerLength;
+
+  const contractYearsRemaining = clampContractYears(
+    proposeContractYears({
+      currentAge: draftData.debutAge,
+      retireAge,
+      matchRating: 6.8,
+    }),
+    draftData.debutAge,
+    retireAge,
+  );
+  const currentWageAnnual = proposeWageAnnual({
+    ovr: debutOvr,
+    age: draftData.debutAge,
+    currentWage: 0,
+    prestige: clubPrestige,
+    leagueTier,
+    matchRating: 6.8,
+  });
+  const marketValue = computeMarketValue({
+    ovr: debutOvr,
+    age: draftData.debutAge,
+    matchRating: 6.8,
+    contractYearsRemaining,
+  });
 
   const initStint: StintInfo = {
     clubId: draftData.clubId,
@@ -108,5 +141,9 @@ export function startPlayerCareerService(
     initStint,
     initStats,
     initTimeline,
+    contractYearsTotal: contractYearsRemaining,
+    contractYearsRemaining,
+    currentWageAnnual,
+    marketValue,
   };
 }

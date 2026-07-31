@@ -68,7 +68,7 @@ export function SeasonResultModal({ type, record, currentContinentalCup, playerD
     isChampion = record.standing === 1;
     stats = record.leagueStats;
   } else if (type === "cup") {
-    title = getDomesticCupName(record.leagueName);
+    title = getDomesticCupName(record.leagueName, record.leagueId);
     result = getCupResultLabel(record.domesticCup);
     journey = record.domesticCupJourney ?? [];
     isChampion = record.domesticCup === "Winner";

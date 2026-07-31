@@ -1,0 +1,129 @@
+{
+  "scriptCompleted": true,
+  "filesAnalyzed": 1,
+  "filesSkipped": [],
+  "analysisOutcomes": {
+    "structure": {
+      "succeeded": 1,
+      "failed": 0
+    },
+    "callGraph": {
+      "succeeded": 0,
+      "failed": 0,
+      "skipped": 1
+    }
+  },
+  "results": [
+    {
+      "path": ".claude/CLAUDE.md",
+      "language": "markdown",
+      "fileCategory": "docs",
+      "totalLines": 237,
+      "nonEmptyLines": 175,
+      "sections": [
+        {
+          "heading": "Football Life — Claude Code Project Guide",
+          "level": 1,
+          "line": 1
+        },
+        {
+          "heading": "Dự án là gì",
+          "level": 2,
+          "line": 7
+        },
+        {
+          "heading": "Trạng thái hiện tại",
+          "level": 2,
+          "line": 15
+        },
+        {
+          "heading": "Cấu trúc thực tế (đã implement)",
+          "level": 2,
+          "line": 29
+        },
+        {
+          "heading": "Invariants — KHÔNG ĐƯỢC VI PHẠM",
+          "level": 2,
+          "line": 79
+        },
+        {
+          "heading": "1. Math.random() chỉ trong spin-resolver",
+          "level": 3,
+          "line": 81
+        },
+        {
+          "heading": "2. hiddenStats không bao giờ đến client",
+          "level": 3,
+          "line": 93
+        },
+        {
+          "heading": "3. Server Action phải validate input bằng Zod",
+          "level": 3,
+          "line": 105
+        },
+        {
+          "heading": "4. OVR không được tính ở client",
+          "level": 3,
+          "line": 115
+        },
+        {
+          "heading": "5. lib/ không import React/Next.js/Prisma",
+          "level": 3,
+          "line": 119
+        },
+        {
+          "heading": "6. Mỗi file không quá 500 lines",
+          "level": 3,
+          "line": 128
+        },
+        {
+          "heading": "7. currentClub và currentContinentalCup PHẢI đổi cùng nhau",
+          "level": 3,
+          "line": 132
+        },
+        {
+          "heading": "Các vi phạm hiện tại (technical debt — cần fix sau)",
+          "level": 2,
+          "line": 174
+        },
+        {
+          "heading": "Cách làm việc đúng",
+          "level": 2,
+          "line": 196
+        },
+        {
+          "heading": "Thêm logic game mới",
+          "level": 3,
+          "line": 198
+        },
+        {
+          "heading": "Thêm wheel outcome mới",
+          "level": 3,
+          "line": 205
+        },
+        {
+          "heading": "Thêm screen mới",
+          "level": 3,
+          "line": 212
+        },
+        {
+          "heading": "Đọc data",
+          "level": 3,
+          "line": 219
+        },
+        {
+          "heading": "Tham chiếu docs",
+          "level": 2,
+          "line": 226
+        }
+      ],
+      "metrics": {
+        "importCount": 0,
+        "exportCount": 0,
+        "functionCount": 0,
+        "classCount": 0,
+        "sectionCount": 19
+      }
+    }
+  ]
+}

@@ -110,7 +110,7 @@ export function SeasonProfile({
               {/* Domestic Cup */}
               <StatusRow
                 icon="🛡️"
-                label={getDomesticCupName(activeRecord.leagueName)}
+                label={getDomesticCupName(activeRecord.leagueName, activeRecord.leagueId)}
                 result={getCupResultLabel(activeRecord.domesticCup)}
                 hasResult={!!activeRecord.domesticCup && activeRecord.domesticCup !== "Chờ quay"}
                 isChampion={activeRecord.domesticCup === "Winner"}

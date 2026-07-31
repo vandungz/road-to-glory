@@ -59,6 +59,7 @@ export interface SeasonRecord {
   age: number;
   clubName: string;
   leagueName: string;
+  leagueId?: string;
   standing: number | null;
   domesticCup: string | null;
   continentalCup: { type: string; result: string } | null;

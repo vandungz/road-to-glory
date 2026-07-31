@@ -6,7 +6,8 @@
     "dev": "next dev --turbopack",
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",

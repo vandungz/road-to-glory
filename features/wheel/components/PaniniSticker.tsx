@@ -1,6 +1,7 @@
 "use client";
 
 import { getFlagEmoji } from "@/types/squad";
+import { getContinentalCupLabel } from "@/lib/competitions";
 
 interface PaniniStickerProps {
   playerName: string;
@@ -21,18 +22,6 @@ interface PaniniStickerProps {
   evolvedStatsThisYear: Array<{ stat: string; delta: number }>;
   currentClubName?: string;
   cleanSheets?: number;
-}
-
-function getContinentalCupLabel(cupType: string): string {
-  switch (cupType) {
-    case "UCL": return "UEFA Champions League";
-    case "UEL": return "UEFA Europa League";
-    case "UECL": return "UEFA Conference League";
-    case "Libertadores": return "Copa Libertadores";
-    case "AFC_CL": return "AFC Champions League";
-    case "CONCACAF_CC": return "CONCACAF Champions Cup";
-    default: return "Cúp Châu Lục CLB";
-  }
 }
 
 function getSeasonYearString(age: number, debutAge: number): string {

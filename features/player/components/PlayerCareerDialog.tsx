@@ -251,85 +251,145 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
             <PlayerOvrChart statsTimeline={statsTimeline} debutAge={debutAge} retireAge={retireAge} peakOvr={player.peakOvr} />
           </div>
 
-          {/* Per-season stats */}
-          <div style={{ border: "2px solid var(--charcoal)", borderRadius: "3px", backgroundColor: "var(--white)", padding: "14px 16px", boxShadow: "3px 3px 0 var(--charcoal)", display: "flex", flexDirection: "column", flex: 1 }}>
-            <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", color: "var(--charcoal)", borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "6px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px" }}>
+          {/* Per-season stats — table */}
+          <div style={{ border: "2px solid var(--charcoal)", borderRadius: "3px", backgroundColor: "var(--white)", padding: "14px 16px", boxShadow: "3px 3px 0 var(--charcoal)", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
+            <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", color: "var(--charcoal)", borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "6px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
               <CalendarDays size={14} color="var(--coral)" /> THỐNG KÊ TỪNG MÙA GIẢI
             </h3>
 
-            <div style={{ overflowY: "auto", maxHeight: "260px", paddingRight: "8px", flex: 1 }}>
+            <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
               {seasonRows.length === 0 ? (
                 <div style={{ textAlign: "center", padding: "30px 0", color: "var(--ink-light)", fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "0.85rem" }}>
                   Chưa có dữ liệu mùa giải.
                 </div>
               ) : (
-                <div style={{ position: "relative", paddingLeft: "20px", borderLeft: "2px solid var(--cream-border)" }}>
-                  {seasonRows.map((row, idx) => (
-                    <div key={idx} style={{ position: "relative", marginBottom: "18px" }}>
-                      {/* Timeline node */}
-                      <div style={{
-                        position: "absolute", left: "-27px", top: "3px",
-                        width: "12px", height: "12px", borderRadius: "50%",
-                        border: "2px solid var(--charcoal)",
-                        backgroundColor: row.age === debutAge ? "var(--coral)" : "var(--white)",
-                        zIndex: 2,
-                      }} />
-
-                      {/* Age + club + OVR */}
-                      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "baseline", gap: "6px 10px" }}>
-                        <span style={{
-                          fontFamily: "var(--font-headline)", fontSize: "0.8rem", fontWeight: 700,
-                          color: "var(--white)", backgroundColor: "var(--charcoal)",
-                          padding: "1px 6px", borderRadius: "2px",
-                        }}>
-                          TUỔI {row.age}
-                        </span>
-                        <span style={{ fontFamily: "var(--font-body)", fontSize: "0.85rem", fontWeight: 700, color: "var(--charcoal)" }}>
-                          {row.clubName}
-                          {row.leagueName ? <span style={{ fontWeight: 400, color: "var(--ink-gray)", fontSize: "0.78rem" }}> · {row.leagueName}</span> : null}
-                        </span>
-                        {row.isTransfer && (
-                          <span style={{ fontSize: "0.7rem", color: "#3b82f6", fontFamily: "var(--font-stamp)", letterSpacing: "0.05em" }}>
-                            ✈ Chuyển nhượng
-                          </span>
-                        )}
-                        {row.snap && (
-                          <span style={{
-                            fontFamily: "var(--font-headline)", fontSize: "0.72rem", color: "var(--ink-gray)", fontWeight: 600,
-                            backgroundColor: "var(--cream-dark)", padding: "0px 6px", borderRadius: "2px", border: "1px solid var(--cream-border)",
-                          }}>
-                            OVR {row.snap.ovr}
-                          </span>
-                        )}
-                      </div>
-
-                      {/* Season stats */}
-                      {row.snap && row.snap.apps !== undefined && (
-                        <div style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "var(--ink-gray)", marginTop: "4px" }}>
-                          {row.snap.apps} Trận · {row.snap.goals} Bàn · {row.snap.assists} Kiến tạo · MR {row.snap.matchRating?.toFixed(2) ?? "—"}
-                        </div>
-                      )}
-
-                      {/* Individual awards */}
-                      {row.awards.length > 0 && (
-                        <div style={{ display: "flex", flexDirection: "column", gap: "3px", marginTop: "5px" }}>
-                          {row.awards.map((award: any, aIdx: number) => (
-                            <div key={aIdx} style={{
-                              fontFamily: "var(--font-body)", fontSize: "0.75rem",
-                              padding: "3px 8px", borderRadius: "2px",
-                              border: "1px solid #d97706",
-                              backgroundColor: "#fef3c7",
-                              color: "var(--charcoal)",
-                              borderLeft: "3px solid #d97706",
-                            }}>
-                              🥇 {award.label}
-                            </div>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
+                <table
+                  style={{
+                    width: "100%",
+                    borderCollapse: "collapse",
+                    fontFamily: "var(--font-body)",
+                    fontSize: "0.78rem",
+                  }}
+                >
+                  <thead>
+                    <tr style={{ backgroundColor: "var(--cream-dark)" }}>
+                      {[
+                        { key: "age", label: "Tuổi", align: "center" as const },
+                        { key: "club", label: "CLB", align: "left" as const },
+                        { key: "league", label: "Giải", align: "left" as const },
+                        { key: "ovr", label: "OVR", align: "center" as const },
+                        { key: "apps", label: "Trận", align: "center" as const },
+                        { key: "g", label: "Bàn", align: "center" as const },
+                        { key: "a", label: "KT", align: "center" as const },
+                        { key: "mr", label: "MR", align: "center" as const },
+                      ].map((col) => (
+                        <th
+                          key={col.key}
+                          style={{
+                            fontFamily: "var(--font-stamp)",
+                            fontSize: "0.52rem",
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
+                            color: "var(--ink-gray)",
+                            fontWeight: 700,
+                            textAlign: col.align,
+                            padding: "8px 6px",
+                            borderBottom: "2px solid var(--charcoal)",
+                            position: "sticky",
+                            top: 0,
+                            backgroundColor: "var(--cream-dark)",
+                            zIndex: 1,
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {col.label}
+                        </th>
+                      ))}
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {seasonRows.map((row, idx) => {
+                      const isDebut = row.age === debutAge;
+                      const cellPad = "7px 6px";
+                      const border = "1px solid var(--cream-border)";
+                      return (
+                        <React.Fragment key={row.age}>
+                          <tr
+                            style={{
+                              backgroundColor: idx % 2 === 0 ? "var(--white)" : "var(--cream)",
+                            }}
+                          >
+                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle" }}>
+                              <span
+                                style={{
+                                  fontFamily: "var(--font-headline)",
+                                  fontSize: "0.75rem",
+                                  fontWeight: 700,
+                                  color: isDebut ? "var(--white)" : "var(--charcoal)",
+                                  backgroundColor: isDebut ? "var(--coral)" : "transparent",
+                                  border: isDebut ? "none" : "1.5px solid var(--charcoal)",
+                                  padding: "1px 6px",
+                                  borderRadius: "2px",
+                                  display: "inline-block",
+                                }}
+                              >
+                                {row.age}
+                              </span>
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, verticalAlign: "middle", fontWeight: 700, color: "var(--charcoal)", maxWidth: 140 }}>
+                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
+                                {row.clubName}
+                                {row.isTransfer && (
+                                  <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.48rem", letterSpacing: "0.06em", color: "var(--coral)" }}>
+                                    ✈ TRANSFER
+                                  </span>
+                                )}
+                              </span>
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, verticalAlign: "middle", color: "var(--ink-gray)", maxWidth: 120 }}>
+                              {row.leagueName || "—"}
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
+                              {row.snap?.ovr ?? "—"}
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
+                              {row.snap?.apps ?? "—"}
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
+                              {row.snap?.goals ?? "—"}
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
+                              {row.snap?.assists ?? "—"}
+                            </td>
+                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700, color: "var(--coral)" }}>
+                              {row.snap?.matchRating != null ? Number(row.snap.matchRating).toFixed(2) : "—"}
+                            </td>
+                          </tr>
+                          {row.awards.length > 0 && (
+                            <tr style={{ backgroundColor: "#fef3c7" }}>
+                              <td
+                                colSpan={8}
+                                style={{
+                                  padding: "4px 8px 6px",
+                                  borderBottom: border,
+                                  borderLeft: "3px solid #d97706",
+                                  fontSize: "0.72rem",
+                                  color: "var(--charcoal)",
+                                }}
+                              >
+                                {row.awards.map((award: any, aIdx: number) => (
+                                  <span key={aIdx} style={{ marginRight: 10 }}>
+                                    🥇 {award.label}
+                                  </span>
+                                ))}
+                              </td>
+                            </tr>
+                          )}
+                        </React.Fragment>
+                      );
+                    })}
+                  </tbody>
+                </table>
               )}
             </div>
           </div>

@@ -31,8 +31,9 @@ export async function middleware(request: NextRequest) {
 
   const pathname = request.nextUrl.pathname;
   const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isDevPreview = process.env.NODE_ENV !== "production" && pathname.startsWith("/dev");
 
-  if (!user && !isAuthRoute) {
+  if (!user && !isAuthRoute && !isDevPreview) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }

@@ -1,0 +1,14 @@
+{
+  "projectRoot": "D:/road-to-glory",
+  "batchFiles": [
+    {
+      "path": "supabase/rls-lockdown.sql",
+      "language": "sql",
+      "sizeLines": 33,
+      "fileCategory": "data"
+    }
+  ],
+  "batchImportData": {
+    "supabase/rls-lockdown.sql": []
+  }
+}
