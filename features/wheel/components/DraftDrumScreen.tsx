@@ -1,5 +1,6 @@
 "use client";
 
+import React, { useState } from "react";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useDraftDrum } from "../hooks/useDraftDrum";
@@ -14,6 +15,7 @@ import { SeasonResultModal } from "./SeasonResultModal";
 import { SeasonStatsModal } from "./SeasonStatsModal";
 import { SeasonRecapModal } from "./SeasonRecapModal";
 import { TransferDecisionModal } from "./TransferDecisionModal";
+import { TrophyCabinetModal } from "./TrophyCabinetModal";
 
 interface Props {
   gameId: string;
@@ -94,6 +96,9 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
     STEP_LABELS,
     selectorIndex,
   } = useDraftDrum(gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup);
+
+  const [isTrophyCabinetOpen, setIsTrophyCabinetOpen] = useState<boolean>(false);
+  const [rightTab, setRightTab] = useState<"panini" | "profile">("panini");
 
   if (!isMounted) return null;
 
@@ -202,8 +207,8 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
       {mode === "career" && (
         <>
           <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
-          <main style={{ flex: 1, maxWidth: "1380px", width: "100%", margin: "0 auto", padding: "16px 12px" }}>
-            <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px", alignItems: "flex-start", justifyContent: "center" }}>
+          <main style={{ flex: 1, maxWidth: "1440px", width: "100%", margin: "0 auto", padding: "12px 16px" }}>
+            <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "16px", alignItems: "stretch", justifyContent: "center", height: "100%" }}>
               
               {/* CỘT 1 (TRÁI): STORY RAIL (READ-ONLY TIMELINE) */}
               <StoryRail
@@ -212,6 +217,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
                 currentAge={currentAge}
                 playerDebutAge={playerDebutAge}
                 currentOvr={currentOvr}
+                onOpenTrophyCabinet={() => setIsTrophyCabinetOpen(true)}
               />
 
               {/* CỘT 2 (GIỮA): WHEEL SECTION ONLY */}
@@ -253,42 +259,98 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
                 onOpenTransferModal={() => setActiveModal("transfer")}
               />
 
-              {/* CỘT 3 (PHẢI): SEASON PROFILE & STICKER PANINI */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "20px", flex: "0 0 320px", maxWidth: "340px" }}>
-                <PaniniSticker
-                  playerName={playerName}
-                  position={position}
-                  playerNationality={playerNationality}
-                  currentOvr={currentOvr}
-                  currentAge={currentAge}
-                  playerDebutAge={playerDebutAge}
-                  playerCareerLength={playerCareerLength}
-                  currentContinentalCup={currentContinentalCup}
-                  standingResult={standingResult}
-                  domesticCupResult={domesticCupResult}
-                  continentalCupResult={continentalCupResult}
-                  nationalCallupResult={nationalCallupResult}
-                  nationalTournamentResult={nationalTournamentResult}
-                  hasBallonDorWinner={hasBallonDorWinner}
-                  currentStats={currentStats}
-                  evolvedStatsThisYear={evolvedStatsThisYear}
-                  currentClubName={currentClub?.name}
-                  cleanSheets={yearSimResult?.cleanSheets}
-                />
-                <SeasonProfile
-                  seasonRecords={seasonRecords}
-                  currentAge={currentAge}
-                  playerDebutAge={playerDebutAge}
-                  selectedAgeForStats={selectedAgeForStats}
-                  setSelectedAgeForStats={setSelectedAgeForStats}
-                  position={position}
-                  onOpenModal={setActiveModal}
-                />
+              {/* CỘT 3 (PHẢI): TAB SWITCH (PANINI STICKER & SEASON PROFILE) */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "0 0 320px", maxWidth: "340px", height: "100%", maxHeight: "100%", overflowY: "auto" }}>
+                
+                {/* TAB SWITCH HEADER */}
+                <div style={{ display: "flex", gap: "6px", backgroundColor: "var(--cream-dark)", padding: "4px", borderRadius: "4px", border: "1.5px solid var(--charcoal)", boxShadow: "2px 2px 0 var(--charcoal)" }}>
+                  <button
+                    type="button"
+                    onClick={() => setRightTab("panini")}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      fontSize: "0.75rem",
+                      fontFamily: "var(--font-headline)",
+                      fontWeight: 700,
+                      backgroundColor: rightTab === "panini" ? "var(--white)" : "transparent",
+                      color: rightTab === "panini" ? "var(--coral)" : "var(--charcoal)",
+                      border: rightTab === "panini" ? "1.5px solid var(--charcoal)" : "none",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                      boxShadow: rightTab === "panini" ? "1.5px 1.5px 0 var(--charcoal)" : "none",
+                    }}
+                  >
+                    🎴 THẺ PANINI
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRightTab("profile")}
+                    style={{
+                      flex: 1,
+                      padding: "6px 8px",
+                      fontSize: "0.75rem",
+                      fontFamily: "var(--font-headline)",
+                      fontWeight: 700,
+                      backgroundColor: rightTab === "profile" ? "var(--white)" : "transparent",
+                      color: rightTab === "profile" ? "var(--coral)" : "var(--charcoal)",
+                      border: rightTab === "profile" ? "1.5px solid var(--charcoal)" : "none",
+                      borderRadius: "3px",
+                      cursor: "pointer",
+                      boxShadow: rightTab === "profile" ? "1.5px 1.5px 0 var(--charcoal)" : "none",
+                    }}
+                  >
+                    📊 HỒ SƠ MÙA
+                  </button>
+                </div>
+
+                {rightTab === "panini" ? (
+                  <PaniniSticker
+                    playerName={playerName}
+                    position={position}
+                    playerNationality={playerNationality}
+                    currentOvr={currentOvr}
+                    currentAge={currentAge}
+                    playerDebutAge={playerDebutAge}
+                    playerCareerLength={playerCareerLength}
+                    currentContinentalCup={currentContinentalCup}
+                    standingResult={standingResult}
+                    domesticCupResult={domesticCupResult}
+                    continentalCupResult={continentalCupResult}
+                    nationalCallupResult={nationalCallupResult}
+                    nationalTournamentResult={nationalTournamentResult}
+                    hasBallonDorWinner={hasBallonDorWinner}
+                    currentStats={currentStats}
+                    evolvedStatsThisYear={evolvedStatsThisYear}
+                    currentClubName={currentClub?.name}
+                    cleanSheets={yearSimResult?.cleanSheets}
+                  />
+                ) : (
+                  <SeasonProfile
+                    seasonRecords={seasonRecords}
+                    currentAge={currentAge}
+                    playerDebutAge={playerDebutAge}
+                    selectedAgeForStats={selectedAgeForStats}
+                    setSelectedAgeForStats={setSelectedAgeForStats}
+                    position={position}
+                    onOpenModal={setActiveModal}
+                  />
+                )}
               </div>
 
             </div>
           </main>
         </>
+      )}
+
+      {/* ── TROPHY CABINET FLOATING MODAL ── */}
+      {isTrophyCabinetOpen && (
+        <TrophyCabinetModal
+          seasonRecords={seasonRecords}
+          playerName={playerName}
+          playerNationality={playerNationality}
+          onClose={() => setIsTrophyCabinetOpen(false)}
+        />
       )}
 
       {/* ── MODE 3: RETIRED ── */}

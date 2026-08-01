@@ -18,6 +18,7 @@ interface StoryRailProps {
   currentAge: number;
   playerDebutAge: number;
   currentOvr: number;
+  onOpenTrophyCabinet?: () => void;
 }
 
 export function StoryRail({
@@ -26,22 +27,20 @@ export function StoryRail({
   currentAge,
   playerDebutAge,
   currentOvr,
+  onOpenTrophyCabinet,
 }: StoryRailProps) {
-  // Extract age vs OVR list for sparkline/timeline
-  const ages: number[] = [];
-  for (let a = playerDebutAge; a <= currentAge; a++) {
-    ages.push(a);
-  }
-
   // Count trophies
   let totalTrophies = 0;
   let ballonDorCount = 0;
+  let maxOvr = currentOvr;
+
   Object.values(seasonRecords).forEach((rec) => {
     if (rec.standing === 1) totalTrophies++;
     if (rec.domesticCup === "Winner") totalTrophies++;
     if (rec.continentalCup?.result === "Winner") totalTrophies++;
     if (rec.nationalTeam?.result === "Winner") totalTrophies++;
-    if ((rec as any)?.ballonDor?.winner) ballonDorCount++;
+    if (rec.ballonDorResult === 1 || rec.achievements?.ballonDor) ballonDorCount++;
+    if ((rec as any)?.ovr > maxOvr) maxOvr = (rec as any).ovr;
   });
 
   return (
@@ -56,6 +55,9 @@ export function StoryRail({
         borderRadius: "4px",
         boxShadow: "3px 3px 0 var(--charcoal)",
         padding: "16px",
+        height: "100%",
+        maxHeight: "100%",
+        overflowY: "auto",
       }}
     >
       {/* HEADER */}
@@ -86,99 +88,78 @@ export function StoryRail({
         </h3>
       </div>
 
-      {/* OVR PROGRESSION SPARKLINE / LIST */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <span
-            style={{
-              fontFamily: "var(--font-headline)",
-              fontSize: "0.8rem",
-              fontWeight: 700,
-              color: "var(--charcoal)",
-              display: "flex",
-              alignItems: "center",
-              gap: "4px",
-            }}
-          >
-            <TrendingUp size={14} color="#266b3e" /> TĂNG TRƯỞNG OVR
-          </span>
-          <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>
-            HIỆN TẠI: {currentOvr}
-          </span>
-        </div>
-
-        {/* Mini Age-OVR track */}
-        <div
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            gap: "4px",
-            height: "44px",
-            backgroundColor: "var(--cream)",
-            border: "1px solid var(--cream-border)",
-            borderRadius: "3px",
-            padding: "4px 8px",
-          }}
-        >
-          {ages.map((age) => {
-            const rec = seasonRecords[age];
-            const ovr = (rec as any)?.ovr ?? (age === currentAge ? currentOvr : 60);
-            const heightPct = Math.min(100, Math.max(20, ((ovr - 45) / 50) * 100));
-
-            return (
-              <div
-                key={age}
-                title={`Tuổi ${age}: ${ovr} OVR`}
-                style={{
-                  flex: 1,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "center",
-                  height: "100%",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <div
-                  style={{
-                    width: "100%",
-                    maxWidth: "10px",
-                    height: `${heightPct}%`,
-                    backgroundColor: age === currentAge ? "var(--coral)" : "#266b3e",
-                    borderRadius: "1px 1px 0 0",
-                    transition: "height 0.3s ease",
-                  }}
-                />
-              </div>
-            );
-          })}
-        </div>
-      </div>
-
-      {/* TROPHY CABINET */}
+      {/* OVR BADGE CARD */}
       <div
         style={{
-          backgroundColor: "var(--cream-dark)",
-          border: "1px solid var(--cream-border)",
-          borderRadius: "3px",
-          padding: "10px",
+          backgroundColor: "var(--cream)",
+          border: "1.5px solid var(--charcoal)",
+          borderRadius: "4px",
+          padding: "12px 14px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          boxShadow: "2px 2px 0 var(--charcoal)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-          <Trophy size={18} color="#D4960D" />
-          <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.8rem", fontWeight: 700 }}>
-            TỔNG DANH HIỆU
+        <div>
+          <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.52rem", color: "var(--ink-gray)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            OVR HIỆN TẠI
           </span>
+          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.6rem", fontWeight: 900, color: "var(--coral)", lineHeight: 1 }}>
+            {currentOvr}
+          </div>
         </div>
-        <span style={{ fontFamily: "var(--font-headline)", fontSize: "1.1rem", fontWeight: 900, color: "#D4960D" }}>
-          🏆 {totalTrophies} {ballonDorCount > 0 ? `· 🏅${ballonDorCount}` : ""}
-        </span>
+        <div style={{ textAlign: "right" }}>
+          <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.52rem", color: "var(--ink-gray)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+            PEAK OVR
+          </span>
+          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 800, color: "#266b3e", lineHeight: 1.2 }}>
+            ⚡ {maxOvr}
+          </div>
+        </div>
+      </div>
+
+      {/* CLICKABLE TROPHY CABINET CARD */}
+      <div
+        onClick={onOpenTrophyCabinet}
+        style={{
+          backgroundColor: "#1f1a14",
+          border: "1.5px solid #D4960D",
+          borderRadius: "4px",
+          padding: "12px 14px",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          boxShadow: "2px 2px 0 var(--charcoal)",
+          cursor: "pointer",
+          transition: "transform 0.15 ease, boxShadow 0.15s ease",
+        }}
+        onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
+        onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
+      >
+        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+          <Trophy size={20} color="#D4960D" />
+          <div>
+            <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "#D4960D", textTransform: "uppercase", letterSpacing: "0.1em" }}>
+              TỦ DANH HIỆU
+            </span>
+            <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", fontWeight: 800, color: "var(--cream)" }}>
+              XEM CHI TIẾT →
+            </div>
+          </div>
+        </div>
+        <div style={{ textAlign: "right" }}>
+          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900, color: "#D4960D" }}>
+            🏆 {totalTrophies}
+          </div>
+          {ballonDorCount > 0 && (
+            <span style={{ fontSize: "0.68rem", color: "var(--cream)", opacity: 0.9 }}>🏅 {ballonDorCount} QBV</span>
+          )}
+        </div>
       </div>
 
       {/* CLUB STINTS */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px" }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, overflow: "hidden" }}>
         <span
           style={{
             fontFamily: "var(--font-headline)",
@@ -193,7 +174,7 @@ export function StoryRail({
           <Shield size={14} color="var(--charcoal)" /> CÁC CLB ĐÃ THI ĐẤU
         </span>
 
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "200px", overflowY: "auto" }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: "6px", overflowY: "auto", flex: 1 }}>
           {clubStints.length === 0 ? (
             <p style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "var(--ink-gray)", margin: 0 }}>
               Đang khởi đầu sự nghiệp...
@@ -207,6 +188,7 @@ export function StoryRail({
                   borderLeft: "3px solid #266b3e",
                   backgroundColor: "var(--cream)",
                   fontSize: "0.75rem",
+                  borderRadius: "0 3px 3px 0",
                 }}
               >
                 <div style={{ fontWeight: 700, fontFamily: "var(--font-headline)", fontSize: "0.82rem" }}>

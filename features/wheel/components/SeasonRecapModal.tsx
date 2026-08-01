@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, ChevronDown, ChevronUp, Trophy, Star, Shield, Award } from "lucide-react";
+import { X, ChevronDown, ChevronUp, Trophy, Star, Shield, Award, Globe } from "lucide-react";
 import type { SeasonRecord, CompetitionStats } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { getDomesticCupName, getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
@@ -341,6 +341,58 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                     <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "6px" }}>HÀNH TRÌNH CÚP LỤC ĐỊA</div>
                     <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
                       {record.continentalCupJourney.map((j, i) => (
+                        <div key={i} style={{ fontSize: "0.72rem", color: "var(--charcoal)" }}>• {j}</div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* NATIONAL TEAM TILE */}
+            {record.nationalTeam && record.nationalTeam.callup !== "Không được gọi" && (
+              <div
+                style={{
+                  border: "1.5px solid var(--charcoal)",
+                  borderRadius: "4px",
+                  backgroundColor: "var(--white)",
+                  overflow: "hidden",
+                  boxShadow: "2px 2px 0 var(--charcoal)",
+                }}
+              >
+                <div
+                  onClick={() => toggleExpand("national")}
+                  style={{
+                    padding: "10px 14px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    cursor: "pointer",
+                    backgroundColor: expandedTile === "national" ? "var(--cream)" : "var(--white)",
+                  }}
+                >
+                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                    <Globe size={16} color="var(--coral)" />
+                    <div>
+                      <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
+                        {record.nationalTeam.type ?? "ĐỘI TUYỂN QUỐC GIA"}
+                      </span>
+                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>
+                        {record.nationalTeam.result === "Winner" ? "🏆 VÔ ĐỊCH QUỐC TẾ" : record.nationalTeam.result ?? record.nationalTeam.callup}
+                      </div>
+                    </div>
+                  </div>
+                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+                    <MiniStatsBadge stats={record.nationalStats} />
+                    {expandedTile === "national" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
+                  </div>
+                </div>
+
+                {expandedTile === "national" && record.nationalTeamJourney && (
+                  <div style={{ padding: "12px", borderTop: "1px solid var(--cream-border)", backgroundColor: "var(--cream)" }}>
+                    <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "6px" }}>HÀNH TRÌNH ĐỘI TUYỂN QUỐC GIA</div>
+                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
+                      {record.nationalTeamJourney.map((j, i) => (
                         <div key={i} style={{ fontSize: "0.72rem", color: "var(--charcoal)" }}>• {j}</div>
                       ))}
                     </div>

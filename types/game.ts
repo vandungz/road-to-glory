@@ -79,6 +79,8 @@ export interface SeasonRecord {
   domesticCupStats?: CompetitionStats;
   continentalStats?: CompetitionStats;
   nationalStats?: CompetitionStats;
+  ballonDorResult?: number | null;
+  achievements?: any;
 }
 
 const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt", "Chiều Cao", "Cân Nặng"];
