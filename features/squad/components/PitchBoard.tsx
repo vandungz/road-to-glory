@@ -89,8 +89,8 @@ function EmptySlot({ position, onClick }: EmptySlotProps) {
       aria-label={`Thêm cầu thủ vào vị trí ${position}`}
       className="group"
       style={{
-        backgroundColor: "rgba(255,255,255,0.16)",
-        border: "1.5px solid rgba(255,255,255,0.65)",
+        backgroundColor: "rgba(0,0,0,0.25)",
+        border: "2px dashed rgba(255,255,255,0.75)",
         borderRadius: "20px",
         padding: "6px 14px",
         color: "white",

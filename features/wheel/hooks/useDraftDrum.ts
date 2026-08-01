@@ -37,7 +37,7 @@ function emptyUnemployedSeasonResult(): SimulatedSeasonResult {
   };
 }
 
-export type ModalType = "league" | "cup" | "continental" | "national" | "season_stats" | "season_recap" | null;
+export type ModalType = "league" | "cup" | "continental" | "national" | "season_stats" | "season_recap" | "transfer" | null;
 
 const COMPETITION_STEPS = new Set([
   "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament",

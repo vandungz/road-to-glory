@@ -13,6 +13,7 @@ import { RetiredStage } from "./RetiredStage";
 import { SeasonResultModal } from "./SeasonResultModal";
 import { SeasonStatsModal } from "./SeasonStatsModal";
 import { SeasonRecapModal } from "./SeasonRecapModal";
+import { TransferDecisionModal } from "./TransferDecisionModal";
 
 interface Props {
   gameId: string;
@@ -246,6 +247,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
                 selectorIndex={selectorIndex}
                 yearEvolutionCount={yearEvolution.count}
                 tempSelectedStat={tempSelectedStat}
+                onOpenTransferModal={() => setActiveModal("transfer")}
               />
 
               {/* CỘT 3 (PHẢI): SEASON PROFILE & STICKER PANINI */}
@@ -300,6 +302,24 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
         />
       )}
 
+      {/* ── TRANSFER DECISION FLOATING MODAL ── */}
+      {(activeModal === "transfer" || (careerSubStep === "transfer" && activeModal !== null)) && transferMarket && (
+        <TransferDecisionModal
+          market={transferMarket}
+          willingToMove={willingToMove}
+          setWillingToMove={handleSetWillingToMove}
+          isProcessing={isProcessing}
+          onAcceptOffer={handleAcceptMarketOffer}
+          onRejectAll={handleRejectTransferWindow}
+          onApproachShortlist={handleApproachShortlist}
+          showShortlist={showShortlist}
+          setShowShortlist={setShowShortlist}
+          approachRejects={approachRejects}
+          approachBanner={approachBanner}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
+
       {/* ── UNIFIED SEASON RECAP MODAL ── */}
       {(activeModal === "season_stats" || activeModal === "season_recap") && yearSimResult && activeRecord && (
         <SeasonRecapModal
@@ -312,7 +332,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
       )}
 
       {/* LEGACY INDIVIDUAL COMPETITION MODALS (fallback if activeRecord modal opened manually from profile) */}
-      {activeModal && !["season_stats", "season_recap"].includes(activeModal) && activeRecord && (
+      {activeModal && !["season_stats", "season_recap", "transfer"].includes(activeModal) && activeRecord && (
         <SeasonResultModal
           type={activeModal as "league" | "cup" | "continental" | "national"}
           record={activeRecord}

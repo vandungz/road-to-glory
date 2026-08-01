@@ -41,6 +41,7 @@ interface CareerActionsPanelProps {
   approachRejects: import("./TransferWindowPanel").ApproachRejectState;
   approachBanner: string | null;
   isUnemployed: boolean;
+  onOpenTransferModal?: () => void;
 }
 
 export function CareerActionsPanel({
@@ -78,6 +79,7 @@ export function CareerActionsPanel({
   approachRejects,
   approachBanner,
   isUnemployed,
+  onOpenTransferModal,
 }: CareerActionsPanelProps) {
   const currentSeasonStr = getSeasonYearString(currentAge, playerDebutAge);
   const totalNeed = yearEvolutionCount ?? 1;
@@ -177,20 +179,21 @@ export function CareerActionsPanel({
           </>
         )}
 
-        {careerSubStep === "transfer" && transferMarket && (
-          <TransferWindowPanel
-            market={transferMarket}
-            willingToMove={willingToMove}
-            setWillingToMove={setWillingToMove}
-            isProcessing={isProcessing}
-            onAcceptOffer={handleAcceptMarketOffer}
-            onRejectAll={handleRejectTransferWindow}
-            onApproachShortlist={handleApproachShortlist}
-            showShortlist={showShortlist}
-            setShowShortlist={setShowShortlist}
-            approachRejects={approachRejects}
-            approachBanner={approachBanner}
-          />
+        {/* Transfer Step Prompt Button */}
+        {careerSubStep === "transfer" && (
+          <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "12px", textAlign: "center" }}>
+            <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.9 }}>
+              Cửa sổ chuyển nhượng đã mở! Hãy mở đàm phán hợp đồng để xem các đề nghị.
+            </p>
+            <button
+              type="button"
+              onClick={onOpenTransferModal}
+              className="btn-primary"
+              style={{ fontSize: "1rem", padding: "12px 28px", backgroundColor: "#266b3e" }}
+            >
+              💼 MỞ HỢP ĐỒNG & CHUYỂN NHƯỢNG →
+            </button>
+          </div>
         )}
 
         {/* Resolved reporting */}
