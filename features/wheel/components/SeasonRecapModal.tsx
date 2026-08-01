@@ -207,25 +207,41 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
 
               {expandedTile === "league" && record.leagueTable && (
                 <div style={{ padding: "12px", borderTop: "1px solid var(--cream-border)", backgroundColor: "var(--cream)" }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "6px" }}>BẢNG XẾP HẠNG CHI TIẾT</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {record.leagueTable.slice(0, 5).map((t) => (
-                      <div
-                        key={t.rank}
-                        style={{
-                          display: "flex",
-                          justifyContent: "space-between",
-                          fontSize: "0.72rem",
-                          fontWeight: t.isPlayer ? 700 : 400,
-                          backgroundColor: t.isPlayer ? "var(--cream-dark)" : "transparent",
-                          padding: "2px 6px",
-                          borderRadius: "2px",
-                        }}
-                      >
-                        <span>#{t.rank} {t.clubName} {t.isPlayer ? "(BẠN)" : ""}</span>
-                        <span>{t.points} PTS · {t.played}P ({t.won}W {t.drawn}D {t.lost}L)</span>
-                      </div>
-                    ))}
+                  <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "8px" }}>BẢNG XẾP HẠNG CHI TIẾT</div>
+                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "240px", overflowY: "auto" }}>
+                    {record.leagueTable.map((row: any, idx: number) => {
+                      const rank = idx + 1;
+                      const clubName = row.name ?? row.clubName ?? "Unknown";
+                      const isPlayer = clubName.toLowerCase() === record.clubName.toLowerCase();
+
+                      return (
+                        <div
+                          key={idx}
+                          style={{
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            fontSize: "0.75rem",
+                            fontWeight: isPlayer ? 800 : 500,
+                            backgroundColor: isPlayer ? "var(--cream-dark)" : "var(--white)",
+                            color: isPlayer ? "var(--coral)" : "var(--charcoal)",
+                            padding: "4px 8px",
+                            borderRadius: "3px",
+                            borderLeft: isPlayer ? "3px solid var(--coral)" : "1px solid var(--cream-border)",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+                            <span style={{ fontFamily: "var(--font-stamp)", width: "24px", fontWeight: 700 }}>#{rank}</span>
+                            <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.82rem" }}>
+                              {clubName} {isPlayer ? "(BẠN)" : ""}
+                            </span>
+                          </div>
+                          <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.72rem" }}>
+                            <strong>{row.points} PTS</strong> · {row.played}P ({row.won}W {row.drawn}D {row.lost}L)
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 </div>
               )}
