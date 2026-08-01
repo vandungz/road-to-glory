@@ -4,6 +4,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useDraftDrum } from "../hooks/useDraftDrum";
 import { SeasonStrip } from "./SeasonStrip";
+import { StoryRail } from "./StoryRail";
 import { SetupStage } from "./SetupStage";
 import { CareerActionsPanel } from "./CareerActionsPanel";
 import { SeasonProfile } from "./SeasonProfile";
@@ -11,6 +12,7 @@ import { PaniniSticker } from "./PaniniSticker";
 import { RetiredStage } from "./RetiredStage";
 import { SeasonResultModal } from "./SeasonResultModal";
 import { SeasonStatsModal } from "./SeasonStatsModal";
+import { SeasonRecapModal } from "./SeasonRecapModal";
 
 interface Props {
   gameId: string;
@@ -196,81 +198,91 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
       {mode === "career" && (
         <>
           <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
-          <main style={{ flex: 1, maxWidth: "1280px", width: "100%", margin: "0 auto", padding: "24px 16px" }}>
-            <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "24px", alignItems: "flex-start", justifyContent: "center" }}>
-              {/* CỘT 1 (TRÁI): CAREER ACTIONS */}
-            <CareerActionsPanel
-              careerSubStep={careerSubStep}
-              currentAge={currentAge}
-              playerDebutAge={playerDebutAge}
-              currentClub={currentClub}
-              currentContinentalCup={currentContinentalCup}
-              careerSpinning={careerSpinning}
-              isProcessing={isProcessing}
-              careerWheelItems={careerWheelItems}
-              careerTargetIndex={careerTargetIndex}
-              handleCareerSpinComplete={handleCareerSpinComplete}
-              careerTempValue={careerTempValue}
-              handleCareerSpin={handleCareerSpin}
-              handleStartSeason={handleStartSeason}
-              transferMarket={transferMarket}
-              willingToMove={willingToMove}
-              setWillingToMove={handleSetWillingToMove}
-              showShortlist={showShortlist}
-              setShowShortlist={setShowShortlist}
-              handleAcceptMarketOffer={handleAcceptMarketOffer}
-              handleRejectTransferWindow={handleRejectTransferWindow}
-              handleApproachShortlist={handleApproachShortlist}
-              approachRejects={approachRejects}
-              approachBanner={approachBanner}
-              isUnemployed={isUnemployed}
-              yearSimResult={yearSimResult}
-              standingResult={standingResult}
-              domesticCupResult={domesticCupResult}
-              continentalCupResult={continentalCupResult}
-              hasBallonDorWinner={hasBallonDorWinner}
-              handleNextSeason={handleNextSeason}
-              position={position}
-              selectorIndex={selectorIndex}
-              yearEvolutionCount={yearEvolution.count}
-              tempSelectedStat={tempSelectedStat}
-            />
+          <main style={{ flex: 1, maxWidth: "1380px", width: "100%", margin: "0 auto", padding: "24px 16px" }}>
+            <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px", alignItems: "flex-start", justifyContent: "center" }}>
+              
+              {/* CỘT 1 (TRÁI): STORY RAIL (READ-ONLY TIMELINE) */}
+              <StoryRail
+                clubStints={clubStints}
+                seasonRecords={seasonRecords}
+                currentAge={currentAge}
+                playerDebutAge={playerDebutAge}
+                currentOvr={currentOvr}
+              />
 
-            {/* CỘT 2 (GIỮA): HỒ SƠ MÙA GIẢI */}
-            <SeasonProfile
-              seasonRecords={seasonRecords}
-              currentAge={currentAge}
-              playerDebutAge={playerDebutAge}
-              selectedAgeForStats={selectedAgeForStats}
-              setSelectedAgeForStats={setSelectedAgeForStats}
-              position={position}
-              onOpenModal={setActiveModal}
-            />
+              {/* CỘT 2 (GIỮA): WHEEL SECTION ONLY */}
+              <CareerActionsPanel
+                careerSubStep={careerSubStep}
+                currentAge={currentAge}
+                playerDebutAge={playerDebutAge}
+                currentClub={currentClub}
+                currentContinentalCup={currentContinentalCup}
+                careerSpinning={careerSpinning}
+                isProcessing={isProcessing}
+                careerWheelItems={careerWheelItems}
+                careerTargetIndex={careerTargetIndex}
+                handleCareerSpinComplete={handleCareerSpinComplete}
+                careerTempValue={careerTempValue}
+                handleCareerSpin={handleCareerSpin}
+                handleStartSeason={handleStartSeason}
+                transferMarket={transferMarket}
+                willingToMove={willingToMove}
+                setWillingToMove={handleSetWillingToMove}
+                showShortlist={showShortlist}
+                setShowShortlist={setShowShortlist}
+                handleAcceptMarketOffer={handleAcceptMarketOffer}
+                handleRejectTransferWindow={handleRejectTransferWindow}
+                handleApproachShortlist={handleApproachShortlist}
+                approachRejects={approachRejects}
+                approachBanner={approachBanner}
+                isUnemployed={isUnemployed}
+                yearSimResult={yearSimResult}
+                standingResult={standingResult}
+                domesticCupResult={domesticCupResult}
+                continentalCupResult={continentalCupResult}
+                hasBallonDorWinner={hasBallonDorWinner}
+                handleNextSeason={handleNextSeason}
+                position={position}
+                selectorIndex={selectorIndex}
+                yearEvolutionCount={yearEvolution.count}
+                tempSelectedStat={tempSelectedStat}
+              />
 
-            {/* CỘT 3 (PHẢI): STICKER PANINI */}
-            <PaniniSticker
-              playerName={playerName}
-              position={position}
-              playerNationality={playerNationality}
-              currentOvr={currentOvr}
-              currentAge={currentAge}
-              playerDebutAge={playerDebutAge}
-              playerCareerLength={playerCareerLength}
-              currentContinentalCup={currentContinentalCup}
-              standingResult={standingResult}
-              domesticCupResult={domesticCupResult}
-              continentalCupResult={continentalCupResult}
-              nationalCallupResult={nationalCallupResult}
-              nationalTournamentResult={nationalTournamentResult}
-              hasBallonDorWinner={hasBallonDorWinner}
-              currentStats={currentStats}
-              evolvedStatsThisYear={evolvedStatsThisYear}
-              currentClubName={currentClub?.name}
-              cleanSheets={yearSimResult?.cleanSheets}
-            />
+              {/* CỘT 3 (PHẢI): SEASON PROFILE & STICKER PANINI */}
+              <div style={{ display: "flex", flexDirection: "column", gap: "20px", flex: "0 0 320px", maxWidth: "340px" }}>
+                <PaniniSticker
+                  playerName={playerName}
+                  position={position}
+                  playerNationality={playerNationality}
+                  currentOvr={currentOvr}
+                  currentAge={currentAge}
+                  playerDebutAge={playerDebutAge}
+                  playerCareerLength={playerCareerLength}
+                  currentContinentalCup={currentContinentalCup}
+                  standingResult={standingResult}
+                  domesticCupResult={domesticCupResult}
+                  continentalCupResult={continentalCupResult}
+                  nationalCallupResult={nationalCallupResult}
+                  nationalTournamentResult={nationalTournamentResult}
+                  hasBallonDorWinner={hasBallonDorWinner}
+                  currentStats={currentStats}
+                  evolvedStatsThisYear={evolvedStatsThisYear}
+                  currentClubName={currentClub?.name}
+                  cleanSheets={yearSimResult?.cleanSheets}
+                />
+                <SeasonProfile
+                  seasonRecords={seasonRecords}
+                  currentAge={currentAge}
+                  playerDebutAge={playerDebutAge}
+                  selectedAgeForStats={selectedAgeForStats}
+                  setSelectedAgeForStats={setSelectedAgeForStats}
+                  position={position}
+                  onOpenModal={setActiveModal}
+                />
+              </div>
 
-          </div>
-        </main>
+            </div>
+          </main>
         </>
       )}
 
@@ -288,23 +300,25 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
         />
       )}
 
-      {/* ── MODALS ── */}
-      {activeModal && activeModal !== "season_stats" && activeRecord && (
+      {/* ── UNIFIED SEASON RECAP MODAL ── */}
+      {(activeModal === "season_stats" || activeModal === "season_recap") && yearSimResult && activeRecord && (
+        <SeasonRecapModal
+          record={activeRecord}
+          yearSimResult={yearSimResult}
+          currentContinentalCup={currentContinentalCup}
+          playerDebutAge={playerDebutAge}
+          onClose={handleSeasonStatsModalClose}
+        />
+      )}
+
+      {/* LEGACY INDIVIDUAL COMPETITION MODALS (fallback if activeRecord modal opened manually from profile) */}
+      {activeModal && !["season_stats", "season_recap"].includes(activeModal) && activeRecord && (
         <SeasonResultModal
           type={activeModal as "league" | "cup" | "continental" | "national"}
           record={activeRecord}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
           onClose={() => setActiveModal(null)}
-        />
-      )}
-
-      {activeModal === "season_stats" && yearSimResult && activeRecord && (
-        <SeasonStatsModal
-          record={activeRecord}
-          yearSimResult={yearSimResult}
-          currentContinentalCup={currentContinentalCup}
-          onClose={handleSeasonStatsModalClose}
         />
       )}
 

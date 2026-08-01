@@ -114,7 +114,6 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           rec.leagueTable = mockTable;
           return { ...prev, [p.currentAge]: rec };
         });
-        p.setActiveModal("league");
         p.setCareerSubStep("domestic_cup");
         p.setIsProcessing(false);
       }).catch((err) => {
@@ -138,7 +137,6 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           rec.domesticCupJourney = journey;
           return { ...prev, [p.currentAge]: rec };
         });
-        p.setActiveModal("cup");
         if (p.currentContinentalCup !== "none") {
           p.setCareerSubStep("continental_cup");
           p.setIsProcessing(false);
@@ -185,7 +183,6 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           rec.continentalCupJourney = journey;
           return { ...prev, [p.currentAge]: rec };
         });
-        p.setActiveModal("continental");
         const next = p.checkNationalCallupTransition();
         if (next === "national_callup") {
           p.setCareerSubStep("national_callup");
@@ -239,7 +236,6 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           rec.nationalTeamJourney = journey;
           return { ...prev, [p.currentAge]: rec };
         });
-        p.setActiveModal("national");
         triggerSeasonStats(p.standingResult, p.domesticCupResult, p.continentalCupResult, p.nationalCallupResult, tournamentVal);
       }).catch((err) => {
         console.error("Error generating national team journey:", err);
