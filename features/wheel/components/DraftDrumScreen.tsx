@@ -260,7 +260,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
               />
 
               {/* CỘT 3 (PHẢI): TAB SWITCH (PANINI STICKER & SEASON PROFILE) */}
-              <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "0 0 320px", maxWidth: "340px", height: "100%", maxHeight: "100%", overflowY: "auto" }}>
+              <div style={{ display: "flex", flexDirection: "column", gap: "12px", flex: "0 0 330px", maxWidth: "340px", width: "100%", height: "100%", maxHeight: "100%" }}>
                 
                 {/* TAB SWITCH HEADER */}
                 <div style={{ display: "flex", gap: "6px", backgroundColor: "var(--cream-dark)", padding: "4px", borderRadius: "4px", border: "1.5px solid var(--charcoal)", boxShadow: "2px 2px 0 var(--charcoal)" }}>

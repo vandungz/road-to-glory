@@ -54,7 +54,7 @@ export function PaniniSticker({
   const retirementAge = playerDebutAge + playerCareerLength;
 
   return (
-    <div style={{ flex: "0 0 360px", width: "360px", display: "flex", flexDirection: "column", gap: "18px", margin: "0 auto" }}>
+    <div style={{ width: "100%", display: "flex", flexDirection: "column", gap: "12px", margin: "0 auto" }}>
       <div style={{
         backgroundColor: "var(--white)",
         border: "2px solid var(--charcoal)",
