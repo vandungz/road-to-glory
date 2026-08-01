@@ -155,8 +155,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   }, [statsTimeline]);
 
   const peakOvrValue = useMemo(() => {
-    if (statsTimeline.length === 0) return currentOvr;
-    return Math.max(...statsTimeline.map((s) => s.ovr));
+    const allOvrs = [currentOvr, ...statsTimeline.map((s) => (typeof s?.ovr === "number" ? s.ovr : 0))];
+    return Math.max(1, ...allOvrs);
   }, [statsTimeline, currentOvr]);
 
   const activeRecord = useMemo(() => {

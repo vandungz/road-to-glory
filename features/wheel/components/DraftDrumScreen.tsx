@@ -217,6 +217,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
                 currentAge={currentAge}
                 playerDebutAge={playerDebutAge}
                 currentOvr={currentOvr}
+                peakOvrValue={peakOvrValue}
                 onOpenTrophyCabinet={() => setIsTrophyCabinetOpen(true)}
               />
 

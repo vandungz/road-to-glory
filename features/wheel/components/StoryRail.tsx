@@ -18,6 +18,7 @@ interface StoryRailProps {
   currentAge: number;
   playerDebutAge: number;
   currentOvr: number;
+  peakOvrValue?: number;
   onOpenTrophyCabinet?: () => void;
 }
 
@@ -27,12 +28,13 @@ export function StoryRail({
   currentAge,
   playerDebutAge,
   currentOvr,
+  peakOvrValue,
   onOpenTrophyCabinet,
 }: StoryRailProps) {
   // Count trophies
   let totalTrophies = 0;
   let ballonDorCount = 0;
-  let maxOvr = currentOvr;
+  const displayPeakOvr = peakOvrValue ?? currentOvr;
 
   Object.values(seasonRecords).forEach((rec) => {
     if (rec.standing === 1) totalTrophies++;
@@ -40,7 +42,6 @@ export function StoryRail({
     if (rec.continentalCup?.result === "Winner") totalTrophies++;
     if (rec.nationalTeam?.result === "Winner") totalTrophies++;
     if (rec.ballonDorResult === 1 || rec.achievements?.ballonDor) ballonDorCount++;
-    if ((rec as any)?.ovr > maxOvr) maxOvr = (rec as any).ovr;
   });
 
   return (
@@ -114,7 +115,7 @@ export function StoryRail({
             PEAK OVR
           </span>
           <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 800, color: "#266b3e", lineHeight: 1.2 }}>
-            ⚡ {maxOvr}
+            ⚡ {displayPeakOvr}
           </div>
         </div>
       </div>
