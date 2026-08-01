@@ -18,6 +18,7 @@ interface Props {
   items: SpinnerItem[];
   targetIndex: number;
   onSpinComplete: () => void;
+  stakes?: "low" | "mid" | "high";
 }
 
 // ============================================================
@@ -71,7 +72,7 @@ function getLabelAtAngle(
 // COMPONENT
 // ============================================================
 
-export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete }: Props) {
+export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low" }: Props) {
   const rotateValue = useMotionValue(0);
   const [activeLabel, setActiveLabel] = useState<string>(() => items[0]?.label ?? "");
 
@@ -116,6 +117,18 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete }:
     return () => anim.stop();
   }, [isSpinning, targetIndex]);
 
+  const wheelBorder =
+    stakes === "high"
+      ? "4px solid #D4960D"
+      : stakes === "mid"
+      ? "4px solid #266b3e"
+      : "4px solid var(--charcoal)";
+
+  const wheelShadow =
+    stakes === "high"
+      ? "0 0 12px rgba(212,150,13,0.5), 4px 4px 0 var(--charcoal)"
+      : "4px 4px 0 var(--charcoal)";
+
   return (
     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%" }}>
 
@@ -130,10 +143,10 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete }:
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          backgroundColor: "var(--white)",
-          border: "2px solid var(--charcoal)",
+          backgroundColor: stakes === "high" ? "#1f1a14" : "var(--white)",
+          border: stakes === "high" ? "2px solid #D4960D" : "2px solid var(--charcoal)",
           borderRadius: "3px",
-          boxShadow: "2px 2px 0 var(--charcoal)",
+          boxShadow: stakes === "high" ? "2px 2px 0 #D4960D" : "2px 2px 0 var(--charcoal)",
           padding: "6px 16px",
           overflow: "hidden",
         }}
@@ -145,7 +158,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete }:
             fontWeight: 700,
             letterSpacing: "0.07em",
             textTransform: "uppercase",
-            color: "var(--charcoal)",
+            color: stakes === "high" ? "#D4960D" : "var(--charcoal)",
             textAlign: "center",
             whiteSpace: "nowrap",
             overflow: "hidden",
@@ -168,8 +181,8 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete }:
             height: "280px",
             borderRadius: "50%",
             overflow: "hidden",
-            border: "4px solid var(--charcoal)",
-            boxShadow: "4px 4px 0 var(--charcoal)",
+            border: wheelBorder,
+            boxShadow: wheelShadow,
             backgroundColor: "var(--white)",
           }}
         >

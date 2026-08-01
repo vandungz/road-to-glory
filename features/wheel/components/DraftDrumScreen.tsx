@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { useDraftDrum } from "../hooks/useDraftDrum";
+import { SeasonStrip } from "./SeasonStrip";
 import { SetupStage } from "./SetupStage";
 import { CareerActionsPanel } from "./CareerActionsPanel";
 import { SeasonProfile } from "./SeasonProfile";
@@ -193,10 +194,11 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
 
       {/* ── MODE 2: CAREER PLAYING LOOP ── */}
       {mode === "career" && (
-        <main style={{ flex: 1, maxWidth: "1280px", width: "100%", margin: "0 auto", padding: "24px 16px" }}>
-          <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "24px", alignItems: "flex-start", justifyContent: "center" }}>
-
-            {/* CỘT 1 (TRÁI): CAREER ACTIONS */}
+        <>
+          <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
+          <main style={{ flex: 1, maxWidth: "1280px", width: "100%", margin: "0 auto", padding: "24px 16px" }}>
+            <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "24px", alignItems: "flex-start", justifyContent: "center" }}>
+              {/* CỘT 1 (TRÁI): CAREER ACTIONS */}
             <CareerActionsPanel
               careerSubStep={careerSubStep}
               currentAge={currentAge}
@@ -269,6 +271,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
 
           </div>
         </main>
+        </>
       )}
 
       {/* ── MODE 3: RETIRED ── */}

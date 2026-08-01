@@ -82,15 +82,23 @@ export function CareerActionsPanel({
   const currentSeasonStr = getSeasonYearString(currentAge, playerDebutAge);
   const totalNeed = yearEvolutionCount ?? 1;
 
+  const isHighStakes = ["national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep);
+  const isMidStakes = ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep);
+  const stakes: "low" | "mid" | "high" = isHighStakes ? "high" : isMidStakes ? "mid" : "low";
+
+  const panelBg = isHighStakes ? "#1f1a14" : isMidStakes ? "var(--cream-dark)" : "var(--white)";
+  const panelBorder = isHighStakes ? "2px solid #D4960D" : "2px solid var(--charcoal)";
+  const panelShadow = isHighStakes ? "0 0 12px rgba(212,150,13,0.3), 3px 3px 0 var(--charcoal)" : "3px 3px 0 var(--charcoal)";
+
   return (
     <div style={{ flex: "1 1 450px", minWidth: "320px", display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div style={{ backgroundColor: "var(--white)", border: "2px solid var(--charcoal)", borderRadius: "4px", boxShadow: "3px 3px 0 var(--charcoal)", padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: "20px" }}>
+      <div style={{ backgroundColor: panelBg, border: panelBorder, borderRadius: "4px", boxShadow: panelShadow, padding: "24px 20px", display: "flex", flexDirection: "column", alignItems: "center", gap: "20px", transition: "all 0.3s ease" }}>
         
         <div style={{ textAlign: "center", width: "100%" }}>
-          <p style={{ fontFamily: "var(--font-stamp)", fontSize: "0.58rem", color: "var(--coral)", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>
+          <p style={{ fontFamily: "var(--font-stamp)", fontSize: "0.58rem", color: isHighStakes ? "#D4960D" : "var(--coral)", fontWeight: 700, letterSpacing: "0.15em", textTransform: "uppercase" }}>
             MÙA GIẢI {currentSeasonStr} (TUỔI {currentAge}) · CLB: {isUnemployed || !currentClub ? "KHÔNG CLB" : currentClub?.name}
           </p>
-          <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "1.3rem", fontWeight: 900, textTransform: "uppercase", marginTop: "4px", margin: 0, lineHeight: 1.25 }}>
+          <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "1.3rem", fontWeight: 900, textTransform: "uppercase", marginTop: "4px", margin: 0, lineHeight: 1.25, color: isHighStakes ? "var(--cream)" : "var(--charcoal)" }}>
             {careerSubStep === "idle" && (isUnemployed || !currentClub ? "KHÔNG CLB · MÙA THẤT NGHIỆP" : "SẴN SÀNG KHỞI ĐỘNG MÙA GIẢI")}
             {careerSubStep === "dir_increase" && "Stats: Có Tăng Chỉ Số Không? (Yes/No)"}
             {careerSubStep === "dir_decrease" && "Stats: Có Giảm Chỉ Số Không? (Yes/No)"}
@@ -144,9 +152,10 @@ export function CareerActionsPanel({
               items={careerWheelItems}
               targetIndex={careerTargetIndex}
               onSpinComplete={handleCareerSpinComplete}
+              stakes={stakes}
             />
             {careerTempValue !== null && !careerSpinning && (
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.25rem", fontWeight: 700, border: "2px solid var(--charcoal)", padding: "6px 20px", backgroundColor: "var(--cream)", boxShadow: "2px 2px 0 var(--charcoal)", borderRadius: "3px", textTransform: "uppercase" }}>
+              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.25rem", fontWeight: 700, border: isHighStakes ? "2px solid #D4960D" : "2px solid var(--charcoal)", padding: "6px 20px", backgroundColor: isHighStakes ? "#2a2218" : "var(--cream)", color: isHighStakes ? "#D4960D" : "var(--charcoal)", boxShadow: "2px 2px 0 var(--charcoal)", borderRadius: "3px", textTransform: "uppercase" }}>
                 {careerTempValue}
               </div>
             )}
@@ -155,9 +164,15 @@ export function CareerActionsPanel({
               onClick={handleCareerSpin}
               disabled={careerSpinning || isProcessing}
               className="btn-primary"
-              style={{ fontSize: "1.1rem", padding: "12px 36px", opacity: (careerSpinning || isProcessing) ? 0.6 : 1 }}
+              style={{
+                fontSize: "1.1rem",
+                padding: "12px 36px",
+                backgroundColor: isHighStakes ? "#D4960D" : "var(--coral)",
+                color: isHighStakes ? "#1f1a14" : "var(--white)",
+                opacity: (careerSpinning || isProcessing) ? 0.6 : 1,
+              }}
             >
-              {isProcessing && !careerSpinning ? "ĐANG XỬ LÝ..." : "QUAY BÁNH XE"}
+              {isProcessing && !careerSpinning ? "ĐANG XỬ LÝ..." : isHighStakes ? "✨ SPIN CEREMONY ✨" : "QUAY BÁNH XE"}
             </button>
           </>
         )}
