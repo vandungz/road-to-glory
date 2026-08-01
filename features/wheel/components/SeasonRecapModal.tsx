@@ -192,10 +192,10 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                   <Shield size={16} color="#266b3e" />
                   <div>
                     <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
-                      BẢNG XẾP HẠNG VÔ ĐỊCH QUỐC GIA
+                      {record.leagueName || "Giải VĐQG"}
                     </span>
                     <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>
-                      HẠNG #{record.standing ?? "—"}
+                      {record.standing === 1 ? "🏆 VÔ ĐỊCH" : `HẠNG #${record.standing ?? "—"}`}
                     </div>
                   </div>
                 </div>
@@ -272,7 +272,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                   <Trophy size={16} color="#D4960D" />
                   <div>
                     <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
-                      CÚP QUỐC GIA ({getDomesticCupName(record.leagueName)})
+                      {getDomesticCupName(record.leagueName, record.leagueId)}
                     </span>
                     <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--charcoal)" }}>
                       {record.domesticCup === "Winner" ? "🏆 VÔ ĐỊCH" : record.domesticCup === "Runner-Up" ? "Á QUÂN" : record.domesticCup === "Semi-Finals" ? "BÁN KẾT" : "VÒNG LOẠI"}
