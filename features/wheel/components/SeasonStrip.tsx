@@ -102,7 +102,8 @@ export function SeasonStrip({ careerSubStep, isUnemployed }: SeasonStripProps) {
                   display: "flex",
                   alignItems: "center",
                   gap: "6px",
-                  padding: "4px 10px",
+                  padding: "6px 12px",
+                  minHeight: "44px",
                   borderRadius: "3px",
                   border: isActive
                     ? "2px solid var(--charcoal)"

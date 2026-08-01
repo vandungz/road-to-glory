@@ -169,6 +169,9 @@ export function CareerActionsPanel({
               style={{
                 fontSize: "1.1rem",
                 padding: "12px 36px",
+                minHeight: "56px",
+                width: "100%",
+                maxWidth: "340px",
                 backgroundColor: isHighStakes ? "#D4960D" : "var(--coral)",
                 color: isHighStakes ? "#1f1a14" : "var(--white)",
                 opacity: (careerSpinning || isProcessing) ? 0.6 : 1,

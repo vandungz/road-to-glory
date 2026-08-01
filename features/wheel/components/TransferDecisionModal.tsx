@@ -257,16 +257,17 @@ export function TransferDecisionModal({
               </div>
 
               {/* ACTION STAMP BUTTONS */}
-              <div style={{ display: "flex", gap: "12px", marginTop: "6px" }}>
+              <div style={{ display: "flex", gap: "12px", marginTop: "6px", flexWrap: "wrap" }}>
                 <button
                   type="button"
                   disabled={isProcessing}
                   onClick={() => onAcceptOffer(activeOffer)}
                   className="btn-primary"
                   style={{
-                    flex: 2,
-                    fontSize: "1.05rem",
+                    flex: "2 1 200px",
+                    fontSize: "1rem",
                     padding: "12px",
+                    minHeight: "48px",
                     backgroundColor: "#266b3e",
                     color: "var(--white)",
                     boxShadow: "3px 3px 0 var(--charcoal)",
@@ -282,11 +283,12 @@ export function TransferDecisionModal({
                   disabled={isProcessing}
                   onClick={onRejectAll}
                   style={{
-                    flex: 1,
-                    fontSize: "0.9rem",
+                    flex: "1 1 120px",
+                    fontSize: "0.88rem",
                     fontWeight: 700,
                     fontFamily: "var(--font-headline)",
                     padding: "12px",
+                    minHeight: "48px",
                     backgroundColor: "var(--white)",
                     color: "var(--coral)",
                     border: "2px solid var(--charcoal)",

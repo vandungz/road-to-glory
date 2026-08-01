@@ -115,14 +115,16 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
         style={{
           borderBottom: "2px solid var(--charcoal)",
           backgroundColor: "var(--white)",
-          padding: "16px 20px",
+          padding: "12px 16px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "10px",
           boxShadow: "0 2px 0 rgba(0,0,0,0.05)",
         }}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
           <Link
             href={`/${gameId}`}
             style={{
@@ -140,6 +142,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
               backgroundColor: "var(--white)",
               boxShadow: "1.5px 1.5px 0 var(--charcoal)",
               transition: "transform 0.1s ease",
+              minHeight: "36px",
             }}
             onMouseDown={(e) => (e.currentTarget.style.transform = "translate(1.5px, 1.5px)")}
             onMouseUp={(e) => (e.currentTarget.style.transform = "translate(0, 0)")}
@@ -150,7 +153,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
             <h1
               style={{
                 fontFamily: "var(--font-headline)",
-                fontSize: "1.1rem",
+                fontSize: "1.05rem",
                 fontWeight: 900,
                 letterSpacing: "0.02em",
                 textTransform: "uppercase",
@@ -199,7 +202,7 @@ export function DraftDrumScreen({ gameId, slotIndex, position, leagues, clubs, s
       {mode === "career" && (
         <>
           <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
-          <main style={{ flex: 1, maxWidth: "1380px", width: "100%", margin: "0 auto", padding: "24px 16px" }}>
+          <main style={{ flex: 1, maxWidth: "1380px", width: "100%", margin: "0 auto", padding: "16px 12px" }}>
             <div style={{ display: "flex", flexDirection: "row", flexWrap: "wrap", gap: "20px", alignItems: "flex-start", justifyContent: "center" }}>
               
               {/* CỘT 1 (TRÁI): STORY RAIL (READ-ONLY TIMELINE) */}
