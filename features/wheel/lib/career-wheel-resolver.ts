@@ -67,6 +67,10 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       debutAge: ctx.playerDebutAge,
       careerLength: ctx.playerCareerLength,
       currentOvr: ctx.currentOvr,
+      seasonApps: ctx.yearSimResult?.apps ?? null,
+      seasonGoals: ctx.yearSimResult?.goals ?? null,
+      seasonAssists: ctx.yearSimResult?.assists ?? null,
+      seasonCleanSheets: ctx.yearSimResult?.cleanSheets ?? null,
     });
     const pool = [
       { value: "yes", weight: yesW },

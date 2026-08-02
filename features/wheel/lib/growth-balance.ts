@@ -77,8 +77,8 @@ const YES_FLOOR = 8;
 const YES_CEIL = 82;
 
 const DEVELOPMENT_BASE: Record<ProgressBand, Record<HeadroomBand, number>> = {
-  young: { low: 58, mid: 48, high: 28, elite: 12 },
-  mid: { low: 42, mid: 38, high: 30, elite: 14 },
+  young: { low: 68, mid: 58, high: 32, elite: 14 },
+  mid: { low: 48, mid: 42, high: 32, elite: 16 },
   old: { low: 18, mid: 16, high: 12, elite: 8 },
 };
 
@@ -106,6 +106,40 @@ export function getDevelopmentBaseYes(
   return DEVELOPMENT_BASE[progressBand][headroomBand];
 }
 
+/** Position-Specific KPI Bonus Multiplier (SoT §4.4.8). */
+export function getPositionKpiMultiplier(params: {
+  position: string;
+  apps?: number | null;
+  goals?: number | null;
+  assists?: number | null;
+  cleanSheets?: number | null;
+}): number {
+  const apps = params.apps ?? 0;
+  if (apps <= 0) return 1.0;
+
+  const pos = params.position.toUpperCase();
+  const goals = params.goals ?? 0;
+  const assists = params.assists ?? 0;
+  const cs = params.cleanSheets ?? 0;
+
+  const gPerApp = goals / apps;
+  const gaPerApp = (goals + assists) / apps;
+  const aPerApp = assists / apps;
+  const csRatio = cs / apps;
+
+  if (pos === "ST" && gPerApp >= 0.5) return 1.2;
+  if ((pos === "LW" || pos === "RW") && gaPerApp >= 0.4) return 1.18;
+  if (pos === "CAM" && aPerApp >= 0.35) return 1.18;
+  if ((pos === "LM" || pos === "RM") && gaPerApp >= 0.3) return 1.15;
+  if (pos === "CM") return 1.0;
+  if (pos === "CDM" && csRatio >= 0.35) return 1.15;
+  if ((pos === "LB" || pos === "RB") && (csRatio >= 0.3 || aPerApp >= 0.15)) return 1.15;
+  if (pos === "CB" && csRatio >= 0.35) return 1.2;
+  if (pos === "GK" && csRatio >= 0.4) return 1.25;
+
+  return 1.0;
+}
+
 /** Form is a modifier on base Yes — not the primary driver (SoT §4.4.4). */
 export function getFormMultiplier(rating: number): number {
   const tier = getGrowthTier(rating);
@@ -118,8 +152,7 @@ export function getFormMultiplier(rating: number): number {
 }
 
 /**
- * Increase Yes = DevelopmentBase(progress×headroom) × formMul, clamped, then soft-cap.
- * Do NOT also apply legacy age ±10 (would double-count young).
+ * Increase Yes = DevelopmentBase(progress×headroom) × formMul × kpiMul, clamped, then soft-cap.
  */
 export function getEffectiveIncreaseGate(params: {
   rating: number;
@@ -128,6 +161,10 @@ export function getEffectiveIncreaseGate(params: {
   debutAge: number;
   careerLength: number;
   currentOvr: number;
+  seasonApps?: number | null;
+  seasonGoals?: number | null;
+  seasonAssists?: number | null;
+  seasonCleanSheets?: number | null;
 }): { yes: number; no: number } {
   const { young, old } = getAgeProgressThresholds(params.position);
   const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
@@ -136,7 +173,15 @@ export function getEffectiveIncreaseGate(params: {
 
   const baseYes = getDevelopmentBaseYes(progressBand, headroomBand);
   const formMul = getFormMultiplier(params.rating);
-  const yesRaw = Math.max(YES_FLOOR, Math.min(YES_CEIL, Math.round(baseYes * formMul)));
+  const kpiMul = getPositionKpiMultiplier({
+    position: params.position,
+    apps: params.seasonApps,
+    goals: params.seasonGoals,
+    assists: params.seasonAssists,
+    cleanSheets: params.seasonCleanSheets,
+  });
+
+  const yesRaw = Math.max(YES_FLOOR, Math.min(YES_CEIL, Math.round(baseYes * formMul * kpiMul)));
 
   const softCap = getSoftCapFactor(params.currentOvr);
   return applySoftCapToGate(yesRaw, 100 - yesRaw, softCap);

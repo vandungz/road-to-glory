@@ -88,6 +88,10 @@ export function useCareerWheelItems({
         const { yes: yesW, no: noW } = getEffectiveIncreaseGate({
           rating, position, currentAge, debutAge: playerDebutAge,
           careerLength: playerCareerLength, currentOvr,
+          seasonApps: yearSimResult?.apps ?? null,
+          seasonGoals: yearSimResult?.goals ?? null,
+          seasonAssists: yearSimResult?.assists ?? null,
+          seasonCleanSheets: yearSimResult?.cleanSheets ?? null,
         });
         items = [
           { label: "TĂNG CHỈ SỐ (YES)", value: "yes", weight: yesW },

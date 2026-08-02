@@ -317,26 +317,26 @@ export function getCountPool(tier: GrowthTier, isIncrease: boolean): { value: nu
   }
 }
 
-// SoT §4.3 — increase domain 1–6 (weight mass on 1–3); decrease domain 1–3 only
+// SoT §4.3 & §4.4.8 — increase domain 1–6 (80–85% weight mass on 1–2 for normal seasons); decrease domain 1–3
 export function getMagnitudePool(
   tier: GrowthTier,
   isIncrease = true,
 ): { value: number; weight: number }[] {
   if (!isIncrease) {
     const decreaseByTier: Record<GrowthTier, number[]> = {
-      // After getMagnitudeTierForDirection mirror: xuat_sac = harshest drop, kem = gentlest
+      // After getMagnitudeTierForDirection mirror: xuat_sac = harshest drop, kem = gentlest (-1 point ~85%)
       xuat_sac:   [22, 38, 40],
       tot:        [35, 40, 25],
-      trung_binh: [50, 35, 15],
-      kem:        [65, 28, 7],
+      trung_binh: [60, 30, 10],
+      kem:        [85, 12, 3],
     };
     return decreaseByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
   }
   const weightsByTier: Record<GrowthTier, number[]> = {
-    xuat_sac:   [18, 28, 28, 16, 7, 3],
-    tot:        [30, 32, 24, 10, 3, 1],
-    trung_binh: [45, 32, 16, 5, 1, 1],
-    kem:        [60, 28, 9, 2, 1, 1],
+    xuat_sac:   [20, 35, 25, 12, 5, 3],
+    tot:        [40, 42, 12, 4, 1, 1],
+    trung_binh: [55, 35, 7, 2, 1, 0],
+    kem:        [70, 24, 4, 1, 1, 0],
   };
   return weightsByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
 }
