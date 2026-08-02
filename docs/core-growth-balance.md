@@ -361,7 +361,7 @@ Preview ≡ resolve bắt buộc (invariant).
 #### 4.4.8 Position-Specific KPI Bonus & Rebalance Gate ↔ Magnitude (Chốt 2026-08-02)
 
 > **Cập nhật tinh chỉnh trải nghiệm & công bằng theo vị trí**:
-> 1. **Nới Gate Yes (Wheel 1)**: Nâng `baseYes` ở band `young` + `low` từ 58% lên **68%** (và `young` + `mid` từ 48% lên **58%**). Người chơi có tần suất quay trúng TĂNG CHỈ SỐ cao hơn rõ rệt, giải tỏa cảm giác tù túng.
+> 1. **Nới Gate Yes Rất Rộng (Wheel 1)**: Nâng `baseYes` ở band `young` + `low` lên **80%**, `young` + `mid` lên **72%**, `mid` + `low` lên **70%**, `mid` + `mid` lên **62%**. Đưa `YES_CEIL` lên **90%**. Giúp người chơi đạt tỷ lệ YES 70–85% trong suốt giai đoạn đỉnh cao/phát triển sự nghiệp, hoàn toàn loại bỏ cảm giác tù túng.
 > 2. **Dồn van kiểm soát OVR về Wheel 5 (Magnitude)**: Trọng số của Magnitude ở các mùa bình thường/khá dồn 80–85% vào **+1 điểm** và **+2 điểm**. Tăng trưởng ổn định +1..+2 OVR/năm thay vì bộc phát spike.
 > 3. **Giảm nhẹ nhân văn**: Khi dính `dir_decrease` ở các mùa không phải thảm họa (Rating ≥ 6.5), Magnitude dồn 85% trọng số vào **-1 điểm** (chỉ trừ 1 điểm phụ).
 > 4. **Position KPI Bonus (10 Vị Trí Cụ Thể)**:

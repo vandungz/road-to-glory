@@ -19,11 +19,10 @@ import {
 
 export function getSoftCapFactor(ovr: number): number {
   if (ovr >= 99) return 0;
-  if (ovr >= 96) return 0.1;
-  if (ovr >= 93) return 0.22;
-  if (ovr >= 89) return 0.4;
-  if (ovr >= 85) return 0.65;
-  if (ovr >= 80) return 0.85;
+  if (ovr >= 96) return 0.15;
+  if (ovr >= 93) return 0.35;
+  if (ovr >= 89) return 0.6;
+  if (ovr >= 85) return 0.8;
   return 1;
 }
 
@@ -73,13 +72,13 @@ export function applySoftCapToIncreasePool(
 type ProgressBand = "young" | "mid" | "old";
 type HeadroomBand = "low" | "mid" | "high" | "elite";
 
-const YES_FLOOR = 8;
-const YES_CEIL = 82;
+const YES_FLOOR = 10;
+const YES_CEIL = 90;
 
 const DEVELOPMENT_BASE: Record<ProgressBand, Record<HeadroomBand, number>> = {
-  young: { low: 68, mid: 58, high: 32, elite: 14 },
-  mid: { low: 48, mid: 42, high: 32, elite: 16 },
-  old: { low: 18, mid: 16, high: 12, elite: 8 },
+  young: { low: 80, mid: 72, high: 55, elite: 28 },
+  mid: { low: 70, mid: 62, high: 45, elite: 22 },
+  old: { low: 35, mid: 28, high: 20, elite: 10 },
 };
 
 export function getProgressBand(
