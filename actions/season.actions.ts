@@ -107,6 +107,7 @@ const simulatePlayerSeasonSchema = z.object({
   leagueId: z.string(),
   hasContinentalCup: z.boolean(),
   playerNationality: z.string(),
+  currentStats: z.record(z.string(), z.number()).optional(),
   // Outcomes từ wheels — optional, truyền sau khi tất cả wheels xong
   standingResult: z.number().int().min(1).max(30).nullable().optional(),
   domesticCupResult: z.string().nullable().optional(),
@@ -358,6 +359,7 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     leagueClubsCount: clubsCount || 10,
     hasContinentalCup: validated.hasContinentalCup,
     playerNationality: validated.playerNationality,
+    currentStats: validated.currentStats,
     standingResult: validated.standingResult,
     domesticCupResult: validated.domesticCupResult,
     continentalCupResult: validated.continentalCupResult,

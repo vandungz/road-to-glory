@@ -872,3 +872,32 @@ Sau khi implement + chạy ≥ 30 careers thử (hoặc script Monte Carlo nếu
 | 2026-07-30 | **Chốt giấy §4.4 Development Score:** increase Yes = progress×headroom base × formMul × soft-cap; form không còn gần-100% input; cấm training/U scope; cấm nới count/mag; DoD cohort debut; supersede base-Yes-theo-tier-rating + age±10. |
 | 2026-07-30 | **Ship §4.4:** `getEffectiveIncreaseGate` trong `growth-balance.ts` — DevelopmentBase × FormMultiplier × clamp(8–82) × soft-cap; bỏ age±10 trên increase; preview≡resolve. |
 | 2026-07-30 | **§7.6 chốt + ship:** player↔club fit — `lib/club-fit.ts` apps recovery khi xuống CLB vừa tầm; decrease severity/gate nương khi `apps` thấp (không nới increase OP). |
+| 2026-08-02 | **Ship §4.4.8 & §7.7 & §7.8:** Rebalance Gate 1 YES (70–85%); Position KPI bonus; Ma trận 6 chỉ số thành phần toàn diện (`PAC`, `SHO`, `PAS`, `DRI`, `DEF`, `PHY` / `DIV`, `HAN`, `KIC`, `REF`, `SPD`, `POS`); Ràng buộc toán học bất biến `Player CS <= Team Won + Team Drawn`. |
+
+---
+
+## 13. Quyết định mới — Ma trận 6 chỉ số toàn diện (§7.7) & Ràng buộc toán học team (§7.8)
+
+### 7.7 Ma trận 6 chỉ số thành phần (Attribute-Based Stat Rates)
+
+Thay vì chỉ dùng một con số OVR phẳng để tính `getPerAppRates`, hệ thống tính toán **Effective Stat Rating ($R_{eff}$)** dựa trên cả 6 chỉ số thành phần:
+
+1. **Outfield Players**:
+   - `ST`: Goals = $0.45 SHO + 0.20 PAC + 0.15 PHY + 0.10 DRI + 0.05 PAS + 0.05 DEF$
+   - `LW / RW`: Goals = $0.35 SHO + 0.30 PAC + 0.20 DRI + 0.05 PAS + 0.05 PHY + 0.05 DEF$; Assists = $0.35 PAS + 0.30 DRI + 0.20 PAC + 0.05 SHO + 0.05 PHY + 0.05 DEF$
+   - `CAM`: Assists = $0.45 PAS + 0.25 DRI + 0.10 SHO + 0.10 PAC + 0.05 PHY + 0.05 DEF$
+   - `CM`: CS = $0.35 DEF + 0.30 PHY + 0.15 PAS + 0.10 PAC + 0.05 DRI + 0.05 SHO$
+   - `CDM`: CS = $0.45 DEF + 0.30 PHY + 0.10 PAS + 0.10 PAC + 0.03 DRI + 0.02 SHO$
+   - `LB / RB`: CS = $0.40 DEF + 0.30 PAC + 0.15 PHY + 0.10 PAS + 0.03 DRI + 0.02 SHO$; Assists = $0.40 PAS + 0.30 PAC + 0.15 DRI + 0.10 DEF + 0.03 PHY + 0.02 SHO$
+   - `CB`: CS = $0.50 DEF + 0.30 PHY + 0.10 PAC + 0.05 PAS + 0.03 DRI + 0.02 SHO$
+2. **Goalkeepers (`GK`)**:
+   - CS = $0.30 REF + 0.25 POS + 0.20 DIV + 0.15 HAN + 0.08 SPD + 0.02 KIC$
+   - Assists = $0.70 KIC + 0.20 POS + 0.10 SPD$
+
+### 7.8 Ràng buộc toán học thành tích đội bóng (Team Result Bounds Invariant)
+
+1. **Trần Clean Sheet**:
+   $$\text{Max Player CS} = \min\left(\text{Player Apps}, \text{Team Won} + \text{Team Drawn}\right)$$
+   - Đội bóng có $W$ trận thắng và $D$ trận hòa thì chỉ có tối đa $W + D$ trận giữ sạch lưới (các trận thua đều bị lọt lưới ≥ 1 bàn).
+   - Loại bỏ hoàn toàn mâu thuẫn ví dụ: Đội #29 chỉ có 4 PTS (0 Thắng, 4 Hòa, 54 Thua) nhưng cầu thủ lại có 14 CS.
+

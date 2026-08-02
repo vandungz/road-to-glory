@@ -130,7 +130,7 @@ export function useDraftDrum(
 
   const competitionFlow = useCompetitionFlow({
     currentAge, currentOvr, position, currentClub, currentContinentalCup,
-    playerNationality, playerDebutAge, hiddenStats,
+    playerNationality, playerDebutAge, hiddenStats, currentStats,
     standingResult, domesticCupResult, continentalCupResult,
     nationalCallupResult, yearSimResult,
     setStandingResult, setDomesticCupResult, setContinentalCupResult,

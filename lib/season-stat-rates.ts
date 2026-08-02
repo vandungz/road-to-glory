@@ -31,22 +31,93 @@ export interface PerAppRates {
   cleanSheets: number;
 }
 
+export function getEffectiveAttributeRating(
+  position: string,
+  metric: "goals" | "assists" | "cleanSheets",
+  currentStats: Record<string, number>,
+  defaultOvr: number
+): number {
+  const pos = position.toUpperCase();
+  const getVal = (k: string) => currentStats[k] ?? defaultOvr;
+
+  if (pos === "GK") {
+    const div = getVal("div");
+    const han = getVal("han");
+    const kic = getVal("kic");
+    const ref = getVal("ref");
+    const spd = getVal("spd");
+    const posGk = getVal("pos");
+
+    if (metric === "cleanSheets") {
+      return ref * 0.30 + posGk * 0.25 + div * 0.20 + han * 0.15 + spd * 0.08 + kic * 0.02;
+    }
+    if (metric === "assists") {
+      return kic * 0.70 + posGk * 0.20 + spd * 0.10;
+    }
+    return defaultOvr;
+  }
+
+  const pac = getVal("pac");
+  const sho = getVal("sho");
+  const pas = getVal("pas");
+  const dri = getVal("dri");
+  const def = getVal("def");
+  const phy = getVal("phy");
+
+  if (pos === "ST") {
+    if (metric === "goals") return sho * 0.45 + pac * 0.20 + phy * 0.15 + dri * 0.10 + pas * 0.05 + def * 0.05;
+    if (metric === "assists") return pas * 0.40 + dri * 0.25 + phy * 0.15 + pac * 0.10 + sho * 0.05 + def * 0.05;
+  } else if (pos === "LW" || pos === "RW") {
+    if (metric === "goals") return sho * 0.35 + pac * 0.30 + dri * 0.20 + pas * 0.05 + phy * 0.05 + def * 0.05;
+    if (metric === "assists") return pas * 0.35 + dri * 0.30 + pac * 0.20 + sho * 0.05 + phy * 0.05 + def * 0.05;
+  } else if (pos === "CAM") {
+    if (metric === "goals") return sho * 0.35 + pas * 0.25 + dri * 0.20 + pac * 0.10 + phy * 0.05 + def * 0.05;
+    if (metric === "assists") return pas * 0.45 + dri * 0.25 + sho * 0.10 + pac * 0.10 + phy * 0.05 + def * 0.05;
+  } else if (pos === "LM" || pos === "RM") {
+    if (metric === "goals") return sho * 0.30 + pac * 0.25 + dri * 0.20 + pas * 0.15 + phy * 0.05 + def * 0.05;
+    if (metric === "assists") return pas * 0.40 + pac * 0.25 + dri * 0.20 + sho * 0.05 + def * 0.05 + phy * 0.05;
+  } else if (pos === "CM") {
+    if (metric === "goals") return sho * 0.30 + pas * 0.25 + dri * 0.20 + phy * 0.15 + pac * 0.05 + def * 0.05;
+    if (metric === "assists") return pas * 0.45 + dri * 0.20 + sho * 0.15 + phy * 0.10 + pac * 0.05 + def * 0.05;
+    if (metric === "cleanSheets") return def * 0.35 + phy * 0.30 + pas * 0.15 + pac * 0.10 + dri * 0.05 + sho * 0.05;
+  } else if (pos === "CDM") {
+    if (metric === "goals") return sho * 0.35 + phy * 0.30 + pas * 0.15 + def * 0.10 + pac * 0.05 + dri * 0.05;
+    if (metric === "assists") return pas * 0.50 + def * 0.20 + dri * 0.15 + phy * 0.10 + pac * 0.03 + sho * 0.02;
+    if (metric === "cleanSheets") return def * 0.45 + phy * 0.30 + pas * 0.10 + pac * 0.10 + dri * 0.03 + sho * 0.02;
+  } else if (pos === "LB" || pos === "RB") {
+    if (metric === "goals") return sho * 0.35 + pac * 0.30 + dri * 0.15 + pas * 0.10 + phy * 0.05 + def * 0.05;
+    if (metric === "assists") return pas * 0.40 + pac * 0.30 + dri * 0.15 + def * 0.10 + phy * 0.03 + sho * 0.02;
+    if (metric === "cleanSheets") return def * 0.40 + pac * 0.30 + phy * 0.15 + pas * 0.10 + dri * 0.03 + sho * 0.02;
+  } else if (pos === "CB") {
+    if (metric === "goals") return phy * 0.50 + sho * 0.30 + def * 0.10 + pac * 0.05 + pas * 0.03 + dri * 0.02;
+    if (metric === "assists") return pas * 0.55 + phy * 0.25 + def * 0.10 + pac * 0.05 + dri * 0.03 + sho * 0.02;
+    if (metric === "cleanSheets") return def * 0.50 + phy * 0.30 + pac * 0.10 + pas * 0.05 + dri * 0.03 + sho * 0.02;
+  }
+
+  return defaultOvr;
+}
+
 /** Baseline rate bands at OVR~65 (low) and OVR~90 (high), then × competition factor. */
 export function getPerAppRates(
   position: string,
   ovr: number,
   context: CompContext,
+  currentStats?: Record<string, number>,
 ): PerAppRates {
-  const t = ovrT(ovr);
   const f = COMP_FACTOR[context];
   const pos = position.toUpperCase();
 
-  let gLow = 0;
-  let gHigh = 0;
-  let aLow = 0;
-  let aHigh = 0;
-  let csLow = 0;
-  let csHigh = 0;
+  const ovrG = currentStats ? getEffectiveAttributeRating(position, "goals", currentStats, ovr) : ovr;
+  const ovrA = currentStats ? getEffectiveAttributeRating(position, "assists", currentStats, ovr) : ovr;
+  const ovrCs = currentStats ? getEffectiveAttributeRating(position, "cleanSheets", currentStats, ovr) : ovr;
+
+  const tG = ovrT(ovrG);
+  const tA = ovrT(ovrA);
+  const tCs = ovrT(ovrCs);
+
+  let gLow = 0; let gHigh = 0;
+  let aLow = 0; let aHigh = 0;
+  let csLow = 0; let csHigh = 0;
 
   if (pos === "GK") {
     aLow = 0; aHigh = 0.02;
@@ -66,6 +137,7 @@ export function getPerAppRates(
   } else if (pos === "CM") {
     gLow = 0.05; gHigh = 0.12;
     aLow = 0.08; aHigh = 0.16;
+    csLow = 0.15; csHigh = 0.28;
   } else if (pos === "CAM") {
     gLow = 0.1; gHigh = 0.22;
     aLow = 0.12; aHigh = 0.24;
@@ -85,9 +157,9 @@ export function getPerAppRates(
 
   // Prestige-ish bump for CS is applied by caller via clubPrestige on rate_cs
   return {
-    goals: lerp(gLow, gHigh, t) * f,
-    assists: lerp(aLow, aHigh, t) * f,
-    cleanSheets: lerp(csLow, csHigh, t) * f,
+    goals: lerp(gLow, gHigh, tG) * f,
+    assists: lerp(aLow, aHigh, tA) * f,
+    cleanSheets: lerp(csLow, csHigh, tCs) * f,
   };
 }
 

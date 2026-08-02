@@ -27,6 +27,7 @@ export interface PlayerSeasonInput {
   leagueClubsCount: number;
   hasContinentalCup: boolean;
   playerNationality: string;
+  currentStats?: Record<string, number>;
   // Outcomes từ wheels — truyền vào sau khi tất cả wheels xong
   standingResult?: number | null;
   domesticCupResult?: string | null;
@@ -98,7 +99,7 @@ function getStandingBonus(standing: number | null | undefined): number {
   return -0.12;
 }
 
-// ── Goals/Assists/CleanSheets — apps × rate(position) (SoT §7.0) ────────────
+// ── Goals/Assists/CleanSheets — apps × rate(position) (SoT §7.0 & §7.7 & §7.8) ────────────
 
 function rollCompetitionOutput(
   position: string,
@@ -106,16 +107,18 @@ function rollCompetitionOutput(
   clubPrestige: number,
   apps: number,
   context: CompContext,
+  currentStats?: Record<string, number>,
+  maxTeamCleanSheets?: number,
 ): { goals: number; assists: number; cleanSheets: number } {
   if (apps <= 0) return { goals: 0, assists: 0, cleanSheets: 0 };
 
-  const rates = getPerAppRates(position, ovr, context);
+  const rates = getPerAppRates(position, ovr, context, currentStats);
   const rateCs = applyPrestigeToCsRate(rates.cleanSheets, clubPrestige);
   const noise = () => 1 + resolveRandomFloat(-0.2, 0.2);
 
   let goals = Math.round(apps * rates.goals * noise());
   let assists = Math.round(apps * rates.assists * noise());
-  let cleanSheets = ["GK", "CB", "LB", "RB", "CDM"].includes(position)
+  let cleanSheets = ["GK", "CB", "LB", "RB", "CDM", "CM"].includes(position)
     ? Math.round(apps * rateCs * noise())
     : 0;
 
@@ -123,6 +126,11 @@ function rollCompetitionOutput(
   if (position === "GK") {
     goals = 0;
     assists = resolveRandom() > 0.97 ? 1 : 0;
+  }
+
+  // Bound player CS by Team Result Invariant (SoT §7.8)
+  if (maxTeamCleanSheets !== undefined) {
+    cleanSheets = Math.min(cleanSheets, maxTeamCleanSheets);
   }
 
   return clampCompetitionStats(position, apps, goals, assists, cleanSheets);
@@ -295,7 +303,7 @@ function getRankWeights(rankScore: number): number[] {
 export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
   const {
     ovr, position, luckRating, clubPrestige, leagueClubsCount,
-    hasContinentalCup, playerNationality,
+    hasContinentalCup, playerNationality, currentStats,
     standingResult, domesticCupResult, continentalCupResult, continentalCupType,
     nationalCallupResult, nationalTournamentResult, nationalTournamentType,
   } = input;
@@ -308,6 +316,11 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const continentalMatches = hasContinentalCup ? getContinentalMatches(continentalCupResult) : 0;
   const nationalMatches = getNationalMatches(nationalCallupResult, nationalTournamentResult);
   const maxSeasonMatches = leagueMatches + cupMatches + continentalMatches + nationalMatches;
+
+  // Estimate max team clean sheets from standing result (SoT §7.8)
+  const maxLeagueTeamCS = standingResult != null && leagueClubsCount > 0
+    ? Math.max(1, Math.round(leagueMatches * (1 - (standingResult - 1) / Math.max(1, leagueClubsCount)) * 0.60))
+    : undefined;
 
   // 2. Apps ratio — player↔club fit (SoT §7.6) + standing
   const standingBonus = getStandingBonus(standingResult);
@@ -326,16 +339,16 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
 
   // 4. Per-competition goals/assists/CS (volume ∝ apps)
   const { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, leagueApps, "league",
+    position, ovr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS,
   );
   const { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, cupApps, "domestic_cup",
+    position, ovr, clubPrestige, cupApps, "domestic_cup", currentStats,
   );
   const { goals: ctGoals, assists: ctAssists, cleanSheets: contCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, continentalApps, "continental",
+    position, ovr, clubPrestige, continentalApps, "continental", currentStats,
   );
   const { goals: ntGoals, assists: ntAssists, cleanSheets: natCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, nationalApps, "national",
+    position, ovr, clubPrestige, nationalApps, "national", currentStats,
   );
 
   // 5. Match ratings per competition

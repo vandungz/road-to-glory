@@ -18,6 +18,7 @@ interface CompetitionFlowProps {
   playerNationality: string;
   playerDebutAge: number;
   hiddenStats: any;
+  currentStats: Record<string, number>;
   standingResult: number | null;
   domesticCupResult: string | null;
   continentalCupResult: string | null;
@@ -66,6 +67,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         leagueId: p.currentClub.leagueId,
         hasContinentalCup: p.currentContinentalCup !== "none",
         playerNationality: p.playerNationality,
+        currentStats: p.currentStats,
         standingResult: standing,
         domesticCupResult: domestic,
         continentalCupResult: continental,
