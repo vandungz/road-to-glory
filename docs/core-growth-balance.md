@@ -348,7 +348,7 @@ Ví dụ mid + mid OVR ~78, rating Tốt: `38 × 1.10 ≈ 42%` — phát triển
 
 Nới Yes debut **mà không** nới count/mag = đúng tinh thần: nhiều năm “có tăng nhẹ”, ít năm “nổ chỉ số”.
 
-#### 4.4.7 Map implement (khi code — không làm trong pass giấy tờ này)
+#### 4.4.7 Map implement
 
 | Việc | File gợi ý |
 |---|---|
@@ -357,6 +357,23 @@ Nới Yes debut **mà không** nới count/mag = đúng tinh thần: nhiều nă
 | Giữ decrease + soft-cap count/mag | không đụng trừ khi conflict |
 
 Preview ≡ resolve bắt buộc (invariant).
+
+#### 4.4.8 Position-Specific KPI Bonus & Rebalance Gate ↔ Magnitude (Chốt 2026-08-02)
+
+> **Cập nhật tinh chỉnh trải nghiệm & công bằng theo vị trí**:
+> 1. **Nới Gate Yes (Wheel 1)**: Nâng `baseYes` ở band `young` + `low` từ 58% lên **68%** (và `young` + `mid` từ 48% lên **58%**). Người chơi có tần suất quay trúng TĂNG CHỈ SỐ cao hơn rõ rệt, giải tỏa cảm giác tù túng.
+> 2. **Dồn van kiểm soát OVR về Wheel 5 (Magnitude)**: Trọng số của Magnitude ở các mùa bình thường/khá dồn 80–85% vào **+1 điểm** và **+2 điểm**. Tăng trưởng ổn định +1..+2 OVR/năm thay vì bộc phát spike.
+> 3. **Giảm nhẹ nhân văn**: Khi dính `dir_decrease` ở các mùa không phải thảm họa (Rating ≥ 6.5), Magnitude dồn 85% trọng số vào **-1 điểm** (chỉ trừ 1 điểm phụ).
+> 4. **Position KPI Bonus (10 Vị Trí Cụ Thể)**:
+>    - `ST`: Goals/app ≥ 0.50 → `formMul` × 1.20
+>    - `LW` / `RW`: (G+A)/app ≥ 0.40 → `formMul` × 1.18
+>    - `CAM`: Assists/app ≥ 0.35 → `formMul` × 1.18
+>    - `LM` / `RM`: (G+A)/app ≥ 0.30 → `formMul` × 1.15
+>    - `CM`: Rating ≥ 7.10 → `formMul` × 1.12
+>    - `CDM`: Clean Sheet ratio ≥ 35% → `formMul` × 1.15
+>    - `LB` / `RB`: Clean Sheet ratio ≥ 30% OR A/app ≥ 0.15 → `formMul` × 1.15
+>    - `CB`: Clean Sheet ratio ≥ 35% → `formMul` × 1.20
+>    - `GK`: Clean Sheet ratio ≥ 40% → `formMul` × 1.25
 
 ### 4.5 Growth boost lúc “trẻ” (count / magnitude — giữ)
 
