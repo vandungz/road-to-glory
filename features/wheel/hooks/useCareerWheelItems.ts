@@ -179,27 +179,32 @@ export function useCareerWheelItems({
         break;
       }
       case "domestic_cup": {
-        const { wWin, wRun, wSemi, wExit } = getDomesticCupWeights(
+        const { wWin, wRun, wSemi, wQF, wR16, wR32, wExit } = getDomesticCupWeights(
           prestige, luckRating, currentOvr, influence,
         );
         items = [
-          { label: "Vô Địch Cup", value: "Winner", weight: wWin },
-          { label: "Á Quân Cup", value: "Runner-Up", weight: wRun },
-          { label: "Vào Bán Kết", value: "Semi-Finals", weight: wSemi },
-          { label: "Bị Loại Sớm", value: "Early Exit", weight: wExit },
+          { label: "🏆 VÔ ĐỊCH CUP", value: "Winner", weight: wWin },
+          { label: "🥈 Á QUÂN CUP", value: "Runner-Up", weight: wRun },
+          { label: "🥉 BÁN KẾT", value: "Semi-Finals", weight: wSemi },
+          { label: "⚡ TỨ KẾT", value: "Quarter-Finals", weight: wQF },
+          { label: "🛡️ VÒNG 1/8", value: "Round of 16", weight: wR16 },
+          { label: "⚽ VÒNG 1/16", value: "Round of 32", weight: wR32 },
+          { label: "❌ BỊ LOẠI SỚM", value: "Early Exit", weight: wExit },
         ];
         break;
       }
       case "continental_cup": {
         const nameLabel = getContinentalCupLabel(currentContinentalCup);
-        const { wWin, wRun, wSemi, wGroup } = getContinentalCupWeights(
+        const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getContinentalCupWeights(
           prestige, luckRating, currentOvr, influence,
         );
         items = [
-          { label: `Vô Địch ${nameLabel}`, value: "Winner", weight: wWin },
-          { label: `Á Quân ${nameLabel}`, value: "Runner-Up", weight: wRun },
-          { label: `Bán Kết ${nameLabel}`, value: "Semi-Finals", weight: wSemi },
-          { label: `Vòng Bảng ${nameLabel}`, value: "Group Stage", weight: wGroup },
+          { label: `🏆 VÔ ĐỊCH ${nameLabel}`, value: "Winner", weight: wWin },
+          { label: `🥈 Á QUÂN ${nameLabel}`, value: "Runner-Up", weight: wRun },
+          { label: `🥉 BÁN KẾT`, value: "Semi-Finals", weight: wSemi },
+          { label: `⚡ TỨ KẾT`, value: "Quarter-Finals", weight: wQF },
+          { label: `🛡️ VÒNG 1/8`, value: "Round of 16", weight: wR16 },
+          { label: `❌ VÒNG BẢNG`, value: "Group Stage", weight: wGroup },
         ];
         break;
       }
@@ -244,14 +249,16 @@ export function useCareerWheelItems({
         );
         const nationTier = getNationalTier(playerNationality);
         const midOvr = nationTier === 1 ? 80 : nationTier === 2 ? 75 : 70;
-        const { wWin, wRun, wSemi, wGroup } = getNationalTournamentWeights(
+        const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getNationalTournamentWeights(
           currentOvr, luckRating, midOvr, influence,
         );
         items = [
-          { label: `Vô Địch ${tourneyName} 🏆`, value: "Winner", weight: wWin },
-          { label: `Á Quân ${tourneyName}`, value: "Runner-Up", weight: wRun },
-          { label: `Bán Kết ${tourneyName}`, value: "Semi-Finals", weight: wSemi },
-          { label: `Vòng Bảng ${tourneyName}`, value: "Group Stage", weight: wGroup },
+          { label: `🏆 VÔ ĐỊCH ${tourneyName}`, value: "Winner", weight: wWin },
+          { label: `🥈 Á QUÂN ${tourneyName}`, value: "Runner-Up", weight: wRun },
+          { label: `🥉 BÁN KẾT`, value: "Semi-Finals", weight: wSemi },
+          { label: `⚡ TỨ KẾT`, value: "Quarter-Finals", weight: wQF },
+          { label: `🛡️ VÒNG 1/8`, value: "Round of 16", weight: wR16 },
+          { label: `❌ VÒNG BẢNG`, value: "Group Stage", weight: wGroup },
         ];
         break;
       }

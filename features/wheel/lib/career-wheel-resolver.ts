@@ -178,34 +178,50 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   }
   else if (subStep === "domestic_cup") {
     const luck = ctx.hiddenStats?.luckRating ?? 10;
-    const { wWin, wRun, wSemi, wExit } = getDomesticCupWeights(
+    const { wWin, wRun, wSemi, wQF, wR16, wR32, wExit } = getDomesticCupWeights(
       prestige, luck, ctx.currentOvr, influence,
     );
     const pool = [
       { value: "Winner", weight: wWin },
       { value: "Runner-Up", weight: wRun },
       { value: "Semi-Finals", weight: wSemi },
+      { value: "Quarter-Finals", weight: wQF },
+      { value: "Round of 16", weight: wR16 },
+      { value: "Round of 32", weight: wR32 },
       { value: "Early Exit", weight: wExit },
     ];
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
-    tempValue = result === "Winner" ? "Vô Địch Cup 🏆" : result === "Runner-Up" ? "Á Quân Cup" : result === "Semi-Finals" ? "Bán Kết" : "Bị Loại Sớm";
+    tempValue =
+      result === "Winner" ? "🏆 VÔ ĐỊCH CUP!" :
+      result === "Runner-Up" ? "🥈 Á QUÂN CUP" :
+      result === "Semi-Finals" ? "🥉 BÁN KẾT" :
+      result === "Quarter-Finals" ? "⚡ TỨ KẾT" :
+      result === "Round of 16" ? "🛡️ VÒNG 1/8" :
+      result === "Round of 32" ? "⚽ VÒNG 1/16" : "❌ BỊ LOẠI SỚM";
   }
   else if (subStep === "continental_cup") {
     const luck = ctx.hiddenStats?.luckRating ?? 10;
-    const { wWin, wRun, wSemi, wGroup } = getContinentalCupWeights(
+    const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getContinentalCupWeights(
       prestige, luck, ctx.currentOvr, influence,
     );
     const pool = [
       { value: "Winner", weight: wWin },
       { value: "Runner-Up", weight: wRun },
       { value: "Semi-Finals", weight: wSemi },
+      { value: "Quarter-Finals", weight: wQF },
+      { value: "Round of 16", weight: wR16 },
       { value: "Group Stage", weight: wGroup },
     ];
     result = resolveWeightedOutcome(pool);
     idx = pool.findIndex((x) => x.value === result);
     const cupLabel = getContinentalCupLabel(ctx.currentContinentalCup);
-    tempValue = result === "Winner" ? `Vô Địch ${cupLabel} 🏆` : result === "Runner-Up" ? `Á Quân ${cupLabel}` : result === "Semi-Finals" ? `Bán Kết ${cupLabel}` : `Vòng Bảng ${cupLabel}`;
+    tempValue =
+      result === "Winner" ? `🏆 VÔ ĐỊCH ${cupLabel}!` :
+      result === "Runner-Up" ? `🥈 Á QUÂN ${cupLabel}` :
+      result === "Semi-Finals" ? `🥉 BÁN KẾT ${cupLabel}` :
+      result === "Quarter-Finals" ? `⚡ TỨ KẾT ${cupLabel}` :
+      result === "Round of 16" ? `🛡️ VÒNG 1/8 ${cupLabel}` : `❌ VÒNG BẢNG ${cupLabel}`;
   }
   else if (subStep === "national_callup") {
     const tier = getNationalTier(ctx.playerNationality);
@@ -225,13 +241,15 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     const luck = ctx.hiddenStats?.luckRating ?? 10;
     const nationTier = getNationalTier(ctx.playerNationality);
     const midOvr = nationTier === 1 ? 80 : nationTier === 2 ? 75 : 70;
-    const { wWin, wRun, wSemi, wGroup } = getNationalTournamentWeights(
+    const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getNationalTournamentWeights(
       ctx.currentOvr, luck, midOvr, influence,
     );
     const pool = [
       { value: "Winner", weight: wWin },
       { value: "Runner-Up", weight: wRun },
       { value: "Semi-Finals", weight: wSemi },
+      { value: "Quarter-Finals", weight: wQF },
+      { value: "Round of 16", weight: wR16 },
       { value: "Group Stage", weight: wGroup },
     ];
     result = resolveWeightedOutcome(pool);
@@ -239,7 +257,12 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     const tourney = getNationalTournamentName(
       ctx.playerNationality, ctx.currentAge, ctx.playerDebutAge, getNationalContinentalCup,
     );
-    tempValue = result === "Winner" ? `VÔ ĐỊCH ${tourney}! 🏆` : result === "Runner-Up" ? `Á Quân ${tourney}` : result === "Semi-Finals" ? `Bán Kết ${tourney}` : `Vòng Bảng ${tourney}`;
+    tempValue =
+      result === "Winner" ? `🏆 VÔ ĐỊCH ${tourney}!` :
+      result === "Runner-Up" ? `🥈 Á QUÂN ${tourney}` :
+      result === "Semi-Finals" ? `🥉 BÁN KẾT ${tourney}` :
+      result === "Quarter-Finals" ? `⚡ TỨ KẾT ${tourney}` :
+      result === "Round of 16" ? `🛡️ VÒNG 1/8 ${tourney}` : `❌ VÒNG BẢNG ${tourney}`;
   }
   else if (subStep === "ballon_dor_nomination") {
     const w = ctx.ballonDorNominationWeight;

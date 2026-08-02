@@ -144,13 +144,16 @@ export function getDomesticCupWeights(
 ) {
   const luck = Math.floor(luckRating / 4);
   const diff = ovr - getClubThreshold(prestige);
-  // ~0.5× standing pull intensity; clamp so prestige-1 clubs stay cup underdogs
   const pull = Math.round(Math.max(-10, Math.min(10, diff * 0.75 * influenceProxy)));
+
   return {
-    wWin: Math.max(1, 5 + prestige * 3 + luck + Math.max(0, pull)),
-    wRun: Math.max(1, 8 + prestige * 3 + Math.max(0, Math.round(pull * 0.6))),
-    wSemi: Math.max(1, 15 + prestige * 2 + Math.round(pull * 0.25)),
-    wExit: Math.max(8, 72 - prestige * 8 - pull),
+    wWin: Math.max(1, 4 + prestige * 2 + luck + Math.max(0, pull)),
+    wRun: Math.max(1, 6 + prestige * 2 + Math.max(0, Math.round(pull * 0.6))),
+    wSemi: Math.max(2, 10 + prestige * 2 + Math.round(pull * 0.4)),
+    wQF: Math.max(5, 15 + prestige * 2 + Math.round(pull * 0.2)),
+    wR16: Math.max(8, 20 + prestige * 1),
+    wR32: Math.max(10, 22 - prestige * 2 - Math.round(pull * 0.3)),
+    wExit: Math.max(10, 35 - prestige * 5 - pull),
   };
 }
 
@@ -161,14 +164,16 @@ export function getContinentalCupWeights(
   influenceProxy: number,
 ) {
   const luck = Math.floor(luckRating / 4);
-  // Harder reference than domestic (+4 OVR)
   const diff = ovr - (getClubThreshold(prestige) + 4);
   const pull = Math.round(Math.max(-8, Math.min(8, diff * 0.55 * influenceProxy)));
+
   return {
-    wWin: Math.max(1, 3 + prestige * 3 + luck + Math.max(0, pull)),
-    wRun: Math.max(1, 7 + prestige * 2 + Math.max(0, Math.round(pull * 0.5))),
-    wSemi: Math.max(1, 15 + prestige * 2 + Math.round(pull * 0.2)),
-    wGroup: Math.max(8, 75 - prestige * 7 - pull),
+    wWin: Math.max(1, 2 + prestige * 2 + luck + Math.max(0, pull)),
+    wRun: Math.max(1, 5 + prestige * 2 + Math.max(0, Math.round(pull * 0.5))),
+    wSemi: Math.max(2, 10 + prestige * 2 + Math.round(pull * 0.3)),
+    wQF: Math.max(5, 16 + prestige * 2 + Math.round(pull * 0.2)),
+    wR16: Math.max(8, 22 + prestige * 1),
+    wGroup: Math.max(12, 45 - prestige * 6 - pull),
   };
 }
 
@@ -181,11 +186,14 @@ export function getNationalTournamentWeights(
   const luck = Math.floor(luckRating / 4);
   const diff = ovr - midOvr;
   const pull = Math.round(Math.max(-10, Math.min(14, diff * 0.4 * influenceProxy)));
+
   return {
-    wWin: Math.max(1, 3 + luck + Math.max(0, pull)),
-    wRun: Math.max(1, 7 + Math.max(0, Math.round(pull * 0.7))),
-    wSemi: Math.max(5, 20 + Math.round(pull * 0.25)),
-    wGroup: Math.max(10, 70 - pull * 2),
+    wWin: Math.max(1, 2 + luck + Math.max(0, pull)),
+    wRun: Math.max(1, 5 + Math.max(0, Math.round(pull * 0.6))),
+    wSemi: Math.max(3, 10 + Math.round(pull * 0.4)),
+    wQF: Math.max(6, 18 + Math.round(pull * 0.3)),
+    wR16: Math.max(10, 25 + Math.round(pull * 0.1)),
+    wGroup: Math.max(12, 40 - pull * 1.5),
   };
 }
 

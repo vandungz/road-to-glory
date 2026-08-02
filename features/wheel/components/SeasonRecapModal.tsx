@@ -14,6 +14,19 @@ interface Props {
   onClose: () => void;
 }
 
+function formatCupResultLabel(res: string | null | undefined): string {
+  if (!res) return "Tham gia";
+  if (res === "Winner") return "🏆 VÔ ĐỊCH";
+  if (res === "Runner-Up") return "🥈 Á QUÂN";
+  if (res === "Semi-Finals") return "🥉 BÁN KẾT";
+  if (res === "Quarter-Finals") return "⚡ TỨ KẾT";
+  if (res === "Round of 16") return "🛡️ VÒNG 1/8";
+  if (res === "Round of 32") return "⚽ VÒNG 1/16";
+  if (res === "Early Exit") return "❌ VÒNG LOẠI SỚM";
+  if (res === "Group Stage") return "❌ VÒNG BẢNG";
+  return res;
+}
+
 function MiniStatsBadge({ stats }: { stats?: CompetitionStats }) {
   if (!stats || stats.apps === 0) return <span style={{ color: "var(--ink-light)", fontSize: "0.7rem" }}>—</span>;
   return (
@@ -275,7 +288,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                       {getDomesticCupName(record.leagueName, record.leagueId)}
                     </span>
                     <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--charcoal)" }}>
-                      {record.domesticCup === "Winner" ? "🏆 VÔ ĐỊCH" : record.domesticCup === "Runner-Up" ? "Á QUÂN" : record.domesticCup === "Semi-Finals" ? "BÁN KẾT" : "VÒNG LOẠI"}
+                      {formatCupResultLabel(record.domesticCup)}
                     </div>
                   </div>
                 </div>
@@ -326,7 +339,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                         {getContinentalCupLabel(currentContinentalCup)}
                       </span>
                       <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#3B82F6" }}>
-                        {record.continentalCup?.result === "Winner" ? "🏆 VÔ ĐỊCH" : record.continentalCup?.result ?? "Tham gia"}
+                        {formatCupResultLabel(record.continentalCup?.result)}
                       </div>
                     </div>
                   </div>
@@ -378,7 +391,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                         {record.nationalTeam.type ?? "ĐỘI TUYỂN QUỐC GIA"}
                       </span>
                       <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>
-                        {record.nationalTeam.result === "Winner" ? "🏆 VÔ ĐỊCH QUỐC TẾ" : record.nationalTeam.result ?? record.nationalTeam.callup}
+                        {formatCupResultLabel(record.nationalTeam.result)}
                       </div>
                     </div>
                   </div>

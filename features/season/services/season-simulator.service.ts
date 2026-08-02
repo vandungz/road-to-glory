@@ -65,15 +65,19 @@ export interface SimulatedSeasonResult {
 
 function getCupMatches(result: string | null | undefined): number {
   if (result === "Winner" || result === "Runner-Up") return 6;
-  if (result === "Semi-Finals") return 4;
-  if (result === "Early Exit") return 2;
+  if (result === "Semi-Finals") return 5;
+  if (result === "Quarter-Finals") return 4;
+  if (result === "Round of 16") return 3;
+  if (result === "Round of 32") return 2;
+  if (result === "Early Exit") return 1;
   return 2; // fallback
 }
 
 function getContinentalMatches(result: string | null | undefined): number {
-  if (result === "Winner") return 13;
-  if (result === "Runner-Up") return 12;
+  if (result === "Winner" || result === "Runner-Up") return 13;
   if (result === "Semi-Finals") return 10;
+  if (result === "Quarter-Finals") return 8;
+  if (result === "Round of 16") return 8;
   if (result === "Group Stage" || result === "Early Exit") return 6;
   return 6; // fallback
 }
@@ -84,7 +88,10 @@ function getNationalMatches(
 ): number {
   if (callup !== "called_up") return 0;
   if (result === "Winner" || result === "Runner-Up") return 7;
-  if (result === "Semi-Finals") return 5;
+  if (result === "Semi-Finals") return 6;
+  if (result === "Quarter-Finals") return 5;
+  if (result === "Round of 16") return 4;
+  if (result === "Group Stage") return 3;
   return 3;
 }
 

@@ -894,10 +894,22 @@ Thay vì chỉ dùng một con số OVR phẳng để tính `getPerAppRates`, h�
    - CS = $0.30 REF + 0.25 POS + 0.20 DIV + 0.15 HAN + 0.08 SPD + 0.02 KIC$
    - Assists = $0.70 KIC + 0.20 POS + 0.10 SPD$
 
-### 7.8 Ràng buộc toán học thành tích đội bóng (Team Result Bounds Invariant)
+### 7.9 Cấu trúc các vòng đấu Cup thực tế (Cup Realism & Knockout Round Structure)
 
-1. **Trần Clean Sheet**:
-   $$\text{Max Player CS} = \min\left(\text{Player Apps}, \text{Team Won} + \text{Team Drawn}\right)$$
-   - Đội bóng có $W$ trận thắng và $D$ trận hòa thì chỉ có tối đa $W + D$ trận giữ sạch lưới (các trận thua đều bị lọt lưới ≥ 1 bàn).
-   - Loại bỏ hoàn toàn mâu thuẫn ví dụ: Đội #29 chỉ có 4 PTS (0 Thắng, 4 Hòa, 54 Thua) nhưng cầu thủ lại có 14 CS.
+Mở rộng kết quả quay Wheel và tính toán số trận (Match counts & Apps) ở các giải đấu Cup & ĐTQG theo đúng cấu trúc Knockout thực tế ngoài đời thực:
+
+1. **Các vòng đấu trong Wheel & Outcome**:
+   - `Winner` (Vô Địch)
+   - `Runner-Up` (Á Quân)
+   - `Semi-Finals` (Bán Kết)
+   - `Quarter-Finals` (Tứ Kết)
+   - `Round of 16` (Vòng 1/8)
+   - `Round of 32` (Vòng 1/16)
+   - `Early Exit` / `Group Stage` (Vòng 1/32 hoặc Vòng Bảng)
+
+2. **Quy đổi số trận tối đa theo vòng dừng chân (Deterministic Match Counts)**:
+   - **Domestic Cup**: Winner/Runner-Up = 6 trận; Semi-Finals = 5; Quarter-Finals = 4; Round of 16 = 3; Round of 32 = 2; Early Exit = 1 trận.
+   - **Continental Cup (UCL/Libertadores)**: Winner/Runner-Up = 13 trận; Semi-Finals = 10; Quarter-Finals = 8; Round of 16 = 8; Group Stage = 6 trận.
+   - **National Tournament (World Cup/Continental)**: Winner/Runner-Up = 7 trận; Semi-Finals = 6; Quarter-Finals = 5; Round of 16 = 4; Group Stage = 3 trận.
+
 
