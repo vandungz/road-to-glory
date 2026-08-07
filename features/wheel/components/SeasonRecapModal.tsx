@@ -98,7 +98,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
                 textTransform: "uppercase",
               }}
             >
-              SEASON RECAP · MÙA GIẢI {seasonYearStr} (TUỔI {record.age})
+              TỔNG KẾT MÙA GIẢI {seasonYearStr} (TUỔI {record.age})
             </span>
             <h2
               style={{

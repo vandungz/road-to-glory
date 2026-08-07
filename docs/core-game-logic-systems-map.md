@@ -101,29 +101,32 @@ retired peak — đều đọc state đã được wheel/sim ghi.
 
 ### 3.2 Standing — player ↔ club
 
-- Baseline prestige + quán tính 30% + pull `ovr − (55+prestige×6)` × `influenceFactor`.
-- **Đánh giá:** model đúng real-world (đã xác nhận với product).
-- **Bug runtime:** `apps` mùa này chưa có → fallback 38 → `influenceFactor≈0.69` cố định.
+- Baseline prestige + quán tính 30% + pull `effPositionOvr − (55+prestige×6)` × `influenceFactor`.
+- **Standing được phép dùng `currentOvr` hoặc `effPositionOvr`** (cả hai acceptable per §7.10) — standing là tác động team tổng, position kém quan trọng hơn.
+- **Bug runtime:** `apps` mùa này chưa có → fallback 38 → `influenceFactor≈0.69` cố định. Fix: dùng `estimateAppsRatio(effPositionOvr, prestige)` làm proxy.
 - **Output core:** `standingResult` → apps bonus, league rating bonus, continental ticket năm sau, Ballon trophy score, table generation.
 
 ### 3.3 Domestic / Continental cup
 
-- Weights hiện: prestige + luck — **thiếu player term** (P11 / balance §7.5).
+- Weights: prestige + luck + **`effPositionOvr − threshold` × influenceProxy** (P11 / §7.5.3).
+- `effPositionOvr` từ ma trận §12.1 — không phải OVR phẳng.
 - Outcome → số trận cup/continental → apps → G/A → rating → growth + trophies.
 - **Không phải cosmetic:** deep run đổi cả mùa cá nhân.
 
-### 3.4 National call-up / tournament
+### 3.4 National call-up / tournament (cập nhật 2026-08-03)
 
-- Call-up: OVR vs tier mid — OK; nhánh `matchRating` **chết** (sim chưa chạy).
-- Tournament: OVR + luck mỏng — cần thống nhất P11.
+- **Call-up:** dùng `effPositionOvr` (§12.1) vs `midOvr` **của pool cùng position** trong tier ĐTQG. CB không cạnh tranh slot ST; GK có pool riêng.
+- Nhiều tiềm năng: CDM với DEF 90 được chọn làm CDM ĐTQG dù OVR tổng 76, thay vì bị khuất phục bởi CM OVR 80 nhưng DEF 52.
+- Nhánh `matchRating` **chết** (sim chưa chạy) → dùng proxy OVR / standing truớc sim.
+- **Tournament:** `effPositionOvr` + luck — cầu thủ chuyên biệt kéo DTQG xa hơn; clamp tier 3 không thành WC favorite.
 - Outcome → national apps/G/A/rating + trophies + Ballon.
 
-### 3.5 BE season sim
+### 3.5 BE season sim (cập nhật 2026-08-03)
 
-- Apps: OVR vs `clubThreshold`, prestige depth, standing bonus.
-- G/A: **bug volume** — season-range × `playFactor` per competition (balance §2.6 / 7.0).
-- Rating: OVR term + G/A|CS per app × hệ số lớn + standing.
-- Ballon eligibility: OVR, rating, G, trophies, position modifier.
+- **Apps:** `effPositionOvr` (§12.1) vs `clubThreshold`, prestige depth, standing bonus. CLB tuyển theo vị trí cụ thể.
+- **G/A/CS:** Attribute bundle §7.7 — mỗi metric dùng `R_eff` riêng (Goals = SHO-heavy, Assists = PAS-heavy, CS = DEF/REF-heavy). Không dùng OVR phẳng.
+- **Rating:** `effPositionOvr` term — CB với DEF 88 có base rating cao hơn tại vị trí, dù OVR tổng thấp hơn ST cùng CLB.
+- **Ballon eligibility:** `currentOvr` ≥ 88 gate + rating + G + trophies + position modifier.
 - **Mọi output đều core** — UI chỉ mirror.
 
 ### 3.6 Growth wheels
@@ -134,14 +137,14 @@ retired peak — đều đọc state đã được wheel/sim ghi.
 - `evolvePlayerStats` clamp 10–99, OVR derive BE.
 - **Driver chính của peak 99** khi rating dễ Tốt/Xuất sắc.
 
-### 3.7 Transfer
+### 3.7 Transfer (cập nhật 2026-08-03)
 
-- Chance từ rating + OVR vs expected prestige CLB hiện tại.
+- Accept chance: `effPositionOvr` (§12.1) vs expected prestige CLB đích.
+- Scout Interest Score: `effPositionOvr` + position-specific stats mua giai (goals/assists/CS đúng role).
+- Proactive renewal: `effPositionOvr` vs CLB current threshold.
 - Accept → `setClubAndContinental` (invariant cup theo CLB).
 - Đổi môi trường → đổi threshold/apps/standing pull mùa sau — **core**.
-- **Nâng cấp đang bàn:** market browse + **soft contract + fee/wage** clamp theo
-  buying power (prestige × league tier) — [`core-transfer-design.md`](./core-transfer-design.md)
-  (chưa SoT số cuối / chưa code). Wage/fee **không** buff OVR/apps.
+- Xem `core-transfer-design.md §12` cho đầy đủ scope `effPositionOvr` trong transfer.
 
 ### 3.8 Continental qualification / next season
 

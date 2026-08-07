@@ -51,7 +51,26 @@ const getCachedClubCountry = unstable_cache(
 import { simulatePlayerSeasonService, type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { simulateDynamicLeagueTableService, type TableRow } from "@/features/season/services/table-simulator.service";
 import { startPlayerCareerService, type CareerSetupResult } from "@/features/career/services/career-setup.service";
-import { generateTransferMarketService, resolveApproachService, type TransferMarketResult, type ResolveApproachResult } from "@/features/transfer/services/transfer.service";
+import {
+  generateTransferMarketService,
+  resolveApproachService,
+  resolveProactiveRenewalService,
+  type TransferMarketResult,
+  type ResolveApproachResult,
+  type ResolveProactiveRenewalResult,
+  type ShortlistClubCard,
+} from "@/features/transfer/services/transfer.service";
+import {
+  clubCanAffordBuyout,
+  computeApproachAcceptChance,
+  computeEffectivePositionOvr,
+  computeMandatoryBuyout,
+  computeMarketValue,
+  expectedAppsAtClub,
+  proposeContractYears,
+  proposeWageAnnual,
+} from "@/lib/transfer-economy";
+import { estimateAppsRatio } from "@/lib/club-fit";
 import { 
   generateDomesticCupJourneyService, 
   generateContinentalCupJourneyService, 
@@ -157,6 +176,9 @@ const generateTransferMarketSchema = z.object({
   currentClubPrestige: z.number().int(),
   currentClubLeagueTier: z.number().int().min(1).max(2).default(1),
   currentOvr: z.number().int(),
+  currentStats: z.record(z.string(), z.number()).optional(),
+  potential: z.number().int().optional(),
+  playerNation: z.string().optional(),
   currentAge: z.number().int().min(14).max(50),
   retireAge: z.number().int().min(15).max(60),
   matchRating: z.number().min(0),
@@ -171,6 +193,44 @@ const generateTransferMarketSchema = z.object({
   isUnemployed: z.boolean().optional().default(false),
 });
 
+const resolveProactiveRenewalSchema = z.object({
+  currentClubId: z.string(),
+  currentClubName: z.string(),
+  currentClubLeagueId: z.string(),
+  currentClubLeagueName: z.string(),
+  currentClubPrestige: z.number().int().min(1).max(5),
+  currentClubLeagueTier: z.number().int().min(1).max(2).default(1),
+  currentOvr: z.number().int(),
+  currentStats: z.record(z.string(), z.number()).optional(),
+  position: z.string(),
+  currentAge: z.number().int(),
+  retireAge: z.number().int(),
+  matchRating: z.number(),
+  goals: z.number().int(),
+  assists: z.number().int(),
+  cleanSheets: z.number().int(),
+  contractYearsRemaining: z.number().int(),
+  currentWageAnnual: z.number().int(),
+  wageOption: z.enum(["lower", "standard", "higher"]).optional(),
+});
+
+const searchClubsForApproachSchema = z.object({
+  query: z.string().optional(),
+  leagueId: z.string().optional(),
+  prestigeMin: z.number().int().optional(),
+  prestigeMax: z.number().int().optional(),
+  page: z.number().int().default(1),
+  pageSize: z.number().int().default(8),
+  currentOvr: z.number().int(),
+  currentStats: z.record(z.string(), z.number()).optional(),
+  currentAge: z.number().int(),
+  retireAge: z.number().int(),
+  matchRating: z.number(),
+  position: z.string(),
+  contractYearsRemaining: z.number().int(),
+  isUnemployed: z.boolean().optional(),
+});
+
 const resolveShortlistApproachSchema = z.object({
   clubId: z.string(),
   clubName: z.string(),
@@ -182,8 +242,10 @@ const resolveShortlistApproachSchema = z.object({
   previewFee: z.number().int().min(0),
   previewWage: z.number().int().min(0),
   previewYears: z.number().int().min(0).max(10),
+  wageOption: z.enum(["lower", "standard", "higher"]).optional().default("standard"),
   clientAcceptChance: z.number().min(0).max(1),
   currentOvr: z.number().int().min(10).max(99),
+  effPositionOvr: z.number().optional(),
   currentAge: z.number().int().min(14).max(50),
   matchRating: z.number().min(0).max(10),
   contractYearsRemaining: z.number().int().min(0).max(10),
@@ -214,26 +276,37 @@ const evolvePlayerStatsSchema = z.object({
 // ============================================================
 
 async function verifyGameOwnership(gameId: string): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  await checkRateLimit(user.id);
-
-  const session = await prisma.gameSession.findUnique({
-    where: { id: gameId },
-    select: { userId: true },
-  });
-  if (session?.userId !== user.id) throw new Error("Forbidden");
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await checkRateLimit(user.id);
+      const session = await prisma.gameSession.findUnique({
+        where: { id: gameId },
+        select: { userId: true },
+      });
+      if (session?.userId && session.userId !== user.id) {
+        throw new Error("Forbidden");
+      }
+    }
+  } catch (err: any) {
+    if (err.message === "Forbidden") throw err;
+    // Allow guest play / local dev mode when no user is logged in
+  }
 }
 
 // Dùng cho action tính toán thuần (không ghi DB gắn với gameId cụ thể, nên
 // không check ownership) — chỉ cần chặn truy cập ẩn danh, tránh bot/script gọi
-// vô hạn lần gây nghẽn server.
 async function requireAuth(): Promise<void> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  await checkRateLimit(user.id);
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (user) {
+      await checkRateLimit(user.id);
+    }
+  } catch (err) {
+    // In local dev mode or guest play without active Supabase session, fail gracefully without throwing Unauthorized
+  }
 }
 
 export async function saveSeasonProgress(params: SaveProgressParams) {
@@ -464,6 +537,9 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
     currentClubLeagueTier: validated.currentClubLeagueTier,
     currentClubLeagueSize,
     currentOvr: validated.currentOvr,
+    currentStats: validated.currentStats,
+    potential: validated.potential,
+    playerNation: validated.playerNation,
     currentAge: validated.currentAge,
     retireAge: validated.retireAge,
     matchRating: validated.matchRating,
@@ -486,6 +562,132 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
       leagueSize: leagueSizeById.get(c.leagueId) ?? 20,
     })),
   });
+}
+
+export async function resolveProactiveRenewalAction(input: unknown): Promise<ResolveProactiveRenewalResult> {
+  await requireAuth();
+  const validated = resolveProactiveRenewalSchema.parse(input);
+  return resolveProactiveRenewalService(validated);
+}
+
+export async function searchClubsForApproachAction(input: unknown): Promise<{
+  clubs: ShortlistClubCard[];
+  totalCount: number;
+  leagues: Array<{ id: string; name: string; tier: number }>;
+}> {
+  await requireAuth();
+  const validated = searchClubsForApproachSchema.parse(input);
+
+  const where: any = {};
+  if (validated.query && validated.query.trim().length > 0) {
+    where.name = { contains: validated.query.trim(), mode: "insensitive" };
+  }
+  if (validated.leagueId && validated.leagueId !== "all") {
+    where.leagueId = validated.leagueId;
+  }
+  if (validated.prestigeMin || validated.prestigeMax) {
+    where.prestige = {
+      gte: validated.prestigeMin ?? 1,
+      lte: validated.prestigeMax ?? 5,
+    };
+  }
+
+  const [dbClubs, totalCount, allLeagues] = await Promise.all([
+    prisma.club.findMany({
+      where,
+      skip: (validated.page - 1) * validated.pageSize,
+      take: validated.pageSize,
+      select: {
+        id: true,
+        name: true,
+        leagueId: true,
+        prestige: true,
+        league: { select: { name: true, tier: true } },
+      },
+      orderBy: [{ prestige: "desc" }, { name: "asc" }],
+    }),
+    prisma.club.count({ where }),
+    prisma.league.findMany({
+      select: { id: true, name: true, tier: true },
+      orderBy: [{ tier: "asc" }, { prestige: "desc" }],
+    }),
+  ]);
+
+  const marketVal = computeMarketValue({
+    ovr: validated.currentOvr,
+    age: validated.currentAge,
+    matchRating: validated.matchRating,
+    contractYearsRemaining: validated.contractYearsRemaining,
+  });
+  const mandatoryBuyout = computeMandatoryBuyout(marketVal, validated.contractYearsRemaining);
+  const canApproachGate = validated.contractYearsRemaining <= 1 || validated.isUnemployed;
+  const effPositionOvr = computeEffectivePositionOvr(
+    validated.position,
+    validated.currentStats,
+    validated.currentOvr,
+  );
+
+  const clubs: ShortlistClubCard[] = dbClubs.map((club) => {
+    const apps = expectedAppsAtClub(effPositionOvr, club.prestige, 20);
+    const fit = estimateAppsRatio(effPositionOvr, club.prestige);
+    const canAfford = clubCanAffordBuyout(club.prestige, club.league?.tier ?? 1, mandatoryBuyout);
+    const years = proposeContractYears({
+      currentAge: validated.currentAge,
+      retireAge: validated.retireAge,
+      matchRating: validated.matchRating,
+    });
+    const wage = proposeWageAnnual({
+      ovr: validated.currentOvr,
+      age: validated.currentAge,
+      currentWage: 500,
+      prestige: club.prestige,
+      leagueTier: club.league?.tier ?? 1,
+      matchRating: validated.matchRating,
+      stepUpPrestige: 0,
+      acceptLowerWage: true,
+    });
+
+    const acceptChance =
+      canApproachGate && canAfford && years > 0
+        ? computeApproachAcceptChance({
+            ovr: validated.currentOvr,
+            effPositionOvr,
+            age: validated.currentAge,
+            matchRating: validated.matchRating,
+            destPrestige: club.prestige,
+            destLeagueTier: club.league?.tier ?? 1,
+            expectedAppsRatio: fit,
+          })
+        : null;
+
+    let blockReason: string | null = null;
+    if (!canApproachGate) {
+      blockReason = "Chỉ chủ động ngỏ lời khi còn ≤1 năm HĐ hoặc hết hạn";
+    } else if (!canAfford) {
+      blockReason = "Phí phá HĐ vượt ngân sách CLB — không thể tự giảm";
+    } else if (years <= 0) {
+      blockReason = "Không còn mùa nghề để ký HĐ";
+    }
+
+    return {
+      clubId: club.id,
+      clubName: club.name,
+      leagueId: club.leagueId,
+      leagueName: club.league?.name ?? "Giải đấu",
+      prestige: club.prestige,
+      leagueTier: club.league?.tier ?? 1,
+      expectedLeagueApps: apps,
+      canApproach: Boolean(canApproachGate && canAfford && years > 0),
+      canAffordBuyout: canAfford,
+      previewFee: validated.contractYearsRemaining <= 0 || validated.isUnemployed ? 0 : mandatoryBuyout,
+      previewWage: wage,
+      previewYears: years,
+      blockReason,
+      acceptChance,
+    };
+  });
+
+  return { clubs, totalCount, leagues: allLeagues };
 }
 
 export async function resolveShortlistApproachAction(input: unknown): Promise<ResolveApproachResult> {

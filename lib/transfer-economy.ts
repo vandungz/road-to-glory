@@ -245,23 +245,28 @@ export function expectedPrestigeFromOvr(ovr: number): number {
 /**
  * P(CLB nhận approach outbound). Pure — no Math.random.
  * Clamp [0.08, 0.85]. SoT plan approach odds.
+ * @param effPositionOvr — if provided, used for prestige/fit evaluation (SoT §12.1).
+ *   Falls back to `ovr` when absent (e.g., legacy callers).
  */
 export function computeApproachAcceptChance(params: {
   ovr: number;
+  effPositionOvr?: number; // SoT §12.1 — prefer this over raw ovr for club fit evaluation
   age: number;
   matchRating: number;
   destPrestige: number;
   destLeagueTier: number;
   expectedAppsRatio: number;
 }): number {
-  const { ovr, age, matchRating, destPrestige, destLeagueTier, expectedAppsRatio } = params;
+  const { age, matchRating, destPrestige, destLeagueTier, expectedAppsRatio } = params;
+  // Use effPositionOvr if provided (SoT §7.10: club evaluates by position-specific ability)
+  const effOvr = params.effPositionOvr ?? params.ovr;
 
   let base: number;
   if (expectedAppsRatio >= 0.7) base = 0.55;
   else if (expectedAppsRatio >= 0.45) base = 0.35;
   else base = 0.18;
 
-  const expectedPrestige = expectedPrestigeFromOvr(ovr);
+  const expectedPrestige = expectedPrestigeFromOvr(effOvr);
   const prestigeGap = destPrestige - expectedPrestige;
   let prestigeMul = 1;
   if (prestigeGap >= 2) prestigeMul = 0.5;
@@ -278,7 +283,7 @@ export function computeApproachAcceptChance(params: {
   else if (age >= 32) chance -= 0.08;
 
   const threshold = getClubThreshold(destPrestige);
-  if (destLeagueTier === 1 && destPrestige >= 4 && ovr < threshold - 8) {
+  if (destLeagueTier === 1 && destPrestige >= 4 && effOvr < threshold - 8) {
     chance -= 0.05;
   }
 
@@ -288,4 +293,193 @@ export function computeApproachAcceptChance(params: {
 /** Integer percent for UI (e.g. 0.42 → 42). */
 export function approachChancePercent(chance: number): number {
   return Math.round(Math.min(0.85, Math.max(0.08, chance)) * 100);
+}
+
+/**
+ * Position Attribute Matrix — 100% full 6-attribute weights per position (SoT §12.1).
+ */
+export function getPositionAttributeWeights(position: string): Record<string, number> {
+  const pos = position.toUpperCase();
+  if (pos === "GK") {
+    return { ref: 0.28, pos: 0.24, div: 0.20, han: 0.16, kic: 0.08, spd: 0.04 };
+  }
+  if (pos === "ST" || pos === "CF") {
+    return { sho: 0.35, pac: 0.20, dri: 0.15, phy: 0.15, pas: 0.10, def: 0.05 };
+  }
+  if (pos === "LW" || pos === "RW") {
+    return { pac: 0.30, dri: 0.25, sho: 0.20, pas: 0.15, phy: 0.06, def: 0.04 };
+  }
+  if (pos === "CAM") {
+    return { pas: 0.30, dri: 0.25, sho: 0.20, pac: 0.12, phy: 0.08, def: 0.05 };
+  }
+  if (pos === "CM") {
+    return { pas: 0.30, dri: 0.20, phy: 0.18, def: 0.15, pac: 0.10, sho: 0.07 };
+  }
+  if (pos === "CDM") {
+    return { def: 0.32, phy: 0.25, pas: 0.20, pac: 0.10, dri: 0.08, sho: 0.05 };
+  }
+  if (pos === "LM" || pos === "RM") {
+    return { pac: 0.25, pas: 0.25, dri: 0.20, sho: 0.12, phy: 0.10, def: 0.08 };
+  }
+  if (pos === "LB" || pos === "RB") {
+    return { def: 0.28, pac: 0.25, phy: 0.17, pas: 0.15, dri: 0.10, sho: 0.05 };
+  }
+  // Default to CB matrix
+  return { def: 0.40, phy: 0.30, pac: 0.12, pas: 0.10, dri: 0.05, sho: 0.03 };
+}
+
+/**
+ * Calculates position-weighted attribute rating and combines 65% weighted + 35% currentOvr.
+ */
+export function computeEffectivePositionOvr(
+  position: string,
+  currentStats: Record<string, number> | undefined,
+  currentOvr: number,
+): number {
+  if (!currentStats || Object.keys(currentStats).length === 0) return currentOvr;
+
+  const weights = getPositionAttributeWeights(position);
+  let weightedSum = 0;
+  let totalWeight = 0;
+
+  for (const [key, weight] of Object.entries(weights)) {
+    const val = currentStats[key] ?? currentOvr;
+    weightedSum += val * weight;
+    totalWeight += weight;
+  }
+
+  const positionRating = totalWeight > 0 ? weightedSum / totalWeight : currentOvr;
+  return Math.round(0.65 * positionRating + 0.35 * currentOvr);
+}
+
+/**
+ * Computes Scout Interest Score (0–100) based on position effective OVR, stats, nation fit, age & potential.
+ */
+export function computeScoutInterestScore(params: {
+  position: string;
+  currentStats?: Record<string, number>;
+  currentOvr: number;
+  potential?: number;
+  age: number;
+  matchRating: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  playerNation?: string;
+  clubLeagueCountry?: string;
+  clubPrestige: number;
+}): number {
+  const {
+    position,
+    currentStats,
+    currentOvr,
+    potential = currentOvr,
+    age,
+    matchRating,
+    goals,
+    assists,
+    cleanSheets,
+    playerNation,
+    clubLeagueCountry,
+    clubPrestige,
+  } = params;
+
+  const effOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+  const threshold = getClubThreshold(clubPrestige);
+
+  // 1. OVR & Fit score (0 - 40 pts)
+  const ovrGap = effOvr - threshold;
+  let ovrScore = 20 + ovrGap * 2.5;
+  ovrScore = Math.max(0, Math.min(40, ovrScore));
+
+  // 2. Performance score (0 - 30 pts)
+  let perfScore = Math.max(0, (matchRating - 6.0) * 15);
+  const pos = position.toUpperCase();
+  if (pos === "ST" || pos === "CF" || pos === "LW" || pos === "RW") {
+    perfScore += Math.min(10, goals * 0.5 + assists * 0.3);
+  } else if (pos === "CAM" || pos === "CM" || pos === "LM" || pos === "RM") {
+    perfScore += Math.min(10, assists * 0.6 + goals * 0.3);
+  } else {
+    perfScore += Math.min(10, cleanSheets * 0.6);
+  }
+  perfScore = Math.min(30, perfScore);
+
+  // 3. Cultural/National fit bonus (0 - 10 pts)
+  let natBonus = 0;
+  if (playerNation && clubLeagueCountry && playerNation.toLowerCase() === clubLeagueCountry.toLowerCase()) {
+    natBonus = 8;
+  }
+
+  // 4. Age & Potential bonus (0 - 20 pts)
+  let agePotBonus = 0;
+  if (age <= 23) {
+    const potGap = Math.max(0, potential - effOvr);
+    agePotBonus = 10 + Math.min(10, potGap * 1.2);
+  } else if (age <= 28) {
+    agePotBonus = 12;
+  } else if (age <= 32) {
+    agePotBonus = 6;
+  } else {
+    agePotBonus = 2;
+  }
+
+  return Math.round(Math.max(5, Math.min(100, ovrScore + perfScore + natBonus + agePotBonus)));
+}
+
+/**
+ * Calculates success chance % (0.10 - 0.85) when player actively requests a renewal with current club.
+ */
+export function computeProactiveRenewalChance(params: {
+  position: string;
+  currentStats?: Record<string, number>;
+  currentOvr: number;
+  matchRating: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  clubPrestige: number;
+  contractYearsRemaining: number;
+}): number {
+  const {
+    position,
+    currentStats,
+    currentOvr,
+    matchRating,
+    goals,
+    assists,
+    cleanSheets,
+    clubPrestige,
+    contractYearsRemaining,
+  } = params;
+
+  const effOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+  const threshold = getClubThreshold(clubPrestige);
+
+  let chance = 0.45; // baseline 45%
+
+  // Effective OVR vs threshold
+  if (effOvr >= threshold + 3) chance += 0.20;
+  else if (effOvr >= threshold) chance += 0.10;
+  else if (effOvr < threshold - 5) chance -= 0.20;
+
+  // Form (Match Rating)
+  if (matchRating >= 7.4) chance += 0.18;
+  else if (matchRating >= 6.8) chance += 0.08;
+  else if (matchRating < 6.2) chance -= 0.15;
+
+  // Contract Remaining
+  if (contractYearsRemaining <= 1) chance += 0.10; // Club more likely to renew last year
+  else if (contractYearsRemaining >= 3) chance -= 0.15;
+
+  // Position Stats
+  const pos = position.toUpperCase();
+  if (pos === "ST" || pos === "CF" || pos === "LW" || pos === "RW") {
+    if (goals + assists >= 10) chance += 0.10;
+  } else if (pos === "CB" || pos === "GK" || pos === "LB" || pos === "RB" || pos === "CDM") {
+    if (cleanSheets >= 8) chance += 0.10;
+  } else {
+    if (assists >= 6) chance += 0.10;
+  }
+
+  return Math.min(0.88, Math.max(0.10, chance));
 }

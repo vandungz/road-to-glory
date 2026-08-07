@@ -14,11 +14,14 @@ import {
   startPlayerCareerAction,
   updateSeasonProgressAction,
   resolveShortlistApproachAction,
+  resolveProactiveRenewalAction,
+  searchClubsForApproachAction,
 } from "@/actions/season.actions";
 import { initCareerPlayerAction, getCareerPlayerAction } from "@/actions/player.actions";
 import { type SeasonRecord, getStepLabels } from "@/types/game";
 import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
-import { approachChancePercent } from "@/lib/transfer-economy";
+import { approachChancePercent, computeEffectivePositionOvr } from "@/lib/transfer-economy";
+import { applyWageDealChance, type WageDealOption } from "@/lib/salary-negotiation";
 import type { ApproachRejectState } from "../components/TransferWindowPanel";
 import type { ShortlistClubCard } from "@/features/transfer/services/transfer.service";
 
@@ -51,9 +54,10 @@ export function useDraftDrum(
   clubs: any[],
   savedPlayerId?: string,
   savedContinentalCup?: string,
+  initialMode: "setup" | "career" | "retired" = "setup"
 ) {
   const [isMounted, setIsMounted] = useState(false);
-  const [mode, setMode] = useState<"setup" | "career" | "retired">("setup");
+  const [mode, setMode] = useState<"setup" | "career" | "retired">(initialMode);
 
   const { resetDraft } = useWheelUiStore();
   const setupProps = useSetupStage({ position, leagues, clubs, isMounted, mode });
@@ -237,6 +241,26 @@ export function useDraftDrum(
           setIsMounted(true);
         })
         .catch(() => { if (!controller.signal.aborted) { resetDraft(); setMode("setup"); setIsMounted(true); } });
+    } else if (initialMode === "career") {
+      statsProps.setPlayerName("Charlie Wilson");
+      statsProps.setPlayerNationality("England");
+      statsProps.setPlayerDebutAge(21);
+      statsProps.setPlayerCareerLength(15);
+      statsProps.setCurrentAge(21);
+      statsProps.setCurrentOvr(71);
+      const defaultClub = clubs[0] ? {
+        id: clubs[0].id, name: clubs[0].name,
+        leagueId: clubs[0].leagueId ?? "epl", leagueName: "Premier League",
+        prestige: clubs[0].prestige ?? 5, continentalType: clubs[0].continentalType ?? "ucl"
+      } : {
+        id: "c1", name: "Liverpool", leagueId: "epl", leagueName: "Premier League", prestige: 5, continentalType: "ucl"
+      };
+      statsProps.setCurrentClub(defaultClub);
+      statsProps.setStatsTimeline([{ age: 21, ovr: 71, pac: 70, sho: 73, pas: 55, dri: 68, def: 31, phy: 61 }]);
+      statsProps.setClubStints([{ clubId: defaultClub.id, clubName: defaultClub.name, leagueId: defaultClub.leagueId, leagueName: defaultClub.leagueName, startAge: 21 }]);
+      setCareerSubStep("idle");
+      setMode("career");
+      setIsMounted(true);
     } else {
       resetDraft(); setMode("setup"); setIsMounted(true);
     }
@@ -470,6 +494,7 @@ export function useDraftDrum(
   }
 
   function handleAcceptMarketOffer(offer: any) {
+    console.log("[Transfer Flow] User accepted offer:", offer.clubName, offer);
     setTransferOffer(offer);
     statsProps.handleAcceptTransfer(
       true,
@@ -489,6 +514,7 @@ export function useDraftDrum(
 
   function handleRejectTransferWindow() {
     if (isProcessing) return;
+    console.log("[Transfer Flow] User bypassed/rejected transfer window. Staying at current club. Transitioning careerSubStep to 'resolved'.");
     const remaining = transferMarket?.contract.yearsRemaining ?? statsProps.contractYearsRemaining;
     const fa = remaining <= 0 || statsProps.isUnemployed || !currentClub;
     if (fa) {
@@ -502,12 +528,16 @@ export function useDraftDrum(
     setCareerSubStep("resolved");
   }
 
-  async function handleApproachShortlist(club: ShortlistClubCard) {
-    if (isProcessing || !transferMarket || !club.canApproach || club.acceptChance == null) return;
-    if (approachRejects[club.clubId]) return;
+  async function handleApproachShortlist(club: ShortlistClubCard, wageOption?: WageDealOption): Promise<boolean> {
+    if (isProcessing || !transferMarket || !club.canApproach || club.acceptChance == null) return false;
+    if (approachRejects[club.clubId]) return false;
     setIsProcessing(true);
     setApproachBanner(null);
     try {
+      const selectedOption = wageOption ?? "standard";
+      const adjustedChance = applyWageDealChance(club.acceptChance, selectedOption);
+      const effPosOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+
       const res = await resolveShortlistApproachAction({
         clubId: club.clubId,
         clubName: club.clubName,
@@ -518,8 +548,10 @@ export function useDraftDrum(
         previewFee: club.previewFee,
         previewWage: club.previewWage,
         previewYears: club.previewYears,
-        clientAcceptChance: club.acceptChance,
+        wageOption: selectedOption,
+        clientAcceptChance: adjustedChance,
         currentOvr,
+        effPositionOvr: effPosOvr,
         currentAge,
         matchRating: yearSimResult?.matchRating ?? 6.0,
         contractYearsRemaining: statsProps.contractYearsRemaining,
@@ -527,23 +559,95 @@ export function useDraftDrum(
       });
 
       if (res.accepted) {
+        console.log(`[Transfer Flow] Approach to ${club.clubName} ACCEPTED!`);
         setApproachBanner(`${club.clubName} đồng ý ký (${approachChancePercent(res.acceptChance)}%)`);
         handleAcceptMarketOffer(res.offer);
+        return true;
       } else {
+        console.log(`[Transfer Flow] Approach to ${club.clubName} REJECTED.`);
         setApproachRejects((prev) => ({
           ...prev,
           [club.clubId]: { chance: res.acceptChance, reason: res.rejectReason },
         }));
         setApproachBanner(
-          `${club.clubName} từ chối · đã roll với ${approachChancePercent(res.acceptChance)}% — ${res.rejectReason}`,
+          `${club.clubName} đã từ chối (Tỷ lệ đàm phán ${approachChancePercent(res.acceptChance)}%) — ${res.rejectReason}`,
         );
+        return false;
       }
     } catch (err) {
       console.error("Approach resolve failed:", err);
       setApproachBanner("Không thể ngỏ lời — thử lại");
+      return false;
     } finally {
       setIsProcessing(false);
     }
+  }
+
+  async function handleProactiveRenewal(wageOption?: WageDealOption): Promise<boolean> {
+    if (isProcessing || !currentClub) return false;
+    setIsProcessing(true);
+    setApproachBanner(null);
+    const retireAge = playerDebutAge + playerCareerLength;
+    try {
+      const res = await resolveProactiveRenewalAction({
+        currentClubId: currentClub.id,
+        currentClubName: currentClub.name,
+        currentClubLeagueId: currentClub.leagueId,
+        currentClubLeagueName: currentClub.leagueName,
+        currentClubPrestige: currentClub.prestige,
+        currentClubLeagueTier: currentClub.leagueTier,
+        currentOvr,
+        currentStats: statsProps.statsTimeline?.[statsProps.statsTimeline.length - 1] as Record<string, number> | undefined,
+        position,
+        currentAge,
+        retireAge,
+        matchRating: yearSimResult?.matchRating ?? 6.0,
+        goals: yearSimResult?.goals ?? 0,
+        assists: yearSimResult?.assists ?? 0,
+        cleanSheets: yearSimResult?.cleanSheets ?? 0,
+        contractYearsRemaining: statsProps.contractYearsRemaining,
+        currentWageAnnual: statsProps.currentWageAnnual,
+        wageOption,
+      });
+
+      if (res.accepted) {
+        console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} ACCEPTED!`);
+        setApproachBanner(`Gia hạn thành công với ${currentClub.name}!`);
+        handleAcceptMarketOffer(res.offer);
+        return true;
+      } else {
+        console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} REJECTED.`);
+        setApproachBanner(`Gia hạn không thành công — ${res.rejectReason}`);
+        return false;
+      }
+    } catch (err) {
+      console.error("Proactive renewal failed:", err);
+      setApproachBanner("Không thể gửi đề nghị gia hạn — thử lại");
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
+  async function handleSearchClubs(params: {
+    query?: string;
+    leagueId?: string;
+    prestigeMin?: number;
+    prestigeMax?: number;
+    page: number;
+  }) {
+    const retireAge = playerDebutAge + playerCareerLength;
+    return searchClubsForApproachAction({
+      ...params,
+      currentOvr,
+      currentStats: statsProps.statsTimeline?.[statsProps.statsTimeline.length - 1] as Record<string, number> | undefined,
+      currentAge,
+      retireAge,
+      matchRating: yearSimResult?.matchRating ?? 6.0,
+      position,
+      contractYearsRemaining: statsProps.contractYearsRemaining,
+      isUnemployed: statsProps.isUnemployed || !currentClub,
+    });
   }
 
   function handleSetWillingToMove(v: boolean) {
@@ -592,7 +696,7 @@ export function useDraftDrum(
     handleSetupSpinComplete: setupProps.handleSetupSpinComplete,
     handleStartCareer, handleStartSeason, handleCareerSpin,
     handleCareerSpinComplete, handleAcceptTransfer, handleAcceptMarketOffer,
-    handleRejectTransferWindow, handleApproachShortlist, handleSetWillingToMove,
+    handleRejectTransferWindow, handleApproachShortlist, handleProactiveRenewal, handleSearchClubs, handleSetWillingToMove,
     setShowShortlist, handleNextSeason,
     handleSeasonStatsModalClose: competitionFlow.handleSeasonStatsModalClose,
     handleSavePlayer: statsProps.handleSavePlayer,

@@ -18,15 +18,8 @@ interface StageInfo {
 
 const STAGES: StageInfo[] = [
   {
-    id: "growth",
-    label: "PHÁT TRIỂN",
-    shortLabel: "STATS",
-    icon: "📈",
-    subSteps: ["dir_increase", "dir_decrease", "count", "selector", "magnitude"],
-  },
-  {
     id: "league",
-    label: "XẾP HẠNG",
+    label: "XẾP HẠNG GIẢI",
     shortLabel: "BXH",
     icon: "⚽",
     subSteps: ["standing"],
@@ -41,14 +34,21 @@ const STAGES: StageInfo[] = [
   {
     id: "awards",
     label: "ĐTQG & QUẢ BÓNG VÀNG",
-    shortLabel: "AWARDS",
+    shortLabel: "DANH HIỆU",
     icon: "🏅",
     subSteps: ["national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"],
   },
   {
+    id: "growth",
+    label: "PHÁT TRIỂN CHỈ SỐ",
+    shortLabel: "CHỈ SỐ",
+    icon: "📈",
+    subSteps: ["dir_increase", "dir_decrease", "count", "selector", "magnitude"],
+  },
+  {
     id: "market",
-    label: "RECAP & THỊ TRƯỜNG",
-    shortLabel: "MARKET",
+    label: "TỔNG KẾT & CHUYỂN NHƯỢNG",
+    shortLabel: "CHUYỂN NHƯỢNG",
     icon: "💼",
     subSteps: ["season_stats", "transfer", "resolved"],
   },

@@ -20,6 +20,8 @@ interface StoryRailProps {
   currentOvr: number;
   peakOvrValue?: number;
   onOpenTrophyCabinet?: () => void;
+  className?: string;
+  style?: React.CSSProperties;
 }
 
 export function StoryRail({
@@ -30,8 +32,9 @@ export function StoryRail({
   currentOvr,
   peakOvrValue,
   onOpenTrophyCabinet,
+  className = "hidden lg:flex",
+  style = {},
 }: StoryRailProps) {
-  // Count trophies
   let totalTrophies = 0;
   let ballonDorCount = 0;
   const displayPeakOvr = peakOvrValue ?? currentOvr;
@@ -44,25 +47,31 @@ export function StoryRail({
     if (rec.ballonDorResult === 1 || rec.achievements?.ballonDor) ballonDorCount++;
   });
 
+  const totalSeasons = Math.max(1, currentAge - playerDebutAge + 1);
+
   return (
     <aside
-      className="hidden lg:flex"
+      className={className}
       style={{
-        flex: "0 0 260px",
+        display: "flex",
+        width: "100%",
+        height: "100%",
         flexDirection: "column",
+        justifyContent: "space-between",
         gap: "16px",
         backgroundColor: "var(--white)",
         border: "2px solid var(--charcoal)",
         borderRadius: "4px",
         boxShadow: "3px 3px 0 var(--charcoal)",
         padding: "16px",
-        height: "100%",
         maxHeight: "100%",
         overflowY: "auto",
+        boxSizing: "border-box",
+        ...style,
       }}
     >
       {/* HEADER */}
-      <div style={{ borderBottom: "2px solid var(--charcoal)", paddingBottom: "8px" }}>
+      <div style={{ borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "8px" }}>
         <span
           style={{
             fontFamily: "var(--font-stamp)",
@@ -85,42 +94,11 @@ export function StoryRail({
             lineHeight: 1.1,
           }}
         >
-          STORY RAIL
+          HÀNH TRÌNH SỰ NGHIỆP
         </h3>
       </div>
 
-      {/* OVR BADGE CARD */}
-      <div
-        style={{
-          backgroundColor: "var(--cream)",
-          border: "1.5px solid var(--charcoal)",
-          borderRadius: "4px",
-          padding: "12px 14px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "2px 2px 0 var(--charcoal)",
-        }}
-      >
-        <div>
-          <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.52rem", color: "var(--ink-gray)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            OVR HIỆN TẠI
-          </span>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.6rem", fontWeight: 900, color: "var(--coral)", lineHeight: 1 }}>
-            {currentOvr}
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.52rem", color: "var(--ink-gray)", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-            PEAK OVR
-          </span>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 800, color: "#266b3e", lineHeight: 1.2 }}>
-            ⚡ {displayPeakOvr}
-          </div>
-        </div>
-      </div>
-
-      {/* CLICKABLE TROPHY CABINET CARD */}
+      {/* PEAK OVR & TROPHY CABINET HIGHLIGHT CARD */}
       <div
         onClick={onOpenTrophyCabinet}
         style={{
@@ -133,24 +111,25 @@ export function StoryRail({
           justifyContent: "space-between",
           boxShadow: "2px 2px 0 var(--charcoal)",
           cursor: "pointer",
-          transition: "transform 0.15 ease, boxShadow 0.15s ease",
+          transition: "transform 0.15s ease",
+          boxSizing: "border-box",
         }}
         onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
         onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
       >
-        <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-          <Trophy size={20} color="#D4960D" />
+        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
+          <Trophy size={22} color="#D4960D" />
           <div>
             <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "#D4960D", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-              TỦ DANH HIỆU
+              OVR ĐỈNH CAO ⚡ {displayPeakOvr}
             </span>
-            <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", fontWeight: 800, color: "var(--cream)" }}>
-              XEM CHI TIẾT →
+            <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.88rem", fontWeight: 800, color: "var(--cream)", marginTop: "1px" }}>
+              TỦ DANH HIỆU →
             </div>
           </div>
         </div>
         <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900, color: "#D4960D" }}>
+          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.25rem", fontWeight: 900, color: "#D4960D", lineHeight: 1 }}>
             🏆 {totalTrophies}
           </div>
           {ballonDorCount > 0 && (
@@ -159,7 +138,7 @@ export function StoryRail({
         </div>
       </div>
 
-      {/* CLUB STINTS */}
+      {/* CLUB STINTS TIMELINE */}
       <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, overflow: "hidden" }}>
         <span
           style={{
@@ -202,6 +181,24 @@ export function StoryRail({
             ))
           )}
         </div>
+      </div>
+
+      {/* CAREER TOTALS SUMMARY */}
+      <div
+        style={{
+          borderTop: "1.5px dashed var(--charcoal)",
+          paddingTop: "10px",
+          display: "flex",
+          justifyContent: "space-between",
+          alignItems: "center",
+          fontSize: "0.72rem",
+          fontFamily: "var(--font-stamp)",
+          opacity: 0.85,
+        }}
+      >
+        <span>ĐÃ ĐÁ: <strong>{totalSeasons} MÙA</strong></span>
+        <span>CLB: <strong>{clubStints.length || 1}</strong></span>
+        <span>DANH HIỆU: <strong>{totalTrophies}</strong></span>
       </div>
     </aside>
   );

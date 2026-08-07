@@ -198,14 +198,14 @@ vị trí**, không gộp một công thức phẳng.
 
 **Domain giảm:** giữ 1–3; mean giảm khi mùa tốt (hiếm giảm), mean tăng khi mùa kém:
 
-| Tier rating lúc giảm | Pool `1/2/3` |
+| Tier rating lúc giảm | Pool `1/2/3` (Cập nhật 2026-08-03 - Gentle Decline) |
 |---|---|
-| Kém | `25 / 40 / 35` |
-| Trung bình | `40 / 40 / 20` |
-| Tốt | `55 / 35 / 10` |
-| Xuất sắc | `70 / 25 / 5` |
+| Kém (Giảm nặng nhất) | `50 / 35 / 15` (Chủ yếu 1 chỉ số, tối đa 15% cho 3 chỉ số) |
+| Trung bình | `65 / 25 / 10` |
+| Tốt | `75 / 20 / 5` |
+| Xuất sắc | `85 / 12 / 3` |
 
-**Quyết định:** Count 3+ là “mùa nổi bật”, không phải outcome trung bình của tier Tốt.
+**Quyết định:** Giảm bớt tỷ lệ dồn 2–3 chỉ số (từ 75% xuống 50% giảm 1 chỉ số), giúp đợt suy giảm diễn ra tự nhiên, không thành thảm họa sụt rớt thô bạo.
 
 ### 4.3 Magnitude — hạ ceiling thực dụng & kéo weight về 1–3
 
@@ -214,17 +214,15 @@ F — domain 7–8 chỉ tái mở sau nếu playtest chứng minh P99 không đ
 
 | Tier (increase) | Pool weight `1/2/3/4/5/6` | Mean mục tiêu |
 |---|---|---|
-| Xuất sắc | `18 / 28 / 28 / 16 / 7 / 3` | **~2.7** |
-| Tốt | `30 / 32 / 24 / 10 / 3 / 1` | **~2.2** |
-| Trung bình | `45 / 32 / 16 / 5 / 1 / 1` | **~1.8** |
-| Kém | `60 / 28 / 9 / 2 / 1 / 0*` | **~1.5** |
+| Xuất sắc (Cập nhật 2026-08-03) | `15 / 35 / 30 / 15 / 5 / 0` (Thưởng mùa bùng nổ, tăng cơ hội +3/+4) | **~2.6** |
+| Tốt | `30 / 42 / 20 / 6 / 1 / 1` | **~2.1** |
+| Trung bình | `45 / 35 / 14 / 5 / 1 / 0` | **~1.8** |
+| Kém | `65 / 26 / 7 / 1 / 1 / 0` | **~1.4** |
 
-Hướng decrease: mirror như hiện tại (`getMagnitudeTierForDirection`) nhưng dùng bảng
-mean thấp hơn tương ứng — mùa kém mới được biên độ giảm lớn.
+**Hướng decrease (Cập nhật 2026-08-03 - Gentle Decline):**
+- Phân bổ lại `decreaseByTier`: Kém `[50, 35, 15]` (-1pt 50%, -2pt 35%, -3pt 15%), Trung bình `[65, 25, 10]`, Tốt `[80, 15, 5]`, Xuất sắc `[90, 8, 2]`.
 
-**Quyết định:** một chỉ số **+4 / +5 / +6 trong một mùa** phải cảm thấy đặc biệt; cộng
-dồn nhiều chỉ số × biên độ lớn cùng lúc phải rất hiếm (cần cả count cao **và**
-magnitude cao **và** chưa dính soft-cap).
+**Quyết định:** Giữ vững trần chống lạm phát 92+, nhưng mùa giải Xuất sắc ($\ge 7.50$) phải có cảm giác bứt phá xứng đáng (cơ hội +3/+4 điểm rõ rệt). Nhánh Giảm không bị dồn 78% phạt tối đa.
 
 ### 4.4 Gate yes/no — Development Score (chốt 2026-07-30)
 
@@ -325,28 +323,19 @@ Ví dụ debut young+low:
 
 Ví dụ mid + mid OVR ~78, rating Tốt: `38 × 1.10 ≈ 42%` — phát triển chậm lại, đúng arc.
 
-#### 4.4.5 Clamp & soft-cap
+#### 4.4.5 Clamp & Soft-Cap (Cập nhật 2026-08-03)
 
-| Tham số | Giá trị chốt pass 1 |
+| Tham số | Giá trị chốt (Cập nhật 2026-08-03) |
 |---|---|
-| `yesFloor` (trước soft-cap) | **8** — tránh Yes≈0 vì làm tròn / edge |
-| `yesCeil` (trước soft-cap) | **82** — không trở lại Yes 90%+ hàng loạt |
-| Soft-cap | Giữ §5: `yesFinal = max(2, round(yesRaw × bandFactor))` trừ band 99 → path tăng 0 |
-| Young `growthBoost` count/mag (§4.5) | Giữ: chỉ khi `ovr < 82` — **không** thay Development Score |
+| `yesFloor` (trước soft-cap) | **10** — tránh Yes≈0 vì làm tròn / edge |
+| `yesCeil` (trước soft-cap) | **85** — giữ cơ hội mở gate hợp lý cho mùa Xuất sắc |
+| Soft-Cap | **Bảo vệ trần siêu sao 92+:** OVR $\ge 89$ `softCap = 0.6`, $\ge 93$ `0.35`, $\ge 96$ `0.15`, 99 `0.0`. Tuy nhiên, áp dụng Soft-Cap lên Gate YES ở dải 80-88 với sàn tối thiểu `35%` để không ép nghẹt dải phát triển. |
+| Young `growthBoost` count/mag (§4.5) | Giữ: chỉ khi `ovr < 82` — hỗ trợ cầu thủ trẻ phát triển nhanh ở giai đoạn debut |
 
-**Cấm khi implement:** nhân thêm age ±10 kiểu cũ *song song* với bảng 4.4.3 (double-count young). Age/progress **chỉ** đi qua `DevelopmentBase`.
-
-#### 4.4.6 Quan hệ với chống OP
-
-| Lớp | Vai trò |
-|---|---|
-| Development Score (Yes) | Realism debut / UX — “còn cửa sổ thì vẫn có cơ hội tăng” |
-| Form multiplier | Narrative mùa tốt/xấu |
-| Soft-cap §5 | Van OVR cao |
-| Count / magnitude §4.2–4.3 | Van biên độ — **không** nới khi nâng Yes debut |
-| Decline §6 | Cuối career |
-
-Nới Yes debut **mà không** nới count/mag = đúng tinh thần: nhiều năm “có tăng nhẹ”, ít năm “nổ chỉ số”.
+**Mục tiêu tổng thể (Real-World Equilibrium):**
+- Ngăn chặn triệt để bug lạm phát OVR 92+ cũ (trần siêu sao vẫn được siết chặt qua Soft-Cap $\ge 89$).
+- Giải nén dải 75–86 OVR để phát triển tự nhiên, mượt mà khi phong độ Tốt/Xuất sắc.
+- Nhánh Giảm chuyển sang mô hình suy thoái mượt mà (Gentle Decline), không sụt sút thảm hại.
 
 #### 4.4.7 Map implement
 
@@ -517,64 +506,64 @@ real hơn dải random 5–29 × playFactor hiện tại và **tự hết** bug 
 
 Sau fix:
 
-- `gaFactor = (G+A)/apps` ổn định theo vị trí (không còn spike vì volume sai).  
-- Weighted season `matchRating` phản ánh đúng phong độ, không bị cup “hack”.  
-- UI Season Profile / Panini / lịch sử mùa **hợp lệ** mà không cần client tự sửa số.
+- `gaFactor = (G+A)/apps` ổn định theo vị trí (không còn spike vì volume sai).
 
-Implement **chỉ** trong `features/season/services/season-simulator.service.ts` (+ có thể
-tách pure helper trong `lib/` nếu file phình). Zod/Server Action giữ thin; **cấm** tính
-lại G/A ở React client.
+#### 7.5.1 Đã OK — League Standing (Cập nhật 2026-08-03)
 
-#### 7.0.7 Cascade bắt buộc vào core loop (fix bugs = đổi balance)
+| Yếu tố | Đánh giá & Cập nhật 2026-08-03 |
+|---|---|
+| Baseline CLB (`prestige` → `expectedPos`) | **Đúng** — CLB lớn kỳ vọng hạng cao hơn |
+| Quán tính (`lastYearStanding` 30%) | **Đúng** — tránh nhảy cóc vô lý giữa các mùa |
+| Sức kéo player (`diff = effPositionOvr − targetOvr`) | **CHỐT:** `getStandingWheelPool` dùng `effPositionOvr` (§12.1) thay OVR phẳng |
+| `influenceFactor = min(1, apps/55)` | Dùng `estimateExpectedLeagueApps(effPositionOvr, prestige)` làm proxy khi chưa có apps thực |
 
-Chuỗi hiện tại:
+Standing **không cần** position-specific cho sức kéo team (OVR đã là proxy đóng góp). Position vẫn quan trọng ở G/A/CS cá nhân sau đó (P8).
 
+#### 7.5.3 Quyết định — Player phải ảnh hưởng mọi team competition (Cập nhật 2026-08-03)
+
+Real logic: một cầu thủ chủ lực làm **xác suất đi sâu cup / giải ĐTQG** lệch có kiểm soát — không phải quyết định 100%, nhưng không được "invisible" như hiện tại với cup CLB.
+
+**Thứ tự Vòng quay Mùa giải (LOCKED SEQUENCE):**
 ```text
-G/A/CS per competition (BUG: volume sai ở cup/continental/national)
-        ↓
-per-comp rating + weighted matchRating cả mùa
-        ↓
-getGrowthTier(matchRating) → gate / count / magnitude
-        ↓
-Δstats → ΔOVR → apps/standing mùa sau
+1. VĐQG (League Standing)
+       ↓
+2. Cúp Quốc Gia (Domestic Cup)
+       ↓
+3. Cúp Châu Lục (Continental Cup)
+       ↓
+4. Triệu Tập & Giải ĐTQG (National Callup & Tournament)
 ```
 
-Khi G/A cup bị thổi phồng:
+Vì Vòng quay VĐQG luôn diễn ra **đầu tiên**, `standingResult` đã có sẵn khi tính weights cho Cúp Quốc Gia và Cúp Châu Lục.
 
-| Tầng | Hệ quả sai |
-|---|---|
-| `gaFactor` / CS rate | Quá cao dù chỉ vài apps |
-| `matchRating` | Dễ vào tier **Tốt / Xuất sắc** hơn thực tế |
-| Growth wheels | Yes% / count / magnitude “béo” hơn đáng lẽ |
-| OVR | Leo nhanh hơn → overqualify CLB → apps/rating càng dễ cao (tuyệt lăn) |
-| Ballon / awards / transfer hooks | Dựa rating & G/A tổng — cũng bị kéo theo |
+**Cập nhật Influence Proxy & Standing Link:**
+- `getInfluenceProxy` cho Domestic Cup & Continental Cup BẮT BUỘC nhận `standingResult` vừa quay để tính `standingBonus` (+0.12 Top 1, +0.06 Top 4, -0.12 Bottom).
+- Điều này phản ánh chính xác phong độ và vị thế thực tế của CLB/cầu thủ ở mùa giải đó khi bước vào đấu trường Cúp.
 
-Vì vậy:
+**Model thống nhất (SoT) cho pool outcomes team:**
 
-1. **Fix 7.0 sẽ tự nerf một phần inflation** ngay cả trước khi đụng bảng count/magnitude
-   ở mục 4 — đặc biệt với ST/CAM/winger có nhiều cup/continental.  
-2. **Không tune growth pools như thể bug G/A vẫn tồn tại.** Sau 7.0, median
-   `matchRating` và tần suất tier Xuất sắc sẽ **giảm**; nếu siết count/magnitude trước
-   rồi mới fix G/A, sẽ **over-nerf** (peak phân phối tụt dưới target 82–85).  
-3. **Thứ tự SoT:** ship / playtest **7.0 trước** (hoặc cùng PR nhưng đo riêng), đo lại
-   phân phối rating & peak thô, **rồi mới** khóa số gate/count/magnitude/soft-cap.  
-4. Expectation sau chỉ 7.0 (chưa siết growth): peak 99 vẫn có thể còn quá phổ biến, nhưng
-   **bớt** case “mùa trung bình + cup nổ số → Xuất sắc giả”; UI và rating trung thực hơn
-   → các van ở mục 4–5 mới tune đúng.
+```text
+weight(outcome) =
+    f_baseline(clubPrestige | nationalTier)
+  + f_player(effPositionOvr − referenceLevel) × influenceProxy(effPositionOvr, prestige, standingResult)
+  + f_luck(luckRating)
+```
 
-**Kết luận thiết kế:** bug G/A ngoài league là **lỗi correctness của season sim** và
-đồng thời là **input bẩn của core progression**. Coi 7.0 là bước nền của balance pass,
-không phải hotfix UI tách khỏi core logic.
+| Competition | `referenceLevel` | `effPositionOvr` source | Player term | Ghi chú |
+|---|---|---|---|---|
+| Domestic cup | `clubThreshold = 55 + prestige×6` | Ma trận §12.1 | `diff = effPositionOvr − threshold` | Dùng `standingResult` trong `influenceProxy` |
+| Continental | Cùng threshold CLB; reference −3…−5 (khó hơn) | Ma trận §12.1 | Cùng hướng, biên độ nhỏ hơn domestic | Dùng `standingResult` trong `influenceProxy` |
+| National call-up | `midOvrPosition = midOvr + positionModifier` | Ma trận §12.1, cùng position | `diff = effPositionOvr − midOvrPosition` | **Position filtering:** LB/RB/CDM/GK `-2` midOvr (dễ gọi); ST/Winger `+1..+2` (cạnh tranh cao) |
+| National tournament | `midOvrPosition` tier | Ma trận §12.1 | Tăng weight sâu bảng khi `effPositionOvr ≫ mid` | Clamp không override baseline quốc gia |
 
-### 7.1 Phanh overqualification (P5)
+**Clamp cứng:** dù `effPositionOvr` 95, CLB prestige 1 vẫn không có P(Winner UCL) vô lý; ĐTQG tier 3 không thành favorite World Cup.
 
-Khi `ovr - clubThreshold ≥ 12`:
+### 7.1 Phanh overqualification (Cập nhật 2026-08-03)
 
-- Nhân contribution của `gaFactor` / CS vào **rating** với hệ số giảm dần (diff 8 → 16:
-  `1.0 → 0.55`).  
-- **Không** cắt apps narrative (vẫn đá chính).  
-- Có thể nhân nhẹ `rate_g/a` khi overqualified ở giải yếu (`× 0.85`) — tùy chọn đợt 2;
-  ưu tiên siết ở rating trước.
+Khi `effPositionOvr - clubThreshold ≥ 12`:
+
+- **Loại bỏ phanh giảm G/A/CS (0.55 penalty cũ):** Cầu thủ siêu sao gánh đội ở CLB nhỏ ghi bàn/kiến tạo/sạch lưới xuất sắc phải được tính **100% thành tích** vào điểm `matchRating`, không bị phạt vô lý làm rating thấp hơn cầu thủ trung bình.
+- Thay vào đó, điểm phong độ tự nhiên được tính từ `effPositionOvr` và G/A/CS thực tế, sau đó clamp tổng `matchRating` trong dải chuẩn `[5.5, 9.0]`.
 
 ### 7.2 Hệ số rating theo nhóm vị trí
 
@@ -588,17 +577,26 @@ Sau khi G/A đã realistic:
 
 Mục tiêu: mùa tốt vẫn ≥ 7.0 khả dĩ; ≥ 7.5 cần output thật sự nổi bật theo **đúng role**.
 
-### 7.3 Term OVR trong `calcRating`
+### 7.3 Term OVR trong `calcRating` (chốt 2026-08-03)
 
-Ưu tiên: `(ovr - clubThreshold) × 0.01` capped (rating = hay **so với môi trường**), thay
-cho `(ovr - 55) × 0.015` tuyệt đối. Nếu implement tách đợt: có thể giữ term cũ tạm, miễn
-đã xong **7.0**.
+**CHỐT:** Dùng `effPositionOvr` (§12.1 — ma trận trọng số vị trí cụ thể) thay vì `currentOvr` phẳng trong toàn bộ công thức `calcRating`:
+
+```text
+base = 6.0 + (effPositionOvr − clubThreshold) × 0.01
+     + luckTerm
+     + G/A/CS contribution × perfScale
+```
+
+- `effPositionOvr = 0.65 × positionWeightedRating + 0.35 × currentOvr`.
+- `positionWeightedRating` tính theo ma trận §12.1 (6 chỉ số, trọng số theo vị trí cụ thể).
+- Phanh overqualification (§7.1) cũng dùng `effPositionOvr - clubThreshold`.
+- **Lý do:** CB với DEF 88 nhưng OVR 75 nên cho rating cao hơn ST OVR 75 nhưng SHO 55 khi đá đúng vị trí.
 
 ### 7.4 ST / OVR trong rate (thay bonus tuyệt đối cũ)
 
 Bonus `(ovr-60)×0.12` **bàn tuyệt đối per competition** — **gỡ**. OVR chỉ dịch `rate_g`
-trong band 7.0.2. Tương tự CS: bỏ cộng hằng số lớn độc lập apps; gói vào `rate_cs(ovr,
-prestige)`.
+trong band 7.0.2, và dùng **attribute bundle §7.7** (không phải OVR phẳng) để tính `R_eff` cho từng metric.
+Tương tự CS: bỏ cộng hằng số lớn độc lập apps; gói vào `rate_cs(R_eff, prestige)`.
 
 ### 7.5 Player ↔ CLB / ĐTQG — sức kéo trên mọi competition (P11)
 
@@ -695,11 +693,15 @@ Cho player kéo cup/ĐTQG → siêu sao dễ deep run hơn → thêm apps + G/A 
 **Cấm:** nới count/magnitude **tăng** để “cứu” debut (OP cũ).  
 **Được:** chỉnh apps curve + nương **severity độ decrease** khi opportunity thấp.
 
-#### 7.6.1 Apps ratio — curve theo fit (recovery)
+#### 7.6.1 Apps ratio — curve theo fit (recovery) (cập nhật 2026-08-03)
 
-Thay dải cũ (`diff < -10 → 0.25` phẳng) bằng:
+**CHỐT:** Tham số `diff` trong curve apps ratio dùng `effPositionOvr` (§12.1) thay OVR phẳng:
 
-| `diff = ovr − clubThreshold` | Prestige | `baseAppsRatio` (trước depth/standing/noise) |
+```text
+diff = effPositionOvr − clubThreshold   // clubThreshold = 55 + prestige×6
+```
+
+| `diff = effPositionOvr − clubThreshold` | Prestige | `baseAppsRatio` (trước depth/standing/noise) |
 |---|---|---|
 | `diff ≤ -12` (deep bench) | 5 | ~0.22 |
 | `diff ≤ -12` | 4 | ~0.30 |
@@ -707,11 +709,12 @@ Thay dải cũ (`diff < -10 → 0.25` phẳng) bằng:
 | `-12 < diff < -2` | — | nội suy từ floor prestige → ~0.70 |
 | `diff ≥ -2` (fit / overqualify nhẹ+) | — | ~0.70 … 0.90 theo diff |
 
-- `squadDepthBonus` giữ / hơi mạnh hơn: `(5 - prestige) × 0.035` — CLB thấp ít ghế thay → dễ đá hơn khi đã gần chuẩn.  
-- Standing bonus + noise nhỏ giữ như hiện tại.  
-- **Cùng công thức** dùng cho sim mùa **và** `estimateAppsRatio` (influence proxy) — một nguồn sự thật.
+- **Lý do dùng `effPositionOvr`:** CLB tuyển người cho đúng vị trí. LB với PAC 85, DEF 82 sẽ đá nhiều hơn LB OVR 80 nhưng DEF 65 tại CLB prestige 4. Chỉ số tổng không phản ánh đủ.
+- `squadDepthBonus` giữ: `(5 - prestige) × 0.035`.
+- Standing bonus + noise nhỏ giữ như hiện tại.
+- **Cùng công thức** (dùng `effPositionOvr`) cho cả sim mùa **và** `estimateAppsRatio` (influence proxy) — một nguồn sự thật.
 
-**Kỳ vọng playtest:** OVR ~68 ở prestige 2–3 → league apps **thường ≥ ~24–30** (trên ~38 trận), không kẹt ≤20 như khi còn under Real.
+**Kỳ vọng playtest:** Cầu thủ với `effPositionOvr` ~68 ở prestige 2–3 → league apps **thường ≥ ~24–30** (trên ~38 trận).
 
 #### 7.6.2 Decrease — nương khi opportunity thấp
 
@@ -877,6 +880,35 @@ Sau khi implement + chạy ≥ 30 careers thử (hoặc script Monte Carlo nếu
 ---
 
 ## 13. Quyết định mới — Ma trận 6 chỉ số toàn diện (§7.7) & Ràng buộc toán học team (§7.8)
+
+### 7.10 Unified OVR Reference Policy — Khi nào dùng OVR nào (LOCKED 2026-08-03)
+
+Đây là **bảng chính sách bắt buộc** cho toàn bộ codebase. Mọi tính toán mới hoặc refactor phải tuân thủ:
+
+| Tính toán | OVR Reference | Lý do |
+|---|---|---|
+| `calcRating` (match rating base) | `effPositionOvr` (§12.1) | Rating phản ánh năng lực thực chiến tại vị trí, không phải đa năng tổng hợp |
+| `getPerAppRates` (G/A/CS rates) | **Attribute bundle §7.7** (R_eff riêng cho goals/assists/cs) | Mỗi metric phụ thuộc stats khác nhau — SHO drive goals, PAS drive assists, DEF drive CS |
+| `estimateAppsRatio` / `club-fit` | `effPositionOvr` (§12.1) | CLB tuyển theo vị trí cụ thể, không OVR chung |
+| `getStandingWheelPool` / influence | `currentOvr` (hoặc `effPositionOvr` — cả hai acceptable) | Standing là tác động team tổng thể, position ít quan trọng hơn |
+| National call-up weights | `effPositionOvr` (§12.1) **so sánh trong pool cùng position** | GK, CB, ST được tuyển vào slot riêng — không dùng OVR chung để so sánh chéo vị trí |
+| Cup / Continental team wheel | `effPositionOvr` (§12.1) | Đồng nhất với approach §7.5.3 |
+| `computeApproachAcceptChance` | `effPositionOvr` (§12.1) | CLB đánh giá fit theo vị trí họ cần |
+| `computeProactiveRenewalChance` | `effPositionOvr` (§12.1) | Đã implement — giữ nguyên |
+| `computeScoutInterestScore` | `effPositionOvr` (§12.1) | Đã implement — giữ nguyên |
+| Soft-cap gate (`getSoftCapFactor`) | `currentOvr` | Game balance macro-level — OVR chung là đúng |
+| `getHeadroomBand` | `currentOvr` | Tương tự soft-cap |
+| Market value (`computeMarketValue`) | `currentOvr` | Giá trị thị trường là thước đo tổng thể |
+| Annual wage (`proposeWageAnnual`) | `currentOvr` | Tương tự market value |
+| Ballon d'Or eligibility gate | `currentOvr` | Gate OVR ≥ 88 là threshold tổng thể |
+| `calculateOvrByPosition` (formula gốc) | N/A — đây là nguồn sinh OVR | |
+
+**Hai ma trận song song — phân biệt rõ:**
+
+| Ma trận | Mục đích | Nơi định nghĩa | Nơi dùng |
+|---|---|---|---|
+| **§7.7 Attribute Bundle** | Tính `R_eff` cho Goals / Assists / CS **rates** | `core-growth-balance.md §7.7` | `season-stat-rates.ts → getEffectiveAttributeRating` |
+| **§12.1 Position Weight Matrix** | Tính `effectivePositionOvr` cho mọi đánh giá chất lượng player-club | `core-transfer-design.md §12.1` | `transfer-economy.ts → computeEffectivePositionOvr`, lan rộng sang `club-fit`, `calcRating`, `national callup` |
 
 ### 7.7 Ma trận 6 chỉ số thành phần (Attribute-Based Stat Rates)
 

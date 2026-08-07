@@ -22,6 +22,8 @@ import {
   getEffectiveMagnitudePool,
   getSelectorStatWeight,
 } from "./growth-balance";
+import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
+
 
 interface CareerWheelContext {
   currentAge: number;
@@ -52,11 +54,14 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
 
   const rating = ctx.yearSimResult?.matchRating ?? 7.0;
   const prestige = ctx.currentClub?.prestige ?? 3;
+  // SoT §7.10 — wheel weights use effPositionOvr (position-specific ability, §12.1)
+  const effPositionOvr = computeEffectivePositionOvr(ctx.position, ctx.currentStats, ctx.currentOvr);
   const influence = getInfluenceProxy(
-    ctx.currentOvr,
+    effPositionOvr,
     prestige,
     ctx.leagueSize,
     ctx.yearSimResult?.apps ?? null,
+    ctx.standingResult ?? null, // SoT §7.5.3: pass standingResult from league wheel
   );
 
   if (subStep === "dir_increase") {
@@ -170,7 +175,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   else if (subStep === "standing") {
     const priorStanding = ctx.currentAge > ctx.playerDebutAge ? ctx.lastYearStanding : null;
     const standingPool = getStandingWheelPool(
-      prestige, ctx.currentOvr, ctx.leagueSize, ctx.yearSimResult?.apps ?? null, priorStanding,
+      prestige, effPositionOvr, ctx.leagueSize, ctx.yearSimResult?.apps ?? null, priorStanding,
     );
     result = resolveWeightedOutcome(standingPool);
     idx = standingPool.findIndex((x) => x.value === result);
@@ -179,7 +184,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   else if (subStep === "domestic_cup") {
     const luck = ctx.hiddenStats?.luckRating ?? 10;
     const { wWin, wRun, wSemi, wQF, wR16, wR32, wExit } = getDomesticCupWeights(
-      prestige, luck, ctx.currentOvr, influence,
+      prestige, luck, effPositionOvr, influence,
     );
     const pool = [
       { value: "Winner", weight: wWin },
@@ -203,7 +208,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   else if (subStep === "continental_cup") {
     const luck = ctx.hiddenStats?.luckRating ?? 10;
     const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getContinentalCupWeights(
-      prestige, luck, ctx.currentOvr, influence,
+      prestige, luck, effPositionOvr, influence,
     );
     const pool = [
       { value: "Winner", weight: wWin },
@@ -227,7 +232,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     const tier = getNationalTier(ctx.playerNationality);
     const midOvr = tier === 1 ? 80 : tier === 2 ? 75 : 70;
     const { wCall, wMiss } = getNationalCallupWeights(
-      ctx.currentOvr, midOvr, ctx.standingResult, ctx.leagueSize,
+      effPositionOvr, midOvr, ctx.standingResult, ctx.leagueSize, ctx.position,
     );
     const pool = [
       { value: "called_up", weight: wCall },
@@ -242,7 +247,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
     const nationTier = getNationalTier(ctx.playerNationality);
     const midOvr = nationTier === 1 ? 80 : nationTier === 2 ? 75 : 70;
     const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getNationalTournamentWeights(
-      ctx.currentOvr, luck, midOvr, influence,
+      effPositionOvr, luck, midOvr, influence,
     );
     const pool = [
       { value: "Winner", weight: wWin },

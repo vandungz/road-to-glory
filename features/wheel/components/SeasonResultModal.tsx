@@ -34,11 +34,11 @@ function StatsBar({ stats, position }: { stats: CompetitionStats; position?: str
       textAlign: "center",
     }}>
       {[
-        { label: "APPS", value: stats.apps },
-        { label: "GOALS", value: stats.goals },
-        { label: "ASSISTS", value: stats.assists },
-        ...(showCS ? [{ label: "CS", value: stats.cleanSheets, highlight: true }] : []),
-        { label: "RATING", value: stats.rating.toFixed(2) },
+        { label: "TRẬN", value: stats.apps },
+        { label: "BÀN THẮNG", value: stats.goals },
+        { label: "KIẾN TẠO", value: stats.assists },
+        ...(showCS ? [{ label: "SẠCH LƯỚI", value: stats.cleanSheets, highlight: true }] : []),
+        { label: "ĐÁNH GIÁ", value: stats.rating.toFixed(2) },
       ].map(({ label, value, highlight }) => (
         <div key={label} style={{ display: "flex", flexDirection: "column" }}>
           <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.42rem", color: (highlight as boolean) ? "var(--coral)" : "var(--ink-gray)", fontWeight: 700 }}>

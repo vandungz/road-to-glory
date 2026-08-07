@@ -50,7 +50,7 @@ function OfferCard({
           {offer.clubName}
         </strong>
         <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", letterSpacing: "0.08em", color: accent }}>
-          {offer.kind === "renewal" ? "GIA HẠN" : offer.kind === "free_agent" ? "TỰ DO" : "TRANSFER"}
+          {offer.kind === "renewal" ? "GIA HẠN" : offer.kind === "free_agent" ? "TỰ DO" : "CHUYỂN NHƯỢNG"}
         </span>
       </div>
       <p style={{ margin: 0, fontSize: "0.8rem", color: "var(--charcoal)", opacity: 0.85 }}>
@@ -68,7 +68,7 @@ function OfferCard({
         <span>Phí: <strong>{offer.transferFee <= 0 ? "—" : formatEuroThousands(offer.transferFee)}</strong></span>
         <span>Lương/năm: <strong>{formatEuroThousands(offer.wageAnnual)}</strong></span>
         <span>HĐ: <strong>{offer.contractYears} năm</strong></span>
-        <span>Ước apps: <strong>~{offer.expectedLeagueApps}</strong></span>
+        <span>Trận dự kiến: <strong>~{offer.expectedLeagueApps} trận</strong></span>
       </div>
       <button
         type="button"
@@ -120,7 +120,7 @@ export function TransferWindowPanel({
             background: "rgba(232, 93, 66, 0.08)",
           }}
         >
-          ĐANG THẤT NGHIỆP · CỬA SỔ FA
+          CẦU THỦ TỰ DO · ĐÃ HẾT HỢP ĐỒNG
         </p>
       )}
 
@@ -139,7 +139,7 @@ export function TransferWindowPanel({
       >
         <span>HĐ còn: <strong>{contract.yearsRemaining}/{contract.yearsTotal} năm</strong></span>
         <span>Lương: <strong>{formatEuroThousands(contract.currentWageAnnual)}/năm</strong></span>
-        <span>MV: <strong>{formatEuroThousands(contract.marketValue)}</strong></span>
+        <span>Giá trị thị trường: <strong>{formatEuroThousands(contract.marketValue)}</strong></span>
         <span>
           Phí phá HĐ:{" "}
           <strong>{mandatoryBuyout <= 0 ? "—" : formatEuroThousands(mandatoryBuyout)}</strong>
@@ -182,7 +182,7 @@ export function TransferWindowPanel({
             disabled={isProcessing}
             onChange={(e) => setWillingToMove(e.target.checked)}
           />
-          Muốn chuyển đi (Available) — không giảm phí phá HĐ
+          Muốn chuyển đi (Available) — Phí giải phóng hợp đồng giữ nguyên
         </label>
       )}
 
@@ -262,7 +262,7 @@ export function TransferWindowPanel({
                     {club.clubName}
                   </strong>
                   <span style={{ fontSize: "0.75rem" }}>
-                    {club.leagueName} · ~{club.expectedLeagueApps} apps · Phí{" "}
+                    {club.leagueName} · ~{club.expectedLeagueApps} trận · Phí{" "}
                     {club.previewFee <= 0 ? "—" : formatEuroThousands(club.previewFee)} · Lương{" "}
                     {formatEuroThousands(club.previewWage)} · {club.previewYears} năm
                   </span>
@@ -278,7 +278,7 @@ export function TransferWindowPanel({
                         color: "var(--coral)",
                       }}
                     >
-                      TỪ CHỐI · đã roll với {approachChancePercent(rejected.chance)}%
+                      ĐÃ TỪ CHỐI BAN ĐẦU (Tỷ lệ đàm phán {approachChancePercent(rejected.chance)}%)
                       {rejected.reason ? ` — ${rejected.reason}` : ""}
                     </span>
                   )}
@@ -335,7 +335,7 @@ export function TransferWindowPanel({
           onClick={onRejectAll}
           style={{ padding: "10px", marginTop: 4, boxShadow: "1.5px 1.5px 0 var(--charcoal)" }}
         >
-          {isFa ? "BỎ QUA → MÙA THẤT NGHIỆP" : "BỎ QUA / Ở LẠI (KHÔNG KÝ GÌ)"}
+          {isFa ? "BỎ QUA → KÝ HỢP ĐỒNG TỰ DO" : "BỎ QUA / Ở LẠI CLB HIỆN TẠI"}
         </button>
       )}
     </div>

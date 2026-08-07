@@ -40,11 +40,16 @@ export function applySoftCapToGate(
   yesW: number,
   noW: number,
   softCap: number,
+  currentOvr?: number,
 ): { yes: number; no: number } {
   if (softCap >= 1) return { yes: yesW, no: noW };
   // Band 99: no increase path
   if (softCap <= 0) return { yes: 0, no: Math.max(1, yesW + noW) };
-  const yes = Math.max(2, Math.round(yesW * softCap));
+  let yes = Math.max(2, Math.round(yesW * softCap));
+  // SoT §4.4.5 (Updated 2026-08-03): Keep a 35% floor for OVR < 92 when yesW >= 40
+  if (currentOvr != null && currentOvr < 92 && yesW >= 40) {
+    yes = Math.max(35, yes);
+  }
   const no = Math.max(1, yesW + noW - yes);
   return { yes, no };
 }
@@ -183,7 +188,7 @@ export function getEffectiveIncreaseGate(params: {
   const yesRaw = Math.max(YES_FLOOR, Math.min(YES_CEIL, Math.round(baseYes * formMul * kpiMul)));
 
   const softCap = getSoftCapFactor(params.currentOvr);
-  return applySoftCapToGate(yesRaw, 100 - yesRaw, softCap);
+  return applySoftCapToGate(yesRaw, 100 - yesRaw, softCap, params.currentOvr);
 }
 
 export function getEffectiveDecreaseGate(params: {

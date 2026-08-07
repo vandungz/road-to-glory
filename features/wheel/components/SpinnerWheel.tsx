@@ -171,14 +171,14 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
       </div>
 
       {/* ── WHEEL + POINTER WRAPPER ── */}
-      <div style={{ position: "relative", width: "100%", maxWidth: "340px", aspectRatio: "1 / 1", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div style={{ position: "relative", width: "100%", maxWidth: "380px", aspectRatio: "1 / 1", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
 
         {/* ── SPINNER WHEEL (ROTATE DIV) ── */}
         <motion.div
           style={{
             rotate: rotateValue,
-            width: "280px",
-            height: "280px",
+            width: "340px",
+            height: "340px",
             borderRadius: "50%",
             overflow: "hidden",
             border: wheelBorder,

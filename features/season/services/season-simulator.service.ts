@@ -7,6 +7,8 @@ import {
   type CompContext,
 } from "@/lib/season-stat-rates";
 import { estimateAppsRatio } from "@/lib/club-fit";
+import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
+
 
 export interface CompetitionStats {
   apps: number;
@@ -145,14 +147,9 @@ function rollCompetitionOutput(
 
 // ── Match Rating per competition ───────────────────────────────────────────
 
-/** Overqualify brake: when ovr ≫ club, G/A/CS contribution to rating shrinks (SoT §7.1). */
-function getOverqualifyPerfScale(ovr: number, clubPrestige: number): number {
-  const threshold = 55 + clubPrestige * 6;
-  const diff = ovr - threshold;
-  if (diff < 8) return 1;
-  if (diff >= 16) return 0.55;
-  // Linear 8→16: 1.0→0.55
-  return 1 - ((diff - 8) / 8) * 0.45;
+/** SoT §7.1 (Updated 2026-08-03): Superstar player contributions (G/A/CS) are preserved 100% (scale 1.0). */
+function getOverqualifyPerfScale(_ovr: number, _clubPrestige: number): number {
+  return 1.0;
 }
 
 function calcRating(
@@ -329,12 +326,15 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     ? Math.max(1, Math.round(leagueMatches * (1 - (standingResult - 1) / Math.max(1, leagueClubsCount)) * 0.60))
     : undefined;
 
+  // SoT §7.10 — season sim uses effPositionOvr for apps ratio, rating, and overqualify check
+  const effPositionOvr = computeEffectivePositionOvr(position, currentStats, ovr);
+
   // 2. Apps ratio — player↔club fit (SoT §7.6) + standing
   const standingBonus = getStandingBonus(standingResult);
   const randModifier = resolveRandomFloat(-0.05, 0.05);
   const finalAppsRatio = Math.min(
     0.95,
-    Math.max(0.05, estimateAppsRatio(ovr, clubPrestige) + standingBonus + randModifier),
+    Math.max(0.05, estimateAppsRatio(effPositionOvr, clubPrestige) + standingBonus + randModifier),
   );
 
   // 3. Per-competition apps
@@ -346,31 +346,31 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
 
   // 4. Per-competition goals/assists/CS (volume ∝ apps)
   const { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS,
+    position, effPositionOvr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS,
   );
   const { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, cupApps, "domestic_cup", currentStats,
+    position, effPositionOvr, clubPrestige, cupApps, "domestic_cup", currentStats,
   );
   const { goals: ctGoals, assists: ctAssists, cleanSheets: contCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, continentalApps, "continental", currentStats,
+    position, effPositionOvr, clubPrestige, continentalApps, "continental", currentStats,
   );
   const { goals: ntGoals, assists: ntAssists, cleanSheets: natCS } = rollCompetitionOutput(
-    position, ovr, clubPrestige, nationalApps, "national", currentStats,
+    position, effPositionOvr, clubPrestige, nationalApps, "national", currentStats,
   );
 
-  // 5. Match ratings per competition
+  // 5. Match ratings per competition (SoT §7.3: use effPositionOvr for ovrVsClub)
   const lgRatingBonus = getStandingBonus(standingResult) * 0.8;
   const leagueRating = leagueApps > 0
-    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus)
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus)
     : 0;
   const cupRating = cupApps > 0
-    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps })
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps })
     : 0;
   const contRating = continentalApps > 0
-    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps })
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps })
     : 0;
   const natRating = nationalApps > 0
-    ? calcRating(position, ovr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps })
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps })
     : 0;
 
   // 6. Totals (weighted average rating)

@@ -9,8 +9,11 @@ import {
   MAX_INBOUND_OFFERS,
   clubCanAffordBuyout,
   computeApproachAcceptChance,
+  computeEffectivePositionOvr,
   computeMandatoryBuyout,
   computeMarketValue,
+  computeProactiveRenewalChance,
+  computeScoutInterestScore,
   expectedAppsAtClub,
   isDistressSale,
   proposeContractYears,
@@ -18,6 +21,7 @@ import {
   seasonsLeftInCareer,
   wantsRenewal,
 } from "@/lib/transfer-economy";
+import { applyWageDealChance, WageDealOption } from "@/lib/salary-negotiation";
 
 export interface ClubMarketInfo {
   id: string;
@@ -88,6 +92,9 @@ export interface GenerateTransferMarketParams {
   currentClubLeagueTier: number;
   currentClubLeagueSize?: number;
   currentOvr: number;
+  currentStats?: Record<string, number>;
+  potential?: number;
+  playerNation?: string;
   currentAge: number;
   retireAge: number;
   matchRating: number;
@@ -121,33 +128,73 @@ function reasonForMove(params: {
 function scoreClubInterest(params: {
   club: ClubMarketInfo;
   currentOvr: number;
+  position: string;
+  currentStats?: Record<string, number>;
+  potential?: number;
+  playerNation?: string;
   currentPrestige: number;
   matchRating: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  age: number;
   remaining: number;
   distress: boolean;
   willingToMove: boolean;
   mandatoryBuyout: number;
 }): number {
-  const { club, currentOvr, currentPrestige, matchRating, remaining, distress, willingToMove, mandatoryBuyout } =
-    params;
+  const {
+    club,
+    currentOvr,
+    position,
+    currentStats,
+    potential,
+    playerNation,
+    currentPrestige,
+    matchRating,
+    goals,
+    assists,
+    cleanSheets,
+    age,
+    remaining,
+    distress,
+    willingToMove,
+    mandatoryBuyout,
+  } = params;
 
   if (!clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout)) {
     return -1;
   }
 
-  const apps = expectedAppsAtClub(currentOvr, club.prestige, club.leagueSize ?? 20);
-  const fit = estimateAppsRatio(currentOvr, club.prestige);
-  let score = fit * 40 + Math.min(38, apps) * 0.5;
+  const effOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+  const apps = expectedAppsAtClub(effOvr, club.prestige, club.leagueSize ?? 20);
+  const fit = estimateAppsRatio(effOvr, club.prestige);
+
+  const scoutScore = computeScoutInterestScore({
+    position,
+    currentStats,
+    currentOvr,
+    potential,
+    age,
+    matchRating,
+    goals,
+    assists,
+    cleanSheets,
+    playerNation,
+    clubLeagueCountry: club.leagueName ?? "",
+    clubPrestige: club.prestige,
+  });
+
+  let score = scoutScore * 0.4 + fit * 30 + Math.min(38, apps) * 0.4;
 
   const prestigeDelta = club.prestige - currentPrestige;
-  if (prestigeDelta > 0 && matchRating >= 7.0) score += 18 * prestigeDelta;
-  if (prestigeDelta < 0 && (distress || matchRating < 6.5 || fit > 0.7)) score += 12;
+  if (prestigeDelta > 0 && matchRating >= 7.0) score += 15 * prestigeDelta;
+  if (prestigeDelta < 0 && (distress || matchRating < 6.5 || fit > 0.7)) score += 10;
   if (Math.abs(prestigeDelta) <= 1) score += 8;
 
-  if (matchRating >= 7.5) score += 15;
-  if (matchRating < 6.3) score += distress ? 20 : 5;
-  if (remaining <= 1) score += 10;
-  if (remaining >= 3 && !distress && matchRating < 7.2) score *= 0.45;
+  if (matchRating >= 7.5) score += 12;
+  if (remaining <= 1) score += 8;
+  if (remaining >= 3 && !distress && matchRating < 7.2) score *= 0.5;
   if (willingToMove) score += 12;
 
   score += resolveRandom() * 6;
@@ -211,6 +258,9 @@ export function generateTransferMarketService(
     isUnemployed = false,
     clubs,
   } = params;
+
+  // SoT §7.10 — club evaluates by position-specific ability (effPositionOvr §12.1)
+  const effPositionOvr = computeEffectivePositionOvr(params.position, params.currentStats, currentOvr);
 
   const unemployed = isUnemployed || !currentClubId;
   const seasonsLeft = seasonsLeftInCareer(currentAge, retireAge);
@@ -324,8 +374,16 @@ export function generateTransferMarketService(
       score: scoreClubInterest({
         club,
         currentOvr,
+        position: params.position,
+        currentStats: params.currentStats,
+        potential: params.potential,
+        playerNation: params.playerNation,
         currentPrestige: effectivePrestige,
         matchRating,
+        goals: params.goals,
+        assists: params.assists,
+        cleanSheets: params.cleanSheets,
+        age: currentAge,
         remaining: contractYearsRemaining,
         distress,
         willingToMove: willingToMove || unemployed,
@@ -417,6 +475,7 @@ export function generateTransferMarketService(
         canApproachGate && canAfford && years > 0
           ? computeApproachAcceptChance({
               ovr: currentOvr,
+              effPositionOvr, // SoT §7.10
               age: currentAge,
               matchRating,
               destPrestige: club.prestige,
@@ -481,8 +540,10 @@ export interface ResolveApproachParams {
   previewFee: number;
   previewWage: number;
   previewYears: number;
+  wageOption?: WageDealOption; // SoT §13 — wage deal adjustment ("lower", "standard", "higher")
   clientAcceptChance: number;
   currentOvr: number;
+  effPositionOvr?: number; // SoT §7.10 — pass for accurate fit evaluation
   currentAge: number;
   matchRating: number;
   contractYearsRemaining: number;
@@ -522,15 +583,19 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
     };
   }
 
-  const fit = estimateAppsRatio(params.currentOvr, params.prestige);
-  const acceptChance = computeApproachAcceptChance({
+  const fit = estimateAppsRatio(params.effPositionOvr ?? params.currentOvr, params.prestige);
+  const baseChance = computeApproachAcceptChance({
     ovr: params.currentOvr,
+    effPositionOvr: params.effPositionOvr, // SoT §7.10
     age: params.currentAge,
     matchRating: params.matchRating,
     destPrestige: params.prestige,
     destLeagueTier: params.leagueTier,
     expectedAppsRatio: fit,
   });
+
+  // Apply wage deal modifier (+0.14 for lower, -0.14 for higher)
+  const acceptChance = applyWageDealChance(baseChance, params.wageOption ?? "standard");
 
   if (Math.abs(acceptChance - params.clientAcceptChance) > 0.02) {
     return {
@@ -550,6 +615,9 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
   }
 
   const kind = remaining <= 0 || unemployed ? "free_agent" : "transfer";
+  const wageMul = params.wageOption === "lower" ? 0.8 : params.wageOption === "higher" ? 1.15 : 1.0;
+  const finalWage = Math.max(10, Math.round(params.previewWage * wageMul));
+
   const club: ClubMarketInfo = {
     id: params.clubId,
     name: params.clubName,
@@ -567,10 +635,113 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
       kind,
       club,
       fee: kind === "free_agent" ? 0 : feeAsk,
-      wage: params.previewWage,
+      wage: finalWage,
       years: params.previewYears,
       ovr: params.currentOvr,
-      reason: "Chủ động ngỏ lời — CLB đồng ý",
+      reason: unemployed
+        ? "Cầu thủ tự do — ký mới"
+        : reasonForMove({
+            matchRating: params.matchRating,
+            currentPrestige: params.prestige,
+            destPrestige: params.prestige,
+            distress: false,
+            remaining,
+          }),
+    }),
+  };
+}
+
+export interface ResolveProactiveRenewalParams {
+  currentClubId: string;
+  currentClubName: string;
+  currentClubLeagueId: string;
+  currentClubLeagueName: string;
+  currentClubPrestige: number;
+  currentClubLeagueTier: number;
+  currentOvr: number;
+  currentStats?: Record<string, number>;
+  position: string;
+  currentAge: number;
+  retireAge: number;
+  matchRating: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  contractYearsRemaining: number;
+  currentWageAnnual: number;
+  wageOption?: WageDealOption;
+}
+
+export type ResolveProactiveRenewalResult =
+  | { accepted: true; acceptChance: number; offer: ContractOfferCard }
+  | { accepted: false; acceptChance: number; rejectReason: string };
+
+export function resolveProactiveRenewalService(
+  params: ResolveProactiveRenewalParams,
+): ResolveProactiveRenewalResult {
+  const baseChance = computeProactiveRenewalChance({
+    position: params.position,
+    currentStats: params.currentStats,
+    currentOvr: params.currentOvr,
+    matchRating: params.matchRating,
+    goals: params.goals,
+    assists: params.assists,
+    cleanSheets: params.cleanSheets,
+    clubPrestige: params.currentClubPrestige,
+    contractYearsRemaining: params.contractYearsRemaining,
+  });
+
+  const finalChance = applyWageDealChance(baseChance, params.wageOption ?? "standard");
+  const accepted = resolveRandom() < finalChance;
+
+  if (!accepted) {
+    return {
+      accepted: false,
+      acceptChance: finalChance,
+      rejectReason: "Ban lãnh đạo CLB chưa muốn gia hạn hợp đồng lúc này",
+    };
+  }
+
+  const years = proposeContractYears({
+    currentAge: params.currentAge,
+    retireAge: params.retireAge,
+    matchRating: params.matchRating,
+    isRenewal: true,
+  });
+
+  let wage = proposeWageAnnual({
+    ovr: params.currentOvr,
+    age: params.currentAge,
+    currentWage: params.currentWageAnnual,
+    prestige: params.currentClubPrestige,
+    leagueTier: params.currentClubLeagueTier,
+    matchRating: params.matchRating,
+    stepUpPrestige: 0,
+  });
+
+  if (params.wageOption === "lower") wage = Math.round(wage * 0.82);
+  else if (params.wageOption === "higher") wage = Math.round(wage * 1.15);
+
+  const club: ClubMarketInfo = {
+    id: params.currentClubId,
+    name: params.currentClubName,
+    leagueId: params.currentClubLeagueId,
+    leagueName: params.currentClubLeagueName,
+    prestige: params.currentClubPrestige,
+    leagueTier: params.currentClubLeagueTier,
+  };
+
+  return {
+    accepted: true,
+    acceptChance: finalChance,
+    offer: buildOfferCard({
+      kind: "renewal",
+      club,
+      fee: 0,
+      wage,
+      years,
+      ovr: params.currentOvr,
+      reason: "Gia hạn chủ động — CLB đồng ý",
     }),
   };
 }

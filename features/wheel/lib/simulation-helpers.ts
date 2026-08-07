@@ -121,18 +121,28 @@ export { getClubThreshold, estimateAppsRatio, estimateExpectedLeagueApps };
 
 /**
  * Influence proxy ∈ [0.35, 1] — bench stars pull less than nailed-on starters.
- * Prefer known apps when present; else expected league apps from OVR×threshold.
+ * Prefer known apps when present; else expected league apps from OVR×threshold, adjusted by standingResult if available (SoT §7.5.3).
  */
 export function getInfluenceProxy(
   ovr: number,
   clubPrestige: number,
   leagueSize: number,
   knownApps?: number | null,
+  standingResult?: number | null,
 ): number {
-  const apps =
-    knownApps != null && knownApps > 0
-      ? knownApps
-      : estimateExpectedLeagueApps(ovr, clubPrestige, leagueSize);
+  let apps: number;
+  if (knownApps != null && knownApps > 0) {
+    apps = knownApps;
+  } else {
+    const baseApps = estimateExpectedLeagueApps(ovr, clubPrestige, leagueSize);
+    if (standingResult != null && standingResult > 0) {
+      const standingBonus = standingResult === 1 ? 0.12 : standingResult <= 4 ? 0.06 : standingResult >= Math.round(leagueSize * 0.7) ? -0.12 : 0;
+      const leagueMatches = Math.max(1, (Math.max(2, leagueSize) - 1) * 2);
+      apps = Math.max(1, Math.round(leagueMatches * Math.min(0.95, Math.max(0.05, (baseApps / leagueMatches) + standingBonus))));
+    } else {
+      apps = baseApps;
+    }
+  }
   return Math.min(1, Math.max(0.35, apps / 55));
 }
 
@@ -197,13 +207,24 @@ export function getNationalTournamentWeights(
   };
 }
 
+/** Position depth modifier for National Team call-up threshold (SoT §7.5.3). */
+export function getPositionMidOvrModifier(position?: string): number {
+  if (!position) return 0;
+  const pos = position.toUpperCase();
+  if (["LB", "RB", "CDM", "GK"].includes(pos)) return -2; // lower depth threshold
+  if (["ST", "LW", "RW", "CAM"].includes(pos)) return 1; // higher competition threshold
+  return 0;
+}
+
 /** Call-up weights — form from this-season standing (not yearSimResult). */
 export function getNationalCallupWeights(
   ovr: number,
-  midOvr: number,
+  baseMidOvr: number,
   standingResult: number | null | undefined,
   leagueSize: number,
+  position?: string,
 ): { wCall: number; wMiss: number } {
+  const midOvr = baseMidOvr + getPositionMidOvrModifier(position);
   const ovrDiff = ovr - midOvr;
   let wCall = Math.max(5, Math.min(90, 50 + ovrDiff * 2));
 
@@ -317,11 +338,12 @@ export function getCountPool(tier: GrowthTier, isIncrease: boolean): { value: nu
       case "kem":        return [{ value: 1, weight: 70 }, { value: 2, weight: 25 }, { value: 3, weight: 4 }, { value: 4, weight: 1 }, { value: 5, weight: 1 }, { value: 6, weight: 1 }];
     }
   }
+  // Gentle Decline (SoT §4.2 updated 2026-08-03): 50% weight on 1 stat decrease
   switch (tier) {
-    case "kem":        return [{ value: 1, weight: 25 }, { value: 2, weight: 40 }, { value: 3, weight: 35 }];
-    case "trung_binh": return [{ value: 1, weight: 40 }, { value: 2, weight: 40 }, { value: 3, weight: 20 }];
-    case "tot":        return [{ value: 1, weight: 55 }, { value: 2, weight: 35 }, { value: 3, weight: 10 }];
-    case "xuat_sac":   return [{ value: 1, weight: 70 }, { value: 2, weight: 25 }, { value: 3, weight: 5 }];
+    case "kem":        return [{ value: 1, weight: 50 }, { value: 2, weight: 35 }, { value: 3, weight: 15 }];
+    case "trung_binh": return [{ value: 1, weight: 65 }, { value: 2, weight: 25 }, { value: 3, weight: 10 }];
+    case "tot":        return [{ value: 1, weight: 75 }, { value: 2, weight: 20 }, { value: 3, weight: 5 }];
+    case "xuat_sac":   return [{ value: 1, weight: 85 }, { value: 2, weight: 12 }, { value: 3, weight: 3 }];
   }
 }
 
@@ -332,19 +354,19 @@ export function getMagnitudePool(
 ): { value: number; weight: number }[] {
   if (!isIncrease) {
     const decreaseByTier: Record<GrowthTier, number[]> = {
-      // After getMagnitudeTierForDirection mirror: xuat_sac = harshest drop, kem = gentlest (-1 point ~85%)
-      xuat_sac:   [22, 38, 40],
-      tot:        [35, 40, 25],
-      trung_binh: [60, 30, 10],
-      kem:        [85, 12, 3],
+      // Gentle Decline (SoT §4.3 updated 2026-08-03): xuat_sac = harshest decrease, but mostly -1/-2 pts
+      xuat_sac:   [50, 35, 15],
+      tot:        [65, 25, 10],
+      trung_binh: [80, 15, 5],
+      kem:        [90, 8, 2],
     };
     return decreaseByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
   }
   const weightsByTier: Record<GrowthTier, number[]> = {
-    xuat_sac:   [20, 35, 25, 12, 5, 3],
+    xuat_sac:   [15, 35, 30, 15, 5, 0], // Reward standout seasons with higher +3/+4 chance (SoT §4.3)
     tot:        [40, 42, 12, 4, 1, 1],
     trung_binh: [55, 35, 7, 2, 1, 0],
-    kem:        [70, 24, 4, 1, 1, 0],
+    kem:        [65, 26, 7, 1, 1, 0],
   };
   return weightsByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
 }

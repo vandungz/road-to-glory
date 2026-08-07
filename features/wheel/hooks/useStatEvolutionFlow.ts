@@ -95,19 +95,8 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
 
       p.setTransferMarket(res);
       p.setMarketValue(res.marketValue);
-
-      const hasAny =
-        !!res.renewal ||
-        res.inbound.length > 0 ||
-        ((res.contract.yearsRemaining <= 1 || unemployed) && res.shortlist.length > 0);
-      // FA / unemployed luôn mở cửa sổ để quyết định (kể cả shortlist rỗng → thất nghiệp)
-      if (overrides?.stayOnWindow || (res.hasWindow && (hasAny || unemployed || res.contract.yearsRemaining <= 0))) {
-        p.setTransferOffer(res.inbound[0] ?? res.renewal ?? null);
-        p.setCareerSubStep("transfer");
-      } else {
-        p.setTransferOffer(null);
-        p.setCareerSubStep("resolved");
-      }
+      p.setTransferOffer(res.inbound[0] ?? res.renewal ?? null);
+      p.setCareerSubStep("transfer");
     } catch (err) {
       console.error("Error checking transfer market:", err);
       p.setCareerSubStep("resolved");

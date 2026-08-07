@@ -212,6 +212,9 @@ Không spam early renew mỗi năm.
 #### User agency với renewal
 
 - Accept / Reject như offer thường.  
+- **Gia hạn chủ động (Proactive Renewal):** Nếu CLB không tự động gửi lời đề nghị gia hạn (wantsRenewal = false), player vẫn được quyền **chủ động gửi đề nghị gia hạn** với CLB hiện tại.
+  - Xác suất gia hạn chủ động thành công (`proactiveRenewalAcceptChance`) được tính dựa trên OVR vs Club Threshold, Form (matchRating), đóng góp chỉ số (G/A/CS) và deal lương lựa chọn.
+  - Từ chối chủ động gia hạn → khóa nút gia hạn chủ động trong cửa sổ mùa đó.
 - **Không** bắt buộc reject renewal mới thấy inbound (cả hai cùng panel).  
 - Nếu accept renewal trong cửa sổ đó → có thể **ẩn / hủy** inbound cùng mùa (tránh
   “ký xong rồi chuyển ngay”) — **đề xuất lock:** accept renewal = đóng transfer window
@@ -466,11 +469,12 @@ Filter: so `mandatoryBuyout` vs `maxFee` trước khi rank fit.
 
 ---
 
-## 9b. Approach odds + FA unemployed (locked 2026-07-31)
+## 9b. Approach odds + FA unemployed (cập nhật 2026-08-03)
 
 ### Approach
 
 - Payload shortlist: `acceptChance` (0–1) từ `computeApproachAcceptChance` (fit / prestige gap / form / tuổi).
+- **CHỐT (2026-08-03):** `computeApproachAcceptChance` dùng `effPositionOvr` (§12.1) — không phải `currentOvr` phẳng — để tính `expectedPrestigeFromOvr` và `prestigeGap`. Lý do: CLB đánh giá cầu thủ theo năng lực tại vị trí cụ thể họ cần, không phải tổng OVR. ST với SHO 85 được CLB lớn quan tâm hơn ST OVR 80 nhưng SHO 70.
 - UI: `Cơ hội ký HĐ: XX%` + nút `NGỎ LỜI (XX%)` trước khi bấm.
 - `resolveShortlistApproachAction` recompute chance (sai lệch >0.02 → reject), roll `resolveRandom() < chance`.
 - Từ chối: badge `Từ chối · đã roll với XX%`; không approach lại CLB đó trong window.
@@ -502,6 +506,95 @@ Filter: so `mandatoryBuyout` vs `maxFee` trước khi rank fit.
 
 ---
 
+## 12. `effectivePositionOvr` — Scope Ứng Dụng Toàn Hệ Thống (cập nhật 2026-08-03)
+
+**Ban đầu** `effectivePositionOvr` (§12.1) chỉ được dùng trong Scout Interest Score và Transfer system. **CHỐT (2026-08-03):** Scope mở rộng — `effectivePositionOvr` là **công cụ đánh giá chất lượng cầu thủ-vị trí** cho mọi context CLB quyết định:
+
+| Hệ thống | Trước 2026-08-03 | Chốt sau 2026-08-03 |
+|---|---|---|
+| Scout Interest Score | `effPositionOvr` | `effPositionOvr` (giữ) |
+| Transfer Approach Chance | `currentOvr` | **`effPositionOvr`** |
+| Proactive Renewal Chance | `effPositionOvr` | `effPositionOvr` (giữ) |
+| Match Rating (`calcRating`) | `currentOvr` | **`effPositionOvr`** |
+| Apps Ratio (`club-fit`) | `currentOvr` | **`effPositionOvr`** |
+| National Call-up weights | `currentOvr` vs `midOvr` | **`effPositionOvr` vs `midOvr` trong pool cùng position** |
+| Cup / Continental wheel | `currentOvr` vs threshold | **`effPositionOvr` vs threshold** |
+| Market Value | `currentOvr` | `currentOvr` (giữ — thước đo tổng) |
+| Soft-cap gate | `currentOvr` | `currentOvr` (giữ — game balance) |
+
+Xem chi tiết Unified OVR Reference Policy tại `core-growth-balance.md §7.10`.
+
+**Ý nghĩa thực tế:** CB với DEF 88 được CLB lớn cần CB quan tâm dù OVR tổng chỉ 76; ST với SHO 90 được ĐTQG và CLB mơ ước approach cao hơn ST OVR 80 nhưng SHO 68.
+
+### 12.2 Scout Interest Score — Chi tiết 5 yếu tố
+
+Để phản ánh chân thực cách một Scout bóng đá ngoài đời thực đánh giá cầu thủ:
+- **`scoutInterestScore`** (0–100) được tính dựa trên 5 nhóm yếu tố thực tế:
+  1. **Position-Specific Attribute Matrix:** Đánh giá chỉ số thành phần chuyên biệt theo từng vị trí thi đấu cụ thể (xem §12.1), không đánh giá cào bằng theo OVR chung.
+  2. **Position-specific Stats:** Bàn thắng (FW/Winger), kiến tạo (MF/Winger), Clean Sheets (CB/GK), rating trung bình mùa giải.
+  3. **National Team Status:** Số lần khoác áo ĐTQG (caps) & phong độ quốc tế mang lại điểm danh tiếng và tăng thu hút trinh sát.
+  4. **Nationality & Regional Fit:** Cầu thủ mang quốc tịch cùng quốc gia/khu vực với giải đấu của CLB nhận thêm bonus thích nghi văn hóa (+5-10 pts).
+  5. **OVR & Potential Curve:** Khoảng cách OVR vị trí hiệu dụng với ngưỡng CLB (`clubThreshold`), tiềm năng chưa khai phá (potential - ovr).
+
+### 12.1 Ma trận Trọng số Toàn bộ Chỉ số Thành phần theo Vị trí thi đấu cụ thể (`effectivePositionOvr`)
+
+Tất cả các vị trí thi đấu (`ST`, `CF`, `LW`, `RW`, `CAM`, `CM`, `CDM`, `LM`, `RM`, `LB`, `RB`, `CB`, `GK`) được đánh giá dựa trên **toàn bộ 6 chỉ số thành phần thực tế** (`pac`, `sho`, `pas`, `dri`, `def`, `phy` cho cầu thủ ngoài; `div`, `han`, `kic`, `ref`, `spd`, `pos` cho thủ môn). Mọi chỉ số đều đóng góp vào tổng điểm với trọng số logic chuyên biệt (tổng = 100%):
+
+| Vị trí | PAC / SPD | SHO / DIV | PAS / HAN | DRI / KIC | DEF / REF | PHY / POS | Tổng |
+|---|---|---|---|---|---|---|---|
+| **ST / CF** | 20% | 35% | 10% | 15% | 5% | 15% | 100% |
+| **LW / RW** | 30% | 20% | 15% | 25% | 4% | 6% | 100% |
+| **CAM** | 12% | 20% | 30% | 25% | 5% | 8% | 100% |
+| **CM** | 10% | 7% | 30% | 20% | 15% | 18% | 100% |
+| **CDM** | 10% | 5% | 20% | 8% | 32% | 25% | 100% |
+| **LM / RM** | 25% | 12% | 25% | 20% | 8% | 10% | 100% |
+| **LB / RB** | 25% | 5% | 15% | 10% | 28% | 17% | 100% |
+| **CB** | 12% | 3% | 10% | 5% | 40% | 30% | 100% |
+| **GK** | 4% (spd) | 20% (div) | 16% (han) | 8% (kic) | 28% (ref) | 24% (pos) | 100% |
+
+- **Chỉ số hiệu dụng vị trí (`positionWeightedRating`):** Tổng tích hợp 6 chỉ số theo ma trận trọng số trên.
+- **`effectivePositionOvr`** = `0.65 * positionWeightedRating + 0.35 * currentOvr`.
+- Hệ thống Chuyển nhượng & Scout dùng `effectivePositionOvr` làm thước đo năng lực chuyên môn thực tế thay vì OVR cào bằng.
+
+Điểm `scoutInterestScore` trực tiếp tác động tới:
+- Xác suất phát sinh đề nghị inbound từ CLB đó.
+- Xác suất CLB chấp nhận ngỏ lời (`acceptChance`).
+
+---
+
+## 13. Cơ chế Deal Lương (Salary Negotiation & Wage Elasticity - LOCKED 2026-08-02)
+
+Người chơi có thể điều chỉnh yêu cầu lương khi ký kết HĐ (Gia hạn, Đề nghị inbound, hay Tiếp cận CLB):
+- 3 Preset Options:
+  1. **Lương thấp (`lower`):** Yêu cầu giảm 15%–25% so với mức đề xuất → **Tăng 10%–18% xác suất thành công (`acceptChance`)**.
+  2. **Lương chuẩn (`standard`):** Mức đề xuất mặc định → **Xác suất tiêu chuẩn (0%)**.
+  3. **Lương cao (`higher`):** Yêu cầu tăng 10%–20% so with mức đề xuất → **Giảm 10%–20% xác suất thành công (`acceptChance`)**.
+- Mọi mức lương sau đàm phán đều bị giới hạn cứng trong dải `[minWage, maxWage]` của CLB Buying Power Band.
+- **Invariant:** Deal lương chỉ thay đổi thu nhập hàng năm và % thành công, **tuyệt đối không làm giảm phí phá hợp đồng (`mandatoryBuyout`)** với CLB hiện tại.
+
+---
+
+## 14. Tìm kiếm & Lọc CLB Chủ Động (Dynamic Club Search & Filter - LOCKED 2026-08-02)
+
+- Thay vì giới hạn danh sách ngỏ lời trong 8 CLB fit ngẫu nhiên, hệ thống cung cấp giao diện **Tìm kiếm & Lọc toàn bộ CLB trong cơ sở dữ liệu**:
+  - Filter theo Tên CLB (`query string`).
+  - Filter theo Giải đấu (`leagueId`).
+  - Filter theo Cấp độ uy tín (`prestige 1–5`).
+  - Filter theo Hạng đấu (`leagueTier 1–2`).
+- Kết quả được phân trang (10 CLB/trang), mỗi CLB hiển thị đầy đủ `acceptChance`, `previewWage`, `previewFee`, `expectedApps` và bộ chọn Deal Lương.
+- Điều kiện tiếp cận (Gate): Chỉ mở khi HĐ remaining ≤ 1 năm hoặc đang thất nghiệp (`isUnemployed`). Phí phá HĐ bắt buộc phải nhỏ hơn ngân sách tối đa (`maxFee`) của CLB.
+
+---
+
+## 15. Giao diện Section Cố định dưới Profile Mùa giải (Persistent Off-season UI - LOCKED 2026-08-02)
+
+- Trong giai đoạn Cuối mùa / Chuẩn bị mùa giải mới (Off-season):
+  - Hệ thống hiển thị Cửa sổ Chuyển nhượng trực tiếp thành **1 UI Section cố định nằm ngay dưới Panini Sticker / Hồ sơ Mùa giải** (Career Dashboard).
+  - Section giữ trạng thái Active và không tự biến mất khi đóng Modal. Người chơi có thể thoải mái tìm kiếm, so sánh CLB, đàm phán lương và cân nhắc các quyết định kinh tế.
+  - Sau khi chốt quyết định (Gia hạn / Ký mới / Chấp nhận thất nghiệp), Section ghi nhận trạng thái đã hoàn tất HĐ cho mùa giải mới và cho phép chuyển bước tiếp theo.
+
+---
+
 ## 11. Lịch sử
 
 | Ngày | Thay đổi |
@@ -514,3 +607,4 @@ Filter: so `mandatoryBuyout` vs `maxFee` trước khi rank fit.
 | 2026-07-31 | **v1.4** — MV/buyoutFactor số DRAFT; **§4.4** điều kiện renewal; **§5.7** linh hoạt giá (outbound deal + Available). |
 | 2026-07-31 | **v1.4.1** — Invariant: flexibility **không** giảm `mandatoryBuyout` (phí phá HĐ CLB current); deal chỉ wage/years + Available tín hiệu. |
 | 2026-07-31 | **v1.5** — Approach acceptChance + UI %; FA unemployed season (`isUnemployed`). |
+| 2026-08-02 | **v2.0** — Lock **Proactive Renewal**, **Scout Interest Score** (G/A/CS/National), **Salary Negotiation**, **Dynamic Club Search & Filter**, và **Persistent Off-season UI Section**. |

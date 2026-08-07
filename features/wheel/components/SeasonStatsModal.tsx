@@ -45,8 +45,8 @@ function CompRow({ icon, label, stats, result }: { icon: string; label: string; 
       </div>
       <div style={{ textAlign: "right" }}>
         <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.52rem", color: "var(--ink-gray)" }}>
-          {stats.apps}app {stats.goals}G {stats.assists}A
-          {stats.cleanSheets > 0 ? ` ${stats.cleanSheets}CS` : ""} · {stats.rating.toFixed(2)}
+          {stats.apps} Trận · {stats.goals} Bàn · {stats.assists} Kiến tạo
+          {stats.cleanSheets > 0 ? ` · ${stats.cleanSheets} Sạch lưới` : ""} · Rating {stats.rating.toFixed(2)}
         </span>
       </div>
     </div>
@@ -108,13 +108,13 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
         {/* Tổng mùa */}
         <div style={{ border: "1.5px solid var(--charcoal)", borderRadius: "4px", padding: "10px 12px" }}>
           <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.48rem", color: "var(--ink-gray)", textTransform: "uppercase", marginBottom: "8px" }}>TỔNG MÙA GIẢI</div>
-          <MiniStatRow label="Trận ra sân (APPS)" value={yearSimResult.apps} />
-          <MiniStatRow label="Bàn thắng (GOALS)" value={yearSimResult.goals} />
-          <MiniStatRow label="Kiến tạo (ASSISTS)" value={yearSimResult.assists} />
+          <MiniStatRow label="Số trận ra sân" value={yearSimResult.apps} />
+          <MiniStatRow label="Bàn thắng" value={yearSimResult.goals} />
+          <MiniStatRow label="Kiến tạo" value={yearSimResult.assists} />
           {yearSimResult.cleanSheets > 0 && (
-            <MiniStatRow label="Sạch lưới (CS)" value={yearSimResult.cleanSheets} highlight />
+            <MiniStatRow label="Trận giữ sạch lưới" value={yearSimResult.cleanSheets} highlight />
           )}
-          <MiniStatRow label="Rating trung bình" value={yearSimResult.matchRating.toFixed(2)} />
+          <MiniStatRow label="Điểm đánh giá trung bình" value={yearSimResult.matchRating.toFixed(2)} />
         </div>
 
         {/* Per-competition */}
