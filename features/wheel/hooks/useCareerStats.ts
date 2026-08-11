@@ -11,6 +11,7 @@ import {
   getDomesticCupName,
   getNationalTournamentName,
 } from "../lib/simulation-helpers";
+import { type ShopInventoryEntry } from "@/lib/shop-catalog";
 
 interface UseCareerStatsProps {
   gameId: string;
@@ -53,6 +54,12 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   const [currentWageAnnual, setCurrentWageAnnual] = useState(0);
   const [marketValue, setMarketValue] = useState(0);
   const [isUnemployed, setIsUnemployed] = useState(false);
+
+  // Wallet & Influence (docs/core-currency-shop-design.md) — server-authoritative,
+  // updated from updateSeasonProgressAction/saveCareerPlayer's return value only.
+  const [walletBalance, setWalletBalance] = useState(0);
+  const [influenceScore, setInfluenceScore] = useState(0);
+  const [shopInventory, setShopInventory] = useState<ShopInventoryEntry[]>([]);
 
   // Club và continental cup PHẢI đổi cùng nhau — vé cúp châu lục thuộc về CLB,
   // không thuộc về cầu thủ. Đây là điểm duy nhất được phép set currentClub,
@@ -117,6 +124,14 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     try {
       const peakOvr = Math.max(...statsTimeline.map((s) => s.ovr));
       const retireAge = playerDebutAge + playerCareerLength;
+      // Real transfer fee credited only if the LAST club stint started this exact
+      // season (derived from clubStints, not separate state — avoids a reset-timing
+      // bug where clearing a "this season's fee" flag would race the same React
+      // batch that advances the season).
+      const lastStint = clubStints[clubStints.length - 1];
+      const transferFeeThisSeason =
+        lastStint && lastStint.startAge === currentAge ? lastStint.feePaid ?? 0 : 0;
+
       await saveCareerPlayer({
         gameId,
         slotIndex,
@@ -137,6 +152,10 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         currentWageAnnual,
         marketValue,
         isUnemployed,
+        seasonHistory: seasonRecords,
+        clubPrestige: currentClub?.prestige ?? 2,
+        matchRatingThisSeason: seasonRecords[currentAge]?.matchRating ?? 6.0,
+        transferFeeThisSeason,
       });
     } catch (err) {
       console.error("Save player error:", err);
@@ -479,5 +498,11 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     isUnemployed,
     setIsUnemployed,
     enterUnemployed,
+    walletBalance,
+    setWalletBalance,
+    influenceScore,
+    setInfluenceScore,
+    shopInventory,
+    setShopInventory,
   };
 }

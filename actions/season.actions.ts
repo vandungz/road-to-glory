@@ -6,6 +6,9 @@ import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
+import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
+import { SHOP_CATALOG, type ShopInventoryEntry } from "@/lib/shop-catalog";
 
 // ── Cup opponents caches (data thay đổi chỉ khi re-seed) ──────────────────
 
@@ -113,6 +116,15 @@ interface SeasonProgressUpdate {
   currentWageAnnual?: number;
   marketValue?: number;
   isUnemployed?: boolean;
+  // Wallet & Influence (docs/core-currency-shop-design.md §4/§3)
+  currentAge: number;
+  peakOvr: number;
+  debutAge: number;
+  careerLength: number;
+  clubPrestige: number;
+  matchRatingThisSeason: number;
+  /** € thousands, GROSS fee — only set in the season a real transfer completed. */
+  transferFeeThisSeason?: number;
 }
 
 const simulatePlayerSeasonSchema = z.object({
@@ -135,6 +147,7 @@ const simulatePlayerSeasonSchema = z.object({
   nationalCallupResult: z.string().nullable().optional(),
   nationalTournamentResult: z.string().nullable().optional(),
   nationalTournamentType: z.string().nullable().optional(),
+  trainingCampActive: z.boolean().optional().default(false),
 });
 
 const generateLeagueTableSchema = z.object({
@@ -191,6 +204,7 @@ const generateTransferMarketSchema = z.object({
   currentWageAnnual: z.number().int().min(0),
   willingToMove: z.boolean().optional().default(false),
   isUnemployed: z.boolean().optional().default(false),
+  influenceScore: z.number().min(0).max(100).optional(),
 });
 
 const resolveProactiveRenewalSchema = z.object({
@@ -229,6 +243,7 @@ const searchClubsForApproachSchema = z.object({
   position: z.string(),
   contractYearsRemaining: z.number().int(),
   isUnemployed: z.boolean().optional(),
+  influenceScore: z.number().min(0).max(100).optional(),
 });
 
 const resolveShortlistApproachSchema = z.object({
@@ -250,6 +265,7 @@ const resolveShortlistApproachSchema = z.object({
   matchRating: z.number().min(0).max(10),
   contractYearsRemaining: z.number().int().min(0).max(10),
   isUnemployed: z.boolean().optional().default(false),
+  influenceScore: z.number().min(0).max(100).optional(),
 });
 
 const generateCupJourneySchema = z.object({
@@ -343,7 +359,9 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
   redirect(`/${gameId}`);
 }
 
-export async function updateSeasonProgressAction(params: SeasonProgressUpdate): Promise<void> {
+export async function updateSeasonProgressAction(
+  params: SeasonProgressUpdate
+): Promise<{ walletBalance: number; influenceScore: number; shopInventory: ShopInventoryEntry[] }> {
   const {
     playerId,
     statsTimeline,
@@ -356,6 +374,13 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
     currentWageAnnual,
     marketValue,
     isUnemployed,
+    currentAge,
+    peakOvr,
+    debutAge,
+    careerLength,
+    clubPrestige,
+    matchRatingThisSeason,
+    transferFeeThisSeason,
   } = params;
 
   const supabase = await createClient();
@@ -365,11 +390,51 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
-    select: { gameSession: { select: { userId: true } } },
+    select: { gameSession: { select: { userId: true } }, walletLedger: true, shopInventory: true },
   });
   if (player?.gameSession.userId !== user.id) throw new Error("Forbidden");
 
-  await prisma.careerPlayer.update({
+  // Wallet — server-authoritative: income always computed server-side, never trusted from client.
+  const income = computeSeasonWalletIncome({
+    currentWageAnnual: currentWageAnnual ?? 0,
+    transferFeeThisSeason,
+  });
+  const nextWalletLedger: WalletLedgerEntry[] = [
+    ...((player?.walletLedger as unknown as WalletLedgerEntry[] | undefined) ?? []),
+    ...buildWalletLedgerEntries(currentAge, income),
+  ];
+
+  // Influence Score — derived cache, recomputed each checkpoint from data already on the player.
+  const legacyScore = computeLegacyScore({
+    trophies: achievements?.trophies,
+    seasonHistory,
+    ballonDorWins: achievements?.ballonDor,
+    statsTimeline,
+  });
+  const currentFormIndex = computeCurrentFormIndex({
+    currentOvr: statsTimeline.at(-1)?.ovr ?? peakOvr,
+    peakOvr,
+    matchRating: matchRatingThisSeason,
+    clubPrestige,
+  });
+  const influenceScore = computeInfluenceScore({
+    legacyScore,
+    currentFormIndex,
+    currentAge,
+    debutAge,
+    careerLength,
+  });
+
+  // Shop items — mark consumed once the season they targeted has actually been
+  // played (this checkpoint fires right after currentAge advances past it).
+  // Server-derived only from its own DB state — never trusts a client-sent inventory.
+  const seasonJustCompleted = currentAge - 1;
+  const prevShopInventory = (player?.shopInventory as unknown as ShopInventoryEntry[] | undefined) ?? [];
+  const nextShopInventory: ShopInventoryEntry[] = prevShopInventory.map((e) =>
+    e.appliedSeason === seasonJustCompleted && !e.consumed ? { ...e, consumed: true } : e,
+  );
+
+  const updated = await prisma.careerPlayer.update({
     where: { id: playerId },
     data: {
       statsTimeline,
@@ -382,7 +447,102 @@ export async function updateSeasonProgressAction(params: SeasonProgressUpdate): 
       ...(currentWageAnnual !== undefined ? { currentWageAnnual } : {}),
       ...(marketValue !== undefined ? { marketValue } : {}),
       ...(isUnemployed !== undefined ? { isUnemployed } : {}),
+      walletBalance: { increment: income.totalIncome },
+      walletLedger: nextWalletLedger as unknown as any,
+      influenceScore,
+      shopInventory: nextShopInventory as unknown as any,
     },
+    select: { walletBalance: true, influenceScore: true, shopInventory: true },
+  });
+
+  return {
+    walletBalance: updated.walletBalance,
+    influenceScore: updated.influenceScore,
+    shopInventory: updated.shopInventory as unknown as ShopInventoryEntry[],
+  };
+}
+
+const purchaseShopItemSchema = z.object({
+  playerId: z.string(),
+  itemId: z.string(),
+  currentAge: z.number().int().min(15).max(50),
+  // The season this purchase should take effect in — either currentAge (bought at
+  // "SẴN SÀNG KHỞI ĐỘNG MÙA GIẢI", before that season's wheels have spun) or
+  // currentAge + 1 (bought right after the previous season resolved, before "Next
+  // Season"). Client computes this from careerSubStep; server just bounds-checks it
+  // rather than re-deriving it, since it has no notion of careerSubStep. Same trust
+  // level updateSeasonProgressAction already gives client-supplied currentAge.
+  targetSeason: z.number().int().min(15).max(51),
+});
+
+/**
+ * First interactive read-check-write transaction in this codebase — everywhere else is a
+ * single update() or an unguarded findUnique()→update() (fine for low-stakes fields, not
+ * for spending money). Known limitation: Prisma's default READ COMMITTED isolation leaves
+ * a theoretical double-spend race between two concurrent purchases; accepted for a
+ * single-player game, consistent with every other write in this codebase.
+ */
+export async function purchaseShopItemAction(input: unknown): Promise<{
+  walletBalance: number;
+  shopInventory: ShopInventoryEntry[];
+}> {
+  const { playerId, itemId, currentAge, targetSeason } = purchaseShopItemSchema.parse(input);
+  const item = SHOP_CATALOG.find((i) => i.id === itemId);
+  if (!item) throw new Error("Invalid item");
+  // targetSeason must be either "this season" (not started) or "next season" — never
+  // further out, and never a season already in progress/past.
+  if (targetSeason !== currentAge && targetSeason !== currentAge + 1) {
+    throw new Error("Invalid target season");
+  }
+
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Unauthorized");
+  await checkRateLimit(user.id);
+
+  return prisma.$transaction(async (tx) => {
+    const player = await tx.careerPlayer.findUnique({
+      where: { id: playerId },
+      select: {
+        gameSession: { select: { userId: true } },
+        walletBalance: true,
+        walletLedger: true,
+        shopInventory: true,
+      },
+    });
+    if (!player || player.gameSession.userId !== user.id) throw new Error("Forbidden");
+
+    const inventory = (player.shopInventory as unknown as ShopInventoryEntry[]) ?? [];
+    if (inventory.some((e) => e.itemId === itemId && e.appliedSeason === targetSeason)) {
+      throw new Error("Đã mua vật phẩm này cho mùa giải đó rồi");
+    }
+    if (player.walletBalance < item.priceThousands) {
+      throw new Error("Không đủ số dư");
+    }
+
+    const nextLedger: WalletLedgerEntry[] = [
+      ...((player.walletLedger as unknown as WalletLedgerEntry[]) ?? []),
+      { age: currentAge, type: "shop_purchase", amount: -item.priceThousands, label: `Mua: ${item.name}` },
+    ];
+    const nextInventory: ShopInventoryEntry[] = [
+      ...inventory,
+      { itemId, purchasedAtAge: currentAge, appliedSeason: targetSeason, consumed: false },
+    ];
+
+    const updated = await tx.careerPlayer.update({
+      where: { id: playerId },
+      data: {
+        walletBalance: { decrement: item.priceThousands },
+        walletLedger: nextLedger as unknown as any,
+        shopInventory: nextInventory as unknown as any,
+      },
+      select: { walletBalance: true, shopInventory: true },
+    });
+
+    return {
+      walletBalance: updated.walletBalance,
+      shopInventory: updated.shopInventory as unknown as ShopInventoryEntry[],
+    };
   });
 }
 
@@ -440,6 +600,7 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     nationalCallupResult: validated.nationalCallupResult,
     nationalTournamentResult: validated.nationalTournamentResult,
     nationalTournamentType: validated.nationalTournamentType,
+    trainingCampActive: validated.trainingCampActive,
   });
 }
 
@@ -552,6 +713,7 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
     currentWageAnnual: validated.currentWageAnnual,
     willingToMove: validated.willingToMove,
     isUnemployed,
+    influenceScore: validated.influenceScore,
     clubs: dbClubs.map((c) => ({
       id: c.id,
       name: c.name,
@@ -657,6 +819,7 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
             destPrestige: club.prestige,
             destLeagueTier: club.league?.tier ?? 1,
             expectedAppsRatio: fit,
+            influenceScore: validated.influenceScore,
           })
         : null;
 

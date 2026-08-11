@@ -355,18 +355,23 @@ export function getMagnitudePool(
   if (!isIncrease) {
     const decreaseByTier: Record<GrowthTier, number[]> = {
       // Gentle Decline (SoT §4.3 updated 2026-08-03): xuat_sac = harshest decrease, but mostly -1/-2 pts
-      xuat_sac:   [50, 35, 15],
-      tot:        [65, 25, 10],
-      trung_binh: [80, 15, 5],
-      kem:        [90, 8, 2],
+      // Updated 2026-08-07 (2nd nudge): shift weight 3 → weight 1 (all tiers, uniform across ages) — slightly
+      // gentler tail. kem's weight-3 already at floor 1 from the 1st nudge — left as-is to avoid hitting 0
+      // (a 0 weight makes that magnitude value literally unreachable, not just rarer).
+      xuat_sac:   [52, 35, 13],
+      tot:        [67, 25, 8],
+      trung_binh: [82, 15, 3],
+      kem:        [91, 8, 1],
     };
     return decreaseByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
   }
   const weightsByTier: Record<GrowthTier, number[]> = {
-    xuat_sac:   [15, 35, 30, 15, 5, 0], // Reward standout seasons with higher +3/+4 chance (SoT §4.3)
-    tot:        [40, 42, 12, 4, 1, 1],
-    trung_binh: [55, 35, 7, 2, 1, 0],
-    kem:        [65, 26, 7, 1, 1, 0],
+    // Updated 2026-08-07 (2nd nudge): shift weight 1 → weight 2 (all tiers, uniform across ages) — slightly
+    // bigger swings
+    xuat_sac:   [9, 41, 30, 15, 5, 0], // Reward standout seasons with higher +3/+4 chance (SoT §4.3)
+    tot:        [34, 48, 12, 4, 1, 1],
+    trung_binh: [49, 41, 7, 2, 1, 0],
+    kem:        [59, 32, 7, 1, 1, 0],
   };
   return weightsByTier[tier].map((weight, i) => ({ value: i + 1, weight }));
 }
@@ -404,6 +409,55 @@ export function getAgeProgressThresholds(position: string): { young: number; old
   if (["CB", "CDM", "CM"].includes(position)) return { young: 0.15, old: 0.90 };
   if (["LB", "RB", "CAM"].includes(position)) return { young: 0.18, old: 0.87 };
   return { young: 0.20, old: 0.85 }; // LW, RW, LM, RM, ST
+}
+
+// ============================================================
+// DUAL-CLOCK MODEL (SoT core-growth-loop-fixes-design.md §1) — "trẻ" không nên phụ
+// thuộc % của careerLength (1 số random tại debut mà chính player chưa biết trước lúc
+// còn trẻ — nhân quả đảo ngược). Đồng hồ 1 (KINH NGHIỆM, dùng cho "young") = số mùa
+// TUYỆT ĐỐI đã chơi kể từ debut, không phụ thuộc careerLength riêng của player. Đồng hồ 2
+// (SINH HỌC + ĐỘ BỀN, dùng cho "old") GIỮ %-của-chính-mình (proxy hợp lý cho gen/độ bền
+// khác nhau giữa các player) NHƯNG cộng thêm 1 trần tuổi tuyệt đối để career cực dài
+// không khiến 1 player "mãi trẻ".
+// ============================================================
+
+const REFERENCE_CAREER_LENGTH = 16; // DRAFT — trung vị bell curve của Career Length Wheel
+
+// Quy đổi 1 LẦN, DUY NHẤT từ bảng % young đã có (không phụ thuộc player) → số năm tuyệt đối.
+export function getYoungYears(position: string): number {
+  const { young } = getAgeProgressThresholds(position);
+  return Math.max(1, Math.round(young * REFERENCE_CAREER_LENGTH));
+}
+
+export function getAbsoluteOldAge(position: string): number {
+  if (position === "GK") return 38;
+  if (["CB", "CDM", "CM"].includes(position)) return 36;
+  if (["LB", "RB", "CAM"].includes(position)) return 35;
+  return 34; // LW, RW, LM, RM, ST
+}
+
+export function getGrowthBoostYears(yearsInCareer: number, youngYears: number): number {
+  if (yearsInCareer >= youngYears || youngYears <= 0) return 0;
+  return Math.max(0, Math.min(1, 1 - yearsInCareer / youngYears));
+}
+
+export function isYoungByYears(currentAge: number, debutAge: number, position: string): boolean {
+  return currentAge - debutAge < getYoungYears(position);
+}
+
+export function isOldDualClock(
+  currentAge: number,
+  debutAge: number,
+  careerLength: number,
+  position: string,
+): boolean {
+  const { old } = getAgeProgressThresholds(position);
+  const isOldByOwnCareer = getCareerProgress(currentAge, debutAge, careerLength) >= old;
+  // Sàn 1 mùa trước khi trần tuyệt đối có thể áp — tránh 1 player debut muộn (vd 33 tuổi)
+  // bị coi "old" ngay mùa đầu tiên chỉ vì trần tuổi, trong khi %-của-chính-mình vẫn áp
+  // bình thường không qua sàn này.
+  const isOldByAbsoluteAge = currentAge - debutAge >= 1 && currentAge >= getAbsoluteOldAge(position);
+  return isOldByOwnCareer || isOldByAbsoluteAge;
 }
 
 // ============================================================

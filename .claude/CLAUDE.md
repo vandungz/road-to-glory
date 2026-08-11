@@ -1,6 +1,10 @@
 # Football Life — Claude Code Project Guide
 
 > Đọc file này trước khi làm bất kỳ thay đổi nào. Đây là nguồn sự thật duy nhất cho AI agent.
+> Đồng bộ lần cuối theo commit `bc8a63b` (2026-08-07). Khi sửa file này, luôn `git log -1`
+> để confirm còn khớp HEAD, và đối chiếu cấu trúc bằng lệnh liệt kê thư mục thật thay vì
+> tin theo trí nhớ — file này đã từng lệch tiến độ dự án tới 17 commit / 8 ngày trước khi
+> được sync lại lần này (kể cả liệt kê nhầm 1 file dead-code đã bị xoá).
 
 ---
 
@@ -30,12 +34,21 @@ protection...).
 
 ```
 app/
+  (auth)/
+    login/page.tsx, LoginForm.tsx
+    layout.tsx
+    auth/callback/route.ts
   (game)/
     page.tsx                    ← Lobby — Server Component, list game sessions
     layout.tsx
     [gameId]/
       page.tsx                  ← Squad Board — Server Component
       draft/[slotIndex]/page.tsx ← Draft Wheel — Server Component, pass data xuống DraftDrumScreen
+  dev/
+    draft-preview/page.tsx        ← dev-only preview route
+    transfer-window-preview/page.tsx
+  layout.tsx
+middleware.ts                    ← Supabase session refresh / route guard
 
 actions/
   player.actions.ts             ← saveCareerPlayer, updateCareerPlayer
@@ -43,9 +56,13 @@ actions/
                                    startPlayerCareerAction, generateTransferOfferAction,
                                    generateCupJourneyAction, evolvePlayerStatsAction,
                                    saveSeasonProgress, completeGameSession
+features/game/actions/createGameSession.ts  ← ngoại lệ: action riêng nằm trong features/game, không phải actions/
 
 features/
+  auth/components/LogoutButton.tsx
   career/services/career-setup.service.ts
+  game/actions/createGameSession.ts
+  game/components/CreateGameDialog.tsx, GameList.tsx
   player/components/PlayerCareerDialog.tsx, PlayerOvrChart.tsx, PlayerStickerCard.tsx
   player/services/stats-evolution.service.ts
   season/services/cup-journey.service.ts, season-simulator.service.ts, table-simulator.service.ts
@@ -53,26 +70,38 @@ features/
   transfer/services/transfer.service.ts
   wheel/
     components/DraftDrumScreen.tsx, CareerActionsPanel.tsx, SeasonProfile.tsx,
-                PaniniSticker.tsx, TimelineHistory.tsx, RetiredStage.tsx,
-                SetupStage.tsx, SpinnerWheel.tsx
+                PaniniSticker.tsx, RetiredStage.tsx, SetupStage.tsx, SpinnerWheel.tsx,
+                PersistentTransferSection.tsx, TransferWindowPanel.tsx, TransferDecisionModal.tsx,
+                SeasonStrip.tsx, StoryRail.tsx, SeasonRecapModal.tsx, SeasonResultModal.tsx,
+                SeasonStatsModal.tsx, TrophyCabinetModal.tsx
     hooks/useDraftDrum.ts, useCareerStats.ts, useCareerWheelItems.ts, useSetupStage.ts,
           useCompetitionFlow.ts, useStatEvolutionFlow.ts
-    lib/career-wheel-resolver.ts, simulation-helpers.ts
+    lib/career-wheel-resolver.ts, growth-balance.ts, simulation-helpers.ts
     stores/useWheelUiStore.ts
 
 lib/
-  simulation-engine/match-simulator.ts   ← DEAD CODE, không import ở đâu
   wheel-engine/spin-resolver.ts          ← resolveWeightedOutcome() — Math.random() CHỈ Ở ĐÂY
   wheel-engine/weight-calculator.ts      ← pools, weights, OVR formula
+  club-fit.ts                            ← player↔club fit / apps recovery
+  competitions.ts                        ← tên giải/cúp theo geography
+  season-stat-rates.ts                   ← G/A/CS = apps × rate(position)
+  transfer-economy.ts                    ← fee/wage/buying-power math
+  salary-negotiation.ts
+  rate-limit.ts                          ← Upstash rate limiting
   name-gen.ts
   prisma.ts
+  utils.ts
+  supabase/client.ts, server.ts          ← Supabase client factories (browser/server)
 
 types/
   game.ts                       ← GameSession, SeasonRecord, STEP_LABELS, Zod schemas
   squad.ts                      ← SlotConfig, FORMATION_SLOTS, ClientSafePlayer, FLAG_MAP, RARITY_ACCENT
 
-prisma/schema.prisma            ← GameSession, CareerPlayer, League, Club
+prisma/schema.prisma            ← GameSession, CareerPlayer, League, Club, NationalTeam
 ```
+
+`lib/simulation-engine/match-simulator.ts` (từng được ghi là dead code ở đây) **đã bị xoá**
+khỏi repo từ lâu (commit `4b99686`) — không còn tồn tại, đừng tìm hay tái tạo lại nó.
 
 ---
 
@@ -173,18 +202,19 @@ nhau (đã transfer đi) thì bỏ qua, giữ nguyên `currentContinentalCup` hi
 
 ## Các vi phạm hiện tại (technical debt — cần fix sau)
 
-*(Cập nhật 2026-07-19 — đã verify lại từng dòng qua code thật, xoá các mục đã fix
-nhưng chưa được ghi nhận trước đó.)*
+*(Cập nhật 2026-08-07 — bảng cũ ghi `lib/simulation-engine/match-simulator.ts` là dead
+code chưa xoá, nhưng file đó đã bị xoá thật từ commit `4b99686` (2026-07-13), tức là sai
+ngay từ trước cả lần note trước đó — đã gỡ khỏi bảng. Chưa chạy lại audit invariant-violation
+đầy đủ ở lần sync này; xem mục "correctness/balance" bên dưới để biết nguồn known-issue
+đang thực sự được maintain.)*
 
-| File | Vi phạm | Priority |
-|---|---|---|
-| `lib/simulation-engine/match-simulator.ts` | Dead code — chưa xóa | Low |
+Hiện KHÔNG có vi phạm invariant nào được xác nhận trong bảng này. Trước khi thêm dòng mới,
+verify bằng grep/Read code thật — đừng copy lại từ bản cũ.
 
-Đã fix (giữ lại dòng này để tránh báo nhầm lại): `Math.random()` ở
-`career-setup.service.ts` và `transfer.service.ts` đã dùng đúng
-`resolveRandom()`/`resolveRandomInt()`; `generateLeagueTableAction` đã Zod-validate
-đầy đủ; cờ quốc tịch ở `career-wheel-resolver.ts` đã dùng `getFlagEmoji()` động,
-không hardcode.
+**Known issues đang active (không phải invariant-violation, mà là correctness/balance debt
+của game logic) — nguồn cập nhật thường xuyên nhất, đọc thay vì bảng này:**
+`docs/core-game-logic-systems-map.md` (danh sách O1–O12 correctness + B1–B6 balance, có
+lịch sử fix theo ngày) và `docs/core-growth-balance.md` (balance SoT chi tiết số liệu).
 
 Bảo mật/hạ tầng (không phải vi phạm invariant code, nhưng cần fix trước production):
 xem `docs/security-checklist.md`.
@@ -227,11 +257,16 @@ Chi tiết code-review cũ hơn (có thể lỗi thời một phần): `docs/cod
 
 | Muốn biết về | Đọc |
 |---|---|
-| Game mechanics, wheel rules | `docs/game-design.md` |
+| Game mechanics, wheel rules (v0.1 draft — có thể lệch code, xem map bên dưới) | `docs/game-design.md` |
+| **Audit toàn hệ thống game logic, known-issue O1–O12/B1–B6 (nguồn cập nhật nhất)** | `docs/core-game-logic-systems-map.md` |
+| Balance SoT (growth pools, soft-cap, Development Score) | `docs/core-growth-balance.md` |
+| Position/OVR formula/physique review | `docs/core-growth-logic-review.md` |
+| Transfer market redesign (fee/wage/buying power) | `docs/core-transfer-design.md` |
+| UI/UX SoT (wheel-only, floating modals, mobile spec) | `docs/core-ui-ux-design.md` |
 | Kiến trúc layer | `docs/architecture.md` + `docs/source-code-architecture-guide.md` |
 | State management | `docs/state-management.md` |
 | API / Server Action patterns | `docs/api-integration.md` |
 | Module boundaries | `docs/module-boundaries.md` |
 | Frontend UI tokens | `docs/frontend-style-system-guide.md` |
-| Bugs đã biết | `docs/code-review-findings.md` |
+| Bugs đã biết (cũ hơn, có thể lệch) | `docs/code-review-findings.md` |
 | AI agent rules | `docs/ai-agent-rules.md` |

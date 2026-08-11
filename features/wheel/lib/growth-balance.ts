@@ -12,10 +12,12 @@ import {
   getMagnitudePool,
   getMagnitudePoolBoosted,
   getMagnitudeTierForDirection,
-  getAgeProgressThresholds,
-  getCareerProgress,
-  getGrowthBoost,
+  getYoungYears,
+  getGrowthBoostYears,
+  isYoungByYears,
+  isOldDualClock,
 } from "./simulation-helpers";
+import { FITNESS_COACH_SEVERITY_MULTIPLIER } from "@/lib/shop-catalog";
 
 export function getSoftCapFactor(ovr: number): number {
   if (ovr >= 99) return 0;
@@ -26,14 +28,15 @@ export function getSoftCapFactor(ovr: number): number {
   return 1;
 }
 
-/** Young boost only below soft-cap band start (SoT §4.5). */
+/** Young boost only below soft-cap band start (SoT §4.5); years-based per SoT §1. */
 export function getEffectiveGrowthBoost(
-  progress: number,
-  youngThreshold: number,
+  currentAge: number,
+  debutAge: number,
+  position: string,
   currentOvr: number,
 ): number {
   if (currentOvr >= 82) return 0;
-  return getGrowthBoost(progress, youngThreshold);
+  return getGrowthBoostYears(currentAge - debutAge, getYoungYears(position));
 }
 
 export function applySoftCapToGate(
@@ -87,12 +90,13 @@ const DEVELOPMENT_BASE: Record<ProgressBand, Record<HeadroomBand, number>> = {
 };
 
 export function getProgressBand(
-  progress: number,
-  young: number,
-  old: number,
+  currentAge: number,
+  debutAge: number,
+  careerLength: number,
+  position: string,
 ): ProgressBand {
-  if (progress < young) return "young";
-  if (progress >= old) return "old";
+  if (isYoungByYears(currentAge, debutAge, position)) return "young";
+  if (isOldDualClock(currentAge, debutAge, careerLength, position)) return "old";
   return "mid";
 }
 
@@ -170,9 +174,7 @@ export function getEffectiveIncreaseGate(params: {
   seasonAssists?: number | null;
   seasonCleanSheets?: number | null;
 }): { yes: number; no: number } {
-  const { young, old } = getAgeProgressThresholds(params.position);
-  const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
-  const progressBand = getProgressBand(progress, young, old);
+  const progressBand = getProgressBand(params.currentAge, params.debutAge, params.careerLength, params.position);
   const headroomBand = getHeadroomBand(params.currentOvr);
 
   const baseYes = getDevelopmentBaseYes(progressBand, headroomBand);
@@ -202,13 +204,13 @@ export function getEffectiveDecreaseGate(params: {
 }): { yes: number; no: number } {
   const tier = getGrowthTier(params.rating);
   let { yes: yesW, no: noW } = getDecreaseGateWeight(tier);
-  const { young, old } = getAgeProgressThresholds(params.position);
-  const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
+  const isYoung = isYoungByYears(params.currentAge, params.debutAge, params.position);
+  const isOld = isOldDualClock(params.currentAge, params.debutAge, params.careerLength, params.position);
 
-  if (progress < young) {
+  if (isYoung) {
     yesW = Math.max(5, yesW - 20);
     noW = Math.min(95, noW + 20);
-  } else if (progress >= old) {
+  } else if (isOld) {
     yesW = Math.min(95, yesW + 15);
     noW = Math.max(5, noW - 15);
     // SoT §6: late-career decline floor
@@ -218,7 +220,7 @@ export function getEffectiveDecreaseGate(params: {
 
   // Sparse minutes: less likely forced into decrease (except old floor already applied)
   const apps = params.seasonApps;
-  if (apps != null && apps < 16 && progress < old) {
+  if (apps != null && apps < 16 && !isOld) {
     yesW = Math.max(5, Math.round(yesW * 0.65));
     noW = Math.max(5, 100 - yesW);
   }
@@ -229,12 +231,23 @@ export function getEffectiveDecreaseGate(params: {
 /**
  * Severity of decrease count/mag: 1 = full SoT table, 0.3 = mostly −1 light.
  * Low apps = incomplete opportunity, not a full failed season (SoT §7.6.2).
+ * @param fitnessCoachActive — Shop item (docs/core-currency-shop-design.md §6.2). Caller
+ *   must compute this ONCE and pass the same value to preview and resolve — never let the
+ *   two recompute it independently (see the O11 preview≠resolve warning elsewhere in SoT).
  */
-export function getDecreaseOpportunitySeverity(seasonApps: number | null | undefined): number {
-  if (seasonApps == null || seasonApps < 0) return 1;
-  if (seasonApps >= 24) return 1;
-  if (seasonApps <= 10) return 0.3;
-  return 0.3 + ((seasonApps - 10) / 14) * 0.7;
+export function getDecreaseOpportunitySeverity(
+  seasonApps: number | null | undefined,
+  fitnessCoachActive = false,
+): number {
+  const base =
+    seasonApps == null || seasonApps < 0
+      ? 1
+      : seasonApps >= 24
+        ? 1
+        : seasonApps <= 10
+          ? 0.3
+          : 0.3 + ((seasonApps - 10) / 14) * 0.7;
+  return fitnessCoachActive ? base * FITNESS_COACH_SEVERITY_MULTIPLIER : base;
 }
 
 function blendWeightPools(
@@ -269,17 +282,16 @@ export function getEffectiveCountPool(params: {
   careerLength: number;
   currentOvr: number;
   seasonApps?: number | null;
+  fitnessCoachActive?: boolean;
 }): { value: number; weight: number }[] {
   const tier = getGrowthTier(params.rating);
   let pool = getCountPool(tier, params.isIncrease);
   if (params.isIncrease) {
-    const { young } = getAgeProgressThresholds(params.position);
-    const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
-    const boost = getEffectiveGrowthBoost(progress, young, params.currentOvr);
+    const boost = getEffectiveGrowthBoost(params.currentAge, params.debutAge, params.position, params.currentOvr);
     pool = getCountPoolBoosted(tier, boost);
     pool = applySoftCapToIncreasePool(pool, getSoftCapFactor(params.currentOvr));
   } else {
-    const severity = getDecreaseOpportunitySeverity(params.seasonApps);
+    const severity = getDecreaseOpportunitySeverity(params.seasonApps, params.fitnessCoachActive);
     if (severity < 1) {
       // Gentle = "xuat_sac" decrease count (mostly 1)
       pool = blendWeightPools(pool, getCountPool("xuat_sac", false), severity);
@@ -297,17 +309,16 @@ export function getEffectiveMagnitudePool(params: {
   careerLength: number;
   currentOvr: number;
   seasonApps?: number | null;
+  fitnessCoachActive?: boolean;
 }): { value: number; weight: number }[] {
   const magTier = getMagnitudeTierForDirection(params.rating, params.isIncrease);
   let pool = getMagnitudePool(magTier, params.isIncrease);
   if (params.isIncrease) {
-    const { young } = getAgeProgressThresholds(params.position);
-    const progress = getCareerProgress(params.currentAge, params.debutAge, params.careerLength);
-    const boost = getEffectiveGrowthBoost(progress, young, params.currentOvr);
+    const boost = getEffectiveGrowthBoost(params.currentAge, params.debutAge, params.position, params.currentOvr);
     pool = getMagnitudePoolBoosted(magTier, boost);
     pool = applySoftCapToIncreasePool(pool, getSoftCapFactor(params.currentOvr));
   } else {
-    const severity = getDecreaseOpportunitySeverity(params.seasonApps);
+    const severity = getDecreaseOpportunitySeverity(params.seasonApps, params.fitnessCoachActive);
     if (severity < 1) {
       // Gentle = kem-shaped mag pool (small deltas); harsh = mirrored tier
       pool = blendWeightPools(pool, getMagnitudePool("kem", false), severity);
@@ -318,15 +329,14 @@ export function getEffectiveMagnitudePool(params: {
 
 /**
  * Selector weights — when decreasing late-career, prefer main stats so OVR drops.
- * progress 0→old: main 25 / sec 10; at/after old: main 30 / sec 8 → reverse bias.
+ * Not old: main 25 / sec 10; old (dual-clock, SoT §1): main 32 / sec 8 → reverse bias.
  */
 export function getSelectorStatWeight(
   isMain: boolean,
   isIncrease: boolean,
-  progress: number,
-  oldThreshold: number,
+  isOld: boolean,
 ): number {
-  if (isIncrease || progress < oldThreshold) {
+  if (isIncrease || !isOld) {
     return isMain ? 25 : 10;
   }
   // Late decline: weight main stats higher when cutting

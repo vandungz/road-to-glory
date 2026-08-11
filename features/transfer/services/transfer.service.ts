@@ -108,6 +108,8 @@ export interface GenerateTransferMarketParams {
   willingToMove?: boolean;
   isUnemployed?: boolean;
   clubs: ClubMarketInfo[];
+  /** Player Influence Score (docs/core-currency-shop-design.md §5) — optional small top-up on scout/approach. */
+  influenceScore?: number;
 }
 
 function reasonForMove(params: {
@@ -142,6 +144,7 @@ function scoreClubInterest(params: {
   distress: boolean;
   willingToMove: boolean;
   mandatoryBuyout: number;
+  influenceScore?: number;
 }): number {
   const {
     club,
@@ -160,6 +163,7 @@ function scoreClubInterest(params: {
     distress,
     willingToMove,
     mandatoryBuyout,
+    influenceScore,
   } = params;
 
   if (!clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout)) {
@@ -183,6 +187,7 @@ function scoreClubInterest(params: {
     playerNation,
     clubLeagueCountry: club.leagueName ?? "",
     clubPrestige: club.prestige,
+    influenceScore,
   });
 
   let score = scoutScore * 0.4 + fit * 30 + Math.min(38, apps) * 0.4;
@@ -257,6 +262,7 @@ export function generateTransferMarketService(
     willingToMove = false,
     isUnemployed = false,
     clubs,
+    influenceScore,
   } = params;
 
   // SoT §7.10 — club evaluates by position-specific ability (effPositionOvr §12.1)
@@ -388,6 +394,7 @@ export function generateTransferMarketService(
         distress,
         willingToMove: willingToMove || unemployed,
         mandatoryBuyout,
+        influenceScore,
       }),
     }))
     .filter((x) => x.score >= 0)
@@ -481,6 +488,7 @@ export function generateTransferMarketService(
               destPrestige: club.prestige,
               destLeagueTier: club.leagueTier,
               expectedAppsRatio: fit,
+              influenceScore,
             })
           : null;
       let blockReason: string | null = null;
@@ -548,6 +556,8 @@ export interface ResolveApproachParams {
   matchRating: number;
   contractYearsRemaining: number;
   isUnemployed?: boolean;
+  /** Must match whatever value produced `clientAcceptChance` in the shortlist step, or the drift-check below will spuriously reject. */
+  influenceScore?: number;
 }
 
 export type ResolveApproachResult =
@@ -592,6 +602,7 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
     destPrestige: params.prestige,
     destLeagueTier: params.leagueTier,
     expectedAppsRatio: fit,
+    influenceScore: params.influenceScore,
   });
 
   // Apply wage deal modifier (+0.14 for lower, -0.14 for higher)

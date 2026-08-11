@@ -5,6 +5,7 @@ import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from 
 import { SpinnerWheel } from "./SpinnerWheel";
 import { TransferWindowPanel } from "./TransferWindowPanel";
 import { getSeasonYearString, getContinentalCupLabel } from "../lib/simulation-helpers";
+import { formatEuroThousands } from "@/lib/transfer-economy";
 
 interface CareerActionsPanelProps {
   careerSubStep: string;
@@ -44,6 +45,8 @@ interface CareerActionsPanelProps {
   approachBanner: string | null;
   isUnemployed: boolean;
   onOpenTransferModal?: () => void;
+  onOpenShopModal?: () => void;
+  walletBalance?: number;
 }
 
 export function CareerActionsPanel({
@@ -84,6 +87,8 @@ export function CareerActionsPanel({
   approachBanner,
   isUnemployed,
   onOpenTransferModal,
+  onOpenShopModal,
+  walletBalance,
 }: CareerActionsPanelProps) {
   const currentSeasonStr = getSeasonYearString(currentAge, playerDebutAge);
   const totalNeed = yearEvolutionCount ?? 1;
@@ -318,24 +323,47 @@ export function CareerActionsPanel({
                 💼 MỞ CỬA SỔ CHUYỂN NHƯỢNG & HỢP ĐỒNG →
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={handleNextSeason}
-                disabled={isProcessing}
-                className="btn-primary"
-                style={{
-                  width: "100%",
-                  fontSize: "1rem",
-                  padding: "12px",
-                  marginTop: "4px",
-                  backgroundColor: isFinalSeason ? "var(--coral, #e85d42)" : "var(--charcoal)",
-                  color: "var(--white)",
-                  opacity: isProcessing ? 0.6 : 1,
-                  cursor: isProcessing ? "not-allowed" : "pointer",
-                }}
-              >
-                {isFinalSeason ? "GIẢI NGHỆ & TỔNG KẾT SỰ NGHIỆP →" : "TIẾN VÀO MÙA GIẢI TIẾP THEO →"}
-              </button>
+              <>
+                {!isFinalSeason && onOpenShopModal && (
+                  <button
+                    type="button"
+                    onClick={onOpenShopModal}
+                    disabled={isProcessing}
+                    style={{
+                      width: "100%",
+                      fontSize: "0.85rem",
+                      padding: "8px",
+                      backgroundColor: "var(--white)",
+                      color: "var(--charcoal)",
+                      border: "2px solid var(--charcoal)",
+                      borderRadius: "4px",
+                      boxShadow: "2px 2px 0 var(--charcoal)",
+                      opacity: isProcessing ? 0.6 : 1,
+                      cursor: isProcessing ? "not-allowed" : "pointer",
+                    }}
+                  >
+                    🛒 CỬA HÀNG {typeof walletBalance === "number" ? `(${formatEuroThousands(walletBalance)})` : ""}
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={handleNextSeason}
+                  disabled={isProcessing}
+                  className="btn-primary"
+                  style={{
+                    width: "100%",
+                    fontSize: "1rem",
+                    padding: "12px",
+                    marginTop: "4px",
+                    backgroundColor: isFinalSeason ? "var(--coral, #e85d42)" : "var(--charcoal)",
+                    color: "var(--white)",
+                    opacity: isProcessing ? 0.6 : 1,
+                    cursor: isProcessing ? "not-allowed" : "pointer",
+                  }}
+                >
+                  {isFinalSeason ? "GIẢI NGHỆ & TỔNG KẾT SỰ NGHIỆP →" : "TIẾN VÀO MÙA GIẢI TIẾP THEO →"}
+                </button>
+              </>
             )}
           </div>
         )}

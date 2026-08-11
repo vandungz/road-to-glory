@@ -17,6 +17,8 @@ import { SeasonRecapModal } from "./SeasonRecapModal";
 import { TransferDecisionModal } from "./TransferDecisionModal";
 import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
+import { ShopModal } from "./ShopModal";
+import { formatEuroThousands } from "@/lib/transfer-economy";
 
 interface DraftDrumScreenProps {
   gameId: string;
@@ -89,6 +91,15 @@ export function DraftDrumScreen({
     nationalCallupResult,
     nationalTournamentResult,
     tempSelectedStat,
+    walletBalance,
+    influenceScore,
+    shopInventory,
+    shopTargetSeason,
+    handlePurchaseShopItem,
+    contractYearsTotal,
+    contractYearsRemaining,
+    currentWageAnnual,
+    marketValue,
     handleSetupSpin,
     handleSetupSpinComplete,
     handleStartCareer,
@@ -225,6 +236,56 @@ export function DraftDrumScreen({
       {mode === "career" && (
         <>
           <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
+          <div
+            style={{
+              maxWidth: "1440px",
+              margin: "8px auto 0",
+              padding: "0 16px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "flex-end",
+              gap: 10,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                padding: "6px 12px",
+                borderRadius: 8,
+                background: "var(--white, #ffffff)",
+                border: "2px solid var(--charcoal, #1e293b)",
+                fontSize: "0.82rem",
+              }}
+            >
+              <span>💰</span>
+              <strong style={{ color: "#15803d" }}>{formatEuroThousands(walletBalance)}</strong>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveModal("shop")}
+              title={
+                shopTargetSeason !== null
+                  ? `Mua vật phẩm cho mùa giải Tuổi ${shopTargetSeason}`
+                  : "Xem trước cửa hàng — mở mua vào đầu/cuối mỗi mùa giải"
+              }
+              style={{
+                padding: "6px 14px",
+                borderRadius: 8,
+                background: "var(--white, #ffffff)",
+                border: "2px solid var(--charcoal, #1e293b)",
+                boxShadow: "2px 2px 0 var(--charcoal, #1e293b)",
+                fontSize: "0.8rem",
+                fontFamily: "var(--font-headline, sans-serif)",
+                fontWeight: 700,
+                cursor: "pointer",
+                opacity: shopTargetSeason !== null ? 1 : 0.7,
+              }}
+            >
+              🛒 SHOP
+            </button>
+          </div>
           <main className="game-dashboard-main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
             <div className="game-mobile-switcher" style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
@@ -344,6 +405,8 @@ export function DraftDrumScreen({
                   yearEvolutionDirection={yearEvolution.direction}
                   tempSelectedStat={tempSelectedStat}
                   onOpenTransferModal={() => setActiveModal("transfer")}
+                  onOpenShopModal={() => setActiveModal("shop")}
+                  walletBalance={walletBalance}
                 />
               </div>
 
@@ -459,15 +522,17 @@ export function DraftDrumScreen({
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
                           <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>THỜI HẠN HỢP ĐỒNG</span>
-                          <strong style={{ fontFamily: "var(--font-headline)", color: "#10B981" }}>3/3 Năm còn lại</strong>
+                          <strong style={{ fontFamily: "var(--font-headline)", color: "#10B981" }}>
+                            {isUnemployed ? "Tự do" : `${contractYearsRemaining}/${contractYearsTotal} Năm còn lại`}
+                          </strong>
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
                           <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>LƯƠNG HÀNG NĂM</span>
-                          <strong style={{ fontFamily: "var(--font-headline)" }}>€720k / năm</strong>
+                          <strong style={{ fontFamily: "var(--font-headline)" }}>{formatEuroThousands(currentWageAnnual)} / năm</strong>
                         </div>
                         <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
                           <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>GIÁ TRỊ THỊ TRƯỜNG</span>
-                          <strong style={{ fontFamily: "var(--font-headline)", color: "var(--coral)" }}>€3.6M</strong>
+                          <strong style={{ fontFamily: "var(--font-headline)", color: "var(--coral)" }}>{formatEuroThousands(marketValue)}</strong>
                         </div>
                       </div>
 
@@ -575,6 +640,19 @@ export function DraftDrumScreen({
         />
       )}
 
+      {/* ── SHOP FLOATING MODAL ── */}
+      {activeModal === "shop" && (
+        <ShopModal
+          walletBalance={walletBalance}
+          shopInventory={shopInventory}
+          currentAge={currentAge}
+          isProcessing={isProcessing}
+          targetSeason={shopTargetSeason}
+          onPurchase={handlePurchaseShopItem}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
+
       {/* ── UNIFIED SEASON RECAP MODAL ── */}
       {(activeModal === "season_stats" || activeModal === "season_recap") && yearSimResult && activeRecord && (
         <SeasonRecapModal
@@ -587,7 +665,7 @@ export function DraftDrumScreen({
       )}
 
       {/* LEGACY INDIVIDUAL COMPETITION MODALS (fallback if activeRecord modal opened manually from profile) */}
-      {activeModal && !["season_stats", "season_recap", "transfer"].includes(activeModal) && activeRecord && (
+      {activeModal && !["season_stats", "season_recap", "transfer", "shop"].includes(activeModal) && activeRecord && (
         <SeasonResultModal
           type={activeModal as "league" | "cup" | "continental" | "national"}
           record={activeRecord}

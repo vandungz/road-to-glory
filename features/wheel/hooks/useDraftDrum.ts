@@ -16,12 +16,14 @@ import {
   resolveShortlistApproachAction,
   resolveProactiveRenewalAction,
   searchClubsForApproachAction,
+  purchaseShopItemAction,
 } from "@/actions/season.actions";
 import { initCareerPlayerAction, getCareerPlayerAction } from "@/actions/player.actions";
 import { type SeasonRecord, getStepLabels } from "@/types/game";
 import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { approachChancePercent, computeEffectivePositionOvr } from "@/lib/transfer-economy";
 import { applyWageDealChance, type WageDealOption } from "@/lib/salary-negotiation";
+import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
 import type { ApproachRejectState } from "../components/TransferWindowPanel";
 import type { ShortlistClubCard } from "@/features/transfer/services/transfer.service";
 
@@ -40,7 +42,7 @@ function emptyUnemployedSeasonResult(): SimulatedSeasonResult {
   };
 }
 
-export type ModalType = "league" | "cup" | "continental" | "national" | "season_stats" | "season_recap" | "transfer" | null;
+export type ModalType = "league" | "cup" | "continental" | "national" | "season_stats" | "season_recap" | "transfer" | "shop" | null;
 
 const COMPETITION_STEPS = new Set([
   "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament",
@@ -69,7 +71,10 @@ export function useDraftDrum(
     currentAge, currentOvr, currentStats, currentClub,
     currentContinentalCup, lastYearStanding, seasonRecords,
     selectedAgeForStats, setSelectedAgeForStats,
+    shopInventory,
   } = statsProps;
+
+  const fitnessCoachActive = isShopItemActiveForSeason(shopInventory, "fitness_coach", currentAge);
 
   const tempCareerResultRef = useRef<any>(null);
 
@@ -130,6 +135,7 @@ export function useDraftDrum(
     yearEvolutionDirection: yearEvolution.direction, currentStats,
     ballonDorNominationWeight, ballonDorRankWeights,
     luckRating: hiddenStats?.luckRating ?? 10,
+    fitnessCoachActive,
   });
 
   const competitionFlow = useCompetitionFlow({
@@ -141,6 +147,7 @@ export function useDraftDrum(
     setNationalCallupResult, setNationalTournamentResult,
     setCareerSubStep, setIsProcessing, setActiveModal, setYearSimResult,
     setBallonDorNominationWeight, setBallonDorRankWeights,
+    shopInventory,
     applySimResultToRecords: statsProps.applySimResultToRecords,
     setSeasonRecords: statsProps.setSeasonRecords,
     checkNationalCallupTransition: statsProps.checkNationalCallupTransition,
@@ -159,6 +166,7 @@ export function useDraftDrum(
     willingToMove,
     isUnemployed: statsProps.isUnemployed,
     clubs,
+    influenceScore: statsProps.influenceScore,
     setYearEvolution, setSelectorIndex, setTempSelectedStat,
     setSelectedStatsList, setEvolvedStatsThisYear,
     setCareerSubStep, setIsProcessing, setTransferOffer,
@@ -219,6 +227,9 @@ export function useDraftDrum(
           if (typeof (player as any).marketValue === "number") {
             statsProps.setMarketValue((player as any).marketValue);
           }
+          statsProps.setWalletBalance((player as any).walletBalance ?? 0);
+          statsProps.setInfluenceScore((player as any).influenceScore ?? 0);
+          statsProps.setShopInventory(((player as any).shopInventory as ShopInventoryEntry[]) ?? []);
 
           const unemployed = !!(player as any).isUnemployed;
           statsProps.setIsUnemployed(unemployed);
@@ -284,9 +295,22 @@ export function useDraftDrum(
     currentWageAnnual: number;
     marketValue: number;
     isUnemployed: boolean;
+    currentAge: number;
+    peakOvr: number;
+    debutAge: number;
+    careerLength: number;
+    clubPrestige: number;
+    matchRatingThisSeason: number;
+    transferFeeThisSeason: number;
   } | null>(null);
 
   useEffect(() => {
+    // Real transfer fee credited only if the LAST club stint started exactly this
+    // season (derived from clubStints — no separate state to keep in sync/reset).
+    const lastStint = clubStints[clubStints.length - 1];
+    const transferFeeThisSeason =
+      lastStint && lastStint.startAge === currentAge ? lastStint.feePaid ?? 0 : 0;
+
     latestSaveSnapshotRef.current = {
       statsTimeline, clubStints, achievements, currentContinentalCup,
       seasonHistory: seasonRecords as Record<number, any>,
@@ -295,6 +319,15 @@ export function useDraftDrum(
       currentWageAnnual: statsProps.currentWageAnnual,
       marketValue: statsProps.marketValue,
       isUnemployed: statsProps.isUnemployed,
+      currentAge,
+      peakOvr: statsProps.peakOvrValue,
+      debutAge: playerDebutAge,
+      careerLength: playerCareerLength,
+      clubPrestige: currentClub?.prestige ?? 2,
+      // Season just completed is currentAge - 1 (this effect fires after currentAge
+      // has already advanced to the season about to be played).
+      matchRatingThisSeason: seasonRecords[currentAge - 1]?.matchRating ?? 6.0,
+      transferFeeThisSeason,
     };
   });
 
@@ -307,6 +340,11 @@ export function useDraftDrum(
     if (!snapshot) return;
     saveInFlightRef.current = true;
     updateSeasonProgressAction({ playerId: pid, ...snapshot })
+      .then((result) => {
+        statsProps.setWalletBalance(result.walletBalance);
+        statsProps.setInfluenceScore(result.influenceScore);
+        statsProps.setShopInventory(result.shopInventory);
+      })
       .catch((err) => console.error("Background save failed:", err))
       .finally(() => {
         saveInFlightRef.current = false;
@@ -315,6 +353,34 @@ export function useDraftDrum(
           runBackgroundSave(pid);
         }
       });
+  }
+
+  // Two valid shopping windows — both are "the upcoming season's wheels haven't spun
+  // yet", just viewed from either side of the "Next Season" click:
+  //  - "resolved": season `currentAge` just finished, target `currentAge + 1`.
+  //  - "idle": season `currentAge` about to start, target `currentAge` itself.
+  const shopTargetSeason =
+    careerSubStep === "resolved" ? currentAge + 1 : careerSubStep === "idle" ? currentAge : null;
+
+  async function handlePurchaseShopItem(itemId: string): Promise<void> {
+    const pid = statsProps.playerId;
+    if (!pid || isProcessing || shopTargetSeason === null) return;
+    setIsProcessing(true);
+    try {
+      const result = await purchaseShopItemAction({
+        playerId: pid,
+        itemId,
+        currentAge,
+        targetSeason: shopTargetSeason,
+      });
+      statsProps.setWalletBalance(result.walletBalance);
+      statsProps.setShopInventory(result.shopInventory);
+    } catch (err) {
+      console.error("Purchase shop item failed:", err);
+      throw err;
+    } finally {
+      setIsProcessing(false);
+    }
   }
 
   useEffect(() => {
@@ -455,6 +521,7 @@ export function useDraftDrum(
       currentContinentalCup, playerNationality, selectedStatsList, selectorIndex,
       yearEvolutionDirection: yearEvolution.direction, currentStats,
       ballonDorNominationWeight, ballonDorRankWeights,
+      fitnessCoachActive,
     };
     const { result, idx, tempValue } = getCareerWheelPoolAndValue(careerSubStep, ctx);
     setIsProcessing(true);
@@ -556,6 +623,7 @@ export function useDraftDrum(
         matchRating: yearSimResult?.matchRating ?? 6.0,
         contractYearsRemaining: statsProps.contractYearsRemaining,
         isUnemployed: statsProps.isUnemployed || !currentClub,
+        influenceScore: statsProps.influenceScore,
       });
 
       if (res.accepted) {
@@ -647,6 +715,7 @@ export function useDraftDrum(
       position,
       contractYearsRemaining: statsProps.contractYearsRemaining,
       isUnemployed: statsProps.isUnemployed || !currentClub,
+      influenceScore: statsProps.influenceScore,
     });
   }
 
@@ -689,6 +758,15 @@ export function useDraftDrum(
     approachRejects, approachBanner,
     hasBallonDorWinner,
     isUnemployed: statsProps.isUnemployed,
+    contractYearsTotal: statsProps.contractYearsTotal,
+    contractYearsRemaining: statsProps.contractYearsRemaining,
+    currentWageAnnual: statsProps.currentWageAnnual,
+    marketValue: statsProps.marketValue,
+    walletBalance: statsProps.walletBalance,
+    influenceScore: statsProps.influenceScore,
+    shopInventory: statsProps.shopInventory,
+    shopTargetSeason,
+    handlePurchaseShopItem,
     careerTotalStats: statsProps.careerTotalStats,
     peakOvrValue: statsProps.peakOvrValue,
     activeRecord: statsProps.activeRecord,

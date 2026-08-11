@@ -7,6 +7,8 @@ import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { generateFictionalName } from "@/lib/name-gen";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
+import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
 
 // ============================================================
 // HELPERS
@@ -97,6 +99,13 @@ const saveCareerPlayerSchema = z.object({
   currentWageAnnual: z.number().int().min(0).optional(),
   marketValue: z.number().int().min(0).optional(),
   isUnemployed: z.boolean().optional(),
+  // Wallet & Influence, final season (docs/core-currency-shop-design.md §4/§3) —
+  // was previously entirely missing from this action, so the retirement season's
+  // seasonHistory (and now wallet/influence) never got persisted at all.
+  seasonHistory: z.record(z.string(), z.any()).optional(),
+  clubPrestige: z.number().int().min(1).max(5).optional(),
+  matchRatingThisSeason: z.number().min(0).max(10).optional(),
+  transferFeeThisSeason: z.number().int().min(0).optional(),
 });
 type SavePlayerParams = z.infer<typeof saveCareerPlayerSchema>;
 
@@ -205,6 +214,9 @@ export async function getCareerPlayerAction(input: unknown) {
       currentWageAnnual: true,
       marketValue: true,
       isUnemployed: true,
+      walletBalance: true,
+      influenceScore: true,
+      shopInventory: true,
       // hiddenStats: không trả về client — invariant
     },
   });
@@ -236,6 +248,10 @@ export async function saveCareerPlayer(input: unknown) {
     currentWageAnnual,
     marketValue,
     isUnemployed,
+    seasonHistory,
+    clubPrestige,
+    matchRatingThisSeason,
+    transferFeeThisSeason,
   } = params;
 
   // Server-derived peak — ignore client peakOvr (integrity)
@@ -253,19 +269,50 @@ export async function saveCareerPlayer(input: unknown) {
     ...(isUnemployed !== undefined ? { isUnemployed } : {}),
   };
 
-  // Giữ hiddenStats trong DB nếu client không gửi (resume path)
+  // Giữ hiddenStats + walletLedger trong DB nếu client không gửi lại (resume/retire path)
+  const existing = await prisma.careerPlayer.findUnique({
+    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
+    select: { hiddenStats: true, walletLedger: true },
+  });
   let resolvedHiddenStats = hiddenStats ?? null;
   if (!resolvedHiddenStats) {
-    const existing = await prisma.careerPlayer.findUnique({
-      where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
-      select: { hiddenStats: true },
-    });
     resolvedHiddenStats = (existing?.hiddenStats as z.infer<typeof hiddenStatsSchema> | null) ?? {
       luckRating: 10,
       professionalism: 10,
       personality: "Balanced",
     };
   }
+
+  // Wallet — final season's income (retirement checkpoint), server-authoritative.
+  const income = computeSeasonWalletIncome({
+    currentWageAnnual: currentWageAnnual ?? 0,
+    transferFeeThisSeason,
+  });
+  const nextWalletLedger: WalletLedgerEntry[] = [
+    ...((existing?.walletLedger as unknown as WalletLedgerEntry[] | undefined) ?? []),
+    ...buildWalletLedgerEntries(retireAge, income),
+  ];
+
+  // Influence Score — final derive at retirement.
+  const legacyScore = computeLegacyScore({
+    trophies: achievements?.trophies,
+    seasonHistory,
+    ballonDorWins: achievements?.ballonDor,
+    statsTimeline,
+  });
+  const currentFormIndex = computeCurrentFormIndex({
+    currentOvr: statsTimeline.at(-1)?.ovr ?? peakOvr,
+    peakOvr,
+    matchRating: matchRatingThisSeason ?? 6.0,
+    clubPrestige: clubPrestige ?? 2,
+  });
+  const influenceScore = computeInfluenceScore({
+    legacyScore,
+    currentFormIndex,
+    currentAge: retireAge,
+    debutAge,
+    careerLength,
+  });
 
   await prisma.careerPlayer.upsert({
     where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
@@ -290,12 +337,17 @@ export async function saveCareerPlayer(input: unknown) {
       events: [],
       hiddenStats: resolvedHiddenStats,
       achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
+      seasonHistory: seasonHistory ?? {},
       isRetired: true,
       contractYearsTotal: contractYearsTotal ?? 1,
       contractYearsRemaining: contractYearsRemaining ?? 0,
       currentWageAnnual: currentWageAnnual ?? 0,
       marketValue: marketValue ?? 0,
       isUnemployed: isUnemployed ?? false,
+      // No prior row to increment from in this branch — literal value.
+      walletBalance: income.totalIncome,
+      walletLedger: nextWalletLedger as unknown as any,
+      influenceScore,
     },
     update: {
       name,
@@ -312,8 +364,12 @@ export async function saveCareerPlayer(input: unknown) {
       clubStints,
       ...(hiddenStats ? { hiddenStats } : {}),
       achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
+      ...(seasonHistory !== undefined ? { seasonHistory } : {}),
       isRetired: true,
       ...contractData,
+      walletBalance: { increment: income.totalIncome },
+      walletLedger: nextWalletLedger as unknown as any,
+      influenceScore,
     },
   });
 

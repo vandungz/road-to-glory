@@ -16,8 +16,8 @@
       "Zustand"
     ],
     "description": "Football Life / Road to Glory — luck-based football career simulation driven by dynamic weighted wheels (no match engine).",
-    "analyzedAt": "2026-07-31T11:01:56.768Z",
-    "gitCommitHash": "0d413cc900da84e2bc3c90036ac0bbf88e4ebd1d"
+    "analyzedAt": "2026-08-07T08:44:10.795Z",
+    "gitCommitHash": "bc8a63b81f1cb6814f36ff8a6a9adbe870f1b2e5"
   },
   "nodes": [
     {
@@ -4680,6 +4680,50 @@
       },
       "complexity": "moderate",
       "name": "schema.prisma"
+    },
+    {
+      "id": "file:features/wheel/components/PersistentTransferSection.tsx",
+      "type": "file",
+      "name": "PersistentTransferSection.tsx",
+      "filePath": "features/wheel/components/PersistentTransferSection.tsx",
+      "summary": "Neo-Brutalist 3-tab transfer window modal with fixed financial header, debounced search, pagination, and pinned footer action bar.",
+      "tags": [
+        "component",
+        "ui",
+        "transfer",
+        "modal",
+        "contract"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "component:features/wheel/components/PersistentTransferSection.tsx:PersistentTransferSection",
+      "type": "component",
+      "name": "PersistentTransferSection",
+      "filePath": "features/wheel/components/PersistentTransferSection.tsx",
+      "lineRange": [
+        47,
+        830
+      ],
+      "summary": "3-Tab transfer modal component handling renewal requests, inbound transfer offers, and shortlist club search.",
+      "tags": [
+        "component",
+        "transfer",
+        "modal"
+      ]
+    },
+    {
+      "id": "file:app/dev/draft-preview/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "app/dev/draft-preview/page.tsx",
+      "summary": "Developer preview page for interactive testing of DraftDrumScreen and transfer window components.",
+      "tags": [
+        "dev",
+        "preview",
+        "page"
+      ],
+      "complexity": "simple"
     }
   ],
   "edges": [

@@ -6,8 +6,9 @@ import {
   clampCompetitionStats,
   type CompContext,
 } from "@/lib/season-stat-rates";
-import { estimateAppsRatio } from "@/lib/club-fit";
+import { estimateAppsRatio, getClubThreshold } from "@/lib/club-fit";
 import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
+import { TRAINING_CAMP_RATING_BONUS } from "@/lib/shop-catalog";
 
 
 export interface CompetitionStats {
@@ -38,6 +39,8 @@ export interface PlayerSeasonInput {
   nationalCallupResult?: string | null;
   nationalTournamentResult?: string | null;
   nationalTournamentType?: string | null;    // "FIFA World Cup" | "Copa América" | ...
+  /** docs/core-currency-shop-design.md §6.2 — "Training Camp" shop item. */
+  trainingCampActive?: boolean;
 }
 
 export interface BallonDorEligibility {
@@ -108,6 +111,29 @@ function getStandingBonus(standing: number | null | undefined): number {
   return -0.12;
 }
 
+// ── Team Clean Sheet Bound for cup/continental/national (SoT core-growth-loop-fixes-design.md
+// §4.1) — result-tier → assumed team CS ratio, mirroring how league already derives its bound
+// from standingResult. Kept separate from league's continuous standing-based formula since
+// these 3 use discrete result strings, not a numeric standing.
+
+const CUP_CS_RATIO: Record<string, number> = {
+  "Winner": 0.55, "Runner-Up": 0.50, "Semi-Finals": 0.45, "Quarter-Finals": 0.40,
+  "Round of 16": 0.35, "Round of 32": 0.30, "Early Exit": 0.25,
+};
+const CONTINENTAL_CS_RATIO: Record<string, number> = {
+  "Winner": 0.55, "Runner-Up": 0.50, "Semi-Finals": 0.45, "Quarter-Finals": 0.40,
+  "Round of 16": 0.35, "Group Stage": 0.30, "Early Exit": 0.30,
+};
+const NATIONAL_CS_RATIO: Record<string, number> = {
+  "Winner": 0.55, "Runner-Up": 0.50, "Semi-Finals": 0.45, "Quarter-Finals": 0.40,
+  "Round of 16": 0.35, "Group Stage": 0.30,
+};
+
+function estimateMaxTeamCS(matches: number, ratio: number | undefined): number | undefined {
+  if (matches <= 0 || ratio == null) return undefined;
+  return Math.max(1, Math.round(matches * ratio));
+}
+
 // ── Goals/Assists/CleanSheets — apps × rate(position) (SoT §7.0 & §7.7 & §7.8) ────────────
 
 function rollCompetitionOutput(
@@ -152,34 +178,47 @@ function getOverqualifyPerfScale(_ovr: number, _clubPrestige: number): number {
   return 1.0;
 }
 
+// Per-specific-position rating weights (SoT core-growth-loop-fixes-design.md §2.1) —
+// matches the 9-bucket philosophy already locked for effectivePositionOvr
+// (core-transfer-design.md §12.1). Replaces the old 3-bucket if/else which made LM/RM
+// always contribute 0 to rating and silently dropped CM's already-simulated clean sheets.
+const POSITION_RATING_WEIGHTS: Record<string, { ga: number; cs: number }> = {
+  ST: { ga: 2.0, cs: 0 },
+  LW: { ga: 1.8, cs: 0 },
+  RW: { ga: 1.8, cs: 0 },
+  CAM: { ga: 1.9, cs: 0 },
+  LM: { ga: 1.6, cs: 0 },
+  RM: { ga: 1.6, cs: 0 },
+  CM: { ga: 1.2, cs: 1.0 },
+  CDM: { ga: 0.9, cs: 1.3 },
+  LB: { ga: 0.3, cs: 1.8 },
+  RB: { ga: 0.3, cs: 1.8 },
+  CB: { ga: 0, cs: 2.2 },
+  GK: { ga: 0, cs: 2.2 },
+};
+
 function calcRating(
   position: string,
   ovr: number,
   luckRating: number,
   clubPrestige: number,
   compStats: { goals: number; assists: number; cleanSheets: number; apps: number },
-  standingBonus = 0
+  standingBonus = 0,
+  /** docs/core-currency-shop-design.md §6.2 — "Training Camp" shop item, flat rating bonus. */
+  perfBonus = 0,
 ): number {
   if (compStats.apps === 0) return 0;
 
-  const clubThreshold = 55 + clubPrestige * 6;
   // SoT §7.3: rating relative to club environment (capped)
-  const ovrVsClub = Math.max(-1.2, Math.min(1.2, (ovr - clubThreshold) * 0.01));
-  let base = 6.0 + ovrVsClub + (luckRating / 20) * 0.25 + standingBonus;
+  const ovrVsClub = Math.max(-1.2, Math.min(1.2, (ovr - getClubThreshold(clubPrestige)) * 0.01));
+  let base = 6.0 + ovrVsClub + (luckRating / 20) * 0.25 + standingBonus + perfBonus;
 
   const perfScale = getOverqualifyPerfScale(ovr, clubPrestige);
 
-  if (["ST", "LW", "RW", "CAM", "CM"].includes(position)) {
-    const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
-    base += gaFactor * 1.8 * perfScale;
-  } else if (position === "CDM") {
-    const csFactor = compStats.cleanSheets / compStats.apps;
-    const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
-    base += (csFactor * 1.3 + gaFactor * 0.9) * perfScale;
-  } else {
-    const csFactor = compStats.cleanSheets / compStats.apps;
-    base += csFactor * 2.2 * perfScale;
-  }
+  const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
+  const csFactor = compStats.cleanSheets / compStats.apps;
+  const weights = POSITION_RATING_WEIGHTS[position] ?? { ga: 1.0, cs: 1.0 };
+  base += (gaFactor * weights.ga + csFactor * weights.cs) * perfScale;
 
   base += resolveRandomFloat(-0.15, 0.15);
   return Math.min(9.0, Math.max(5.5, Math.round(base * 100) / 100));
@@ -310,6 +349,7 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     hasContinentalCup, playerNationality, currentStats,
     standingResult, domesticCupResult, continentalCupResult, continentalCupType,
     nationalCallupResult, nationalTournamentResult, nationalTournamentType,
+    trainingCampActive,
   } = input;
 
   const events: { type: string; label: string }[] = [];
@@ -325,6 +365,15 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const maxLeagueTeamCS = standingResult != null && leagueClubsCount > 0
     ? Math.max(1, Math.round(leagueMatches * (1 - (standingResult - 1) / Math.max(1, leagueClubsCount)) * 0.60))
     : undefined;
+  // Extended to cup/continental/national via result-tier ratio (SoT §4.1) — previously only
+  // league had a Team Result Invariant bound.
+  const maxCupTeamCS = estimateMaxTeamCS(cupMatches, domesticCupResult ? CUP_CS_RATIO[domesticCupResult] : undefined);
+  const maxContinentalTeamCS = hasContinentalCup
+    ? estimateMaxTeamCS(continentalMatches, continentalCupResult ? CONTINENTAL_CS_RATIO[continentalCupResult] : undefined)
+    : undefined;
+  const maxNationalTeamCS = nationalCallupResult === "called_up"
+    ? estimateMaxTeamCS(nationalMatches, nationalTournamentResult ? NATIONAL_CS_RATIO[nationalTournamentResult] : undefined)
+    : undefined;
 
   // SoT §7.10 — season sim uses effPositionOvr for apps ratio, rating, and overqualify check
   const effPositionOvr = computeEffectivePositionOvr(position, currentStats, ovr);
@@ -336,6 +385,8 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     0.95,
     Math.max(0.05, estimateAppsRatio(effPositionOvr, clubPrestige) + standingBonus + randModifier),
   );
+  // Training Camp (shop item) — flat rating bonus applied uniformly below, not an apps term.
+  const perfBonus = trainingCampActive ? TRAINING_CAMP_RATING_BONUS : 0;
 
   // 3. Per-competition apps
   const leagueApps = Math.max(1, Math.round(leagueMatches * finalAppsRatio));
@@ -349,28 +400,28 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     position, effPositionOvr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS,
   );
   const { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, cupApps, "domestic_cup", currentStats,
+    position, effPositionOvr, clubPrestige, cupApps, "domestic_cup", currentStats, maxCupTeamCS,
   );
   const { goals: ctGoals, assists: ctAssists, cleanSheets: contCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, continentalApps, "continental", currentStats,
+    position, effPositionOvr, clubPrestige, continentalApps, "continental", currentStats, maxContinentalTeamCS,
   );
   const { goals: ntGoals, assists: ntAssists, cleanSheets: natCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, nationalApps, "national", currentStats,
+    position, effPositionOvr, clubPrestige, nationalApps, "national", currentStats, maxNationalTeamCS,
   );
 
   // 5. Match ratings per competition (SoT §7.3: use effPositionOvr for ovrVsClub)
   const lgRatingBonus = getStandingBonus(standingResult) * 0.8;
   const leagueRating = leagueApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus)
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus, perfBonus)
     : 0;
   const cupRating = cupApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps })
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps }, 0, perfBonus)
     : 0;
   const contRating = continentalApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps })
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps }, 0, perfBonus)
     : 0;
   const natRating = nationalApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps })
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps }, 0, perfBonus)
     : 0;
 
   // 6. Totals (weighted average rating)

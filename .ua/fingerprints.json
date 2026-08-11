@@ -1,7 +1,7 @@
 {
   "version": "1.0.0",
-  "gitCommitHash": "0d413cc900da84e2bc3c90036ac0bbf88e4ebd1d",
-  "generatedAt": "2026-07-31T11:03:49.087Z",
+  "gitCommitHash": "bc8a63b81f1cb6814f36ff8a6a9adbe870f1b2e5",
+  "generatedAt": "2026-08-07T08:44:10.795Z",
   "files": {
     ".claude/CLAUDE.md": {
       "filePath": ".claude/CLAUDE.md",
@@ -2149,139 +2149,22 @@
     },
     "features/wheel/components/CareerActionsPanel.tsx": {
       "filePath": "features/wheel/components/CareerActionsPanel.tsx",
-      "contentHash": "3022012391eba13fa10c6c30ce6da501e93ee8f76b386fc5e6c81ecb33021110",
-      "functions": [
-        {
-          "name": "CareerActionsPanel",
-          "params": [
-            "{\n  careerSubStep,\n  currentAge,\n  playerDebutAge,\n  currentClub,\n  currentContinentalCup,\n  careerSpinning,\n  isProcessing,\n  careerWheelItems,\n  careerTargetIndex,\n  handleCareerSpinComplete,\n  careerTempValue,\n  handleCareerSpin,\n  handleStartSeason,\n  transferMarket,\n  willingToMove,\n  setWillingToMove,\n  showShortlist,\n  setShowShortlist,\n  handleAcceptMarketOffer,\n  handleRejectTransferWindow,\n  handleApproachShortlist,\n  yearSimResult,\n  standingResult,\n  domesticCupResult,\n  continentalCupResult,\n  hasBallonDorWinner,\n  handleNextSeason,\n  position,\n  selectorIndex,\n  yearEvolutionCount,\n  tempSelectedStat,\n  approachRejects,\n  approachBanner,\n  isUnemployed,\n}"
-          ],
-          "exported": true,
-          "lineCount": 194
-        }
-      ],
+      "contentHash": "5328809355e6975aa19d65e5f50c254409aa30b9b05979cd6261cf0f4865a3c4",
+      "functions": [],
       "classes": [],
-      "imports": [
-        {
-          "source": "lucide-react",
-          "specifiers": [
-            "Globe"
-          ]
-        },
-        {
-          "source": "@/features/transfer/services/transfer.service",
-          "specifiers": [
-            "ContractOfferCard",
-            "ShortlistClubCard",
-            "TransferMarketResult"
-          ]
-        },
-        {
-          "source": "./SpinnerWheel",
-          "specifiers": [
-            "SpinnerWheel"
-          ]
-        },
-        {
-          "source": "./TransferWindowPanel",
-          "specifiers": [
-            "TransferWindowPanel"
-          ]
-        },
-        {
-          "source": "../lib/simulation-helpers",
-          "specifiers": [
-            "getSeasonYearString",
-            "getContinentalCupLabel"
-          ]
-        }
-      ],
-      "exports": [
-        "CareerActionsPanel"
-      ],
-      "totalLines": 240,
+      "imports": [],
+      "exports": [],
+      "totalLines": 366,
       "hasStructuralAnalysis": true
     },
     "features/wheel/components/DraftDrumScreen.tsx": {
       "filePath": "features/wheel/components/DraftDrumScreen.tsx",
-      "contentHash": "d11a5eff6c6222c1054cde962789bd274cca038ba1e3c0106621c12c3b44f574",
-      "functions": [
-        {
-          "name": "DraftDrumScreen",
-          "params": [
-            "{ gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup }"
-          ],
-          "exported": true,
-          "lineCount": 287
-        }
-      ],
+      "contentHash": "a02ec3a99055bd74810df53addaa246ab64009d8dda9d3ca3ffe92236d029071",
+      "functions": [],
       "classes": [],
-      "imports": [
-        {
-          "source": "next/link",
-          "specifiers": [
-            "Link"
-          ]
-        },
-        {
-          "source": "lucide-react",
-          "specifiers": [
-            "ArrowLeft"
-          ]
-        },
-        {
-          "source": "../hooks/useDraftDrum",
-          "specifiers": [
-            "useDraftDrum"
-          ]
-        },
-        {
-          "source": "./SetupStage",
-          "specifiers": [
-            "SetupStage"
-          ]
-        },
-        {
-          "source": "./CareerActionsPanel",
-          "specifiers": [
-            "CareerActionsPanel"
-          ]
-        },
-        {
-          "source": "./SeasonProfile",
-          "specifiers": [
-            "SeasonProfile"
-          ]
-        },
-        {
-          "source": "./PaniniSticker",
-          "specifiers": [
-            "PaniniSticker"
-          ]
-        },
-        {
-          "source": "./RetiredStage",
-          "specifiers": [
-            "RetiredStage"
-          ]
-        },
-        {
-          "source": "./SeasonResultModal",
-          "specifiers": [
-            "SeasonResultModal"
-          ]
-        },
-        {
-          "source": "./SeasonStatsModal",
-          "specifiers": [
-            "SeasonStatsModal"
-          ]
-        }
-      ],
-      "exports": [
-        "DraftDrumScreen"
-      ],
-      "totalLines": 311,
+      "imports": [],
+      "exports": [],
+      "totalLines": 603,
       "hasStructuralAnalysis": true
     },
     "features/wheel/components/PaniniSticker.tsx": {
@@ -2330,37 +2213,12 @@
     },
     "features/wheel/components/RetiredStage.tsx": {
       "filePath": "features/wheel/components/RetiredStage.tsx",
-      "contentHash": "7bc0f292e68e7d4d1ca8958d4763ddab2f2c6447cfaa00e1899281ce5758df2b",
-      "functions": [
-        {
-          "name": "RetiredStage",
-          "params": [
-            "{\n  position,\n  playerNationality,\n  peakOvrValue,\n  playerName,\n  careerTotalStats,\n  clubStints,\n  achievements,\n  isSaving,\n  handleSavePlayer,\n}"
-          ],
-          "exported": true,
-          "lineCount": 110
-        }
-      ],
+      "contentHash": "08a0a6b8cee518d7de19561cac1c15426b1532bf4de8ad0ca6155f1f6525f68f",
+      "functions": [],
       "classes": [],
-      "imports": [
-        {
-          "source": "lucide-react",
-          "specifiers": [
-            "Trophy",
-            "RefreshCw"
-          ]
-        },
-        {
-          "source": "@/types/squad",
-          "specifiers": [
-            "getFlagEmoji"
-          ]
-        }
-      ],
-      "exports": [
-        "RetiredStage"
-      ],
-      "totalLines": 128,
+      "imports": [],
+      "exports": [],
+      "totalLines": 338,
       "hasStructuralAnalysis": true
     },
     "features/wheel/components/SeasonProfile.tsx": {
@@ -2907,146 +2765,12 @@
     },
     "features/wheel/hooks/useDraftDrum.ts": {
       "filePath": "features/wheel/hooks/useDraftDrum.ts",
-      "contentHash": "b0a746107416c87051fce769ca062b5a681c57bc499c9358768b7e353dcb6e6d",
-      "functions": [
-        {
-          "name": "emptyUnemployedSeasonResult",
-          "params": [],
-          "returnType": "SimulatedSeasonResult",
-          "exported": false,
-          "lineCount": 14
-        },
-        {
-          "name": "useDraftDrum",
-          "params": [
-            "gameId",
-            "slotIndex",
-            "position",
-            "leagues",
-            "clubs",
-            "savedPlayerId",
-            "savedContinentalCup"
-          ],
-          "exported": true,
-          "lineCount": 557
-        }
-      ],
+      "contentHash": "10fbd0d9013589d106bb6c5c64115626c4bb0e9397951cbf17d3297ce850cb03",
+      "functions": [],
       "classes": [],
-      "imports": [
-        {
-          "source": "react",
-          "specifiers": [
-            "useEffect",
-            "useRef",
-            "useState"
-          ]
-        },
-        {
-          "source": "@/lib/wheel-engine/weight-calculator",
-          "specifiers": [
-            "getNationalContinentalCup"
-          ]
-        },
-        {
-          "source": "../lib/simulation-helpers",
-          "specifiers": [
-            "getSeasonYearString",
-            "getNationalTournamentName"
-          ]
-        },
-        {
-          "source": "../lib/career-wheel-resolver",
-          "specifiers": [
-            "getCareerWheelPoolAndValue"
-          ]
-        },
-        {
-          "source": "./useSetupStage",
-          "specifiers": [
-            "useSetupStage"
-          ]
-        },
-        {
-          "source": "./useCareerStats",
-          "specifiers": [
-            "useCareerStats"
-          ]
-        },
-        {
-          "source": "./useCareerWheelItems",
-          "specifiers": [
-            "useCareerWheelItems"
-          ]
-        },
-        {
-          "source": "./useCompetitionFlow",
-          "specifiers": [
-            "useCompetitionFlow"
-          ]
-        },
-        {
-          "source": "./useStatEvolutionFlow",
-          "specifiers": [
-            "useStatEvolutionFlow"
-          ]
-        },
-        {
-          "source": "../stores/useWheelUiStore",
-          "specifiers": [
-            "useWheelUiStore"
-          ]
-        },
-        {
-          "source": "@/actions/season.actions",
-          "specifiers": [
-            "startPlayerCareerAction",
-            "updateSeasonProgressAction",
-            "resolveShortlistApproachAction"
-          ]
-        },
-        {
-          "source": "@/actions/player.actions",
-          "specifiers": [
-            "initCareerPlayerAction",
-            "getCareerPlayerAction"
-          ]
-        },
-        {
-          "source": "@/types/game",
-          "specifiers": [
-            "SeasonRecord",
-            "getStepLabels"
-          ]
-        },
-        {
-          "source": "@/features/season/services/season-simulator.service",
-          "specifiers": [
-            "SimulatedSeasonResult"
-          ]
-        },
-        {
-          "source": "@/lib/transfer-economy",
-          "specifiers": [
-            "approachChancePercent"
-          ]
-        },
-        {
-          "source": "../components/TransferWindowPanel",
-          "specifiers": [
-            "ApproachRejectState"
-          ]
-        },
-        {
-          "source": "@/features/transfer/services/transfer.service",
-          "specifiers": [
-            "ShortlistClubCard"
-          ]
-        }
-      ],
-      "exports": [
-        "useDraftDrum"
-      ],
-      "totalLines": 603,
+      "imports": [],
+      "exports": [],
+      "totalLines": 707,
       "hasStructuralAnalysis": true
     },
     "features/wheel/hooks/useSetupStage.ts": {
@@ -4064,223 +3788,12 @@
     },
     "lib/transfer-economy.ts": {
       "filePath": "lib/transfer-economy.ts",
-      "contentHash": "dc16abd1a167fae35cd0f7cbbd80d92c47c6aacc113ca2d665ef6dceca6e9e9e",
-      "functions": [
-        {
-          "name": "getBuyingPowerBand",
-          "params": [
-            "prestige",
-            "leagueTier"
-          ],
-          "returnType": "BuyingPowerBand",
-          "exported": true,
-          "lineCount": 21
-        },
-        {
-          "name": "seasonsLeftInCareer",
-          "params": [
-            "currentAge",
-            "retireAge"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "clampContractYears",
-          "params": [
-            "proposed",
-            "currentAge",
-            "retireAge"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "ageCurveMul",
-          "params": [
-            "age"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 7
-        },
-        {
-          "name": "baseMvFromOvr",
-          "params": [
-            "ovr"
-          ],
-          "returnType": "number",
-          "exported": false,
-          "lineCount": 9
-        },
-        {
-          "name": "formMulFromRating",
-          "params": [
-            "matchRating"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 7
-        },
-        {
-          "name": "computeMarketValue",
-          "params": [
-            "params"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 17
-        },
-        {
-          "name": "buyoutFactor",
-          "params": [
-            "remaining"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 7
-        },
-        {
-          "name": "computeMandatoryBuyout",
-          "params": [
-            "marketValue",
-            "contractYearsRemaining"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "clubCanAffordBuyout",
-          "params": [
-            "prestige",
-            "leagueTier",
-            "mandatoryBuyout"
-          ],
-          "returnType": "boolean",
-          "exported": true,
-          "lineCount": 8
-        },
-        {
-          "name": "proposeContractYears",
-          "params": [
-            "params"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 15
-        },
-        {
-          "name": "proposeWageAnnual",
-          "params": [
-            "params"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 29
-        },
-        {
-          "name": "wantsRenewal",
-          "params": [
-            "params"
-          ],
-          "returnType": "boolean",
-          "exported": true,
-          "lineCount": 40
-        },
-        {
-          "name": "isDistressSale",
-          "params": [
-            "matchRating",
-            "appsRatio"
-          ],
-          "returnType": "boolean",
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "formatEuroThousands",
-          "params": [
-            "k"
-          ],
-          "returnType": "string",
-          "exported": true,
-          "lineCount": 11
-        },
-        {
-          "name": "expectedAppsAtClub",
-          "params": [
-            "ovr",
-            "prestige",
-            "leagueSize"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 5
-        },
-        {
-          "name": "expectedPrestigeFromOvr",
-          "params": [
-            "ovr"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 3
-        },
-        {
-          "name": "computeApproachAcceptChance",
-          "params": [
-            "params"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 38
-        },
-        {
-          "name": "approachChancePercent",
-          "params": [
-            "chance"
-          ],
-          "returnType": "number",
-          "exported": true,
-          "lineCount": 3
-        }
-      ],
+      "contentHash": "4e596c254cbea19c4e5f8076d469dea98236c41b3aab14bf93635983a8a443e5",
+      "functions": [],
       "classes": [],
-      "imports": [
-        {
-          "source": "@/lib/club-fit",
-          "specifiers": [
-            "estimateAppsRatio",
-            "getClubThreshold"
-          ]
-        }
-      ],
-      "exports": [
-        "CONTRACT_YEARS_HARD_CAP",
-        "MAX_INBOUND_OFFERS",
-        "getBuyingPowerBand",
-        "seasonsLeftInCareer",
-        "clampContractYears",
-        "ageCurveMul",
-        "formMulFromRating",
-        "computeMarketValue",
-        "buyoutFactor",
-        "computeMandatoryBuyout",
-        "clubCanAffordBuyout",
-        "proposeContractYears",
-        "proposeWageAnnual",
-        "wantsRenewal",
-        "isDistressSale",
-        "formatEuroThousands",
-        "expectedAppsAtClub",
-        "expectedPrestigeFromOvr",
-        "computeApproachAcceptChance",
-        "approachChancePercent"
-      ],
-      "totalLines": 292,
+      "imports": [],
+      "exports": [],
+      "totalLines": 486,
       "hasStructuralAnalysis": true
     },
     "lib/utils.ts": {
@@ -4852,6 +4365,36 @@
         "RARITY_ACCENT"
       ],
       "totalLines": 165,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/PersistentTransferSection.tsx": {
+      "filePath": "features/wheel/components/PersistentTransferSection.tsx",
+      "contentHash": "084870d9fbf9d4b54a44d54b5e09075325a7caef4d2c72af817f50629d3d9e36",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 839,
+      "hasStructuralAnalysis": true
+    },
+    "features/wheel/components/SeasonStrip.tsx": {
+      "filePath": "features/wheel/components/SeasonStrip.tsx",
+      "contentHash": "a3c204ed017a647873f3bdea586570c352a02655a95e815f37c3a423210cf959",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 185,
+      "hasStructuralAnalysis": true
+    },
+    "app/dev/draft-preview/page.tsx": {
+      "filePath": "app/dev/draft-preview/page.tsx",
+      "contentHash": "2b14e2452fc2c37ac81eb09374decffe88fa01ef0e6adb3f672f86975d213ef9",
+      "functions": [],
+      "classes": [],
+      "imports": [],
+      "exports": [],
+      "totalLines": 27,
       "hasStructuralAnalysis": true
     }
   }

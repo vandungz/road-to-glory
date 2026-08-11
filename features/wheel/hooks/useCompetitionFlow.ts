@@ -7,6 +7,7 @@ import {
   generateLeagueTableAction,
   generateCupJourneyAction,
 } from "@/actions/season.actions";
+import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
 import type { ModalType } from "./useDraftDrum";
 
 interface CompetitionFlowProps {
@@ -24,6 +25,7 @@ interface CompetitionFlowProps {
   continentalCupResult: string | null;
   nationalCallupResult: string | null;
   yearSimResult: any;
+  shopInventory: ShopInventoryEntry[];
   setStandingResult: (v: number | null) => void;
   setDomesticCupResult: (v: string | null) => void;
   setContinentalCupResult: (v: string | null) => void;
@@ -55,6 +57,10 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         )
       : null;
 
+    // docs/core-currency-shop-design.md §6.2 — "Training Camp": general per-season buff,
+    // no conditional gating (bought at season start, applies to that season).
+    const trainingCampActive = isShopItemActiveForSeason(p.shopInventory, "training_camp", p.currentAge);
+
     try {
       const simRes = await simulatePlayerSeasonAction({
         age: p.currentAge,
@@ -75,6 +81,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         nationalCallupResult: callup,
         nationalTournamentResult: tournament,
         nationalTournamentType,
+        trainingCampActive,
       });
 
       p.setYearSimResult(simRes);

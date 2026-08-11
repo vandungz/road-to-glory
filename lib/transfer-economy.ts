@@ -5,6 +5,7 @@
  */
 
 import { estimateAppsRatio, getClubThreshold } from "@/lib/club-fit";
+import { influenceTopUp } from "@/lib/influence-score";
 
 export const CONTRACT_YEARS_HARD_CAP = 5;
 export const MAX_INBOUND_OFFERS = 3;
@@ -247,6 +248,10 @@ export function expectedPrestigeFromOvr(ovr: number): number {
  * Clamp [0.08, 0.85]. SoT plan approach odds.
  * @param effPositionOvr — if provided, used for prestige/fit evaluation (SoT §12.1).
  *   Falls back to `ovr` when absent (e.g., legacy callers).
+ * @param influenceScore — Player Influence Score (docs/core-currency-shop-design.md §5),
+ *   applied as a small capped top-up INSIDE this function (not by callers) so every call
+ *   site (shortlist builder, resolveApproachService, searchClubsForApproachAction) stays
+ *   in sync — a mismatch between call sites would trip the client/server drift-check.
  */
 export function computeApproachAcceptChance(params: {
   ovr: number;
@@ -256,6 +261,7 @@ export function computeApproachAcceptChance(params: {
   destPrestige: number;
   destLeagueTier: number;
   expectedAppsRatio: number;
+  influenceScore?: number;
 }): number {
   const { age, matchRating, destPrestige, destLeagueTier, expectedAppsRatio } = params;
   // Use effPositionOvr if provided (SoT §7.10: club evaluates by position-specific ability)
@@ -287,6 +293,12 @@ export function computeApproachAcceptChance(params: {
     chance -= 0.05;
   }
 
+  chance += influenceTopUp(params.influenceScore) / 100;
+
+  // Re-clamp to the same documented band after the top-up — approachChancePercent()
+  // (UI display helper) independently re-clamps to [0.08, 0.85] too, so letting the
+  // internal composite exceed it here would make the displayed % silently diverge
+  // from the real resolve-time probability.
   return Math.min(0.85, Math.max(0.08, chance));
 }
 
@@ -355,6 +367,11 @@ export function computeEffectivePositionOvr(
 /**
  * Computes Scout Interest Score (0–100) based on position effective OVR, stats, nation fit, age & potential.
  */
+/**
+ * @param influenceScore — Player Influence Score (docs/core-currency-shop-design.md §5),
+ *   applied as a small capped top-up INSIDE this function — single call site today, but
+ *   kept internal for consistency with computeApproachAcceptChance's multi-call-site rule.
+ */
 export function computeScoutInterestScore(params: {
   position: string;
   currentStats?: Record<string, number>;
@@ -368,6 +385,7 @@ export function computeScoutInterestScore(params: {
   playerNation?: string;
   clubLeagueCountry?: string;
   clubPrestige: number;
+  influenceScore?: number;
 }): number {
   const {
     position,
@@ -423,7 +441,8 @@ export function computeScoutInterestScore(params: {
     agePotBonus = 2;
   }
 
-  return Math.round(Math.max(5, Math.min(100, ovrScore + perfScore + natBonus + agePotBonus)));
+  const base = Math.round(Math.max(5, Math.min(100, ovrScore + perfScore + natBonus + agePotBonus)));
+  return Math.min(100, base + influenceTopUp(params.influenceScore));
 }
 
 /**

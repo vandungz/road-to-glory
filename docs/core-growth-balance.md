@@ -7,9 +7,17 @@
 > competition (league / cup / continental / national) có phân biệt theo vị trí** —
 > toàn bộ tính ở BE, không đưa logic này xuống client.
 > **Không code trong doc này** — chỉ quyết định thiết kế để implement sau.
-> **Scope cấm (growth):** không thêm training / U-team / academy chỉ để nuôi debut.
+> **Scope cấm (growth):** không thêm training / U-team / academy chỉ để nuôi debut; **cấm
+> mọi cơ chế ghi trực tiếp vào stat/OVR hoặc đổi trọng số (`weight`) trong các pool ở
+> `growth-balance.ts`/`simulation-helpers.ts` để đổi lấy tiền/vật phẩm.** Ngoại lệ hẹp duy
+> nhất: whitelist các lever gián tiếp (reroll đúng pool cũ, điều chỉnh input như
+> `seasonApps`/severity — không đổi công thức) được định nghĩa đầy đủ ở
+> `docs/core-currency-shop-design.md §6.1` — không tự thêm lever mới ngoài whitelist đó mà
+> không sửa cả 2 file.
 >
 > Tài liệu liên quan:
+> - `docs/core-currency-shop-design.md` — Wallet/Influence Score/Shop (feature mới, dùng
+>   `marketValue`/`wage` làm nguồn tiền) — xem ngoại lệ whitelist ở trên.
 > - `docs/core-game-logic-systems-map.md` — **bản đồ toàn cục** mọi subsystem + phụ thuộc
 >   nhân quả + **client/server × latency/scale** (§4b). Đọc trước khi tune từng mảnh
 >   hoặc thêm Server Action trong year loop.
@@ -198,12 +206,12 @@ vị trí**, không gộp một công thức phẳng.
 
 **Domain giảm:** giữ 1–3; mean giảm khi mùa tốt (hiếm giảm), mean tăng khi mùa kém:
 
-| Tier rating lúc giảm | Pool `1/2/3` (Cập nhật 2026-08-03 - Gentle Decline) |
+| Tier rating lúc giảm | Pool `1/2/3` (Cập nhật 2026-08-07, sau 2 lần nudge — khớp `decreaseByTier` thật trong code) |
 |---|---|
-| Kém (Giảm nặng nhất) | `50 / 35 / 15` (Chủ yếu 1 chỉ số, tối đa 15% cho 3 chỉ số) |
-| Trung bình | `65 / 25 / 10` |
-| Tốt | `75 / 20 / 5` |
-| Xuất sắc | `85 / 12 / 3` |
+| Kém (Giảm nặng nhất) | `52 / 35 / 13` (Chủ yếu 1 chỉ số) |
+| Trung bình | `67 / 25 / 8` |
+| Tốt | `82 / 15 / 3` |
+| Xuất sắc | `91 / 8 / 1` (đã chạm sàn weight-3 = 1, không nudge tiếp được nữa ở tier này) |
 
 **Quyết định:** Giảm bớt tỷ lệ dồn 2–3 chỉ số (từ 75% xuống 50% giảm 1 chỉ số), giúp đợt suy giảm diễn ra tự nhiên, không thành thảm họa sụt rớt thô bạo.
 
@@ -212,15 +220,15 @@ vị trí**, không gộp một công thức phẳng.
 **Domain:** thu về **1–6** cho mọi tier (rollback tinh thần “mở 1–8 đồng đều” ở review
 F — domain 7–8 chỉ tái mở sau nếu playtest chứng minh P99 không đủ đường tới 99).
 
-| Tier (increase) | Pool weight `1/2/3/4/5/6` | Mean mục tiêu |
+| Tier (increase) | Pool weight `1/2/3/4/5/6` (Cập nhật 2026-08-07, sau 2 lần nudge — khớp `weightsByTier` thật trong code) | Mean mục tiêu |
 |---|---|---|
-| Xuất sắc (Cập nhật 2026-08-03) | `15 / 35 / 30 / 15 / 5 / 0` (Thưởng mùa bùng nổ, tăng cơ hội +3/+4) | **~2.6** |
-| Tốt | `30 / 42 / 20 / 6 / 1 / 1` | **~2.1** |
-| Trung bình | `45 / 35 / 14 / 5 / 1 / 0` | **~1.8** |
-| Kém | `65 / 26 / 7 / 1 / 1 / 0` | **~1.4** |
+| Xuất sắc | `9 / 41 / 30 / 15 / 5 / 0` (Thưởng mùa bùng nổ, tăng cơ hội +3/+4) | **~2.67** |
+| Tốt | `34 / 48 / 12 / 4 / 1 / 1` | **~1.93** |
+| Trung bình | `49 / 41 / 7 / 2 / 1 / 0` | **~1.65** |
+| Kém | `59 / 32 / 7 / 1 / 1 / 0` | **~1.53** |
 
-**Hướng decrease (Cập nhật 2026-08-03 - Gentle Decline):**
-- Phân bổ lại `decreaseByTier`: Kém `[50, 35, 15]` (-1pt 50%, -2pt 35%, -3pt 15%), Trung bình `[65, 25, 10]`, Tốt `[80, 15, 5]`, Xuất sắc `[90, 8, 2]`.
+**Hướng decrease (Cập nhật 2026-08-07, sau 2 lần nudge):**
+- Phân bổ lại `decreaseByTier`: Kém `[52, 35, 13]`, Trung bình `[67, 25, 8]`, Tốt `[82, 15, 3]`, Xuất sắc `[91, 8, 1]` (đã chạm sàn, không nudge thêm được).
 
 **Quyết định:** Giữ vững trần chống lạm phát 92+, nhưng mùa giải Xuất sắc ($\ge 7.50$) phải có cảm giác bứt phá xứng đáng (cơ hội +3/+4 điểm rõ rệt). Nhánh Giảm không bị dồn 78% phạt tối đa.
 
@@ -876,6 +884,9 @@ Sau khi implement + chạy ≥ 30 careers thử (hoặc script Monte Carlo nếu
 | 2026-07-30 | **Ship §4.4:** `getEffectiveIncreaseGate` trong `growth-balance.ts` — DevelopmentBase × FormMultiplier × clamp(8–82) × soft-cap; bỏ age±10 trên increase; preview≡resolve. |
 | 2026-07-30 | **§7.6 chốt + ship:** player↔club fit — `lib/club-fit.ts` apps recovery khi xuống CLB vừa tầm; decrease severity/gate nương khi `apps` thấp (không nới increase OP). |
 | 2026-08-02 | **Ship §4.4.8 & §7.7 & §7.8:** Rebalance Gate 1 YES (70–85%); Position KPI bonus; Ma trận 6 chỉ số thành phần toàn diện (`PAC`, `SHO`, `PAS`, `DRI`, `DEF`, `PHY` / `DIV`, `HAN`, `KIC`, `REF`, `SPD`, `POS`); Ràng buộc toán học bất biến `Player CS <= Team Won + Team Drawn`. |
+| 2026-08-07 | **Tune magnitude nhẹ (mọi tier, không phân biệt già/trẻ):** Increase — chuyển weight từ `1` sang `2` (mỗi tier −3/+3, giữ nguyên các cột 3–6). Decrease — chuyển weight từ `3` sang `1` (mỗi tier −1/+1). Mean tăng nhích lên (~+0.03/tier); mean giảm nhích xuống (~−0.02/tier) — thay đổi rất nhỏ, đúng tinh thần "một chút" theo yêu cầu, không phá vỡ target phân phối §1.1. Nhân tiện phát hiện & sửa 2 bảng ở §4.2/§4.3 phía trên đã lệch số so với code thật từ trước (không liên quan tới đợt tune này) — từ nay bảng khớp `simulation-helpers.ts::getMagnitudePool` 1:1. |
+| 2026-08-07 | **Nudge thêm lần 2 (cùng hướng, cùng bước −3/+3 increase và −1/+1 decrease):** Kem-decrease weight-3 đã chạm sàn `1` từ lần nudge trước → giữ nguyên, không trừ tiếp (tránh weight về 0 khiến giá trị đó biến mất khỏi pool thay vì chỉ hiếm hơn). 3 tier còn lại của decrease + cả 4 tier của increase nudge bình thường. Mean increase ~2.67/1.93/1.65/1.53 (xuat_sac/tot/trung_binh/kem); mean decrease ~1.63/1.53/1.43/1.10 tương ứng Kém/Trung bình/Tốt/Xuất sắc. |
+| 2026-08-07 | **Mở whitelist hẹp cho `docs/core-currency-shop-design.md` (Wallet/Influence/Shop):** sửa "Scope cấm" ở header — vẫn cấm tuyệt đối ghi thẳng stat/OVR hoặc đổi trọng số pool, nhưng cho phép lever gián tiếp đã whitelist rõ (reroll đúng pool, điều chỉnh input như severity/apps ratio) khi mua Shop item. Không đổi bất kỳ số cân bằng nào trong file này. |
 
 ---
 

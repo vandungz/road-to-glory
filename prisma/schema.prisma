@@ -55,6 +55,12 @@ model CareerPlayer {
   marketValue           Int         @default(0) // € thousands, cached
   isUnemployed          Boolean     @default(false) // FA không ký — mùa 0 apps
 
+  // Wallet & Influence (docs/core-currency-shop-design.md §7)
+  walletBalance     Int         @default(0)      // € thousands — cumulative, server-authoritative
+  influenceScore    Int         @default(0)      // 0–100, cached, derived each season checkpoint
+  walletLedger      Json        @default("[]")   // Array<{ age, type, amount, label }>
+  shopInventory     Json        @default("[]")   // Array<{ itemId, purchasedAtAge, appliedSeason, consumed }> — unused until Wave 2
+
   // Timelines & Logs (Stored as JSON)
   statsTimeline     Json        // Array of StatsSnapshot: { age, ovr, pac, sho, pas, dri, def, phy, ... }
   clubStints        Json        // Array of ClubStint: { clubId, clubName, leagueId, leagueName, startAge, endAge, yearsAtClub, ovrAtJoining, ovrAtLeaving }

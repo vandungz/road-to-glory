@@ -1,18 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getNationalContinentalCup, getNationalTier, getMainStatsByPosition } from "@/lib/wheel-engine/weight-calculator";
+import { getNationalContinentalCup, getMainStatsByPosition } from "@/lib/wheel-engine/weight-calculator";
 import {
-  getStandingWheelPool,
   getContinentalCupLabel,
   getNationalTournamentName,
-  getDomesticCupWeights,
-  getContinentalCupWeights,
-  getNationalTournamentWeights,
-  getNationalCallupWeights,
-  getInfluenceProxy,
-  getAgeProgressThresholds,
-  getCareerProgress,
+  isOldDualClock,
 } from "../lib/simulation-helpers";
 import {
   getEffectiveIncreaseGate,
@@ -21,6 +14,15 @@ import {
   getEffectiveMagnitudePool,
   getSelectorStatWeight,
 } from "../lib/growth-balance";
+import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
+import {
+  buildStandingPool,
+  buildDomesticCupPool,
+  buildContinentalCupPool,
+  buildNationalCallupPool,
+  buildNationalTournamentPool,
+  type TeamWheelCtx,
+} from "../lib/wheel-team-params";
 
 interface UseCareerWheelItemsProps {
   careerSubStep: string;
@@ -45,6 +47,8 @@ interface UseCareerWheelItemsProps {
   ballonDorNominationWeight: number;
   ballonDorRankWeights: number[];
   luckRating?: number;
+  /** docs/core-currency-shop-design.md §6.2 — must equal the resolve's value (career-wheel-resolver.ts). */
+  fitnessCoachActive?: boolean;
 }
 
 export function useCareerWheelItems({
@@ -70,6 +74,7 @@ export function useCareerWheelItems({
   ballonDorNominationWeight,
   ballonDorRankWeights,
   luckRating = 10,
+  fitnessCoachActive,
 }: UseCareerWheelItemsProps) {
   const [careerWheelItems, setCareerWheelItems] = useState<{ label: string; value: any; weight?: number }[]>([]);
 
@@ -78,9 +83,20 @@ export function useCareerWheelItems({
 
     const rating = yearSimResult?.matchRating ?? 7.0;
     const prestige = currentClub?.prestige ?? 3;
-    const influence = getInfluenceProxy(
-      currentOvr, prestige, leagueSize, yearSimResult?.apps ?? null,
-    );
+    // SoT §7.10 — wheel weights use effPositionOvr (position-specific ability, §12.1);
+    // SoT §3 — shared ctx for the 5 team wheels, must exactly mirror career-wheel-resolver.ts.
+    const effPositionOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+    const teamCtx: TeamWheelCtx = {
+      effPositionOvr,
+      prestige,
+      leagueSize,
+      apps: yearSimResult?.apps ?? null,
+      priorStanding: currentAge > playerDebutAge ? lastYearStanding : null,
+      luckRating,
+      playerNationality,
+      standingResult,
+      position,
+    };
     let items: { label: string; value: any; weight?: number }[] = [];
 
     switch (careerSubStep) {
@@ -117,6 +133,7 @@ export function useCareerWheelItems({
           rating, isIncrease: !!isInc, position, currentAge,
           debutAge: playerDebutAge, careerLength: playerCareerLength, currentOvr,
           seasonApps: yearSimResult?.apps ?? null,
+          fitnessCoachActive,
         });
         items = pool.map((p) => ({ label: `${p.value} Chỉ Số`, value: p.value, weight: p.weight }));
         break;
@@ -127,6 +144,7 @@ export function useCareerWheelItems({
           rating, isIncrease: !!isInc, position, currentAge,
           debutAge: playerDebutAge, careerLength: playerCareerLength, currentOvr,
           seasonApps: yearSimResult?.apps ?? null,
+          fitnessCoachActive,
         });
         items = pool.map((p) => ({ label: `${p.value} Điểm`, value: p.value, weight: p.weight }));
         break;
@@ -157,20 +175,16 @@ export function useCareerWheelItems({
           !(!isIncrease && (currentStats[c.key] ?? 0) <= 10)
         );
         const mainStats = getMainStatsByPosition(position);
-        const { old } = getAgeProgressThresholds(position);
-        const progress = getCareerProgress(currentAge, playerDebutAge, playerCareerLength);
+        const isOld = isOldDualClock(currentAge, playerDebutAge, playerCareerLength, position);
         items = available.map((c) => ({
           value: c.key,
           label: c.name.toUpperCase(),
-          weight: getSelectorStatWeight(mainStats.includes(c.key), !!isIncrease, progress, old),
+          weight: getSelectorStatWeight(mainStats.includes(c.key), !!isIncrease, isOld),
         }));
         break;
       }
       case "standing": {
-        const priorStanding = currentAge > playerDebutAge ? lastYearStanding : null;
-        const standingPool = getStandingWheelPool(
-          prestige, currentOvr, leagueSize, yearSimResult?.apps ?? null, priorStanding,
-        );
+        const standingPool = buildStandingPool(teamCtx);
         items = standingPool.map((x) => ({
           label: x.value === 1 ? "🏆 VÔ ĐỊCH (HẠNG 1)" : x.value === 2 ? "🥈 Á QUÂN (HẠNG 2)" : `HẠNG ${x.value}`,
           value: x.value,
@@ -179,45 +193,42 @@ export function useCareerWheelItems({
         break;
       }
       case "domestic_cup": {
-        const { wWin, wRun, wSemi, wQF, wR16, wR32, wExit } = getDomesticCupWeights(
-          prestige, luckRating, currentOvr, influence,
-        );
-        items = [
-          { label: "🏆 VÔ ĐỊCH CUP", value: "Winner", weight: wWin },
-          { label: "🥈 Á QUÂN CUP", value: "Runner-Up", weight: wRun },
-          { label: "🥉 BÁN KẾT", value: "Semi-Finals", weight: wSemi },
-          { label: "⚡ TỨ KẾT", value: "Quarter-Finals", weight: wQF },
-          { label: "🛡️ VÒNG 1/8", value: "Round of 16", weight: wR16 },
-          { label: "⚽ VÒNG 1/16", value: "Round of 32", weight: wR32 },
-          { label: "❌ BỊ LOẠI SỚM", value: "Early Exit", weight: wExit },
-        ];
+        const pool = buildDomesticCupPool(teamCtx);
+        items = pool.map((p) => ({
+          label:
+            p.value === "Winner" ? "🏆 VÔ ĐỊCH CUP" :
+            p.value === "Runner-Up" ? "🥈 Á QUÂN CUP" :
+            p.value === "Semi-Finals" ? "🥉 BÁN KẾT" :
+            p.value === "Quarter-Finals" ? "⚡ TỨ KẾT" :
+            p.value === "Round of 16" ? "🛡️ VÒNG 1/8" :
+            p.value === "Round of 32" ? "⚽ VÒNG 1/16" : "❌ BỊ LOẠI SỚM",
+          value: p.value,
+          weight: p.weight,
+        }));
         break;
       }
       case "continental_cup": {
         const nameLabel = getContinentalCupLabel(currentContinentalCup);
-        const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getContinentalCupWeights(
-          prestige, luckRating, currentOvr, influence,
-        );
-        items = [
-          { label: `🏆 VÔ ĐỊCH ${nameLabel}`, value: "Winner", weight: wWin },
-          { label: `🥈 Á QUÂN ${nameLabel}`, value: "Runner-Up", weight: wRun },
-          { label: `🥉 BÁN KẾT`, value: "Semi-Finals", weight: wSemi },
-          { label: `⚡ TỨ KẾT`, value: "Quarter-Finals", weight: wQF },
-          { label: `🛡️ VÒNG 1/8`, value: "Round of 16", weight: wR16 },
-          { label: `❌ VÒNG BẢNG`, value: "Group Stage", weight: wGroup },
-        ];
+        const pool = buildContinentalCupPool(teamCtx);
+        items = pool.map((p) => ({
+          label:
+            p.value === "Winner" ? `🏆 VÔ ĐỊCH ${nameLabel}` :
+            p.value === "Runner-Up" ? `🥈 Á QUÂN ${nameLabel}` :
+            p.value === "Semi-Finals" ? `🥉 BÁN KẾT` :
+            p.value === "Quarter-Finals" ? `⚡ TỨ KẾT` :
+            p.value === "Round of 16" ? `🛡️ VÒNG 1/8` : `❌ VÒNG BẢNG`,
+          value: p.value,
+          weight: p.weight,
+        }));
         break;
       }
       case "national_callup": {
-        const tier = getNationalTier(playerNationality);
-        const midOvr = tier === 1 ? 80 : tier === 2 ? 75 : 70;
-        const { wCall, wMiss } = getNationalCallupWeights(
-          currentOvr, midOvr, standingResult, leagueSize,
-        );
-        items = [
-          { label: "Được Triệu Tập Lên ĐTQG", value: "called_up", weight: wCall },
-          { label: "Không Được Gọi", value: "missed", weight: wMiss },
-        ];
+        const pool = buildNationalCallupPool(teamCtx);
+        items = pool.map((p) => ({
+          label: p.value === "called_up" ? "Được Triệu Tập Lên ĐTQG" : "Không Được Gọi",
+          value: p.value,
+          weight: p.weight,
+        }));
         break;
       }
       case "ballon_dor_nomination": {
@@ -247,19 +258,17 @@ export function useCareerWheelItems({
         const tourneyName = getNationalTournamentName(
           playerNationality, currentAge, playerDebutAge, getNationalContinentalCup,
         );
-        const nationTier = getNationalTier(playerNationality);
-        const midOvr = nationTier === 1 ? 80 : nationTier === 2 ? 75 : 70;
-        const { wWin, wRun, wSemi, wQF, wR16, wGroup } = getNationalTournamentWeights(
-          currentOvr, luckRating, midOvr, influence,
-        );
-        items = [
-          { label: `🏆 VÔ ĐỊCH ${tourneyName}`, value: "Winner", weight: wWin },
-          { label: `🥈 Á QUÂN ${tourneyName}`, value: "Runner-Up", weight: wRun },
-          { label: `🥉 BÁN KẾT`, value: "Semi-Finals", weight: wSemi },
-          { label: `⚡ TỨ KẾT`, value: "Quarter-Finals", weight: wQF },
-          { label: `🛡️ VÒNG 1/8`, value: "Round of 16", weight: wR16 },
-          { label: `❌ VÒNG BẢNG`, value: "Group Stage", weight: wGroup },
-        ];
+        const pool = buildNationalTournamentPool(teamCtx);
+        items = pool.map((p) => ({
+          label:
+            p.value === "Winner" ? `🏆 VÔ ĐỊCH ${tourneyName}` :
+            p.value === "Runner-Up" ? `🥈 Á QUÂN ${tourneyName}` :
+            p.value === "Semi-Finals" ? `🥉 BÁN KẾT` :
+            p.value === "Quarter-Finals" ? `⚡ TỨ KẾT` :
+            p.value === "Round of 16" ? `🛡️ VÒNG 1/8` : `❌ VÒNG BẢNG`,
+          value: p.value,
+          weight: p.weight,
+        }));
         break;
       }
     }
@@ -269,7 +278,7 @@ export function useCareerWheelItems({
     playerCareerLength, playerNationality, currentClub, currentOvr, leagueSize,
     lastYearStanding, standingResult, selectedStatsList, position, yearSimResult,
     selectorIndex, yearEvolutionDirection, currentStats, ballonDorNominationWeight,
-    ballonDorRankWeights, luckRating,
+    ballonDorRankWeights, luckRating, fitnessCoachActive,
   ]);
 
   return { careerWheelItems, setCareerWheelItems };

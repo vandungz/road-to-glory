@@ -28,6 +28,7 @@ interface StatEvolutionFlowProps {
   willingToMove: boolean;
   isUnemployed: boolean;
   clubs: any[];
+  influenceScore: number;
   setYearEvolution: (fn: (prev: any) => any) => void;
   setSelectorIndex: (v: number) => void;
   setTempSelectedStat: (v: string | null) => void;
@@ -62,7 +63,14 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
     return sample?.leagueTier ?? sample?.league?.tier ?? 1;
   }
 
-  async function triggerTransferCheck(overrides?: { willingToMove?: boolean; stayOnWindow?: boolean }) {
+  async function triggerTransferCheck(overrides?: {
+    willingToMove?: boolean;
+    stayOnWindow?: boolean;
+    /** SoT §4.2 — pass evolvePlayerStatsAction's just-returned values instead of letting
+     * this closure read stale p.currentOvr/p.currentStats (setState hasn't flushed yet). */
+    overrideOvr?: number;
+    overrideStats?: Record<string, number>;
+  }) {
     if (isFinalSeason()) {
       p.setTransferOffer(null);
       p.setTransferMarket(null);
@@ -78,7 +86,8 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         currentClubId: p.currentClub?.id ?? null,
         currentClubPrestige: unemployed ? 2 : (p.currentClub?.prestige ?? 3),
         currentClubLeagueTier: unemployed ? 1 : resolveLeagueTier(),
-        currentOvr: p.currentOvr,
+        currentOvr: overrides?.overrideOvr ?? p.currentOvr,
+        currentStats: overrides?.overrideStats ?? p.currentStats,
         currentAge: p.currentAge,
         retireAge,
         matchRating: p.yearSimResult?.matchRating ?? (unemployed ? 6.0 : 6.0),
@@ -91,6 +100,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         currentWageAnnual: p.currentWageAnnual,
         willingToMove: overrides?.willingToMove ?? p.willingToMove,
         isUnemployed: unemployed,
+        influenceScore: p.influenceScore,
       });
 
       p.setTransferMarket(res);
@@ -130,6 +140,9 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
       if (p.yearEvolution.direction === "increase") {
         const availableCount = Object.values(p.currentStats).filter((v) => v < 99).length;
         count = Math.min(count, Math.max(1, availableCount));
+      } else if (p.yearEvolution.direction === "decrease") {
+        const availableCount = Object.values(p.currentStats).filter((v) => v > 10).length;
+        count = Math.min(count, Math.max(1, availableCount));
       }
       p.setYearEvolution((prev) => ({ ...prev, count }));
       p.setSelectorIndex(0);
@@ -162,7 +175,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
           .then((res) => {
             p.setCurrentStats(res.nextStats);
             p.setCurrentOvr(res.nextOvr);
-            triggerTransferCheck();
+            triggerTransferCheck({ overrideOvr: res.nextOvr, overrideStats: res.nextStats });
           })
           .catch((err) => {
             console.error("Error evolving player stats on backend:", err);
