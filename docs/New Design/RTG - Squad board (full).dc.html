@@ -1,0 +1,705 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Lora:ital,wght@0,400;0,500;0,600;1,400&amp;family=Special+Elite&amp;display=swap" rel="stylesheet" />
+<style>
+  body { margin: 0; background: #cfcabd; font-family: "Lora", Georgia, serif; -webkit-font-smoothing: antialiased; }
+  a { color: #C7401F; text-decoration: none; }
+  a:hover { color: #21201D; }
+
+  /* Entrance motion animates TRANSFORM ONLY — never opacity, so content is
+     readable even if the timeline never runs (frozen tab, print, capture). */
+  @keyframes rtg-rise { from { transform: translate3d(0,14px,0); } to { transform: translate3d(0,0,0); } }
+  @keyframes rtg-pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.42; } }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-anim] { animation-duration: 1ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; }
+  }
+</style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; gap: 56px; padding: 48px; box-sizing: border-box; align-items: flex-start;">
+
+  <div style="display: flex; flex-direction: column; gap: 8px; max-width: 860px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6f6a5c;">Road to Glory · trang mẫu đầy đủ</span>
+    <h1 style="font-family: 'Oswald', Impact, sans-serif; font-size: 36px; font-weight: 600; letter-spacing: 0.01em; color: #21201D; margin: 0;">Bàn đội hình — <span style="font-weight: 400; color: #5E5B52;">/[gameId]</span></h1>
+    <p style="font-family: 'Lora', Georgia, serif; font-size: 15px; line-height: 1.65; color: #4a463c; margin: 0;">Đích của cả hai đường vào: bấm “Tiếp tục draft” hay bấm một dòng đội hình đều tới đây. Hai cột, hai công việc: <em>sân</em> để nhìn đội hình như một tập thể, <em>bảng</em> để làm việc theo từng vị trí. Ô trống là lời mời draft; ô đã có là cửa vào hồ sơ sự nghiệp.</p>
+  </div>
+
+  <!-- ══════════════ STATE 1 · THE LIVE PAGE ══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Trang thật · 1440 × 900 · 8 / 11 đã draft, slot 8 đang dở</span>
+    <div ref="{{ stageRef }}" style="width: 1440px; height: 900px; overflow: hidden; box-shadow: 0 0 0 1px #b9b3a4; background: #F4F1EA; display: flex; flex-direction: column; box-sizing: border-box;">
+
+      <!-- SHARED APP SHELL HEADER -->
+      <header style="flex: 0 0 64px; background: #FFFDF8; border-bottom: 1px solid #DEDACE; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; box-sizing: border-box;">
+        <div style="display: flex; align-items: baseline; gap: 14px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #21201D;">Road to Glory</span>
+          <span style="width: 26px; height: 1px; background: #DEDACE;"></span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8E8A7E;">Classic · 4-3-3</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <span style="font-family: 'Lora', serif; font-size: 14px; color: #5E5B52;">marco@example.com</span>
+          <button type="button" style="min-height: 44px; padding: 0 4px; background: none; border: none; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B52; cursor: pointer;" style-hover="color: #C7401F;">Đăng xuất</button>
+        </div>
+      </header>
+
+      <main style="flex: 1; min-height: 0; padding: 0 40px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;">
+
+        <!-- PAGE HEAD -->
+        <div data-anim style="flex: 0 0 auto; padding: 24px 0 20px; display: flex; align-items: flex-end; justify-content: space-between; gap: 40px; animation: rtg-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;">
+          <div style="display: flex; flex-direction: column; gap: 8px;">
+            <a href="#" style="min-height: 26px; display: inline-flex; align-items: center; gap: 8px; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; align-self: flex-start;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#8E8A7E" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="m15 18-6-6 6-6"></path></svg>
+              Đội hình của bạn
+            </a>
+            <div style="display: flex; align-items: baseline; gap: 18px;">
+              <h2 style="font-family: 'Oswald', sans-serif; font-size: 38px; font-weight: 700; color: #21201D; margin: 0; line-height: 1;">Los Galácticos</h2>
+              <span style="font-family: 'Special Elite', monospace; font-size: 11px; letter-spacing: 0.14em; text-transform: uppercase; color: #8E8A7E;">Sơ đồ 4-3-3 · tạo 12/02/2026</span>
+            </div>
+          </div>
+          <div style="display: flex; align-items: center; gap: 3px; padding-bottom: 4px;">
+            <span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #21201D;"></span><span style="width: 15px; height: 4px; background: #E8502F;"></span><span style="width: 15px; height: 4px; background: #DEDACE;"></span><span style="width: 15px; height: 4px; background: #DEDACE;"></span>
+          </div>
+        </div>
+
+        <div style="flex: 1; min-height: 0; display: flex; gap: 40px; padding-bottom: 24px;">
+
+          <!-- ── LEFT · THE PITCH ── -->
+          <div data-anim style="flex: 0 0 560px; width: 560px; display: flex; flex-direction: column; gap: 9px; animation: rtg-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 140ms both;">
+            <div style="display: flex; align-items: baseline; justify-content: space-between;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8E8A7E;">Sân đấu · hướng tấn công lên trên</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #A8A49A;">4-3-3</span>
+            </div>
+            <div style="flex: 1; min-height: 0; position: relative; background: #1C1B18; border-radius: 2px; overflow: hidden;">
+
+              <!-- chalk -->
+              <div style="position: absolute; inset: 16px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.16); pointer-events: none;"></div>
+              <div style="position: absolute; left: 16px; right: 16px; top: 50%; height: 1px; background: rgba(244,241,234,0.16); pointer-events: none;"></div>
+              <div style="position: absolute; left: 50%; top: 50%; width: 128px; height: 128px; margin: -64px 0 0 -64px; border-radius: 50%; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.13); pointer-events: none;"></div>
+              <div style="position: absolute; left: 50%; bottom: 16px; width: 236px; height: 84px; margin-left: -118px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.16); pointer-events: none;"></div>
+              <div style="position: absolute; left: 50%; top: 16px; width: 236px; height: 84px; margin-left: -118px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.16); pointer-events: none;"></div>
+
+              <!-- slot 9 · ST — empty -->
+              <div style="position: absolute; left: 50%; top: 14%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 9px 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.34); display: flex; flex-direction: column; gap: 5px; cursor: pointer;" style-hover="box-shadow: inset 0 0 0 1px #E8502F;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: rgba(244,241,234,0.62);">ST</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(244,241,234,0.45);">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,0.5)" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                  draft
+                </span>
+              </div>
+
+              <!-- slot 8 · LW — in progress -->
+              <div data-anim style="position: absolute; left: 14%; top: 19%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 9px 10px; border-radius: 2px; background: rgba(232,80,47,0.14); box-shadow: inset 0 0 0 1px #E8502F; display: flex; flex-direction: column; gap: 5px; cursor: pointer;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: #F4F1EA;">LW</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #F09070;">
+                  <span data-anim style="width: 5px; height: 5px; border-radius: 50%; background: #E8502F; animation: rtg-pulse 1800ms ease-in-out infinite;"></span>
+                  đang dở
+                </span>
+              </div>
+
+              <!-- slot 10 · RW — empty -->
+              <div style="position: absolute; left: 86%; top: 19%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 9px 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.34); display: flex; flex-direction: column; gap: 5px; cursor: pointer;" style-hover="box-shadow: inset 0 0 0 1px #E8502F;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: rgba(244,241,234,0.62);">RW</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(244,241,234,0.45);">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,0.5)" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                  draft
+                </span>
+              </div>
+
+              <!-- slot 5 · CM -->
+              <div style="position: absolute; left: 22%; top: 46%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #7c42c4; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">CM</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">88</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">T. Ferreira</span>
+              </div>
+
+              <!-- slot 7 · CM -->
+              <div style="position: absolute; left: 78%; top: 46%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #d4960d; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">CM</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">82</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">J. Roche</span>
+              </div>
+
+              <!-- slot 6 · CDM -->
+              <div style="position: absolute; left: 50%; top: 58%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #d4960d; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">CDM</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">85</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">N. Petrović</span>
+              </div>
+
+              <!-- slot 1 · LB -->
+              <div style="position: absolute; left: 12%; top: 71%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #8fa0ad; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">LB</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">81</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">M. Vitali</span>
+              </div>
+
+              <!-- slot 2 · CB -->
+              <div style="position: absolute; left: 35%; top: 71%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #c48500; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">CB</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">86</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">E. Bergström</span>
+              </div>
+
+              <!-- slot 3 · CB -->
+              <div style="position: absolute; left: 65%; top: 71%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #d4960d; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">CB</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">83</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">K. Osei</span>
+              </div>
+
+              <!-- slot 4 · RB -->
+              <div style="position: absolute; left: 88%; top: 71%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #8fa0ad; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">RB</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">79</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">R. Tanaka</span>
+              </div>
+
+              <!-- slot 0 · GK -->
+              <div style="position: absolute; left: 50%; top: 87%; width: 108px; margin-left: -54px; transform: translateY(-50%); box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #d4960d; display: flex; flex-direction: column; gap: 2px; cursor: pointer;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">GK</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">84</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">A. Sosa</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- ── RIGHT · THE SHEET ── -->
+          <div data-anim style="flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; animation: rtg-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 200ms both;">
+
+            <div style="flex: 0 0 auto; border-top: 1px solid #21201D; padding: 15px 0 17px; display: flex; align-items: center; gap: 28px;">
+              <div style="flex: 0 0 auto; display: flex; align-items: baseline; gap: 10px;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 40px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">84</span>
+                <div style="display: flex; flex-direction: column; gap: 1px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">OVR trung bình</span>
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #A8A49A;">8 cầu thủ hiện có</span>
+                </div>
+              </div>
+              <span style="width: 1px; height: 38px; background: #DEDACE;"></span>
+              <p style="flex: 1 1 0%; min-width: 0; font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.55; color: #5E5B52; margin: 0;">Squad OVR chính thức được chốt khi đủ 11 vị trí. Còn thiếu <strong style="font-family: 'Oswald', sans-serif; font-weight: 600; color: #21201D;">3 cầu thủ</strong>.</p>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 14px 0 8px; display: flex; align-items: baseline; justify-content: space-between;">
+              <span style="font-family: 'Oswald', sans-serif; font-size: 19px; font-weight: 600; color: #21201D;">Đội hình xuất phát</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 10.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">8 / 11</span>
+            </div>
+
+            <div style="flex: 1; min-height: 0; display: flex; flex-direction: column; overflow: hidden;">
+              <div style="flex: 0 0 auto; display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; padding: 0 0 7px; border-bottom: 1px solid #21201D;">
+                <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">Vị trí</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">QT</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">Cầu thủ</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E; text-align: right;">OVR</span>
+                <span></span>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">GK</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">ARG</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Adrián Sosa</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #d4960d;">84</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">LB</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">ITA</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Marco Vitali</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #8fa0ad;">81</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">CB</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">SWE</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Elias Bergström</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #c48500;">86</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">CB</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">GHA</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Kwame Osei</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #d4960d;">83</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">RB</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">JPN</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Ryu Tanaka</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #8fa0ad;">79</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">CM</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">POR</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Tomás Ferreira</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #7c42c4;">88</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">CDM</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">SRB</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Niko Petrović</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #d4960d;">85</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52;">CM</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #8E8A7E;">FRA</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Julien Roche</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; font-variant-numeric: tabular-nums; box-shadow: inset 0 -2px 0 0 #d4960d;">82</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <!-- IN PROGRESS -->
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; background: rgba(232,80,47,0.07); box-shadow: inset 3px 0 0 #E8502F; cursor: pointer;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #5E5B52; padding-left: 8px;">LW</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #A8A49A;">—</span>
+                <span style="display: flex; align-items: center; gap: 9px; min-width: 0;">
+                  <span data-anim style="width: 5px; height: 5px; border-radius: 50%; background: #E8502F; flex: 0 0 auto; animation: rtg-pulse 1800ms ease-in-out infinite;"></span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 600; color: #C7401F; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Đang dở — quay tiếp</span>
+                </span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #A8A49A; text-align: right;">—</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#E8502F" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <!-- EMPTY -->
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #A8A49A;">ST</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #C9C4B4;">—</span>
+                <span style="display: flex; align-items: center; gap: 8px; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.04em; color: #C7401F;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C7401F" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                  Draft cầu thủ
+                </span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #C9C4B4; text-align: right;">—</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+
+              <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE; cursor: pointer; transition: background-color 140ms ease-out;" style-hover="background-color: #FFFDF8;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; color: #A8A49A;">RW</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.08em; color: #C9C4B4;">—</span>
+                <span style="display: flex; align-items: center; gap: 8px; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.04em; color: #C7401F;">
+                  <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="#C7401F" stroke-width="2.2" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                  Draft cầu thủ
+                </span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #C9C4B4; text-align: right;">—</span>
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 auto; padding-top: 18px; display: flex; align-items: center; gap: 18px;">
+              <button type="button" style="min-height: 56px; padding: 0 28px; display: inline-flex; align-items: center; gap: 12px; background: #E8502F; color: #FFFDF8; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer; transition: background-color 140ms ease-out, transform 90ms ease-out;" style-hover="background-color: #D2431F;" style-active="transform: scale(0.985);">
+                Quay tiếp LW
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#FFFDF8" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+              </button>
+              <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E; line-height: 1.7;">vòng 7 / 13 · dở dang từ 2 ngày trước</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer style="flex: 0 0 52px; border-top: 1px solid #DEDACE; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; box-sizing: border-box;">
+        <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #A8A49A;">Football Life © Road to Glory — mùa 2025/26</span>
+        <button type="button" onClick="{{ replay }}" style="min-height: 44px; padding: 0 4px; background: none; border: none; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #8E8A7E; cursor: pointer;" style-hover="color: #C7401F;">↻ Chạy lại chuyển động</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ══════════════ STATE 2 · ĐỦ 11 · STATE 3 · ĐÃ HOÀN THÀNH ══════════════ -->
+  <div style="display: flex; align-items: flex-start; gap: 40px;">
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Đủ 11 · Squad OVR được chốt, hành động đổi</span>
+      <div style="width: 700px; background: #F4F1EA; box-shadow: 0 0 0 1px #b9b3a4; padding: 26px 30px; box-sizing: border-box; display: flex; flex-direction: column;">
+        <div style="border-top: 1px solid #21201D; padding: 15px 0 17px; display: flex; align-items: center; gap: 28px;">
+          <div style="flex: 0 0 auto; display: flex; align-items: baseline; gap: 10px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 40px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">86</span>
+            <div style="display: flex; flex-direction: column; gap: 1px;">
+              <span style="font-family: 'Oswald', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #21201D;">Squad OVR</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #2F6B45;">đã chốt · 11 / 11</span>
+            </div>
+          </div>
+          <span style="width: 1px; height: 38px; background: #DEDACE;"></span>
+          <p style="flex: 1 1 0%; min-width: 0; font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.55; color: #5E5B52; margin: 0;">Đội hình đã đủ. Chốt sự nghiệp để khép đội hình này lại và đưa nó vào danh sách đã hoàn thành.</p>
+        </div>
+        <div style="padding-top: 20px; display: flex; align-items: center; gap: 18px;">
+          <button type="button" style="min-height: 56px; padding: 0 28px; background: #E8502F; color: #FFFDF8; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer;" style-hover="background-color: #D2431F;">Hoàn thành sự nghiệp</button>
+          <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E; max-width: 250px; line-height: 1.7;">hỏi xác nhận một lần — không thể mở lại đội hình đã chốt</span>
+        </div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 10px;">
+      <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Đã hoàn thành · chỉ đọc</span>
+      <div style="width: 560px; background: #F4F1EA; box-shadow: 0 0 0 1px #b9b3a4; padding: 26px 30px; box-sizing: border-box; display: flex; flex-direction: column;">
+        <div style="border-top: 1px solid #21201D; padding: 15px 0 17px; display: flex; align-items: center; gap: 24px;">
+          <div style="flex: 0 0 auto; display: flex; align-items: baseline; gap: 10px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 40px; font-weight: 600; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">88</span>
+            <div style="display: flex; flex-direction: column; gap: 1px;">
+              <span style="font-family: 'Oswald', sans-serif; font-size: 10px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #21201D;">Squad OVR</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">khép lại 04/01/2026</span>
+            </div>
+          </div>
+          <span style="width: 1px; height: 38px; background: #DEDACE;"></span>
+          <p style="flex: 1 1 0%; min-width: 0; font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.55; color: #5E5B52; margin: 0;">Mười một sự nghiệp đã khép. Bấm một dòng để đọc lại hồ sơ.</p>
+        </div>
+        <div style="padding-top: 20px; display: flex; flex-direction: column; gap: 12px;">
+          <div style="display: grid; grid-template-columns: 54px 1fr 62px 18px; align-items: center; gap: 12px; min-height: 40px; border-bottom: 1px solid #DEDACE;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #5E5B52;">ST</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 500; color: #21201D;">Tomás Ferreira</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; text-align: right; box-shadow: inset 0 -2px 0 0 #e8106e;">94</span>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#C9C4B4" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="m9 18 6-6-6-6"></path></svg>
+          </div>
+          <span style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52;">Không còn dòng nào bấm được để draft, không nút chốt. Nút duy nhất còn lại là đường về danh sách. Ô trống — nếu có — hiện xám, không bấm được.</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══════════════ ANATOMY ══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Mổ xẻ trang — ô sân, dòng bảng, sơ đồ, trạng thái, thành phần</span>
+    <div style="width: 1440px; background: #F4F1EA; box-shadow: 0 0 0 1px #b9b3a4; padding: 40px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 40px;">
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">01 · Ô sân · bốn trạng thái</span>
+          <div style="background: #1C1B18; border-radius: 2px; padding: 26px; display: flex; align-items: flex-start; gap: 20px; flex-wrap: wrap;">
+            <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start;">
+              <div style="width: 108px; box-sizing: border-box; padding: 8px 10px 9px; border-radius: 2px; background: #F4F1EA; box-shadow: 0 2px 0 0 #d4960d; display: flex; flex-direction: column; gap: 2px;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 6px;">
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; color: #8E8A7E;">GK</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; color: #21201D; line-height: 1;">84</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 500; color: #21201D; line-height: 1.2;">A. Sosa</span>
+              </div>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,234,0.62);">đã có · mở hồ sơ</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start;">
+              <div style="width: 108px; box-sizing: border-box; padding: 9px 10px; border-radius: 2px; background: rgba(232,80,47,0.14); box-shadow: inset 0 0 0 1px #E8502F; display: flex; flex-direction: column; gap: 5px;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: #F4F1EA;">LW</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: #F09070;"><span style="width: 5px; height: 5px; border-radius: 50%; background: #E8502F;"></span>đang dở</span>
+              </div>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,234,0.62);">quay tiếp</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start;">
+              <div style="width: 108px; box-sizing: border-box; padding: 9px 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.34); display: flex; flex-direction: column; gap: 5px;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: rgba(244,241,234,0.62);">ST</span>
+                <span style="display: flex; align-items: center; gap: 6px; font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(244,241,234,0.45);">
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="rgba(244,241,234,0.5)" stroke-width="2.4" stroke-linecap="round"><path d="M5 12h14"></path><path d="M12 5v14"></path></svg>
+                  draft
+                </span>
+              </div>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,234,0.62);">trống · mời draft</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 9px; align-items: flex-start;">
+              <div style="width: 108px; box-sizing: border-box; padding: 9px 10px; border-radius: 2px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.14); display: flex; flex-direction: column; gap: 5px;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; color: rgba(244,241,234,0.28);">ST</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(244,241,234,0.24);">bỏ trống</span>
+              </div>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: rgba(244,241,234,0.62);">đội hình đã chốt</span>
+            </div>
+          </div>
+          <span style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52;">Ô đã có cầu thủ là <em>thẻ paper trên nền tối</em> — đảo sáng để nó nổi lên như miếng dán. Vạch 2px dưới đáy thẻ mang màu độ hiếm (<em>RARITY_ACCENT</em> có sẵn trong repo), là chỗ duy nhất màu độ hiếm xuất hiện.</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">02 · Ba sơ đồ · cùng một bộ toạ độ %</span>
+          <div style="display: flex; gap: 16px;">
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+              <div style="position: relative; height: 214px; background: #1C1B18; border-radius: 2px;">
+                <div style="position: absolute; inset: 8px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.14);"></div>
+                <div style="position: absolute; left: 50%; top: 87%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 12%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 35%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 65%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 88%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 22%; top: 46%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 50%; top: 58%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 78%; top: 46%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 14%; top: 19%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #E8502F; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 50%; top: 14%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); box-shadow: inset 0 0 0 1px rgba(244,241,234,0.4); border-radius: 1px;"></div>
+                <div style="position: absolute; left: 86%; top: 19%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); box-shadow: inset 0 0 0 1px rgba(244,241,234,0.4); border-radius: 1px;"></div>
+              </div>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #21201D;">4-3-3</span>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+              <div style="position: relative; height: 214px; background: #1C1B18; border-radius: 2px;">
+                <div style="position: absolute; inset: 8px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.14);"></div>
+                <div style="position: absolute; left: 50%; top: 87%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 12%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 35%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 65%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 88%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 12%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 38%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 62%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 88%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 35%; top: 17%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 65%; top: 17%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+              </div>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #5E5B52;">4-4-2</span>
+            </div>
+            <div style="flex: 1; display: flex; flex-direction: column; gap: 8px;">
+              <div style="position: relative; height: 214px; background: #1C1B18; border-radius: 2px;">
+                <div style="position: absolute; inset: 8px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.14);"></div>
+                <div style="position: absolute; left: 50%; top: 87%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 22%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 50%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 78%; top: 71%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 10%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 30%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 50%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 70%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 90%; top: 50%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 35%; top: 17%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+                <div style="position: absolute; left: 65%; top: 17%; width: 26px; height: 12px; margin-left: -13px; transform: translateY(-50%); background: #A8A49A; border-radius: 1px;"></div>
+              </div>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; color: #5E5B52;">3-5-2</span>
+            </div>
+          </div>
+          <span style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52;">Toạ độ lấy nguyên từ <em>FORMATION_SLOTS</em> trong <em>types/squad.ts</em> — không vẽ lại. Sơ đồ nào cũng cùng một ô, cùng một bảng; thêm sơ đồ mới chỉ là thêm một mảng toạ độ. Ở 4-3-3, x nhỏ nhất là 12% và lớn nhất 88%, nên ô rộng 108px vẫn nằm trong sân ở cột 560px.</span>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">03 · Dòng bảng · một lưới cột cho cả ba trạng thái</span>
+          <div style="background: #FFFDF8; box-shadow: inset 0 0 0 1px #C9C4B4; padding: 20px 22px; display: flex; flex-direction: column; gap: 16px;">
+            <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; gap: 12px;">
+              <span style="height: 5px; background: #D6D1C3;"></span>
+              <span style="height: 5px; background: #E4E0D4;"></span>
+              <span style="height: 5px; background: #C9C4B4;"></span>
+              <span style="height: 5px; background: #D6D1C3;"></span>
+              <span style="height: 5px; background: #E4E0D4;"></span>
+            </div>
+            <div style="display: grid; grid-template-columns: 54px 46px 1fr 62px 18px; gap: 12px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #8E8A7E;">54 vị trí</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #8E8A7E;">46 qt</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #8E8A7E;">tên · co giãn</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #8E8A7E;">62 ovr</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; color: #8E8A7E;">›</span>
+            </div>
+            <p style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52; margin: 0;">Ô trống không thu nhỏ dòng lại: cùng chiều cao 40px, cùng cột, chỉ thay nội dung cột tên bằng lời mời “Draft cầu thủ”. Nhờ vậy 11 dòng luôn cao bằng nhau, mắt đếm được số ô còn thiếu mà không cần đọc.</p>
+            <p style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52; margin: 0;">Quốc tịch viết ba chữ (ARG, SWE) thay vì cờ emoji — <em>getFlagEmoji</em> vẫn dùng được ở nơi khác, nhưng emoji không thuộc bộ chữ của thiết kế này và hiện khác nhau trên từng hệ máy.</p>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">04 · Trạng thái</span>
+          <div style="display: grid; grid-template-columns: 152px 1fr; gap: 0;">
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Trạng thái</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Cách xử lý</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">0 / 11</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Sân toàn ô trống; nút chính “Draft thủ môn” — luôn trỏ vào slot trống đầu tiên</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">1–10 / 11</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">“OVR trung bình”, không phải Squad OVR. Nút chính là vị trí trống kế tiếp</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Có slot đang dở</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Slot đó thắng quyền ưu tiên: nút chính đổi thành “Quay tiếp [vị trí]”, dòng và ô sân viền coral</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">11 / 11</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Squad OVR chốt, có nhãn xanh “đã chốt”; nút chính “Hoàn thành sự nghiệp” + xác nhận</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">completed</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Chỉ đọc. Không dòng draft, không nút chốt, chỉ đường về danh sách</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0;">Hover / focus</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0;">Dòng: nền → #FFFDF8. Ô sân trống: viền → coral. Focus bàn phím: viền trong 2px #E8502F</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <div style="display: grid; grid-template-columns: 424px 1fr; gap: 48px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">05 · Mobile 390 — sân trên, bảng dưới</span>
+          <div style="width: 390px; height: 780px; box-shadow: 0 0 0 1px #b9b3a4; background: #F4F1EA; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden;">
+            <div style="flex: 0 0 52px; background: #FFFDF8; border-bottom: 1px solid #DEDACE; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box;">
+              <span style="min-height: 44px; display: inline-flex; align-items: center; gap: 7px; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B52;">‹ Đội hình</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8E8A7E;">4-3-3</span>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 14px 16px 12px; display: flex; align-items: flex-end; justify-content: space-between; gap: 12px;">
+              <div style="display: flex; flex-direction: column; gap: 3px; min-width: 0;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 25px; font-weight: 700; color: #21201D; line-height: 1;">Los Galácticos</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">8 / 11 · ovr tb 84</span>
+              </div>
+              <div style="flex: 0 0 auto; display: flex; align-items: center; gap: 2px;">
+                <span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #21201D;"></span><span style="width: 8px; height: 4px; background: #E8502F;"></span><span style="width: 8px; height: 4px; background: #DEDACE;"></span><span style="width: 8px; height: 4px; background: #DEDACE;"></span>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 250px; margin: 0 16px; position: relative; background: #1C1B18; border-radius: 2px; overflow: hidden;">
+              <div style="position: absolute; inset: 10px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.14);"></div>
+              <div style="position: absolute; left: 10px; right: 10px; top: 50%; height: 1px; background: rgba(244,241,234,0.14);"></div>
+              <div style="position: absolute; left: 50%; top: 87%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #d4960d; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">GK</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">84</span></div>
+              <div style="position: absolute; left: 12%; top: 71%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #8fa0ad; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">LB</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">81</span></div>
+              <div style="position: absolute; left: 35%; top: 71%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #c48500; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">CB</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">86</span></div>
+              <div style="position: absolute; left: 65%; top: 71%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #d4960d; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">CB</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">83</span></div>
+              <div style="position: absolute; left: 88%; top: 71%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #8fa0ad; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">RB</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">79</span></div>
+              <div style="position: absolute; left: 22%; top: 46%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #7c42c4; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">CM</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">88</span></div>
+              <div style="position: absolute; left: 50%; top: 58%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #d4960d; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">CDM</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">85</span></div>
+              <div style="position: absolute; left: 78%; top: 46%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: #F4F1EA; border-radius: 1px; box-shadow: 0 2px 0 0 #d4960d; display: flex; align-items: center; justify-content: space-between; padding: 0 6px; box-sizing: border-box;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #8E8A7E;">CM</span><span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; color: #21201D;">82</span></div>
+              <div style="position: absolute; left: 14%; top: 19%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); background: rgba(232,80,47,0.16); border-radius: 1px; box-shadow: inset 0 0 0 1px #E8502F; display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: #F4F1EA;">LW ›</span></div>
+              <div style="position: absolute; left: 50%; top: 14%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); border-radius: 1px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.3); display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: rgba(244,241,234,0.55);">ST +</span></div>
+              <div style="position: absolute; left: 86%; top: 19%; width: 62px; height: 26px; margin-left: -31px; transform: translateY(-50%); border-radius: 1px; box-shadow: inset 0 0 0 1px rgba(244,241,234,0.3); display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Oswald', sans-serif; font-size: 9px; font-weight: 600; color: rgba(244,241,234,0.55);">RW +</span></div>
+            </div>
+
+            <div style="flex: 1; min-height: 0; margin-top: 14px; padding: 0 16px; overflow: hidden; display: flex; flex-direction: column;">
+              <div style="display: grid; grid-template-columns: 46px 1fr 48px; gap: 10px; padding-bottom: 6px; border-bottom: 1px solid #21201D;">
+                <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">Vị trí</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">Cầu thủ</span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E; text-align: right;">OVR</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 46px 1fr 48px; gap: 10px; align-items: center; min-height: 48px; border-bottom: 1px solid #DEDACE;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 600; color: #5E5B52;">GK</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Adrián Sosa</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; color: #21201D; text-align: right; box-shadow: inset 0 -2px 0 0 #d4960d;">84</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 46px 1fr 48px; gap: 10px; align-items: center; min-height: 48px; border-bottom: 1px solid #DEDACE;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 600; color: #5E5B52;">LB</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 500; color: #21201D; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">Marco Vitali</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; color: #21201D; text-align: right; box-shadow: inset 0 -2px 0 0 #8fa0ad;">81</span>
+              </div>
+              <div style="display: grid; grid-template-columns: 46px 1fr 48px; gap: 10px; align-items: center; min-height: 48px; border-bottom: 1px solid #DEDACE; background: rgba(232,80,47,0.07); box-shadow: inset 3px 0 0 #E8502F;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 12.5px; font-weight: 600; color: #5E5B52; padding-left: 8px;">LW</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; color: #C7401F;">Đang dở — quay tiếp</span>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 16px; font-weight: 600; color: #A8A49A; text-align: right;">—</span>
+              </div>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 12px 16px 16px; border-top: 1px solid #DEDACE; background: #FFFDF8;">
+              <div style="min-height: 56px; background: #E8502F; border-radius: 2px; display: flex; align-items: center; justify-content: center; gap: 10px; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #FFFDF8;">Quay tiếp LW ›</div>
+            </div>
+          </div>
+          <span style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52;">Sân cao cố định 250px rồi đến bảng cuộn — sân là ảnh chụp đội hình, bảng là nơi làm việc. Dòng cao 48px cho ngón tay. Nút chính dính đáy máy.</span>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 40px;">
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">06 · Điều hướng</span>
+            <div style="display: grid; grid-template-columns: 240px 1fr; gap: 0;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Hành động</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Đi tới</span>
+
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Bấm ô / dòng đã có cầu thủ</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">PlayerCareerDialog · modal, không rời trang</span>
+
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Bấm ô / dòng trống</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">/[gameId]/draft/[slotIndex] · vòng quay 13 bước</span>
+
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Quay tiếp [vị trí]</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">/[gameId]/draft/[slotIndex] · mở lại đúng bước đang dở</span>
+
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Hoàn thành sự nghiệp</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">completeGameSession(gameId) → ở lại trang, đổi sang chỉ đọc</span>
+
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0;">Đội hình của bạn</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0;">/classic · danh sách đội hình</span>
+            </div>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 16px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">07 · Thành phần</span>
+            <div style="background: #FFFDF8; box-shadow: inset 0 0 0 1px #C9C4B4; padding: 20px 22px; display: flex; flex-direction: column;">
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #21201D;">SquadBoardPage <span style="color: #8E8A7E;">server · /[gameId]</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">├─ AppShell <span style="color: #C7401F;">dùng lại</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">└─ SquadDashboard <span style="color: #C7401F;">giữ logic</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ PageHead <span style="color: #C7401F;">dùng lại</span> <span style="color: #8E8A7E;">+ SlotTicks</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ PitchBoard <span style="color: #8E8A7E;">vẽ lại · nền tối, chalk 1px</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 54px;">&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;└─ SlotMarker <span style="color: #8E8A7E;">mới · filled | active | empty | locked</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ SquadSummary <span style="color: #8E8A7E;">vẽ lại · nhãn đổi theo 11/11</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ SquadSheet <span style="color: #8E8A7E;">vẽ lại · 5 cột cố định</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 54px;">&nbsp;&nbsp;&nbsp;│&nbsp;&nbsp;└─ SlotRow <span style="color: #8E8A7E;">mới · cùng 3 trạng thái với SlotMarker</span></div>
+              <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;└─ PlayerCareerDialog <span style="color: #C7401F;">giữ nguyên</span> <span style="color: #8E8A7E;">· §16</span></div>
+            </div>
+            <span style="font-family: 'Lora', serif; font-size: 13px; line-height: 1.6; color: #5E5B52;">Hai thành phần mới, và chúng dùng chung một hàm trạng thái: <em>slotState(player, inProgressSlots, status)</em> trả về một trong bốn giá trị. Ô sân và dòng bảng đọc cùng giá trị đó, nên không bao giờ lệch nhau.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 32px;">
+        <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Nút chính không bao giờ vô hiệu</span>
+          <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Hiện tại khi chưa đủ 11, nút là “Đang xây dựng đội hình” ở trạng thái disabled — một nút không làm gì. Thay bằng việc thật kế tiếp: “Quay tiếp LW” hoặc “Draft ST”. Người chơi vào trang này để draft, nên nút chính phải là hành động draft.</p>
+        </div>
+        <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">“OVR trung bình” ≠ “Squad OVR”</span>
+          <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Phép tính trung bình hiện tại vẫn giữ, nhưng khi chưa đủ 11 nó mang tên khác. Nhờ vậy con số ở đây không mâu thuẫn với dấu “—” ở danh sách đội hình: cả hai đều nói rằng Squad OVR chưa tồn tại.</p>
+        </div>
+        <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Màu độ hiếm chỉ nằm ở một vạch</span>
+          <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Sáu màu độ hiếm trong <em>RARITY_ACCENT</em> đủ sức phá vỡ bảng màu nếu tô cả thẻ. Chúng chỉ xuất hiện thành vạch 2px: dưới đáy ô sân và dưới số OVR trong bảng. Đủ để nhận ra legendary, không đủ để trang thành cầu vồng.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script>
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.stageRef = React.createRef();
+  }
+
+  replay = () => {
+    const root = this.stageRef.current;
+    if (!root) return;
+    root.querySelectorAll("[data-anim]").forEach((el) => {
+      const keep = el.style.animation;
+      el.style.animation = "none";
+      void el.offsetWidth;
+      el.style.animation = keep || "";
+    });
+  };
+
+  renderVals() {
+    return { stageRef: this.stageRef, replay: this.replay };
+  }
+}
+
+</script>
+</body>
+</html>

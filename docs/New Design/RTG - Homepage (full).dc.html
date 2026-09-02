@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Lora:ital,wght@0,400;0,500;0,600;1,400&amp;family=Special+Elite&amp;display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  body { margin: 0; background: #cfcabd; font-family: "Lora", Georgia, serif; -webkit-font-smoothing: antialiased; }
+  a { color: #C7401F; text-decoration: none; }
+  a:hover { color: #21201D; }
+
+  /* Entrance motion animates TRANSFORM ONLY — never opacity, so content is
+     readable even if the timeline never runs (frozen tab, print, capture). */
+  @keyframes rtg-rise { from { transform: translate3d(0,14px,0); } to { transform: translate3d(0,0,0); } }
+  @keyframes rtg-drift { from { transform: scale(1) translate3d(0,0,0); } to { transform: scale(1.06) translate3d(0,-1%,0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-anim] { animation-duration: 1ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; }
+  }
+</style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; gap: 56px; padding: 48px; box-sizing: border-box; align-items: flex-start;">
+
+  <div style="display: flex; flex-direction: column; gap: 8px; max-width: 860px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6f6a5c;">Road to Glory · trang mẫu đầy đủ</span>
+    <h1 style="font-family: 'Oswald', Impact, sans-serif; font-size: 36px; font-weight: 600; letter-spacing: 0.01em; color: #21201D; margin: 0;">Trang chủ — chọn chế độ chơi</h1>
+    <p style="font-family: 'Lora', Georgia, serif; font-size: 15px; line-height: 1.65; color: #4a463c; margin: 0;">Trang chủ giờ là cửa chọn chế độ: chọn chế độ → vào danh sách đội hình của chế độ đó. Mỗi chế độ là một <em>dải ngang</em>, nên thêm chế độ thứ ba, thứ tư về sau chỉ là thêm một dải — không phải thiết kế lại trang. Classic đang mở và chiếm trọng lượng thị giác; PvP hiện diện với nhãn “Sắp ra mắt”.</p>
+  </div>
+
+  <!-- ══════════════ THE LIVE PAGE ══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Trang thật · 1440 × 900 · đã đăng nhập</span>
+    <div ref="{{ stageRef }}" style="width: 1440px; height: 900px; overflow: hidden; box-shadow: 0 0 0 1px #b9b3a4; background: #F4F1EA; display: flex; flex-direction: column; box-sizing: border-box;">
+
+      <!-- SHARED APP SHELL HEADER — identical to lobby / squad board -->
+      <header style="flex: 0 0 64px; background: #FFFDF8; border-bottom: 1px solid #DEDACE; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; box-sizing: border-box;">
+        <div style="display: flex; align-items: baseline; gap: 14px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 17px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #21201D;">Road to Glory</span>
+          <span style="width: 26px; height: 1px; background: #DEDACE;"></span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8E8A7E;">Football Life</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 20px;">
+          <span style="font-family: 'Lora', serif; font-size: 14px; color: #5E5B52;">marco@example.com</span>
+          <button type="button" style="min-height: 44px; padding: 0 4px; background: none; border: none; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B52; cursor: pointer;" style-hover="color: #C7401F;">Đăng xuất</button>
+        </div>
+      </header>
+
+      <main style="flex: 1; min-height: 0; padding: 0 40px; box-sizing: border-box; display: flex; flex-direction: column; overflow: hidden;">
+
+        <!-- PAGE HEAD -->
+        <div data-anim style="flex: 0 0 auto; padding: 38px 0 26px; display: flex; flex-direction: column; gap: 6px; animation: rtg-rise 600ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;">
+          <span style="font-family: 'Special Elite', monospace; font-size: 10.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #C7401F;">Chào Marco</span>
+          <h2 style="font-family: 'Oswald', sans-serif; font-size: 40px; font-weight: 600; color: #21201D; margin: 0; line-height: 1.02;">Hôm nay bạn chơi gì?</h2>
+        </div>
+
+        <!-- MODE BANDS -->
+        <div style="flex: 1; min-height: 0; display: flex; flex-direction: column;">
+
+          <!-- ── MODE 01 · CLASSIC — active, dominant ── -->
+          <div data-anim style="flex: 1 1 auto; min-height: 0; margin: 0 -40px; padding-left: 40px; border-top: 1px solid #21201D; background: #FFFDF8; display: flex; overflow: hidden; animation: rtg-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 140ms both;">
+
+            <div style="flex: 1 1 0%; min-width: 0; padding: 34px 40px 34px 0; box-sizing: border-box; display: flex; flex-direction: column; justify-content: flex-start; gap: 28px;">
+              <div style="display: flex; flex-direction: column; gap: 9px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8E8A7E;">Chế độ 01</span>
+                  <span style="width: 1px; height: 12px; background: #DEDACE;"></span>
+                  <span style="display: inline-flex; align-items: center; gap: 7px; font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #2F6B45;">
+                    <span style="width: 6px; height: 6px; border-radius: 50%; background: #2F6B45;"></span>
+                    Đang mở
+                  </span>
+                </div>
+                <h3 style="font-family: 'Oswald', sans-serif; font-size: 44px; font-weight: 700; color: #21201D; margin: 0; line-height: 1;">Classic</h3>
+                <p style="font-family: 'Lora', serif; font-size: 15.5px; line-height: 1.6; color: #5E5B52; margin: 0; max-width: 430px;">Mười ba vòng quay tạo ra một cầu thủ, mười sáu mùa quyết định anh ta trở thành ai.</p>
+              </div>
+
+              <div style="display: flex; border-top: 1px solid #DEDACE; border-bottom: 1px solid #DEDACE; padding: 13px 0;">
+                <div style="flex: 0 0 auto; padding-right: 40px; display: flex; flex-direction: column; gap: 3px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">Đội hình</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 23px; font-weight: 500; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">3</span>
+                </div>
+                <div style="flex: 0 0 auto; padding-left: 40px; display: flex; flex-direction: column; gap: 3px; box-shadow: inset 1px 0 0 #DEDACE;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">Squad OVR cao nhất</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 23px; font-weight: 500; color: #21201D; line-height: 1; font-variant-numeric: tabular-nums;">88</span>
+                </div>
+              </div>
+
+              <div style="display: flex; align-items: center; gap: 22px;">
+                <button type="button" style="min-height: 56px; padding: 0 34px; background: #E8502F; color: #FFFDF8; font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer; transition: background-color 140ms ease-out, transform 90ms ease-out;" style-hover="background-color: #D2431F;" style-active="transform: scale(0.985);">Tiếp tục Los Galácticos</button>
+                <button type="button" style="min-height: 52px; padding: 0 26px; background: none; color: #21201D; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; border: none; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; cursor: pointer; transition: box-shadow 140ms ease-out;" style-hover="box-shadow: inset 0 0 0 1px #21201D;">Tất cả đội hình</button>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">8 / 11 cầu thủ đã draft</span>
+              </div>
+            </div>
+
+            <!-- image region owns its own box — no copy inside it -->
+            <div style="flex: 0 0 372px; width: 372px; position: relative; overflow: hidden; background: #1C1B18;">
+              <div data-anim style="position: absolute; inset: 0; animation: rtg-drift 30s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;">
+                <image-slot id="rtg-home-classic" shape="rect" fit="cover" style="color: rgba(244,241,234,0.62);" placeholder="Kéo ảnh Classic vào đây — thẻ Panini, sổ lưu niệm, tông ấm"></image-slot>
+              </div>
+              <div style="position: absolute; inset: 0; background: linear-gradient(270deg, rgba(28,27,24,0) 0%, rgba(28,27,24,0.28) 100%); pointer-events: none;"></div>
+            </div>
+          </div>
+
+          <!-- ── MODE 02 · PVP — named, coming soon, subordinate ── -->
+          <div data-anim style="flex: 0 0 auto; margin: 0 -40px; border-top: 1px solid #DEDACE; background: transparent; display: flex; align-items: center; justify-content: space-between; gap: 40px; padding: 24px 40px 26px; animation: rtg-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 220ms both;">
+            <div style="display: flex; flex-direction: column; gap: 7px; max-width: 560px;">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #8E8A7E;">Chế độ 02</span>
+                <span style="width: 1px; height: 12px; background: #DEDACE;"></span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.16em; text-transform: uppercase; color: #B0761C;">Sắp ra mắt</span>
+              </div>
+              <div style="display: flex; align-items: baseline; gap: 16px;">
+                <h3 style="font-family: 'Oswald', sans-serif; font-size: 28px; font-weight: 600; color: #5E5B52; margin: 0; line-height: 1.1;">PvP — Đối đầu</h3>
+              </div>
+              <p style="font-family: 'Lora', serif; font-size: 14.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Đưa một đội hình bạn đã dựng ở Classic đi đấu với người chơi khác.</p>
+            </div>
+            <div style="display: flex; align-items: center; flex: 0 0 auto;">
+              <span style="min-height: 52px; padding: 0 26px; display: inline-flex; align-items: center; background: #EBE7DC; color: #A8A49A; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; border-radius: 2px;">Sắp ra mắt</span>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <footer style="flex: 0 0 52px; border-top: 1px solid #DEDACE; display: flex; align-items: center; justify-content: space-between; padding: 0 40px; box-sizing: border-box;">
+        <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #A8A49A;">Football Life © Road to Glory — mùa 2025/26</span>
+        <button type="button" onClick="{{ replay }}" style="min-height: 44px; padding: 0 4px; background: none; border: none; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #8E8A7E; cursor: pointer;" style-hover="color: #C7401F;">↻ Chạy lại chuyển động</button>
+      </footer>
+    </div>
+  </div>
+
+  <!-- ══════════════ ANATOMY ══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Mổ xẻ trang — lưới, mở rộng chế độ, thành phần, chuyển động</span>
+    <div style="width: 1440px; background: #F4F1EA; box-shadow: 0 0 0 1px #b9b3a4; padding: 40px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 40px;">
+
+      <!-- 01 GRID + 02 SCALING -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">01 · Cấu trúc dọc</span>
+          <div style="width: 100%; height: 258px; display: flex; flex-direction: column; box-shadow: inset 0 0 0 1px #C9C4B4; background: #FFFDF8;">
+            <div style="flex: 0 0 26px; border-bottom: 1px solid #C9C4B4; background: #EBE7DC; display: flex; align-items: center; padding: 0 10px;"><span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52;">app shell · 64px</span></div>
+            <div style="flex: 0 0 34px; display: flex; align-items: center; padding: 0 10px; gap: 8px;"><span style="height: 12px; width: 130px; background: #C9C4B4;"></span><span style="font-family: 'Special Elite', monospace; font-size: 8.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">page head</span></div>
+            <div style="flex: 1; min-height: 0; border-top: 2px solid #21201D; display: flex; padding: 8px 10px; gap: 8px; background: #FFFDF8;">
+              <div style="flex: 1; display: flex; flex-direction: column; gap: 5px;">
+                <span style="height: 7px; width: 30%; background: #D6D1C3;"></span>
+                <span style="height: 20px; width: 46%; background: #C9C4B4;"></span>
+                <span style="height: 9px; background: #E4E0D4;"></span>
+                <span style="margin-top: auto; height: 13px; width: 66%; background: #E8502F;"></span>
+              </div>
+              <div style="flex: 0 0 26%; background: repeating-linear-gradient(135deg, #D6D1C3 0 5px, #DEDACE 5px 10px); display: flex; align-items: center; justify-content: center;"><span style="font-family: 'Special Elite', monospace; font-size: 8px; letter-spacing: 0.08em; text-transform: uppercase; color: #5E5B52;">ảnh</span></div>
+            </div>
+            <div style="flex: 0 0 54px; border-top: 1px solid #C9C4B4; background: #F4F1EA; display: flex; flex-direction: column; justify-content: center; gap: 5px; padding: 0 10px;">
+              <span style="height: 6px; width: 22%; background: #D6D1C3;"></span>
+              <span style="height: 11px; width: 38%; background: #D6D1C3;"></span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 8px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">chế độ khoá · nền paper, không ảnh</span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column;">
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Đệm trang</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">40 ngang · dải tràn hết bề rộng</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Dải đang mở</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">flex 1 · nền surface · cột ảnh 372</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Dải khoá</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">cao tự nhiên · nền paper</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Kẻ phân cấp</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">1px ink mở đầu vùng · 1px rule giữa dải</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Ngưỡng đổi layout</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">1024px → dải xếp dọc, ảnh lên trên</span></div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">02 · Thêm chế độ về sau</span>
+          <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Luật · một chế độ = một dải ngang</span>
+            <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Thêm chế độ là thêm một dải, không thiết kế lại trang. Chế độ đang chơi được nền <span style="font-family: 'Special Elite', monospace; font-size: 12px;">surface</span> + cột ảnh + hành động chính. Mọi chế độ khác nằm trên nền <span style="font-family: 'Special Elite', monospace; font-size: 12px;">paper</span>, không ảnh, chữ nhỏ hơn một bậc. Đúng một dải được phép có nút màu accent.</p>
+          </div>
+          <div style="display: grid; grid-template-columns: 96px 1fr; gap: 0;">
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Số chế độ</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Trang xử lý thế nào</span>
+
+            <span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">2 · nay</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Classic chiếm chiều cao còn lại; PvP là một dải mảnh dưới nó.</span>
+
+            <span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">3–4</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Dải Classic bỏ cột ảnh, cao tối thiểu 240px; các dải còn lại giữ nguyên dạng mảnh. </span>
+
+            <span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">5+</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Vùng chế độ cuộn dọc; dải “đang dở” ghim lên đầu. Không đổi sang lưới thẻ — dải giữ được chữ dài tiếng Việt.</span>
+
+            <span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; padding: 11px 0;">Chế độ mới</span>
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0;">Nhãn <span style="font-family: 'Special Elite', monospace; font-size: 12px; color: #C7401F;">Mới</span> màu accent trong 30 ngày, rồi tự rơi về trạng thái thường.</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <!-- 03 MODE STATES -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">03 · Năm trạng thái của một dải chế độ</span>
+        <div style="display: flex; flex-direction: column;">
+
+          <div style="border-top: 1px solid #21201D; background: #FFFDF8; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 32px;">
+            <div style="display: flex; flex-direction: column; gap: 5px; max-width: 560px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #2F6B45;">Đang mở · có tiến trình</span>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: #21201D;">Classic</span>
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Nền surface, cột ảnh, nút accent “Tiếp tục [tên đội hình]”. Chỉ một dải được trạng thái này.</span>
+            </div>
+            <span style="min-height: 48px; padding: 0 24px; display: inline-flex; align-items: center; background: #E8502F; color: #FFFDF8; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; flex: 0 0 auto;">Tiếp tục</span>
+          </div>
+
+          <div style="border-top: 1px solid #DEDACE; background: #FFFDF8; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 32px;">
+            <div style="display: flex; flex-direction: column; gap: 5px; max-width: 560px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #8E8A7E;">Đang mở · chưa bắt đầu</span>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: #21201D;">Classic</span>
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Không có số liệu để hiện, nên dòng chỉ số nhường chỗ cho một câu giải thích luật chơi.</span>
+            </div>
+            <span style="min-height: 48px; padding: 0 24px; display: inline-flex; align-items: center; background: #E8502F; color: #FFFDF8; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; flex: 0 0 auto;">Tạo đội hình</span>
+          </div>
+
+          <div style="border-top: 1px solid #DEDACE; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 32px;">
+            <div style="display: flex; flex-direction: column; gap: 5px; max-width: 560px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #B0761C;">Sắp ra mắt</span>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: #5E5B52;">PvP — Đối đầu</span>
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Nền paper, không ảnh, tiêu đề nhỏ hơn và chuyển sang ink-2. Nút là khối sunken không bấm được.</span>
+            </div>
+            <span style="min-height: 48px; padding: 0 24px; display: inline-flex; align-items: center; background: #EBE7DC; color: #A8A49A; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; flex: 0 0 auto;">Sắp ra mắt</span>
+          </div>
+
+          <div style="border-top: 1px solid #DEDACE; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 32px;">
+            <div style="display: flex; flex-direction: column; gap: 5px; max-width: 560px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #C7401F;">Mới mở · 30 ngày đầu</span>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: #21201D;">PvP — Đối đầu</span>
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Nhãn accent là thứ duy nhất khác so với trạng thái thường — không thêm viền, không thêm bóng.</span>
+            </div>
+            <span style="min-height: 48px; padding: 0 24px; display: inline-flex; align-items: center; color: #21201D; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; flex: 0 0 auto;">Chơi thử</span>
+          </div>
+
+          <div style="border-top: 1px solid #DEDACE; border-bottom: 1px solid #DEDACE; padding: 18px 20px; display: flex; align-items: center; justify-content: space-between; gap: 32px;">
+            <div style="display: flex; flex-direction: column; gap: 5px; max-width: 560px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #B23A2B;">Tạm bảo trì</span>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: #5E5B52;">PvP — Đối đầu</span>
+              <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Lý do và mốc thời gian viết thành câu, không phải hộp cảnh báo có icon.</span>
+            </div>
+            <span style="min-height: 48px; padding: 0 24px; display: inline-flex; align-items: center; background: #EBE7DC; color: #A8A49A; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; border-radius: 2px; flex: 0 0 auto;">Mở lại 14:00</span>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <!-- 04 COMPONENTS + 05 MOTION -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">04 · Cây thành phần</span>
+          <div style="background: #FFFDF8; box-shadow: inset 0 0 0 1px #DEDACE; padding: 20px 22px; display: flex; flex-direction: column;">
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #21201D;">AppShell <span style="color: #C7401F;">dùng lại · giống lobby</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">├─ PageHead <span style="color: #C7401F;">dùng lại</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">├─ ModeList</div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">│&nbsp;&nbsp;├─ ModeBand <span style="color: #8E8A7E;">mới · state=active|locked|new|maintenance</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 54px;">│&nbsp;&nbsp;&nbsp;&nbsp;├─ StatGroup <span style="color: #C7401F;">dùng lại</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 54px;">│&nbsp;&nbsp;&nbsp;&nbsp;├─ Button primary + outline <span style="color: #C7401F;">dùng lại</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 54px;">│&nbsp;&nbsp;&nbsp;&nbsp;└─ ModeArt <span style="color: #8E8A7E;">mới · slot sở hữu ô riêng</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">│&nbsp;&nbsp;└─ ModeBand state=locked</div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">└─ AppFooter <span style="color: #C7401F;">dùng lại</span></div>
+          </div>
+          <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Hai thành phần mới, và <span style="font-family: 'Special Elite', monospace; font-size: 12px;">ModeBand</span> là thành phần duy nhất cần bảo trì khi thêm chế độ — nó nhận một prop <span style="font-family: 'Special Elite', monospace; font-size: 12px;">state</span>, không phải một nhánh giao diện riêng cho từng chế độ.</p>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">05 · Đặc tả chuyển động</span>
+          <div style="display: grid; grid-template-columns: 1fr 84px 76px 1fr; gap: 0;">
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Chuyển động</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Thời lượng</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Trễ</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Đường cong · thuộc tính</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Ba vùng nổi lên</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">600–640ms</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">60→220</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.16,1,.3,1) · chỉ transform y 14→0</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Ảnh chế độ trôi chậm</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">30s ↔</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.37,0,.63,1) · scale 1→1.06 · tắt khi giảm chuyển động</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Nút chính hover / nhấn</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">140 / 90ms</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">ease-out · background-color · scale .985</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0;">Dải khoá</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0;">tĩnh</span>
+            <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0;">—</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0;">không animate — không hứa điều chưa có</span>
+          </div>
+          <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Luật · nội dung không phụ thuộc animation</span>
+            <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Chuyển động xuất hiện chỉ animate <span style="font-family: 'Special Elite', monospace; font-size: 12px;">transform</span>, không bao giờ <span style="font-family: 'Special Elite', monospace; font-size: 12px;">opacity</span>. Lệch 14px là vô hại nếu animation không chạy; <span style="font-family: 'Special Elite', monospace; font-size: 12px;">opacity: 0</span> thì trang trắng.</p>
+          </div>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <!-- 06 MOBILE -->
+      <div style="display: grid; grid-template-columns: 424px 1fr; gap: 48px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">06 · Mobile 390 — dải xếp dọc, ảnh lên trên</span>
+          <div style="width: 390px; height: 844px; box-shadow: 0 0 0 1px #b9b3a4; background: #F4F1EA; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden;">
+            <div style="flex: 0 0 52px; background: #FFFDF8; border-bottom: 1px solid #DEDACE; display: flex; align-items: center; justify-content: space-between; padding: 0 16px; box-sizing: border-box;">
+              <span style="font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Road to Glory</span>
+              <span style="min-height: 44px; display: inline-flex; align-items: center; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #5E5B52;">Đăng xuất</span>
+            </div>
+
+            <div style="flex: 0 0 auto; padding: 22px 16px 18px; display: flex; flex-direction: column; gap: 5px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #C7401F;">Chào Marco</span>
+              <span style="font-family: 'Oswald', sans-serif; font-size: 28px; font-weight: 600; color: #21201D; line-height: 1.05;">Hôm nay bạn chơi gì?</span>
+            </div>
+
+            <div style="flex: 1; min-height: 0; overflow: hidden; display: flex; flex-direction: column;">
+              <div style="flex: 0 0 auto; border-top: 1px solid #21201D; background: #FFFDF8; display: flex; flex-direction: column;">
+                <div style="flex: 0 0 116px; position: relative; overflow: hidden; background: #1C1B18;">
+                  <div style="position: absolute; inset: 0;">
+                    <image-slot id="rtg-home-classic-m" shape="rect" fit="cover" style="color: rgba(244,241,234,0.62);" placeholder="Ảnh Classic"></image-slot>
+                  </div>
+                </div>
+                <div style="padding: 16px 16px 18px; display: flex; flex-direction: column; gap: 12px;">
+                  <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8E8A7E;">Chế độ 01</span>
+                    <span style="width: 1px; height: 10px; background: #DEDACE;"></span>
+                    <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #2F6B45;">Đang mở</span>
+                  </div>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 30px; font-weight: 700; color: #21201D; line-height: 1;">Classic</span>
+                  <div style="display: flex; border-top: 1px solid #DEDACE; border-bottom: 1px solid #DEDACE; padding: 11px 0;">
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">Đội hình</span><span style="font-family: 'Oswald', sans-serif; font-size: 19px; font-weight: 500; color: #21201D; font-variant-numeric: tabular-nums;">3</span></div>
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 2px;"><span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E;">Squad OVR cao nhất</span><span style="font-family: 'Oswald', sans-serif; font-size: 19px; font-weight: 500; color: #21201D; font-variant-numeric: tabular-nums;">88</span></div>
+                  </div>
+                  <div style="min-height: 54px; background: #E8502F; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 15px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: #FFFDF8;">Tiếp tục Los Galácticos</div>
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #8E8A7E; text-align: center;">8 / 11 cầu thủ đã draft</span>
+                </div>
+              </div>
+
+              <div style="flex: 0 0 auto; border-top: 1px solid #DEDACE; padding: 18px 16px 20px; display: flex; flex-direction: column; gap: 10px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #8E8A7E;">Chế độ 02</span>
+                  <span style="width: 1px; height: 10px; background: #DEDACE;"></span>
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #B0761C;">Sắp ra mắt</span>
+                </div>
+                <span style="font-family: 'Oswald', sans-serif; font-size: 22px; font-weight: 600; color: #5E5B52; line-height: 1.1;">PvP — Đối đầu</span>
+                <span style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.55; color: #5E5B52;">Đưa một đội hình bạn đã dựng ở Classic đi đấu với người chơi khác.</span>
+                <div style="min-height: 50px; background: #EBE7DC; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; color: #A8A49A; margin-top: 2px;">Sắp ra mắt</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">07 · Điều hướng &amp; quyết định</span>
+          <div style="display: grid; grid-template-columns: 200px 1fr; gap: 0;">
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Hành động</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Đi tới</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Tiếp tục [đội hình]</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">/classic/[gameId] · bàn đội hình, mở đúng chỗ đang dở</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Tất cả đội hình</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">/classic · danh sách đội hình của Classic</span>
+
+            <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0;">Đường dẫn cũ</span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0;">/ → trang chọn chế độ · danh sách đội hình cũ chuyển về /classic</span>
+          </div>
+
+          <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px; margin-top: 4px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Quyết định · thêm một lần bấm, đổi lấy chỗ cho chế độ mới</span>
+            <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Chọn chế độ trước nghĩa là người chơi cũ mất thêm một lần bấm để về đội hình. Nút <strong>Tiếp tục [tên đội hình]</strong> ngay trên dải Classic bù lại đúng lần bấm đó — vào thẳng ván đang dở, không qua danh sách. Nếu chỉ có một chế độ đang mở và người chơi có đúng một đội hình đang dở, cân nhắc chuyển hướng thẳng và giữ trang này ở <span style="font-family: 'Special Elite', monospace; font-size: 12px;">/modes</span>.</p>
+          </div>
+
+          <div style="background: #EBE7DC; border-radius: 2px; padding: 15px 18px; display: flex; flex-direction: column; gap: 4px;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">Cần bạn xác nhận</span>
+            <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">PvP lấy nguyên một đội hình từ Classic, nên câu hỏi còn mở là <strong>điều kiện dự giải</strong>: đội hình phải đủ 11 người mới được mang đi đấu, hay đấu được ngay khi còn dở? Câu trả lời quyết định dòng chữ trên dải PvP, và việc dải Classic có cần thêm chỉ báo “đội hình nào đã sẵn sàng cho PvP”.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1540}}">
+class Component extends DCLogic {
+  constructor(props) {
+    super(props);
+    this.stageRef = React.createRef();
+  }
+
+  replay = () => {
+    const root = this.stageRef.current;
+    if (!root) return;
+    root.querySelectorAll("[data-anim]").forEach((el) => {
+      const keep = el.style.animation;
+      el.style.animation = "none";
+      void el.offsetWidth;
+      el.style.animation = keep || "";
+    });
+  };
+
+  renderVals() {
+    return { stageRef: this.stageRef, replay: this.replay };
+  }
+}
+</script>
+</body>
+</html>

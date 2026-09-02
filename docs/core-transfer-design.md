@@ -278,16 +278,19 @@ Optional soft bump **chưa lock** (có thể bỏ): `continentalTitlesCount ≥ 
 
 ### 5.4 Player Market Value + age curve (**nguyên tắc LOCKED**; số DRAFT)
 
-Đồng ý product: MV phụ thuộc OVR + **đường cong tuổi** + form; FA thì fee = 0 nhưng MV
-vẫn hiện để so sánh.
+Đồng ý product: MV phụ thuộc **position-weighted value của đủ 6 stats** + OVR ổn định
+giá trị + **đường cong tuổi** + form; FA thì fee = 0 nhưng MV vẫn hiện để so sánh.
 
 ```text
-baseMV = g(OVR)                         // bảng OVR → € nghìn
+positionValue = weightedRating(position, sixAttributes)
+effectivePositionOvr = 0.65 * positionValue + 0.35 * currentOvr
+baseMV = g(effectivePositionOvr)        // bảng giá trị → € nghìn
 ageMul = ageCurve(age)                  // trẻ cao, đỉnh ~22–28, già giảm mạnh
 formMul = h(matchRating, G|A|CS vs pos) // ~0.85 … 1.20
 contractMul = 1.0 + 0.12 * max(0, remaining - 1)  // HĐ dài → đắt hơn (tham chiếu)
 
-mv = round(clamp(baseMV * ageMul * formMul * contractMul, floor(OVR), ceil(OVR)))
+mv = round(clamp(baseMV * ageMul * formMul * contractMul,
+                 floor(effectivePositionOvr), ceil(effectivePositionOvr)))
 // cache → CareerPlayer.marketValue (€ nghìn)
 ```
 
@@ -562,7 +565,59 @@ Tất cả các vị trí thi đấu (`ST`, `CF`, `LW`, `RW`, `CAM`, `CM`, `CDM`
 
 ---
 
-## 13. Cơ chế Deal Lương (Salary Negotiation & Wage Elasticity - LOCKED 2026-08-02)
+## 13. Positional Valuation & League-Aware Candidate Selection (LOCKED 2026-08-28)
+
+### 13.1 Positional valuation is the shared source of truth
+
+Every transfer-window evaluation uses all six core attributes for the player's
+specific position and the locked position-weight matrix in §12.1:
+
+```text
+positionWeightedRating = weighted sum of all six position attributes
+effectivePositionOvr = 0.65 * positionWeightedRating + 0.35 * currentOvr
+```
+
+`effectivePositionOvr` is the shared specialist signal for market value,
+scouting, targeting, expected role, approach success, and wage proposals.
+`currentOvr` remains a stabilizer and display summary; it must not replace the
+six-attribute evaluation in transfer economics.
+
+### 13.2 Season checkpoint timing
+
+After season simulation and stat evolution, but before generating inbound offers
+or opening the transfer UI, the server recalculates and persists the player's
+market value snapshot. The snapshot includes `marketValue`,
+`positionWeightedRating`, and `effectivePositionOvr` on the current season
+timeline entry. The retirement checkpoint also computes the final value even
+though it does not open a transfer window.
+
+### 13.3 Club targeting is club prestige × league competitiveness
+
+Club prestige and league quality are separate signals:
+
+- Club prestige describes the club's ambition and competitive level.
+- League prestige/tier describes the quality and visibility of the competition.
+
+Candidate generation must not restrict the market to `raw OVR ± prestige 2`.
+Valid clubs are scored from the available database data. League quality adds a
+data-driven preference for competitive leagues, while positional fit and
+expected playing opportunity prevent a player from being sent to an implausibly
+strong club. No country, region, or individual club is hardcoded as preferred.
+
+Inbound offers use weighted sampling without replacement from the highest
+scoring candidates. Repeated clubs from the same league receive a diminishing
+selection factor, preserving replayability and league diversity without forcing
+a fixed geographic quota.
+
+### 13.4 Financial consistency
+
+Market value, mandatory buyout, wage proposal, club affordability, targeting,
+and approach success all consume the same positional valuation snapshot. A
+specialist whose six stats make them valuable for their position can therefore
+attract a stronger or more competitive league even when their headline OVR is
+lower than a generalist's.
+
+## 14. Cơ chế Deal Lương (Salary Negotiation & Wage Elasticity - LOCKED 2026-08-02)
 
 Người chơi có thể điều chỉnh yêu cầu lương khi ký kết HĐ (Gia hạn, Đề nghị inbound, hay Tiếp cận CLB):
 - 3 Preset Options:
@@ -574,7 +629,7 @@ Người chơi có thể điều chỉnh yêu cầu lương khi ký kết HĐ (G
 
 ---
 
-## 14. Tìm kiếm & Lọc CLB Chủ Động (Dynamic Club Search & Filter - LOCKED 2026-08-02)
+## 15. Tìm kiếm & Lọc CLB Chủ Động (Dynamic Club Search & Filter - LOCKED 2026-08-02)
 
 - Thay vì giới hạn danh sách ngỏ lời trong 8 CLB fit ngẫu nhiên, hệ thống cung cấp giao diện **Tìm kiếm & Lọc toàn bộ CLB trong cơ sở dữ liệu**:
   - Filter theo Tên CLB (`query string`).
@@ -586,7 +641,7 @@ Người chơi có thể điều chỉnh yêu cầu lương khi ký kết HĐ (G
 
 ---
 
-## 15. Giao diện Section Cố định dưới Profile Mùa giải (Persistent Off-season UI - LOCKED 2026-08-02)
+## 16. Giao diện Section Cố định dưới Profile Mùa giải (Persistent Off-season UI - LOCKED 2026-08-02)
 
 - Trong giai đoạn Cuối mùa / Chuẩn bị mùa giải mới (Off-season):
   - Hệ thống hiển thị Cửa sổ Chuyển nhượng trực tiếp thành **1 UI Section cố định nằm ngay dưới Panini Sticker / Hồ sơ Mùa giải** (Career Dashboard).
@@ -608,3 +663,4 @@ Người chơi có thể điều chỉnh yêu cầu lương khi ký kết HĐ (G
 | 2026-07-31 | **v1.4.1** — Invariant: flexibility **không** giảm `mandatoryBuyout` (phí phá HĐ CLB current); deal chỉ wage/years + Available tín hiệu. |
 | 2026-07-31 | **v1.5** — Approach acceptChance + UI %; FA unemployed season (`isUnemployed`). |
 | 2026-08-02 | **v2.0** — Lock **Proactive Renewal**, **Scout Interest Score** (G/A/CS/National), **Salary Negotiation**, **Dynamic Club Search & Filter**, và **Persistent Off-season UI Section**. |
+| 2026-08-28 | **v2.1** — Position-first valuation from all six weighted attributes; season-end valuation checkpoint before transfer; league competitiveness separated from club prestige; broad data-driven candidate pool and diversity-weighted inbound selection. |

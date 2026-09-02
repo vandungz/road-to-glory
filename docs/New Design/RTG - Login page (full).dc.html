@@ -1,0 +1,482 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<meta name="design_doc_mode" content="canvas" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="anonymous" />
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&amp;family=Lora:ital,wght@0,400;0,500;0,600;1,400&amp;family=Special+Elite&amp;display=swap" rel="stylesheet" />
+<script src="./image-slot.js"></script>
+<style>
+  body { margin: 0; background: #cfcabd; font-family: "Lora", Georgia, serif; -webkit-font-smoothing: antialiased; }
+  a { color: #C7401F; text-decoration: none; }
+  a:hover { color: #21201D; }
+
+  @keyframes rtg-drift { from { transform: scale(1) translate3d(0,0,0); } to { transform: scale(1.07) translate3d(0,-1.2%,0); } }
+  @keyframes rtg-ticker { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
+  @keyframes rtg-rise { from { opacity: 0; transform: translate3d(0,14px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
+  @keyframes rtg-veil { from { opacity: 0; } to { opacity: 1; } }
+  @keyframes rtg-wipe { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+  @keyframes rtg-shake { 0%,100% { transform: translate3d(0,0,0); } 25% { transform: translate3d(-3px,0,0); } 75% { transform: translate3d(3px,0,0); } }
+
+  @media (prefers-reduced-motion: reduce) {
+    [data-anim] { animation-duration: 1ms !important; animation-iteration-count: 1 !important; animation-delay: 0ms !important; }
+  }
+</style>
+</helmet>
+
+<div style="display: flex; flex-direction: column; gap: 56px; padding: 48px; box-sizing: border-box; align-items: flex-start;">
+
+  <div style="display: flex; flex-direction: column; gap: 8px; max-width: 840px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 11px; letter-spacing: 0.18em; text-transform: uppercase; color: #6f6a5c;">Road to Glory · trang mẫu đầy đủ</span>
+    <h1 style="font-family: 'Oswald', Impact, sans-serif; font-size: 36px; font-weight: 600; letter-spacing: 0.01em; color: #21201D; margin: 0;">Đăng nhập — trang hoàn chỉnh</h1>
+    <p style="font-family: 'Lora', Georgia, serif; font-size: 15px; line-height: 1.65; color: #4a463c; margin: 0;">Đây là trang mẫu chuẩn: cấu trúc layout, thành phần, biến thiết kế và chuyển động — tất cả trên cùng một trang, có thể bấm thử. Bên dưới là bản mổ xẻ: lưới, cây thành phần, biến dùng ở đâu, và bảng đặc tả chuyển động. Mọi trang khác sẽ dựng theo đúng khuôn này.</p>
+  </div>
+
+  <!-- ══════════════ THE LIVE PAGE ══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Trang thật · 1440 × 900 · bấm thử tab, con mắt, và nút đăng nhập</span>
+    <div ref="{{ stageRef }}" style="width: 1440px; height: 900px; overflow: hidden; box-shadow: 0 0 0 1px #b9b3a4; background: #F4F1EA; display: flex; box-sizing: border-box;">
+
+      <!-- ─────── HERO · LEFT ─────── -->
+      <section style="flex: 0 0 748px; width: 748px; position: relative; background: #1C1B18; overflow: hidden;">
+
+        <div data-anim style="position: absolute; inset: 0; animation: rtg-drift 26s cubic-bezier(0.37, 0, 0.63, 1) infinite alternate;">
+          <image-slot id="rtg-login-hero" shape="rect" fit="cover" placeholder="Ảnh sân cỏ — góc thấp, khán đài mờ, tông ấm"></image-slot>
+        </div>
+
+        <div data-anim style="position: absolute; inset: 0; background: linear-gradient(103deg, rgba(28,27,24,0.93) 0%, rgba(28,27,24,0.72) 44%, rgba(28,27,24,0.34) 100%); pointer-events: none; animation: rtg-veil 900ms cubic-bezier(0.16, 1, 0.3, 1) both;"></div>
+        <div style="position: absolute; inset: 0; background-image: radial-gradient(rgba(244,241,234,0.055) 1px, transparent 1px); background-size: 4px 4px; pointer-events: none;"></div>
+        <div style="position: absolute; top: 0; bottom: 0; right: 0; width: 1px; background: rgba(244,241,234,0.16); pointer-events: none;"></div>
+
+        <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 44px 56px 0; box-sizing: border-box; pointer-events: none;">
+
+          <div data-anim style="display: flex; align-items: baseline; gap: 14px; animation: rtg-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) 60ms both;">
+            <span style="font-family: 'Oswald', sans-serif; font-size: 18px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #F4F1EA;">Road to Glory</span>
+            <span style="width: 30px; height: 1px; background: rgba(244,241,234,0.4);"></span>
+            <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(244,241,234,0.55);">Football Life</span>
+          </div>
+
+          <div style="display: flex; flex-direction: column; gap: 26px; padding-bottom: 40px; max-width: 520px;">
+            <span data-anim style="font-family: 'Special Elite', monospace; font-size: 10.5px; letter-spacing: 0.2em; text-transform: uppercase; color: #E8502F; animation: rtg-rise 620ms cubic-bezier(0.16, 1, 0.3, 1) 180ms both;">Mười sáu mùa · một sự nghiệp</span>
+            <h2 data-anim style="font-family: 'Oswald', sans-serif; font-size: 66px; font-weight: 700; line-height: 0.98; letter-spacing: -0.005em; color: #F4F1EA; margin: 0; text-wrap: balance; animation: rtg-rise 720ms cubic-bezier(0.16, 1, 0.3, 1) 240ms both;">Không ai chọn được<br />vận may của mình.</h2>
+            <p data-anim style="font-family: 'Lora', serif; font-size: 17px; font-style: italic; line-height: 1.6; color: rgba(244,241,234,0.72); margin: 0; max-width: 430px; animation: rtg-rise 680ms cubic-bezier(0.16, 1, 0.3, 1) 340ms both;">Chỉ chọn được cách sống với nó. Mười ba vòng quay tạo ra cầu thủ, rồi mười sáu mùa giải quyết định anh ta trở thành ai.</p>
+
+            <div data-anim style="display: flex; gap: 0; margin-top: 8px; animation: rtg-rise 640ms cubic-bezier(0.16, 1, 0.3, 1) 430ms both;">
+              <div style="padding-right: 34px;">
+                <div style="font-family: 'Oswald', sans-serif; font-size: 32px; font-weight: 600; color: #F4F1EA; line-height: 1; font-variant-numeric: tabular-nums;">13</div>
+                <div style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,234,0.5); margin-top: 5px;">vòng quay tạo cầu thủ</div>
+              </div>
+              <div style="width: 1px; background: rgba(244,241,234,0.16);"></div>
+              <div style="padding: 0 34px;">
+                <div style="font-family: 'Oswald', sans-serif; font-size: 32px; font-weight: 600; color: #F4F1EA; line-height: 1; font-variant-numeric: tabular-nums;">11</div>
+                <div style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,234,0.5); margin-top: 5px;">vị trí trong đội hình</div>
+              </div>
+              <div style="width: 1px; background: rgba(244,241,234,0.16);"></div>
+              <div style="padding-left: 34px;">
+                <div style="font-family: 'Oswald', sans-serif; font-size: 32px; font-weight: 600; color: #C9A24D; line-height: 1; font-variant-numeric: tabular-nums;">1</div>
+                <div style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: rgba(244,241,234,0.5); margin-top: 5px;">quả bóng vàng, nếu may</div>
+              </div>
+            </div>
+          </div>
+
+          <div style="height: 52px; border-top: 1px solid rgba(244,241,234,0.16); display: flex; align-items: center; overflow: hidden; margin: 0 -56px; padding: 0;">
+            <div data-anim style="display: flex; white-space: nowrap; animation: rtg-ticker 34s linear infinite; will-change: transform;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(244,241,234,0.42); padding-left: 56px;">Empoli 18t · Torino 20t · Coppa Italia 21t · Atalanta 22t · Vô địch Serie A 23t · Quả bóng vàng 23t · Hạng 3 Serie A 24t · Inter 27t · Champions League 27t · Euro 2032 · Giải nghệ 33t ·&nbsp;</span>
+              <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: rgba(244,241,234,0.42); padding-left: 56px;">Empoli 18t · Torino 20t · Coppa Italia 21t · Atalanta 22t · Vô địch Serie A 23t · Quả bóng vàng 23t · Hạng 3 Serie A 24t · Inter 27t · Champions League 27t · Euro 2032 · Giải nghệ 33t ·&nbsp;</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- ─────── FORM · RIGHT ─────── -->
+      <section style="flex: 1 1 0%; min-width: 0; display: flex; flex-direction: column; background: #F4F1EA;">
+
+        <div style="flex: 1; display: flex; flex-direction: column; justify-content: center; padding: 0 88px; box-sizing: border-box;">
+          <div style="width: 100%; max-width: 396px;">
+
+            <div data-anim style="display: flex; flex-direction: column; gap: 7px; padding-bottom: 30px; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 300ms both;">
+              <h3 style="font-family: 'Oswald', sans-serif; font-size: 34px; font-weight: 600; color: #21201D; margin: 0; line-height: 1.08;">{{ headline }}</h3>
+              <p style="font-family: 'Lora', serif; font-size: 14.5px; line-height: 1.55; color: #5E5B52; margin: 0;">{{ subhead }}</p>
+            </div>
+
+            <div data-anim style="display: flex; gap: 26px; position: relative; border-bottom: 1px solid #DEDACE; margin-bottom: 28px; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 360ms both;">
+              <button type="button" onClick="{{ pickLogin }}" style="background: none; border: none; padding: 0 0 13px; min-height: 44px; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #21201D; cursor: pointer;">Đăng nhập</button>
+              <button type="button" onClick="{{ pickRegister }}" style="background: none; border: none; padding: 0 0 13px; min-height: 44px; font-family: 'Oswald', sans-serif; font-size: 13.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #8E8A7E; cursor: pointer;">Đăng ký</button>
+              <span style="position: absolute; bottom: -1px; left: 0; height: 2px; background: #E8502F; width: 106px; transition: transform 240ms cubic-bezier(0.4, 0, 0.2, 1), width 240ms cubic-bezier(0.4, 0, 0.2, 1); transform: {{ indicatorShift }}; width: {{ indicatorWidth }};"></span>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 20px;">
+
+              <div data-anim style="display: flex; flex-direction: column; gap: 7px; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 420ms both;">
+                <label for="rtg-email" style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5B52;">Email</label>
+                <input id="rtg-email" type="email" placeholder="ten@email.com" style="width: 100%; min-height: 50px; padding: 0 15px; background: #FFFDF8; border: none; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; font-family: 'Lora', serif; font-size: 15px; color: #21201D; box-sizing: border-box; outline: none; transition: box-shadow 140ms ease-out;" style-focus="box-shadow: inset 0 0 0 1px #E8502F, 0 0 0 2px rgba(232,80,47,0.22);" />
+              </div>
+
+              <div data-anim style="display: flex; flex-direction: column; gap: 7px; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 480ms both;">
+                <div style="display: flex; align-items: baseline; justify-content: space-between; gap: 12px;">
+                  <label for="rtg-pass" style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5B52;">{{ passLabel }}</label>
+                  <a href="#reset" style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52;">{{ resetLink }}</a>
+                </div>
+                <div style="position: relative;">
+                  <input id="rtg-pass" type="{{ passType }}" placeholder="••••••••" style="width: 100%; min-height: 50px; padding: 0 52px 0 15px; background: #FFFDF8; border: none; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; font-family: 'Lora', serif; font-size: 15px; color: #21201D; box-sizing: border-box; outline: none; transition: box-shadow 140ms ease-out;" style-focus="box-shadow: inset 0 0 0 1px #E8502F, 0 0 0 2px rgba(232,80,47,0.22);" />
+                  <button type="button" onClick="{{ togglePass }}" aria-label="{{ passToggleLabel }}" style="position: absolute; right: 3px; top: 50%; transform: translateY(-50%); width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; background: none; border: none; border-radius: 2px; cursor: pointer; color: #8E8A7E;" style-hover="color: #21201D;">
+                    <svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  </button>
+                </div>
+                <sc-if value="{{ hasError }}" hint-placeholder-val="{{ false }}">
+                  <span data-anim style="font-family: 'Lora', serif; font-size: 13px; color: #B23A2B; animation: rtg-shake 320ms cubic-bezier(0.36, 0.07, 0.19, 0.97) both;">Email hoặc mật khẩu không đúng. Thử lại.</span>
+                </sc-if>
+              </div>
+
+              <button type="button" onClick="{{ submit }}" data-anim style="width: 100%; min-height: 56px; margin-top: 6px; background: #E8502F; color: #FFFDF8; font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; border: none; border-radius: 2px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px; transition: background-color 140ms ease-out, transform 90ms ease-out; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 540ms both;" style-hover="background-color: #D2431F;" style-active="transform: scale(0.985);">
+                <sc-if value="{{ busy }}" hint-placeholder-val="{{ false }}">
+                  <span style="width: 15px; height: 15px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,253,248,0.35); border-top: 2px solid #FFFDF8; box-sizing: border-box;"></span>
+                </sc-if>
+                {{ submitLabel }}
+              </button>
+
+              <div data-anim style="display: flex; align-items: center; gap: 16px; padding-top: 6px; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 600ms both;">
+                <span style="flex: 1; height: 1px; background: #DEDACE;"></span>
+                <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.16em; text-transform: uppercase; color: #A8A49A;">hoặc</span>
+                <span style="flex: 1; height: 1px; background: #DEDACE;"></span>
+              </div>
+
+              <button type="button" data-anim style="width: 100%; min-height: 52px; background: none; color: #21201D; font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.07em; text-transform: uppercase; border: none; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; cursor: pointer; transition: box-shadow 140ms ease-out, background-color 140ms ease-out; animation: rtg-rise 560ms cubic-bezier(0.16, 1, 0.3, 1) 650ms both;" style-hover="box-shadow: inset 0 0 0 1px #21201D; background-color: rgba(33,32,29,0.03);">Tiếp tục với Google</button>
+            </div>
+          </div>
+        </div>
+
+        <div style="flex: 0 0 auto; padding: 0 88px 30px; display: flex; align-items: center; justify-content: space-between; gap: 20px;">
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.14em; text-transform: uppercase; color: #A8A49A;">© Football Life — mùa 2025/26</span>
+          <button type="button" onClick="{{ replay }}" style="min-height: 44px; padding: 0 4px; background: none; border: none; font-family: 'Oswald', sans-serif; font-size: 12px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #8E8A7E; cursor: pointer;" style-hover="color: #C7401F;">↻ Chạy lại chuyển động</button>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <!-- ══════════════ ANATOMY ══════════════ -->
+  <div style="display: flex; flex-direction: column; gap: 10px;">
+    <span style="font-family: 'Special Elite', monospace; font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #52504a;">Mổ xẻ trang — lưới, thành phần, biến, chuyển động</span>
+    <div style="width: 1440px; background: #F4F1EA; box-shadow: 0 0 0 1px #b9b3a4; padding: 40px 48px; box-sizing: border-box; display: flex; flex-direction: column; gap: 40px;">
+
+      <!-- LAYOUT -->
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 48px;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">01 · Cấu trúc lưới</span>
+          <div style="width: 100%; height: 232px; display: flex; box-shadow: inset 0 0 0 1px #C9C4B4; background: #FFFDF8;">
+            <div style="flex: 0 0 52%; border-right: 1px solid #C9C4B4; background: #EBE7DC; display: flex; flex-direction: column; justify-content: space-between; padding: 12px; box-sizing: border-box;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52;">hero · 748px · 52%</span>
+              <div style="display: flex; flex-direction: column; gap: 6px;">
+                <span style="height: 8px; background: #D6D1C3;"></span>
+                <span style="height: 26px; background: #C9C4B4;"></span>
+                <span style="height: 14px; background: #D6D1C3;"></span>
+                <span style="height: 18px; background: #D6D1C3;"></span>
+              </div>
+              <span style="height: 12px; background: #D6D1C3;"></span>
+            </div>
+            <div style="flex: 1; display: flex; align-items: center; justify-content: center; padding: 12px; box-sizing: border-box; position: relative;">
+              <span style="position: absolute; top: 12px; left: 12px; font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52;">form · 692px · 48%</span>
+              <div style="width: 60%; display: flex; flex-direction: column; gap: 7px;">
+                <span style="height: 16px; background: #C9C4B4;"></span>
+                <span style="height: 9px; background: #E4E0D4;"></span>
+                <span style="height: 9px; background: #E4E0D4; margin-top: 6px;"></span>
+                <span style="height: 9px; background: #E4E0D4;"></span>
+                <span style="height: 14px; background: #E8502F; margin-top: 4px;"></span>
+              </div>
+              <span style="position: absolute; bottom: 12px; left: 12px; right: 12px; height: 1px; background: #E4E0D4;"></span>
+            </div>
+          </div>
+          <div style="display: flex; flex-direction: column; gap: 0;">
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Chia cột</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">748 / còn lại · fixed + fluid</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Đệm hero</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">44 / 56 / 0 · ticker tràn viền</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Đệm form</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">88 ngang · form max 396</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0; border-bottom: 1px solid #DEDACE;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Ngưỡng đổi layout</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">1024px → hero thành dải trên</span></div>
+            <div style="display: flex; justify-content: space-between; padding: 9px 0;"><span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52;">Dưới 640px</span><span style="font-family: 'Oswald', sans-serif; font-size: 14px; color: #21201D; font-variant-numeric: tabular-nums;">hero 264px · form đệm 20</span></div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">02 · Cây thành phần</span>
+          <div style="background: #FFFDF8; box-shadow: inset 0 0 0 1px #DEDACE; padding: 20px 22px; display: flex; flex-direction: column; gap: 0;">
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #21201D;">AuthLayout</div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">├─ HeroPanel <span style="color: #8E8A7E;">mới · image-slot + scrim + Ticker</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">│&nbsp;&nbsp;├─ Wordmark</div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">│&nbsp;&nbsp;├─ StatGroup <span style="color: #C7401F;">dùng lại</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">│&nbsp;&nbsp;└─ Ticker <span style="color: #8E8A7E;">mới · chỉ ở trang auth</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 18px;">└─ AuthForm</div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ Tabs <span style="color: #C7401F;">dùng lại · indicator trượt</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ Field › Input <span style="color: #C7401F;">dùng lại</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ Field › Input + IconButton <span style="color: #C7401F;">dùng lại</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ Button primary <span style="color: #C7401F;">dùng lại · loading</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;├─ Divider <span style="color: #C7401F;">dùng lại · có nhãn</span></div>
+            <div style="font-family: 'Special Elite', monospace; font-size: 11.5px; line-height: 2.05; color: #5E5B52; padding-left: 36px;">&nbsp;&nbsp;&nbsp;└─ Button outline <span style="color: #C7401F;">dùng lại</span></div>
+          </div>
+          <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 0;">Chín trong mười một thành phần đã có trong <span style="font-family: 'Special Elite', monospace; font-size: 12px;">components/ui</span>. Chỉ <span style="font-family: 'Special Elite', monospace; font-size: 12px;">HeroPanel</span> và <span style="font-family: 'Special Elite', monospace; font-size: 12px;">Ticker</span> là mới, và cả hai chỉ dùng cho trang auth.</p>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <!-- TOKENS IN USE -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">03 · Biến dùng ở đâu</span>
+        <div style="display: grid; grid-template-columns: 232px 1fr 1fr; gap: 0;">
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Biến</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Vai trò trên trang này</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Xuất hiện</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #DEDACE;"><span style="width: 20px; height: 20px; background: #1C1B18; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-inverse</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Nền hero — cùng bề mặt với tủ danh hiệu</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">1 vùng</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #DEDACE;"><span style="width: 20px; height: 20px; background: #F4F1EA; box-shadow: inset 0 0 0 1px #DEDACE; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-paper</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Nền cột form — không thẻ, không viền</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">1 vùng</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #DEDACE;"><span style="width: 20px; height: 20px; background: #FFFDF8; box-shadow: inset 0 0 0 1px #DEDACE; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-surface</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Nền ô nhập — cấp bề mặt duy nhất nhô lên</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">2 ô nhập</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #DEDACE;"><span style="width: 20px; height: 20px; background: #E8502F; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-accent</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Nhãn hero, gạch tab đang chọn, nút chính, viền focus</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #C7401F; padding: 11px 0; border-bottom: 1px solid #DEDACE;">4 chỗ — hết mức cho một trang</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #DEDACE;"><span style="width: 20px; height: 20px; background: #C9A24D; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-honour-lit</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Con số Quả bóng vàng trong dải chỉ số hero</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">1 con số</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px solid #DEDACE;"><span style="width: 20px; height: 20px; background: #B23A2B; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-negative</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Câu lỗi dưới đúng ô sai — không hộp, không icon</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">chỉ khi lỗi</span>
+
+          <span style="display: flex; align-items: center; gap: 10px; padding: 11px 0;"><span style="width: 20px; height: 20px; background: #C9C4B4; border-radius: 2px;"></span><span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #21201D;">--rtg-rule / rule-strong</span></span>
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0;">Kẻ tab, kẻ “hoặc”, viền ô nhập, nút phụ — tất cả 1px</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0;">6 chỗ · một độ dày</span>
+        </div>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <!-- MOTION -->
+      <div style="display: flex; flex-direction: column; gap: 16px;">
+        <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">04 · Đặc tả chuyển động</span>
+        <div style="display: grid; grid-template-columns: 216px 96px 84px 1fr 168px; gap: 0;">
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Chuyển động</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Thời lượng</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Trễ</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Đường cong · thuộc tính</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.1em; text-transform: uppercase; color: #5E5B52; padding: 9px 0; border-bottom: 1px solid #21201D;">Giảm chuyển động</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Màn che hero hiện</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">900ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.16,1,.3,1) · opacity</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">hiện ngay</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Hero trôi chậm (ken burns)</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">26s ↔</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.37,0,.63,1) · scale 1→1.07</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #B23A2B; padding: 11px 0; border-bottom: 1px solid #DEDACE;">tắt hoàn toàn</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Chữ hero nổi lên (5 tầng)</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">620–720ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">60→430</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.16,1,.3,1) · opacity + y 14px</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">hiện ngay, không dịch</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Form nổi lên (6 tầng)</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">560ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">300→650</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.16,1,.3,1) · so le 60ms</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">hiện ngay</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Dải sự nghiệp chạy</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">34s ∞</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">linear · translateX 0→-50%</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #B23A2B; padding: 11px 0; border-bottom: 1px solid #DEDACE;">đứng yên</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Gạch tab trượt</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">240ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">(.4,0,.2,1) · transform + width</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">nhảy tức thì</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Ô nhập nhận focus</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">140ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">ease-out · box-shadow</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">giữ nguyên (không phải mỹ thuật)</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE;">Nút chính bị nhấn</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">90ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">ease-out · scale .985</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #5E5B52; padding: 11px 0; border-bottom: 1px solid #DEDACE;">giữ nguyên</span>
+
+          <span style="font-family: 'Lora', serif; font-size: 13.5px; color: #21201D; padding: 11px 0;">Câu lỗi xuất hiện</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #21201D; padding: 11px 0; font-variant-numeric: tabular-nums;">320ms</span>
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13.5px; color: #5E5B52; padding: 11px 0; font-variant-numeric: tabular-nums;">0</span>
+          <span style="font-family: 'Special Elite', monospace; font-size: 11.5px; color: #5E5B52; padding: 11px 0;">(.36,.07,.19,.97) · x ±3px</span>
+          <span style="font-family: 'Lora', serif; font-size: 13px; color: #B23A2B; padding: 11px 0;">chỉ hiện chữ, không rung</span>
+        </div>
+        <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 4px 0 0; max-width: 900px;">Chỉ hai đường cong cho toàn hệ thống: <span style="font-family: 'Special Elite', monospace; font-size: 12px;">(.16,1,.3,1)</span> cho mọi thứ xuất hiện, <span style="font-family: 'Special Elite', monospace; font-size: 12px;">(.4,0,.2,1)</span> cho mọi thứ di chuyển giữa hai vị trí. Chuyển động vòng lặp bị tắt hoàn toàn khi người dùng bật giảm chuyển động; chuyển động phản hồi thao tác thì giữ, vì nó là thông tin chứ không phải trang trí.</p>
+      </div>
+
+      <div style="height: 1px; background: #DEDACE;"></div>
+
+      <!-- RESPONSIVE + STATES -->
+      <div style="display: grid; grid-template-columns: 424px 1fr; gap: 48px; align-items: start;">
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">05 · Mobile 390 — cùng thành phần, hero thành dải trên</span>
+          <div style="width: 390px; height: 780px; box-shadow: 0 0 0 1px #b9b3a4; background: #F4F1EA; display: flex; flex-direction: column; box-sizing: border-box; overflow: hidden;">
+            <div style="flex: 0 0 264px; position: relative; background: #1C1B18; overflow: hidden;">
+              <div style="position: absolute; inset: 0;">
+                <image-slot id="rtg-login-hero-m" shape="rect" fit="cover" placeholder="Cùng ảnh, crop dọc"></image-slot>
+              </div>
+              <div style="position: absolute; inset: 0; background: linear-gradient(180deg, rgba(28,27,24,0.55) 0%, rgba(28,27,24,0.9) 100%); pointer-events: none;"></div>
+              <div style="position: absolute; inset: 0; background-image: radial-gradient(rgba(244,241,234,0.055) 1px, transparent 1px); background-size: 4px 4px; pointer-events: none;"></div>
+              <div style="position: relative; height: 100%; display: flex; flex-direction: column; justify-content: space-between; padding: 22px 20px 18px; box-sizing: border-box; pointer-events: none;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 14px; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: #F4F1EA;">Road to Glory</span>
+                <div style="display: flex; flex-direction: column; gap: 8px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.18em; text-transform: uppercase; color: #E8502F;">Mười sáu mùa · một sự nghiệp</span>
+                  <span style="font-family: 'Oswald', sans-serif; font-size: 30px; font-weight: 700; line-height: 1.02; color: #F4F1EA;">Không ai chọn được vận may của mình.</span>
+                </div>
+              </div>
+            </div>
+            <div style="flex: 1; padding: 28px 20px 0; box-sizing: border-box; display: flex; flex-direction: column;">
+              <div style="display: flex; flex-direction: column; gap: 5px; padding-bottom: 22px;">
+                <span style="font-family: 'Oswald', sans-serif; font-size: 26px; font-weight: 600; color: #21201D; line-height: 1.1;">Tiếp tục sự nghiệp</span>
+                <span style="font-family: 'Lora', serif; font-size: 14px; color: #5E5B52;">Đăng nhập để mở lại đội hình của bạn.</span>
+              </div>
+              <div style="display: flex; gap: 24px; border-bottom: 1px solid #DEDACE; margin-bottom: 22px;">
+                <span style="padding-bottom: 12px; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #21201D; border-bottom: 2px solid #E8502F; margin-bottom: -1px;">Đăng nhập</span>
+                <span style="padding-bottom: 12px; font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 500; letter-spacing: 0.09em; text-transform: uppercase; color: #8E8A7E;">Đăng ký</span>
+              </div>
+              <div style="display: flex; flex-direction: column; gap: 16px;">
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5B52;">Email</span>
+                  <div style="min-height: 50px; background: #FFFDF8; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; display: flex; align-items: center; padding: 0 15px; font-family: 'Lora', serif; font-size: 15px; color: #A8A49A;">ten@email.com</div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 6px;">
+                  <span style="font-family: 'Special Elite', monospace; font-size: 10px; letter-spacing: 0.14em; text-transform: uppercase; color: #5E5B52;">Mật khẩu</span>
+                  <div style="min-height: 50px; background: #FFFDF8; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; display: flex; align-items: center; justify-content: space-between; padding: 0 8px 0 15px; font-family: 'Lora', serif; font-size: 15px; color: #A8A49A;">
+                    ••••••••
+                    <span style="width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; color: #8E8A7E;"><svg width="17" height="17" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2.062 12.348a1 1 0 0 1 0-.696 10.75 10.75 0 0 1 19.876 0 1 1 0 0 1 0 .696 10.75 10.75 0 0 1-19.876 0"></path><circle cx="12" cy="12" r="3"></circle></svg></span>
+                  </div>
+                </div>
+                <div style="min-height: 56px; background: #E8502F; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #FFFDF8; margin-top: 4px;">Đăng nhập</div>
+              </div>
+            </div>
+            <div style="flex: 0 0 auto; padding: 18px 20px 20px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; color: #A8A49A;">© Football Life — mùa 2025/26</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+          <span style="font-family: 'Oswald', sans-serif; font-size: 13px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: #21201D;">06 · Trạng thái ô nhập &amp; nút</span>
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">nghỉ</span>
+              <div style="min-height: 50px; background: #FFFDF8; box-shadow: inset 0 0 0 1px #C9C4B4; border-radius: 2px; display: flex; align-items: center; padding: 0 15px; font-family: 'Lora', serif; font-size: 15px; color: #A8A49A;">ten@email.com</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #C7401F;">đang focus</span>
+              <div style="min-height: 50px; background: #FFFDF8; box-shadow: inset 0 0 0 1px #E8502F, 0 0 0 2px rgba(232,80,47,0.22); border-radius: 2px; display: flex; align-items: center; padding: 0 15px; font-family: 'Lora', serif; font-size: 15px; color: #21201D;">marco@example.com</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #B23A2B;">lỗi</span>
+              <div style="min-height: 50px; background: #FFFDF8; box-shadow: inset 0 0 0 1px #B23A2B; border-radius: 2px; display: flex; align-items: center; padding: 0 15px; font-family: 'Lora', serif; font-size: 15px; color: #21201D;">marco@example</div>
+              <span style="font-family: 'Lora', serif; font-size: 13px; color: #B23A2B;">Email chưa đúng định dạng.</span>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">vô hiệu</span>
+              <div style="min-height: 50px; background: #EBE7DC; border-radius: 2px; display: flex; align-items: center; padding: 0 15px; font-family: 'Lora', serif; font-size: 15px; color: #A8A49A;">marco@example.com</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">nút · nghỉ</span>
+              <div style="min-height: 56px; background: #E8502F; border-radius: 2px; display: flex; align-items: center; justify-content: center; font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #FFFDF8;">Đăng nhập</div>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 7px;">
+              <span style="font-family: 'Special Elite', monospace; font-size: 9.5px; letter-spacing: 0.12em; text-transform: uppercase; color: #8E8A7E;">nút · đang gửi</span>
+              <div style="min-height: 56px; background: #E8502F; border-radius: 2px; display: flex; align-items: center; justify-content: center; gap: 12px; font-family: 'Oswald', sans-serif; font-size: 15.5px; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; color: #FFFDF8; opacity: 0.75;">
+                <span style="width: 15px; height: 15px; border-radius: 50%; box-shadow: inset 0 0 0 2px rgba(255,253,248,0.35); border-top: 2px solid #FFFDF8; box-sizing: border-box;"></span>
+                Đang kiểm tra…
+              </div>
+            </div>
+          </div>
+          <p style="font-family: 'Lora', serif; font-size: 13.5px; line-height: 1.6; color: #5E5B52; margin: 4px 0 0;">Viền focus là <span style="font-family: 'Special Elite', monospace; font-size: 12px;">inset 1px accent + 2px accent 22%</span> — cùng một công thức cho mọi ô nhập, ô chọn, tab và nút trong toàn bộ sản phẩm. Lỗi luôn là một câu dưới đúng ô sai, không bao giờ là hộp màu có icon.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{&quot;$preview&quot;: {&quot;width&quot;: 1540}}">
+class Component extends DCLogic {
+  state = { tab: "login", showPass: false, error: false, busy: false };
+
+  constructor(props) {
+    super(props);
+    this.stageRef = React.createRef();
+  }
+
+  replay = () => {
+    const root = this.stageRef.current;
+    if (!root) return;
+    root.querySelectorAll("[data-anim]").forEach((el) => {
+      const keep = el.style.animation;
+      el.style.animation = "none";
+      void el.offsetWidth;
+      el.style.animation = keep || "";
+    });
+  };
+
+  submit = () => {
+    this.setState({ busy: true, error: false });
+    window.setTimeout(() => this.setState({ busy: false, error: true }), 1100);
+  };
+
+  renderVals() {
+    const isLogin = this.state.tab === "login";
+    return {
+      stageRef: this.stageRef,
+      headline: isLogin ? "Tiếp tục sự nghiệp" : "Bắt đầu sự nghiệp",
+      subhead: isLogin
+        ? "Đăng nhập để mở lại đội hình và những mùa giải đang dở."
+        : "Tạo tài khoản, rồi draft mười một sự nghiệp của riêng bạn.",
+      passLabel: isLogin ? "Mật khẩu" : "Mật khẩu · tối thiểu 6 ký tự",
+      resetLink: isLogin ? "Quên mật khẩu?" : "",
+      submitLabel: this.state.busy
+        ? "Đang kiểm tra…"
+        : isLogin
+        ? "Đăng nhập"
+        : "Tạo tài khoản",
+      passType: this.state.showPass ? "text" : "password",
+      passToggleLabel: this.state.showPass ? "Ẩn mật khẩu" : "Hiện mật khẩu",
+      indicatorShift: isLogin ? "translateX(0px)" : "translateX(132px)",
+      indicatorWidth: isLogin ? "106px" : "88px",
+      hasError: this.state.error,
+      busy: this.state.busy,
+      pickLogin: () => this.setState({ tab: "login", error: false }),
+      pickRegister: () => this.setState({ tab: "register", error: false }),
+      togglePass: () => this.setState((s) => ({ showPass: !s.showPass })),
+      submit: this.submit,
+      replay: this.replay,
+    };
+  }
+}
+</script>
+</body>
+</html>
