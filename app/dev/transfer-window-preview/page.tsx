@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { TransferWindowPanel } from "@/features/wheel/components/TransferWindowPanel";
+import { PersistentTransferSection } from "@/features/wheel/components/PersistentTransferSection";
 import type { TransferMarketResult } from "@/features/transfer/services/transfer.service";
 
 const MOCK: TransferMarketResult = {
   hasWindow: true,
   marketValue: 18500,
   mandatoryBuyout: 22200,
+  valuation: {
+    positionWeightedRating: 81,
+    effectivePositionOvr: 80,
+  },
   isUnemployedMarket: false,
   renewal: {
     kind: "renewal",
@@ -101,7 +105,6 @@ const MOCK: TransferMarketResult = {
 
 export default function TransferWindowPreviewPage() {
   const [willingToMove, setWillingToMove] = useState(false);
-  const [showShortlist, setShowShortlist] = useState(true);
   const [log, setLog] = useState("—");
 
   if (process.env.NODE_ENV === "production") {
@@ -112,10 +115,8 @@ export default function TransferWindowPreviewPage() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "var(--cream)",
-        backgroundImage:
-          "repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.018) 28px, rgba(0,0,0,0.018) 29px)",
-        padding: "32px 16px",
+        backgroundColor: "var(--rtg-sunken)",
+        padding: "32px 24px",
         display: "flex",
         justifyContent: "center",
       }}
@@ -123,18 +124,14 @@ export default function TransferWindowPreviewPage() {
       <div
         style={{
           width: "100%",
-          maxWidth: 450,
-          backgroundColor: "var(--white)",
-          border: "2px solid var(--charcoal)",
-          borderRadius: 4,
-          boxShadow: "3px 3px 0 var(--charcoal)",
-          padding: "24px 20px",
+          maxWidth: 1180,
+          backgroundColor: "var(--rtg-paper)",
+          border: "1px solid var(--rtg-rule)",
           display: "flex",
           flexDirection: "column",
-          gap: 16,
         }}
       >
-        <div style={{ textAlign: "center" }}>
+        <div style={{ borderBottom: "1px solid var(--rtg-rule)", padding: "18px 30px" }}>
           <p
             style={{
               fontFamily: "var(--font-stamp)",
@@ -161,21 +158,23 @@ export default function TransferWindowPreviewPage() {
           </h3>
         </div>
 
-        <TransferWindowPanel
+        <PersistentTransferSection
           market={MOCK}
+          currentClubId="c1"
+          currentClubName="Feyenoord"
           willingToMove={willingToMove}
           setWillingToMove={setWillingToMove}
           isProcessing={false}
-          showShortlist={showShortlist}
-          setShowShortlist={setShowShortlist}
           approachRejects={{}}
           approachBanner={null}
-          onAcceptOffer={(o) => setLog(`Accept ${o.kind}: ${o.clubName}`)}
+          onAcceptOffer={(o) => setLog(`Offer ${o.kind}: ${o.clubName}`)}
           onRejectAll={() => setLog("Reject all / stay")}
-          onApproachShortlist={(c) => setLog(`Approach ${c.clubName} (${Math.round((c.acceptChance ?? 0) * 100)}%)`)}
+          onApproachShortlist={(c) => { setLog(`Approach ${c.clubName} (${Math.round((c.acceptChance ?? 0) * 100)}%)`); }}
+          onProactiveRenewal={() => setLog("Renewal")}
+          onSearchClubs={async () => ({ clubs: MOCK.shortlist, totalCount: MOCK.shortlist.length, leagues: [{ id: "eredivisie", name: "Eredivisie", tier: 1 }, { id: "bundesliga", name: "Bundesliga", tier: 1 }] })}
         />
 
-        <p style={{ margin: 0, fontSize: "0.75rem", opacity: 0.7 }}>Last action: {log}</p>
+        <p style={{ margin: 0, borderTop: "1px solid var(--rtg-rule)", padding: "12px 30px", color: "var(--rtg-ink-3)", fontSize: "0.75rem" }}>Last action: {log}</p>
       </div>
     </div>
   );

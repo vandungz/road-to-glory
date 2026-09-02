@@ -1,26 +1,25 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import {
-  Search,
-  Building2,
-  TrendingUp,
-  FileCheck,
-  ChevronLeft,
-  ChevronRight,
-  ShieldAlert,
-  Coins,
-  ArrowUpRight,
-  CheckCircle,
-  HelpCircle,
-} from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { ArrowRight, Search, X } from "lucide-react";
+import { Modal, ModalHeader } from "@/components/ui/Modal";
+import { Button } from "@/components/ui/Button";
 import { formatEuroThousands, approachChancePercent } from "@/lib/transfer-economy";
-import { computeWageOptions, applyWageDealChance, type WageDealOption } from "@/lib/salary-negotiation";
+import { applyWageDealChance, computeWageOptions, type WageDealOption } from "@/lib/salary-negotiation";
 import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { ApproachRejectState } from "./TransferWindowPanel";
 
-interface PersistentTransferSectionProps {
+interface SearchResult {
+  clubs: ShortlistClubCard[];
+  totalCount: number;
+  leagues: Array<{ id: string; name: string; tier: number }>;
+}
+
+export interface PersistentTransferSectionProps {
   market: TransferMarketResult;
+  currentClubId?: string | null;
+  currentClubName?: string;
+  proactiveRenewalRejected?: boolean;
   willingToMove: boolean;
   setWillingToMove: (v: boolean) => void;
   isProcessing: boolean;
@@ -29,810 +28,101 @@ interface PersistentTransferSectionProps {
   onApproachShortlist: (club: ShortlistClubCard, wageOption?: WageDealOption) => Promise<boolean> | void;
   onProactiveRenewal: (wageOption?: WageDealOption) => Promise<boolean> | void;
   onSearchClubs: (params: {
+    currentClubId?: string | null;
     query?: string;
     leagueId?: string;
     prestigeMin?: number;
     prestigeMax?: number;
     page: number;
-  }) => Promise<{
-    clubs: ShortlistClubCard[];
-    totalCount: number;
-    leagues: Array<{ id: string; name: string; tier: number }>;
-  }>;
+  }) => Promise<SearchResult>;
   approachRejects: ApproachRejectState;
   approachBanner: string | null;
   onClose?: () => void;
 }
 
-export function PersistentTransferSection({
-  market,
-  willingToMove,
-  setWillingToMove,
-  isProcessing,
-  onAcceptOffer,
-  onRejectAll,
-  onApproachShortlist,
-  onProactiveRenewal,
-  onSearchClubs,
-  approachRejects,
-  approachBanner,
-  onClose,
-}: PersistentTransferSectionProps) {
-  const { contract, renewal, inbound, isUnemployedMarket, mandatoryBuyout } = market;
-  const isFa = contract.yearsRemaining <= 0 || isUnemployedMarket;
-
-  // Active Modal Tab Variant State
-  const [activeTab, setActiveTab] = useState<"renewal" | "inbound" | "shortlist">(
-    inbound.length > 0 ? "inbound" : "renewal"
+function OfferCard({ offer, isProcessing, onAccept }: { offer: ContractOfferCard; isProcessing: boolean; onAccept: () => void }) {
+  const isRenewal = offer.kind === "renewal";
+  return (
+    <article className={`rtg-transfer-offer${isRenewal ? " is-renewal" : ""}`}>
+      <div className="rtg-transfer-offer__topline"><span className="rtg-eyebrow">{isRenewal ? "Đề nghị gia hạn" : "Đề nghị chuyển nhượng"}</span><strong>{formatEuroThousands(offer.transferFee)}</strong></div>
+      <h3>{offer.clubName}</h3>
+      <p className="rtg-transfer-offer__league">{offer.leagueName} · {offer.reason}</p>
+      <div className="rtg-transfer-offer__details">
+        <span><small>Lương tuần</small><strong>{formatEuroThousands(Math.round(offer.wageAnnual / 52))}</strong></span>
+        <span><small>Thời hạn</small><strong>{offer.contractYears} mùa</strong></span>
+        <span><small>Vai trò dự kiến</small><strong>{offer.expectedLeagueApps >= 25 ? "Đá chính" : "Xoay vòng"}</strong></span>
+        <span><small>Cơ hội đá mùa</small><strong>{offer.expectedLeagueApps} trận</strong></span>
+      </div>
+      <Button size="lg" fullWidth disabled={isProcessing} loading={isProcessing} onClick={onAccept}>{isRenewal ? "Gia hạn với CLB" : `Đàm phán với ${offer.clubName}`} <ArrowRight aria-hidden="true" size={15} /></Button>
+    </article>
   );
+}
 
-  // Wage Deal selection state per offer key
+function ShortlistCard({ club, selectedDeal, isProcessing, rejected, onDealChange, onApproach }: { club: ShortlistClubCard; selectedDeal: WageDealOption; isProcessing: boolean; rejected?: { chance: number; reason: string }; onDealChange: (option: WageDealOption) => void; onApproach: () => void }) {
+  const baseChance = club.acceptChance ?? 0;
+  const options = computeWageOptions({ baseWage: club.previewWage, minWage: Math.max(1, Math.round(club.previewWage * 0.7)), maxWage: Math.round(club.previewWage * 1.5) });
+  const chance = approachChancePercent(applyWageDealChance(baseChance, selectedDeal));
+  const canApproach = club.canApproach && !rejected && !isProcessing;
+  return (
+    <article className={`rtg-transfer-target${rejected ? " is-rejected" : ""}`}>
+      <div className="rtg-transfer-target__heading"><div><h3>{club.clubName}</h3><p>{club.leagueName} · Độ phù hợp {club.prestige}/5</p></div><strong>{club.expectedLeagueApps} trận</strong></div>
+      <div className="rtg-transfer-target__meta"><span>Phí chuyển nhượng <b>{club.previewFee ? formatEuroThousands(club.previewFee) : "Miễn phí"}</b></span><span>Lương đề xuất <b>{formatEuroThousands(club.previewWage)}/năm</b></span></div>
+      {rejected ? <p className="rtg-transfer-feedback is-error">Đã từ chối · {rejected.reason}</p> : club.blockReason ? <p className="rtg-transfer-feedback is-error">{club.blockReason}</p> : (
+        <div className="rtg-transfer-target__actions"><select aria-label={`Mức lương đề xuất cho ${club.clubName}`} value={selectedDeal} disabled={isProcessing} onChange={(event) => onDealChange(event.target.value as WageDealOption)}><option value="lower">Giảm lương · tăng cơ hội</option><option value="standard">Lương tiêu chuẩn</option><option value="higher">Tăng lương · giảm cơ hội</option></select><span className="rtg-transfer-target__chance">Cơ hội {chance}%</span><Button size="sm" disabled={!canApproach} onClick={onApproach}>Ngỏ lời</Button></div>
+      )}
+      {!rejected && club.canApproach && <small className="rtg-transfer-target__hint">{options[selectedDeal].label}</small>}
+    </article>
+  );
+}
+
+export function PersistentTransferSection({ market, currentClubId, currentClubName, proactiveRenewalRejected = false, willingToMove, setWillingToMove, isProcessing, onAcceptOffer, onRejectAll, onApproachShortlist, onProactiveRenewal, onSearchClubs, approachRejects, approachBanner, onClose }: PersistentTransferSectionProps) {
+  const { contract, renewal, inbound, shortlist, isUnemployedMarket } = market;
+  const [activeTab, setActiveTab] = useState<"renewal" | "inbound" | "shortlist">(inbound.length > 0 ? "inbound" : "renewal");
   const [wageDeals, setWageDeals] = useState<Record<string, WageDealOption>>({});
-
-  // Dynamic search & filter state
-  const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLeague, setSelectedLeague] = useState("all");
-  const [selectedPrestige, setSelectedPrestige] = useState<number>(0);
+  const [query, setQuery] = useState("");
+  const [league, setLeague] = useState("all");
+  const [prestige, setPrestige] = useState("all");
   const [page, setPage] = useState(1);
-
-  // Search results state
-  const [searchResults, setSearchResults] = useState<ShortlistClubCard[]>(market.shortlist || []);
-  const [totalCount, setTotalCount] = useState(market.shortlist?.length || 0);
-  const [availableLeagues, setAvailableLeagues] = useState<Array<{ id: string; name: string; tier: number }>>([]);
+  const [search, setSearch] = useState<SearchResult>({ clubs: shortlist, totalCount: shortlist.length, leagues: [] });
   const [isSearching, setIsSearching] = useState(false);
+  const searchRef = useRef(onSearchClubs);
 
-  // Load search results when filters or page change
+  useEffect(() => { searchRef.current = onSearchClubs; }, [onSearchClubs]);
   useEffect(() => {
-    let isSubscribed = true;
-    const fetchClubs = async () => {
+    let active = true;
+    const timer = window.setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await onSearchClubs({
-          query: searchQuery,
-          leagueId: selectedLeague === "all" ? undefined : selectedLeague,
-          prestigeMin: selectedPrestige > 0 ? selectedPrestige : undefined,
-          prestigeMax: selectedPrestige > 0 ? selectedPrestige : undefined,
-          page,
-        });
-        if (isSubscribed) {
-          setSearchResults(res.clubs);
-          setTotalCount(res.totalCount);
-          if (res.leagues && res.leagues.length > 0) {
-            setAvailableLeagues(res.leagues);
-          }
-        }
-      } catch (err) {
-        console.error("Failed to search clubs:", err);
+        const result = await searchRef.current({ currentClubId, query: query || undefined, leagueId: league === "all" ? undefined : league, prestigeMin: prestige === "all" ? undefined : Number(prestige), prestigeMax: prestige === "all" ? undefined : Number(prestige), page });
+        if (active) setSearch({ ...result, clubs: result.clubs.filter((club) => club.clubId !== currentClubId) });
+      } catch (error) {
+        console.error("Failed to search transfer clubs:", error);
       } finally {
-        if (isSubscribed) setIsSearching(false);
+        if (active) setIsSearching(false);
       }
-    };
+    }, 250);
+    return () => { active = false; window.clearTimeout(timer); };
+  }, [currentClubId, query, league, prestige, page]);
 
-    const timer = setTimeout(fetchClubs, 300);
-    return () => {
-      isSubscribed = false;
-      clearTimeout(timer);
-    };
-  }, [searchQuery, selectedLeague, selectedPrestige, page]);
-
-  const handleSetWageDeal = (key: string, option: WageDealOption) => {
-    setWageDeals((prev) => ({ ...prev, [key]: option }));
-  };
-
-  const totalPages = Math.max(1, Math.ceil(totalCount / 8));
-
+  const isFreeAgent = contract.yearsRemaining <= 0 || isUnemployedMarket;
+  const currentClub = currentClubName ?? (renewal?.clubName || "CLB hiện tại");
+  const totalPages = Math.max(1, Math.ceil(search.totalCount / 8));
   const content = (
-    <div
-      id="persistent-transfer-section"
-      style={{
-        width: "100%",
-        height: onClose ? "85vh" : "calc(100vh - 180px)",
-        maxHeight: "85vh",
-        borderRadius: 10,
-        background: "var(--cream, #fbf7ee)",
-        border: "3px solid var(--charcoal, #1e293b)",
-        boxShadow: onClose ? "10px 10px 0 var(--charcoal, #1e293b)" : "3px 3px 0 var(--charcoal, #1e293b)",
-        display: "flex",
-        flexDirection: "column",
-        textAlign: "left",
-        position: "relative",
-        overflow: "hidden",
-      }}
-    >
-      {/* ── FIXED TOP HEADER AREA ── */}
-      <div
-        style={{
-          padding: "16px 20px 12px 20px",
-          borderBottom: "2px solid var(--charcoal, #1e293b)",
-          backgroundColor: "var(--cream, #fbf7ee)",
-          display: "flex",
-          flexDirection: "column",
-          gap: 12,
-        }}
-      >
-      {/* Header Banner */}
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          borderBottom: "2px solid rgba(0, 0, 0, 0.12)",
-          paddingBottom: 10,
-        }}
-      >
-        <div>
-          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-            <Building2 size={22} color="var(--coral, #e85d42)" />
-            <h3
-              style={{
-                margin: 0,
-                fontSize: "1.15rem",
-                fontFamily: "var(--font-headline, sans-serif)",
-                textTransform: "uppercase",
-                letterSpacing: "0.03em",
-                fontWeight: 800,
-              }}
-            >
-              Cửa sổ Chuyển nhượng & Đàm phán Hợp đồng
-            </h3>
-          </div>
-          <p style={{ margin: "3px 0 0 0", fontSize: "0.78rem", opacity: 0.75 }}>
-            Giai đoạn Cuối mùa · Duyệt đề nghị, gia hạn chủ động, tìm kiếm CLB & thương lượng lương
-          </p>
-        </div>
+    <section className="rtg-transfer-window">
+      <header className="rtg-transfer-window__header"><div><span className="rtg-eyebrow">Cửa sổ chuyển nhượng · {contract.seasonsLeftInCareer} mùa còn lại</span><h1>{inbound.length > 1 ? `${inbound.length} lời đề nghị` : "Cửa sổ chuyển nhượng"}</h1><p>Chọn hướng đi tiếp theo cho sự nghiệp của bạn.</p></div>{onClose && <button type="button" className="rtg-icon-button" onClick={onClose} aria-label="Đóng cửa sổ chuyển nhượng"><X aria-hidden="true" size={18} /></button>}</header>
+      <div className="rtg-transfer-window__context"><span><small>Đang ở</small><strong>{isUnemployedMarket ? "Cầu thủ tự do" : currentClub}</strong></span><span><small>Lương hiện tại</small><strong>{formatEuroThousands(contract.currentWageAnnual)}/năm</strong></span><span><small>Giá trị thị trường</small><strong>{formatEuroThousands(contract.marketValue)}</strong></span><label className={willingToMove ? "is-active" : ""}><input type="checkbox" checked={willingToMove} disabled={isProcessing || isUnemployedMarket} onChange={(event) => setWillingToMove(event.target.checked)} /> Sẵn sàng lắng nghe đề nghị</label></div>
+      {approachBanner && <p className="rtg-transfer-feedback is-banner" role="status">{approachBanner}</p>}
+      <nav className="rtg-transfer-tabs" aria-label="Các lựa chọn chuyển nhượng"><button type="button" className={activeTab === "renewal" ? "is-active" : ""} onClick={() => setActiveTab("renewal")}>Ở lại {renewal ? "· đề nghị" : ""}</button><button type="button" className={activeTab === "inbound" ? "is-active" : ""} onClick={() => setActiveTab("inbound")}>Lời đề nghị <b>{inbound.length}</b></button><button type="button" className={activeTab === "shortlist" ? "is-active" : ""} onClick={() => setActiveTab("shortlist")}>Tìm CLB chủ động <b>{search.totalCount}</b></button></nav>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          {isUnemployedMarket && (
-            <span
-              style={{
-                padding: "3px 8px",
-                borderRadius: 4,
-                fontSize: "0.68rem",
-                fontFamily: "var(--font-stamp, monospace)",
-                background: "rgba(232, 93, 66, 0.15)",
-                color: "#c2410c",
-                border: "1px solid #c2410c",
-                fontWeight: 700,
-              }}
-            >
-              FA · THẤT NGHIỆP
-            </span>
-          )}
-
-          {onClose && (
-            <button
-              type="button"
-              onClick={onClose}
-              style={{
-                background: "var(--cream-dark, #e2e8f0)",
-                border: "2px solid var(--charcoal, #1e293b)",
-                borderRadius: "50%",
-                width: 32,
-                height: 32,
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                cursor: "pointer",
-                boxShadow: "2px 2px 0 var(--charcoal, #1e293b)",
-              }}
-            >
-              ✕
-            </button>
-          )}
-        </div>
+      <div className="rtg-transfer-window__body">
+        {activeTab === "renewal" && <div className="rtg-transfer-panel"><div className="rtg-transfer-panel__heading"><span className="rtg-eyebrow">Lựa chọn an toàn</span><h2>Tiếp tục tại {currentClub}</h2><p>Giữ vai trò, mức lương và môi trường hiện tại cho mùa giải tiếp theo.</p></div>{renewal ? <div className="rtg-transfer-renewal"><div><span>Đề nghị gia hạn</span><strong>{renewal.contractYears} mùa</strong></div><div><span>Lương mới</span><strong>{formatEuroThousands(renewal.wageAnnual)}/năm</strong></div><div><span>Vai trò</span><strong>{renewal.expectedLeagueApps >= 25 ? "Đá chính" : "Xoay vòng"}</strong></div><Button size="lg" disabled={isProcessing || proactiveRenewalRejected} loading={isProcessing} onClick={() => onProactiveRenewal(wageDeals.renewal ?? "standard")}>{proactiveRenewalRejected ? "Đề nghị đã bị từ chối" : "Đàm phán gia hạn"}</Button></div> : <p className="rtg-transfer-empty">CLB hiện tại chưa gửi đề nghị gia hạn. Bạn có thể xem lời đề nghị khác hoặc chủ động tìm CLB mới.</p>}</div>}
+        {activeTab === "inbound" && <div className="rtg-transfer-panel"><div className="rtg-transfer-panel__heading"><span className="rtg-eyebrow">Các CLB đang hỏi mua</span><h2>Chọn lời đề nghị phù hợp</h2><p>Mỗi đề nghị là một hướng đi khác nhau về lương, vai trò và cơ hội thi đấu.</p></div><div className="rtg-transfer-offers">{inbound.length > 0 ? inbound.map((offer) => <OfferCard key={`${offer.clubId}-${offer.kind}`} offer={offer} isProcessing={isProcessing} onAccept={() => onAcceptOffer(offer)} />) : <p className="rtg-transfer-empty">Chưa có CLB nào gửi đề nghị mùa này.</p>}</div></div>}
+        {activeTab === "shortlist" && <div className="rtg-transfer-panel"><div className="rtg-transfer-panel__heading"><span className="rtg-eyebrow">Chủ động định hướng</span><h2>Tìm CLB phù hợp</h2><p>Chỉ các CLB khác CLB hiện tại mới xuất hiện trong danh sách này.</p></div><div className="rtg-transfer-search"><label><Search aria-hidden="true" size={16} /><input value={query} onChange={(event) => { setQuery(event.target.value); setPage(1); }} placeholder="Tìm theo tên CLB..." /></label><select aria-label="Lọc theo giải đấu" value={league} onChange={(event) => { setLeague(event.target.value); setPage(1); }}><option value="all">Tất cả giải đấu</option>{search.leagues.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select><select aria-label="Lọc theo danh tiếng" value={prestige} onChange={(event) => { setPrestige(event.target.value); setPage(1); }}><option value="all">Mọi mức danh tiếng</option><option value="5">5 sao</option><option value="4">4 sao</option><option value="3">3 sao</option><option value="2">2 sao</option><option value="1">1 sao</option></select></div>{isSearching ? <p className="rtg-transfer-empty">Đang tìm CLB...</p> : search.clubs.length > 0 ? <div className="rtg-transfer-targets">{search.clubs.map((club) => <ShortlistCard key={club.clubId} club={club} selectedDeal={wageDeals[club.clubId] ?? "standard"} isProcessing={isProcessing} rejected={approachRejects[club.clubId]} onDealChange={(option) => setWageDeals((previous) => ({ ...previous, [club.clubId]: option }))} onApproach={() => void onApproachShortlist(club, wageDeals[club.clubId] ?? "standard")} />)}</div> : <p className="rtg-transfer-empty">Không tìm thấy CLB phù hợp với bộ lọc.</p>}{totalPages > 1 && <div className="rtg-transfer-pagination"><Button size="sm" variant="quiet" disabled={page <= 1 || isSearching} onClick={() => setPage((value) => value - 1)}>Trước</Button><span>Trang {page}/{totalPages}</span><Button size="sm" variant="quiet" disabled={page >= totalPages || isSearching} onClick={() => setPage((value) => value + 1)}>Sau</Button></div>}</div>}
       </div>
-
-      {/* Contract Summary Bar */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
-          gap: 10,
-          padding: 12,
-          borderRadius: 8,
-          background: "var(--white, #ffffff)",
-          border: "2px solid var(--charcoal, #1e293b)",
-          fontSize: "0.8rem",
-        }}
-      >
-        <div>
-          <span style={{ opacity: 0.65, display: "block", fontSize: "0.68rem", textTransform: "uppercase" }}>
-            Hợp đồng
-          </span>
-          <strong>{contract.yearsRemaining}/{contract.yearsTotal} Năm còn lại</strong>
-        </div>
-        <div>
-          <span style={{ opacity: 0.65, display: "block", fontSize: "0.68rem", textTransform: "uppercase" }}>
-            Lương hiện tại
-          </span>
-          <strong style={{ color: "#15803d" }}>{formatEuroThousands(contract.currentWageAnnual)}/năm</strong>
-        </div>
-        <div>
-          <span style={{ opacity: 0.65, display: "block", fontSize: "0.68rem", textTransform: "uppercase" }}>
-            Giá trị thị trường
-          </span>
-          <strong>{formatEuroThousands(contract.marketValue)}</strong>
-        </div>
-        <div>
-          <span style={{ opacity: 0.65, display: "block", fontSize: "0.68rem", textTransform: "uppercase" }}>
-            Phí Phá HĐ
-          </span>
-          <strong>{mandatoryBuyout <= 0 ? "MIỄN PHÍ" : formatEuroThousands(mandatoryBuyout)}</strong>
-        </div>
-      </div>
-
-      {/* Approach Toast Banner */}
-      {approachBanner && (
-        <div
-          style={{
-            padding: "10px 14px",
-            borderRadius: 6,
-            background: "rgba(37, 99, 235, 0.08)",
-            border: "1px solid rgba(37, 99, 235, 0.3)",
-            fontSize: "0.82rem",
-            color: "#1e40af",
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-          }}
-        >
-          <HelpCircle size={16} />
-          <span>{approachBanner}</span>
-        </div>
-      )}
-
-      {/* Available Checkbox */}
-      {!isUnemployedMarket && (
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 10,
-            fontSize: "0.8rem",
-            cursor: isProcessing ? "not-allowed" : "pointer",
-            userSelect: "none",
-            padding: "10px 14px",
-            border: "1px dashed var(--charcoal, #1e293b)",
-            borderRadius: 6,
-            background: willingToMove ? "rgba(232, 93, 66, 0.08)" : "transparent",
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={willingToMove}
-            disabled={isProcessing}
-            onChange={(e) => setWillingToMove(e.target.checked)}
-          />
-          <span>
-            <strong>Bật trạng thái Muốn chuyển đi (Available):</strong> Tăng khả năng nhận được lời đề nghị từ các CLB khác (Phí giải phóng hợp đồng vẫn giữ nguyên).
-          </span>
-        </label>
-      )}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(3, 1fr)",
-          gap: 6,
-          backgroundColor: "var(--cream-dark, #e2e8f0)",
-          border: "2px solid var(--charcoal, #1e293b)",
-          borderRadius: 8,
-          padding: 4,
-          boxShadow: "2px 2px 0 var(--charcoal, #1e293b)",
-        }}
-      >
-        <button
-          type="button"
-          onClick={() => setActiveTab("renewal")}
-          style={{
-            padding: "10px 8px",
-            borderRadius: 6,
-            border: activeTab === "renewal" ? "2px solid var(--charcoal)" : "1px solid transparent",
-            backgroundColor: activeTab === "renewal" ? "#2d5a3d" : "transparent",
-            color: activeTab === "renewal" ? "#ffffff" : "var(--charcoal)",
-            fontFamily: "var(--font-headline)",
-            fontSize: "0.82rem",
-            fontWeight: 800,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
-        >
-          📝 1. GIA HẠN HỢP ĐỒNG
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("inbound")}
-          style={{
-            padding: "10px 8px",
-            borderRadius: 6,
-            border: activeTab === "inbound" ? "2px solid var(--charcoal)" : "1px solid transparent",
-            backgroundColor: activeTab === "inbound" ? "#2d5a3d" : "transparent",
-            color: activeTab === "inbound" ? "#ffffff" : "var(--charcoal)",
-            fontFamily: "var(--font-headline)",
-            fontSize: "0.82rem",
-            fontWeight: 800,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
-        >
-          📩 2. LỜI ĐỀ NGHỊ ({inbound.length})
-        </button>
-
-        <button
-          type="button"
-          onClick={() => setActiveTab("shortlist")}
-          style={{
-            padding: "10px 8px",
-            borderRadius: 6,
-            border: activeTab === "shortlist" ? "2px solid var(--charcoal)" : "1px solid transparent",
-            backgroundColor: activeTab === "shortlist" ? "#2d5a3d" : "transparent",
-            color: activeTab === "shortlist" ? "#ffffff" : "var(--charcoal)",
-            fontFamily: "var(--font-headline)",
-            fontSize: "0.82rem",
-            fontWeight: 800,
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            gap: 6,
-          }}
-        >
-          🔍 3. TÌM KIẾM CLB ({totalCount})
-        </button>
-      </div>
-      </div>
-      {/* ── END FIXED TOP HEADER ── */}
-
-      {/* ── SCROLLABLE MIDDLE BODY AREA ── */}
-      <div style={{ flex: 1, overflowY: "auto", padding: "16px 20px", display: "flex", flexDirection: "column", gap: 14 }}>
-
-      {/* ── TAB 1: RENEWAL SECTION ── */}
-      {activeTab === "renewal" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease" }}>
-          <h4 style={{ margin: 0, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#334155" }}>
-            1. Gia hạn với CLB hiện tại
-          </h4>
-
-          {renewal ? (
-            <div
-              style={{
-                padding: 16,
-                borderRadius: 8,
-                border: "2px solid #15803d",
-                background: "rgba(21, 128, 61, 0.04)",
-                display: "flex",
-                flexDirection: "column",
-                gap: 10,
-              }}
-            >
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                <strong style={{ fontSize: "1rem" }}>{renewal.clubName} (Đề nghị tự động)</strong>
-                <span style={{ fontSize: "0.7rem", color: "#15803d", fontWeight: 700 }}>GIA HẠN</span>
-              </div>
-              <p style={{ margin: 0, fontSize: "0.8rem", opacity: 0.8 }}>
-                {renewal.leagueName} · {renewal.reason}
-              </p>
-              <div style={{ display: "flex", gap: 16, fontSize: "0.82rem" }}>
-                <span>Thời hạn: <strong>{renewal.contractYears} năm</strong></span>
-                <span>Lương mới: <strong>{formatEuroThousands(renewal.wageAnnual)}/năm</strong></span>
-                <span>Dự kiến ra sân: <strong>~{renewal.expectedLeagueApps} trận</strong></span>
-              </div>
-
-              <button
-                type="button"
-                className="btn-primary"
-                disabled={isProcessing}
-                onClick={() => {
-                  onAcceptOffer(renewal);
-                  if (onClose) onClose();
-                }}
-                style={{
-                  marginTop: 6,
-                  padding: "8px 16px",
-                  background: "#15803d",
-                  color: "#fff",
-                  border: "none",
-                  borderRadius: 6,
-                  cursor: "pointer",
-                  fontWeight: 600,
-                }}
-              >
-                CHẤP NHẬN GIA HẠN THỤ ĐỘNG
-              </button>
-            </div>
-          ) : (
-            <div
-              style={{
-                padding: 14,
-                borderRadius: 8,
-                border: "1px dashed rgba(0, 0, 0, 0.2)",
-                background: "#f8fafc",
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-              }}
-            >
-              <div>
-                <p style={{ margin: 0, fontSize: "0.82rem", fontWeight: 600 }}>
-                  CLB hiện tại chưa gửi lời đề nghị gia hạn tự động
-                </p>
-                <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>
-                  Bạn có thể gửi yêu cầu đề nghị gia hạn chủ động dựa trên đóng góp & chỉ số vị trí mùa vừa qua.
-                </span>
-              </div>
-
-              {!isUnemployedMarket && (
-                <button
-                  type="button"
-                  className="btn-secondary"
-                  disabled={isProcessing}
-                  onClick={async () => {
-                    const res = await onProactiveRenewal("standard");
-                    if (res === true && onClose) onClose();
-                  }}
-                  style={{
-                    padding: "8px 14px",
-                    fontSize: "0.8rem",
-                    borderRadius: 6,
-                    cursor: "pointer",
-                    whiteSpace: "nowrap",
-                  }}
-                >
-                  GỬI ĐỀ NGHỊ GIA HẠN CHỦ ĐỘNG
-                </button>
-              )}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB 2: INBOUND OFFERS SECTION ── */}
-      {activeTab === "inbound" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 10, animation: "fadeIn 0.2s ease" }}>
-          <h4 style={{ margin: 0, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#334155" }}>
-            2. Lời đề nghị chuyển nhượng gửi tới ({inbound.length}/3)
-          </h4>
-
-          {inbound.length === 0 ? (
-            <p style={{ margin: 0, fontSize: "0.8rem", opacity: 0.65 }}>
-              Chưa có CLB nào gửi lời đề nghị chính thức trong mùa giải này.
-            </p>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))", gap: 12 }}>
-              {inbound.map((offer) => {
-                const offerKey = `inbound-${offer.clubId}`;
-                const selectedDeal = wageDeals[offerKey] || "standard";
-                const wageOptions = computeWageOptions({
-                  baseWage: offer.wageAnnual,
-                  minWage: Math.round(offer.wageAnnual * 0.5),
-                  maxWage: Math.round(offer.wageAnnual * 1.8),
-                });
-                const activeWage = wageOptions[selectedDeal].wageAnnual;
-
-                return (
-                  <div
-                    key={offerKey}
-                    style={{
-                      padding: 14,
-                      borderRadius: 8,
-                      border: "2px solid var(--charcoal, #1e293b)",
-                      background: "#fff",
-                      boxShadow: "2px 2px 0 var(--charcoal, #1e293b)",
-                      display: "flex",
-                      flexDirection: "column",
-                      gap: 8,
-                    }}
-                  >
-                    <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                      <strong style={{ fontSize: "0.95rem" }}>{offer.clubName}</strong>
-                      <span style={{ fontSize: "0.65rem", color: "var(--coral, #e85d42)", fontWeight: 700 }}>ĐỀ NGHỊ CHÍNH THỨC</span>
-                    </div>
-                    <span style={{ fontSize: "0.75rem", opacity: 0.75 }}>
-                      {offer.leagueName} · {offer.reason}
-                    </span>
-                    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "4px 8px", fontSize: "0.78rem" }}>
-                      <span>Phí: <strong>{offer.transferFee <= 0 ? "Miễn phí" : formatEuroThousands(offer.transferFee)}</strong></span>
-                      <span>HĐ: <strong>{offer.contractYears} năm</strong></span>
-                      <span>Lương: <strong>{formatEuroThousands(activeWage)}</strong></span>
-                      <span>Dự kiến: <strong>~{offer.expectedLeagueApps} trận</strong></span>
-                    </div>
-
-                    {/* Wage Deal Selector */}
-                    <div style={{ marginTop: 4 }}>
-                      <label style={{ display: "block", fontSize: "0.68rem", opacity: 0.7, marginBottom: 2 }}>
-                        Thương lượng Lương:
-                      </label>
-                      <select
-                        value={selectedDeal}
-                        disabled={isProcessing}
-                        onChange={(e) => handleSetWageDeal(offerKey, e.target.value as WageDealOption)}
-                        style={{ width: "100%", padding: "4px 6px", fontSize: "0.75rem", borderRadius: 4 }}
-                      >
-                        <option value="lower">🔻 Giảm lương ({formatEuroThousands(wageOptions.lower.wageAnnual)})</option>
-                        <option value="standard">➖ Tiêu chuẩn ({formatEuroThousands(wageOptions.standard.wageAnnual)})</option>
-                        <option value="higher">🔺 Tăng lương ({formatEuroThousands(wageOptions.higher.wageAnnual)})</option>
-                      </select>
-                    </div>
-
-                    <button
-                      type="button"
-                      className="btn-primary"
-                      disabled={isProcessing}
-                      onClick={() => {
-                        onAcceptOffer({ ...offer, wageAnnual: activeWage });
-                        if (onClose) onClose();
-                      }}
-                      style={{ marginTop: 6, padding: "8px", fontSize: "0.8rem" }}
-                    >
-                      CHẤP NHẬN ĐỀ NGHỊ
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* ── TAB 3: DYNAMIC SHORTLIST & SEARCH SECTION ── */}
-      {activeTab === "shortlist" && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 12, animation: "fadeIn 0.2s ease" }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <h4 style={{ margin: 0, fontSize: "0.9rem", textTransform: "uppercase", letterSpacing: "0.06em", color: "#334155" }}>
-              3. Tìm kiếm & Lọc CLB để Ngỏ lời
-            </h4>
-            <span style={{ fontSize: "0.75rem", opacity: 0.7 }}>
-              Tìm thấy {totalCount} CLB
-            </span>
-          </div>
-
-        {/* Filters bar */}
-        <div style={{ display: "flex", flexWrap: "wrap", gap: 10 }}>
-          <div style={{ flex: "1 1 200px", position: "relative" }}>
-            <Search size={14} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)", opacity: 0.5 }} />
-            <input
-              type="text"
-              placeholder="Nhập tên CLB muốn tìm..."
-              value={searchQuery}
-              onChange={(e) => {
-                setSearchQuery(e.target.value);
-                setPage(1);
-              }}
-              style={{
-                width: "100%",
-                padding: "6px 10px 6px 30px",
-                fontSize: "0.8rem",
-                borderRadius: 6,
-                border: "1px solid rgba(0,0,0,0.2)",
-              }}
-            />
-          </div>
-
-          <select
-            value={selectedLeague}
-            onChange={(e) => {
-              setSelectedLeague(e.target.value);
-              setPage(1);
-            }}
-            style={{ padding: "6px 10px", fontSize: "0.8rem", borderRadius: 6, border: "1px solid rgba(0,0,0,0.2)" }}
-          >
-            <option value="all">Tất cả giải đấu</option>
-            {availableLeagues.map((lg) => (
-              <option key={lg.id} value={lg.id}>
-                {lg.name} (Hạng {lg.tier})
-              </option>
-            ))}
-          </select>
-
-          <select
-            value={selectedPrestige}
-            onChange={(e) => {
-              setSelectedPrestige(Number(e.target.value));
-              setPage(1);
-            }}
-            style={{ padding: "6px 10px", fontSize: "0.8rem", borderRadius: 6, border: "1px solid rgba(0,0,0,0.2)" }}
-          >
-            <option value={0}>Tất cả cấp độ uy tín (⭐)</option>
-            <option value={5}>⭐ 5 Sao (Siêu CLB / Elite)</option>
-            <option value={4}>⭐ 4 Sao (CLB Hàng Đầu)</option>
-            <option value={3}>⭐ 3 Sao (CLB Tầm Trung)</option>
-            <option value={2}>⭐ 2 Sao (CLB Hạng Nhì)</option>
-            <option value={1}>⭐ 1 Sao (CLB Nhỏ)</option>
-          </select>
-        </div>
-
-        {/* Results grid */}
-        {isSearching ? (
-          <p style={{ margin: "20px 0", textAlign: "center", fontSize: "0.82rem", opacity: 0.6 }}>
-            Đang tìm kiếm danh sách CLB...
-          </p>
-        ) : searchResults.length === 0 ? (
-          <p style={{ margin: "20px 0", textAlign: "center", fontSize: "0.82rem", opacity: 0.6 }}>
-            Không tìm thấy CLB nào phù hợp với bộ lọc.
-          </p>
-        ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(260px, 1fr))", gap: 10 }}>
-            {searchResults.map((club) => {
-              const rejected = approachRejects[club.clubId];
-              const clubKey = `search-${club.clubId}`;
-              const selectedDeal = wageDeals[clubKey] || "standard";
-
-              const baseChance = club.acceptChance ?? 0;
-              const lowerPct = approachChancePercent(applyWageDealChance(baseChance, "lower"));
-              const standardPct = approachChancePercent(applyWageDealChance(baseChance, "standard"));
-              const higherPct = approachChancePercent(applyWageDealChance(baseChance, "higher"));
-
-              const adjustedChance = applyWageDealChance(baseChance, selectedDeal);
-              const currentPct = approachChancePercent(adjustedChance);
-              const canClick = club.canApproach && !rejected && !isProcessing;
-
-              return (
-                <div
-                  key={club.clubId}
-                  style={{
-                    padding: 12,
-                    borderRadius: 6,
-                    border: "1.5px solid var(--charcoal, #1e293b)",
-                    background: "#fff",
-                    opacity: canClick || rejected ? 1 : 0.6,
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 6,
-                  }}
-                >
-                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
-                    <strong style={{ fontSize: "0.9rem" }}>{club.clubName}</strong>
-                    <span style={{ fontSize: "0.7rem", color: "#eab308" }}>{"⭐".repeat(club.prestige)}</span>
-                  </div>
-
-                  <span style={{ fontSize: "0.75rem", opacity: 0.75 }}>
-                    {club.leagueName} · ~{club.expectedLeagueApps} trận · HĐ {club.previewYears} năm
-                  </span>
-
-                  <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.75rem" }}>
-                    <span>Phí mua: <strong>{club.previewFee <= 0 ? "Miễn phí" : formatEuroThousands(club.previewFee)}</strong></span>
-                    <span>Lương: <strong>{formatEuroThousands(club.previewWage)}</strong></span>
-                  </div>
-
-                  {club.blockReason && !rejected && (
-                    <span style={{ fontSize: "0.7rem", color: "var(--coral, #e85d42)" }}>{club.blockReason}</span>
-                  )}
-
-                  {rejected && (
-                    <span style={{ fontSize: "0.7rem", color: "var(--coral, #e85d42)", fontWeight: 600 }}>
-                      ĐÃ TỪ CHỐI BAN ĐẦU (Tỷ lệ đàm phán {approachChancePercent(rejected.chance)}%)
-                    </span>
-                  )}
-
-                  {club.canApproach && !rejected && (
-                    <>
-                      {/* Wage Deal Selector */}
-                      <select
-                        value={selectedDeal}
-                        disabled={isProcessing}
-                        onChange={(e) => handleSetWageDeal(clubKey, e.target.value as WageDealOption)}
-                        style={{ marginTop: 4, padding: "3px 6px", fontSize: "0.72rem", borderRadius: 4 }}
-                      >
-                        <option value="lower">🔻 Giảm lương → Tăng cơ hội ({lowerPct}%)</option>
-                        <option value="standard">➖ Mức lương tiêu chuẩn ({standardPct}%)</option>
-                        <option value="higher">🔺 Đòi tăng lương → Giảm cơ hội ({higherPct}%)</option>
-                      </select>
-
-                      <button
-                        type="button"
-                        className="btn-primary"
-                        disabled={!canClick}
-                        onClick={async () => {
-                          const res = await onApproachShortlist(club, selectedDeal);
-                          if (res === true && onClose) onClose();
-                        }}
-                        style={{ marginTop: 4, padding: "6px 10px", fontSize: "0.78rem" }}
-                      >
-                        NGỎ LỜI ({currentPct}%)
-                      </button>
-                    </>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        )}
-
-        {/* Pagination bar */}
-        {totalPages > 1 && (
-          <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, marginTop: 10 }}>
-            <button
-              type="button"
-              disabled={page <= 1 || isSearching}
-              onClick={() => setPage((p) => Math.max(1, p - 1))}
-              style={{ padding: "4px 8px", borderRadius: 4, cursor: page <= 1 ? "not-allowed" : "pointer" }}
-            >
-              <ChevronLeft size={16} />
-            </button>
-            <span style={{ fontSize: "0.78rem" }}>
-              Trang {page} / {totalPages}
-            </span>
-            <button
-              type="button"
-              disabled={page >= totalPages || isSearching}
-              onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-              style={{ padding: "4px 8px", borderRadius: 4, cursor: page >= totalPages ? "not-allowed" : "pointer" }}
-            >
-              <ChevronRight size={16} />
-            </button>
-          </div>
-        )}
-      </div>
-      )}
-      </div>
-      {/* ── END SCROLLABLE MIDDLE BODY AREA ── */}
-
-      {/* ── PINNED FIXED FOOTER AREA ── */}
-      <div
-        style={{
-          padding: "12px 20px",
-          borderTop: "2px solid var(--charcoal, #1e293b)",
-          backgroundColor: "var(--cream-dark, #e2e8f0)",
-          display: "flex",
-          justifyContent: "flex-end",
-          alignItems: "center",
-          borderRadius: "0 0 8px 8px",
-        }}
-      >
-        <button
-          type="button"
-          className="btn-secondary"
-          disabled={isProcessing}
-          onClick={() => {
-            onRejectAll();
-            if (onClose) onClose();
-          }}
-          style={{
-            padding: "10px 22px",
-            fontSize: "0.88rem",
-            fontWeight: 800,
-            fontFamily: "var(--font-headline)",
-            backgroundColor: "var(--white)",
-            border: "2px solid var(--charcoal)",
-            borderRadius: "6px",
-            boxShadow: "3px 3px 0 var(--charcoal)",
-            cursor: "pointer",
-          }}
-        >
-          {isFa ? "BỎ QUA / KÝ HỢP ĐỒNG TỰ DO" : "BỎ QUA / Ở LẠI CLB HIỆN TẠI"}
-        </button>
-      </div>
-    </div>
+      <footer className="rtg-transfer-window__footer"><span>{isFreeAgent ? "Bạn đang là cầu thủ tự do." : "Không chọn lời đề nghị nào? Bạn có thể ở lại CLB hiện tại."}</span><Button variant="outline" disabled={isProcessing} onClick={onRejectAll}>{isFreeAgent ? "Ký hợp đồng tự do" : "Bỏ qua · ở lại CLB"}</Button></footer>
+    </section>
   );
 
-  if (onClose) {
-    return (
-      <div
-        onClick={onClose}
-        style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(0, 0, 0, 0.75)",
-          backdropFilter: "blur(6px)",
-          zIndex: 9999,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          padding: "16px",
-        }}
-      >
-        <div onClick={(e) => e.stopPropagation()} style={{ width: "100%", maxWidth: "880px" }}>
-          {content}
-        </div>
-      </div>
-    );
-  }
-
-  return content;
+  if (!onClose) return content;
+  return <Modal open title="Cửa sổ chuyển nhượng" onClose={onClose} size="lg" className="rtg-transfer-modal"><ModalHeader className="sr-only">Cửa sổ chuyển nhượng</ModalHeader>{content}</Modal>;
 }

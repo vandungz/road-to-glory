@@ -7,6 +7,7 @@
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "check:transfer-economy": "tsx scripts/transfer-economy-check.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

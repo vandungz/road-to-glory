@@ -3,7 +3,7 @@
  * Inbound ≤ 3, renewal, mandatoryBuyout (not player-discountable).
  */
 
-import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom } from "@/lib/wheel-engine/spin-resolver";
 import { estimateAppsRatio } from "@/lib/club-fit";
 import {
   MAX_INBOUND_OFFERS,
@@ -12,10 +12,12 @@ import {
   computeEffectivePositionOvr,
   computeMandatoryBuyout,
   computeMarketValue,
+  computePositionValueSnapshot,
   computeProactiveRenewalChance,
   computeScoutInterestScore,
   expectedAppsAtClub,
   isDistressSale,
+  leagueCompetitivenessScore,
   proposeContractYears,
   proposeWageAnnual,
   seasonsLeftInCareer,
@@ -30,6 +32,10 @@ export interface ClubMarketInfo {
   prestige: number;
   leagueName?: string | null;
   leagueTier: number;
+  /** League quality is separate from the club's own prestige. */
+  leaguePrestige?: number;
+  leagueCountry?: string | null;
+  confederation?: string | null;
   leagueSize?: number;
 }
 
@@ -73,6 +79,10 @@ export interface TransferMarketResult {
   hasWindow: boolean;
   marketValue: number;
   mandatoryBuyout: number;
+  valuation: {
+    positionWeightedRating: number;
+    effectivePositionOvr: number;
+  };
   isUnemployedMarket: boolean;
   contract: {
     yearsRemaining: number;
@@ -145,6 +155,7 @@ function scoreClubInterest(params: {
   willingToMove: boolean;
   mandatoryBuyout: number;
   influenceScore?: number;
+  randomize?: boolean;
 }): number {
   const {
     club,
@@ -173,6 +184,7 @@ function scoreClubInterest(params: {
   const effOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
   const apps = expectedAppsAtClub(effOvr, club.prestige, club.leagueSize ?? 20);
   const fit = estimateAppsRatio(effOvr, club.prestige);
+  const leagueQuality = leagueCompetitivenessScore(club.leaguePrestige, club.leagueTier);
 
   const scoutScore = computeScoutInterestScore({
     position,
@@ -190,7 +202,11 @@ function scoreClubInterest(params: {
     influenceScore,
   });
 
+  // League quality is deliberately independent from club prestige. This lets
+  // a modest club in a strong league compete with a bigger club in a weaker
+  // league without naming or hardcoding any country or team.
   let score = scoutScore * 0.4 + fit * 30 + Math.min(38, apps) * 0.4;
+  score += (leagueQuality - 3) * 7;
 
   const prestigeDelta = club.prestige - currentPrestige;
   if (prestigeDelta > 0 && matchRating >= 7.0) score += 15 * prestigeDelta;
@@ -202,8 +218,44 @@ function scoreClubInterest(params: {
   if (remaining >= 3 && !distress && matchRating < 7.2) score *= 0.5;
   if (willingToMove) score += 12;
 
-  score += resolveRandom() * 6;
+  if (params.randomize !== false) score += resolveRandom() * 6;
   return score;
+}
+
+function pickInboundClubs(
+  scored: Array<{ club: ClubMarketInfo; score: number }>,
+  count: number,
+): ClubMarketInfo[] {
+  const selected: ClubMarketInfo[] = [];
+  const remaining = scored.slice(0, Math.min(14, scored.length));
+
+  while (selected.length < count && remaining.length > 0) {
+    const selectedLeagueIds = new Set(selected.map((club) => club.leagueId));
+    const selectedConfederations = new Set(
+      selected.map((club) => club.confederation).filter(Boolean),
+    );
+    const weights = remaining.map(({ club, score }) => {
+      const leagueFactor = selectedLeagueIds.has(club.leagueId) ? 0.4 : 1;
+      const confederationFactor = club.confederation && selectedConfederations.has(club.confederation)
+        ? 0.8
+        : 1;
+      return Math.max(1, score) * leagueFactor * confederationFactor;
+    });
+    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
+    let roll = resolveRandom() * totalWeight;
+    let pickedIndex = 0;
+    for (let index = 0; index < weights.length; index += 1) {
+      roll -= weights[index];
+      if (roll <= 0) {
+        pickedIndex = index;
+        break;
+      }
+    }
+    selected.push(remaining[pickedIndex].club);
+    remaining.splice(pickedIndex, 1);
+  }
+
+  return selected;
 }
 
 function buildOfferCard(params: {
@@ -270,19 +322,30 @@ export function generateTransferMarketService(
 
   const unemployed = isUnemployed || !currentClubId;
   const seasonsLeft = seasonsLeftInCareer(currentAge, retireAge);
+  const valuation = computePositionValueSnapshot(params.position, params.currentStats, currentOvr);
+  const marketValue = computeMarketValue({
+    ovr: currentOvr,
+    age: currentAge,
+    matchRating,
+    contractYearsRemaining,
+    position: params.position,
+    currentStats: params.currentStats,
+  });
+  const mandatoryBuyout = computeMandatoryBuyout(marketValue, contractYearsRemaining);
   const emptyContract = {
     yearsRemaining: contractYearsRemaining,
     yearsTotal: contractYearsTotal,
     currentWageAnnual,
-    marketValue: 0,
+    marketValue,
     seasonsLeftInCareer: seasonsLeft,
   };
 
   if (seasonsLeft <= 0) {
     return {
       hasWindow: false,
-      marketValue: 0,
+      marketValue,
       mandatoryBuyout: 0,
+      valuation,
       isUnemployedMarket: unemployed,
       contract: emptyContract,
       renewal: null,
@@ -291,20 +354,13 @@ export function generateTransferMarketService(
     };
   }
 
-  const marketValue = computeMarketValue({
-    ovr: currentOvr,
-    age: currentAge,
-    matchRating,
-    contractYearsRemaining,
-  });
-  const mandatoryBuyout = computeMandatoryBuyout(marketValue, contractYearsRemaining);
   const effectivePrestige = unemployed ? 2 : currentClubPrestige;
   const distress = unemployed
     ? false
-    : isDistressSale(matchRating, estimateAppsRatio(currentOvr, effectivePrestige));
+    : isDistressSale(matchRating, estimateAppsRatio(effPositionOvr, effectivePrestige));
   const appsRatioCurrent = unemployed
     ? 0
-    : estimateAppsRatio(currentOvr, effectivePrestige);
+    : estimateAppsRatio(effPositionOvr, effectivePrestige);
 
   const contractSnap = {
     yearsRemaining: contractYearsRemaining,
@@ -337,7 +393,7 @@ export function generateTransferMarketService(
       isRenewal: true,
     });
     const renewWage = proposeWageAnnual({
-      ovr: currentOvr,
+      ovr: effPositionOvr,
       age: currentAge,
       currentWage: currentWageAnnual,
       prestige: currentClubPrestige,
@@ -353,7 +409,7 @@ export function generateTransferMarketService(
         contractYearsRemaining,
         appsRatio: appsRatioCurrent,
         matchRating,
-        ovr: currentOvr,
+        ovr: effPositionOvr,
         clubPrestige: currentClubPrestige,
         proposedWage: renewWage,
         leagueTier: currentClubLeagueTier,
@@ -366,7 +422,7 @@ export function generateTransferMarketService(
         fee: 0,
         wage: renewWage,
         years: renewYears,
-        ovr: currentOvr,
+        ovr: effPositionOvr,
         reason: contractYearsRemaining <= 1 ? "Gia hạn hợp đồng" : "Gia hạn sớm — giữ chân",
       });
     }
@@ -403,7 +459,7 @@ export function generateTransferMarketService(
   let windowChance = unemployed ? 0.35 : 0.22;
   if (matchRating >= 7.5) windowChance += 0.18;
   if (matchRating < 6.3) windowChance += 0.12;
-  const expectedPrestige = Math.min(5, Math.max(1, Math.round((currentOvr - 50) / 8)));
+  const expectedPrestige = Math.min(5, Math.max(1, Math.round((effPositionOvr - 50) / 8)));
   if (expectedPrestige > effectivePrestige) windowChance += 0.14;
   if (contractYearsRemaining <= 1) windowChance += 0.1;
   if (contractYearsRemaining >= 3 && !distress) windowChance -= 0.08;
@@ -414,21 +470,14 @@ export function generateTransferMarketService(
   const rollInbound = resolveRandom() < windowChance || distress || unemployed;
   if (rollInbound && scored.length > 0) {
     const take = Math.min(MAX_INBOUND_OFFERS, scored.length);
-    const pool = scored.slice(0, Math.min(8, scored.length));
-    const picked: ClubMarketInfo[] = [];
-    const temp = [...pool];
-    while (picked.length < take && temp.length > 0) {
-      const idx = resolveRandomInt(0, Math.min(2, temp.length - 1));
-      picked.push(temp[idx].club);
-      temp.splice(idx, 1);
-    }
+    const picked = pickInboundClubs(scored, take);
 
     for (const club of picked) {
       const years = proposeContractYears({ currentAge, retireAge, matchRating });
       if (years <= 0) continue;
       const fee = mandatoryBuyout;
       const wage = proposeWageAnnual({
-        ovr: currentOvr,
+        ovr: effPositionOvr,
         age: currentAge,
         currentWage: currentWageAnnual,
         prestige: club.prestige,
@@ -445,7 +494,7 @@ export function generateTransferMarketService(
           fee: kind === "free_agent" ? 0 : fee,
           wage,
           years,
-          ovr: currentOvr,
+          ovr: effPositionOvr,
           reason: unemployed
             ? "Cầu thủ tự do — tìm CLB mới"
             : reasonForMove({
@@ -463,13 +512,13 @@ export function generateTransferMarketService(
   // --- Shortlist (fit-oriented, up to 8) ---
   const shortlist: ShortlistClubCard[] = eligible
     .map((club) => {
-      const apps = expectedAppsAtClub(currentOvr, club.prestige, club.leagueSize ?? 20);
-      const fit = estimateAppsRatio(currentOvr, club.prestige);
+      const apps = expectedAppsAtClub(effPositionOvr, club.prestige, club.leagueSize ?? 20);
+      const fit = estimateAppsRatio(effPositionOvr, club.prestige);
       const canAfford = clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout);
       const canApproachGate = contractYearsRemaining <= 1 || unemployed;
       const years = proposeContractYears({ currentAge, retireAge, matchRating });
       const wage = proposeWageAnnual({
-        ovr: currentOvr,
+        ovr: effPositionOvr,
         age: currentAge,
         currentWage: currentWageAnnual,
         prestige: club.prestige,
@@ -499,10 +548,31 @@ export function generateTransferMarketService(
       } else if (years <= 0) {
         blockReason = "Không còn mùa nghề để ký HĐ";
       }
+      const score = scoreClubInterest({
+        club,
+        currentOvr,
+        position: params.position,
+        currentStats: params.currentStats,
+        potential: params.potential,
+        playerNation: params.playerNation,
+        currentPrestige: effectivePrestige,
+        matchRating,
+        goals: params.goals,
+        assists: params.assists,
+        cleanSheets: params.cleanSheets,
+        age: currentAge,
+        remaining: contractYearsRemaining,
+        distress,
+        willingToMove: willingToMove || unemployed,
+        mandatoryBuyout,
+        influenceScore,
+        randomize: false,
+      });
       return {
         club,
         apps,
         fit,
+        score,
         card: {
           clubId: club.id,
           clubName: club.name,
@@ -521,7 +591,7 @@ export function generateTransferMarketService(
         } satisfies ShortlistClubCard,
       };
     })
-    .sort((a, b) => b.fit - a.fit || b.apps - a.apps)
+    .sort((a, b) => b.score - a.score || b.fit - a.fit || b.apps - a.apps)
     .slice(0, 8)
     .map((x) => x.card);
 
@@ -529,6 +599,7 @@ export function generateTransferMarketService(
     hasWindow: true,
     marketValue,
     mandatoryBuyout,
+    valuation,
     isUnemployedMarket: unemployed,
     contract: contractSnap,
     renewal,
@@ -648,7 +719,7 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
       fee: kind === "free_agent" ? 0 : feeAsk,
       wage: finalWage,
       years: params.previewYears,
-      ovr: params.currentOvr,
+      ovr: params.effPositionOvr ?? params.currentOvr,
       reason: unemployed
         ? "Cầu thủ tự do — ký mới"
         : reasonForMove({
@@ -690,6 +761,7 @@ export type ResolveProactiveRenewalResult =
 export function resolveProactiveRenewalService(
   params: ResolveProactiveRenewalParams,
 ): ResolveProactiveRenewalResult {
+  const effPositionOvr = computeEffectivePositionOvr(params.position, params.currentStats, params.currentOvr);
   const baseChance = computeProactiveRenewalChance({
     position: params.position,
     currentStats: params.currentStats,
@@ -721,7 +793,7 @@ export function resolveProactiveRenewalService(
   });
 
   let wage = proposeWageAnnual({
-    ovr: params.currentOvr,
+    ovr: effPositionOvr,
     age: params.currentAge,
     currentWage: params.currentWageAnnual,
     prestige: params.currentClubPrestige,
@@ -751,7 +823,7 @@ export function resolveProactiveRenewalService(
       fee: 0,
       wage,
       years,
-      ovr: params.currentOvr,
+      ovr: effPositionOvr,
       reason: "Gia hạn chủ động — CLB đồng ý",
     }),
   };

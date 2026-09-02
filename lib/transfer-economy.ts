@@ -6,6 +6,13 @@
 
 import { estimateAppsRatio, getClubThreshold } from "@/lib/club-fit";
 import { influenceTopUp } from "@/lib/influence-score";
+import { computePositionValueSnapshot } from "@/lib/positional-value";
+
+export {
+  computePositionValueSnapshot,
+  getPositionAttributeWeights,
+  leagueCompetitivenessScore,
+} from "@/lib/positional-value";
 
 export const CONTRACT_YEARS_HARD_CAP = 5;
 export const MAX_INBOUND_OFFERS = 3;
@@ -91,16 +98,21 @@ export function computeMarketValue(params: {
   age: number;
   matchRating: number;
   contractYearsRemaining: number;
+  position?: string;
+  currentStats?: Record<string, number>;
 }): number {
-  const { ovr, age, matchRating, contractYearsRemaining } = params;
+  const { ovr, age, matchRating, contractYearsRemaining, position, currentStats } = params;
+  const valuationOvr = position
+    ? computePositionValueSnapshot(position, currentStats, ovr).effectivePositionOvr
+    : ovr;
   const contractMul = 1 + 0.12 * Math.max(0, contractYearsRemaining - 1);
   const raw =
-    baseMvFromOvr(ovr) *
+    baseMvFromOvr(valuationOvr) *
     ageCurveMul(age) *
     formMulFromRating(matchRating) *
     contractMul;
-  const floor = Math.max(100, Math.round(baseMvFromOvr(ovr) * 0.35));
-  const ceil = Math.round(baseMvFromOvr(ovr) * 2.2);
+  const floor = Math.max(100, Math.round(baseMvFromOvr(valuationOvr) * 0.35));
+  const ceil = Math.round(baseMvFromOvr(valuationOvr) * 2.2);
   return Math.max(floor, Math.min(ceil, Math.round(raw)));
 }
 
@@ -307,61 +319,13 @@ export function approachChancePercent(chance: number): number {
   return Math.round(Math.min(0.85, Math.max(0.08, chance)) * 100);
 }
 
-/**
- * Position Attribute Matrix — 100% full 6-attribute weights per position (SoT §12.1).
- */
-export function getPositionAttributeWeights(position: string): Record<string, number> {
-  const pos = position.toUpperCase();
-  if (pos === "GK") {
-    return { ref: 0.28, pos: 0.24, div: 0.20, han: 0.16, kic: 0.08, spd: 0.04 };
-  }
-  if (pos === "ST" || pos === "CF") {
-    return { sho: 0.35, pac: 0.20, dri: 0.15, phy: 0.15, pas: 0.10, def: 0.05 };
-  }
-  if (pos === "LW" || pos === "RW") {
-    return { pac: 0.30, dri: 0.25, sho: 0.20, pas: 0.15, phy: 0.06, def: 0.04 };
-  }
-  if (pos === "CAM") {
-    return { pas: 0.30, dri: 0.25, sho: 0.20, pac: 0.12, phy: 0.08, def: 0.05 };
-  }
-  if (pos === "CM") {
-    return { pas: 0.30, dri: 0.20, phy: 0.18, def: 0.15, pac: 0.10, sho: 0.07 };
-  }
-  if (pos === "CDM") {
-    return { def: 0.32, phy: 0.25, pas: 0.20, pac: 0.10, dri: 0.08, sho: 0.05 };
-  }
-  if (pos === "LM" || pos === "RM") {
-    return { pac: 0.25, pas: 0.25, dri: 0.20, sho: 0.12, phy: 0.10, def: 0.08 };
-  }
-  if (pos === "LB" || pos === "RB") {
-    return { def: 0.28, pac: 0.25, phy: 0.17, pas: 0.15, dri: 0.10, sho: 0.05 };
-  }
-  // Default to CB matrix
-  return { def: 0.40, phy: 0.30, pac: 0.12, pas: 0.10, dri: 0.05, sho: 0.03 };
-}
-
-/**
- * Calculates position-weighted attribute rating and combines 65% weighted + 35% currentOvr.
- */
+/** Shared alias retained for existing callers and the transfer SoT. */
 export function computeEffectivePositionOvr(
   position: string,
   currentStats: Record<string, number> | undefined,
   currentOvr: number,
 ): number {
-  if (!currentStats || Object.keys(currentStats).length === 0) return currentOvr;
-
-  const weights = getPositionAttributeWeights(position);
-  let weightedSum = 0;
-  let totalWeight = 0;
-
-  for (const [key, weight] of Object.entries(weights)) {
-    const val = currentStats[key] ?? currentOvr;
-    weightedSum += val * weight;
-    totalWeight += weight;
-  }
-
-  const positionRating = totalWeight > 0 ? weightedSum / totalWeight : currentOvr;
-  return Math.round(0.65 * positionRating + 0.35 * currentOvr);
+  return computePositionValueSnapshot(position, currentStats, currentOvr).effectivePositionOvr;
 }
 
 /**

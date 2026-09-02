@@ -1,15 +1,14 @@
 "use client";
 
 import React, { useState } from "react";
-import { X, FileText, CheckCircle2, XCircle, Building2, TrendingUp, ChevronDown, ChevronUp } from "lucide-react";
-import { formatEuroThousands, approachChancePercent } from "@/lib/transfer-economy";
+import { X, FileText, CheckCircle2, XCircle, Building2, ChevronDown, ChevronUp } from "lucide-react";
+import { formatEuroThousands } from "@/lib/transfer-economy";
 import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { ApproachRejectState } from "./TransferWindowPanel";
+import { Modal, ModalHeader } from "@/components/ui/Modal";
 
 interface TransferDecisionModalProps {
   market: TransferMarketResult;
-  willingToMove: boolean;
-  setWillingToMove: (v: boolean) => void;
   isProcessing: boolean;
   onAcceptOffer: (offer: ContractOfferCard) => void;
   onRejectAll: () => void;
@@ -17,14 +16,11 @@ interface TransferDecisionModalProps {
   showShortlist: boolean;
   setShowShortlist: (v: boolean) => void;
   approachRejects: ApproachRejectState;
-  approachBanner: string | null;
   onClose: () => void;
 }
 
 export function TransferDecisionModal({
   market,
-  willingToMove,
-  setWillingToMove,
   isProcessing,
   onAcceptOffer,
   onRejectAll,
@@ -32,7 +28,6 @@ export function TransferDecisionModal({
   showShortlist,
   setShowShortlist,
   approachRejects,
-  approachBanner,
   onClose,
 }: TransferDecisionModalProps) {
   const { contract, renewal, inbound, shortlist, isUnemployedMarket } = market;
@@ -49,35 +44,9 @@ export function TransferDecisionModal({
   const wageDiffPct = currentWage > 0 ? Math.round(((offerWage - currentWage) / currentWage) * 100) : 0;
 
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.7)",
-        backdropFilter: "blur(4px)",
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: "680px",
-          maxHeight: "92vh",
-          backgroundColor: "var(--cream)",
-          border: "2px solid var(--charcoal)",
-          borderRadius: "4px",
-          boxShadow: "8px 8px 0 var(--charcoal)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
+    <Modal open title="Đàm phán chuyển nhượng" onClose={onClose} size="lg">
+      <ModalHeader className="sr-only">Đàm phán chuyển nhượng</ModalHeader>
+      <div style={{ display: "flex", flexDirection: "column", overflow: "hidden" }}>
         {/* HEADER — CONTRACT FAX METAPHOR */}
         <div
           style={{
@@ -122,6 +91,7 @@ export function TransferDecisionModal({
           <button
             type="button"
             onClick={onClose}
+            aria-label="Đóng đàm phán chuyển nhượng"
             style={{
               background: "none",
               border: "1.5px solid var(--charcoal)",
@@ -186,7 +156,7 @@ export function TransferDecisionModal({
                     whiteSpace: "nowrap",
                   }}
                 >
-                  {off.kind === "renewal" ? "📝 GIA HẠN" : `💼 ${off.clubName}`}
+                  {off.kind === "renewal" ? "GIA HẠN" : off.clubName}
                 </button>
               ))}
             </div>
@@ -387,6 +357,6 @@ export function TransferDecisionModal({
 
         </div>
       </div>
-    </div>
+    </Modal>
   );
 }
