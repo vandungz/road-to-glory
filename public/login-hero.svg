@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" role="img" aria-label="Sân bóng dưới ánh đèn sân vận động">
+  <rect width="1200" height="900" fill="#25231e"/>
+  <path d="M0 190h1200v150H0z" fill="#39352d"/>
+  <path d="M0 250h1200v14H0zM0 292h1200v8H0zM0 326h1200v5H0z" fill="#5d5547" opacity=".72"/>
+  <g fill="#b6a985" opacity=".5">
+    <circle cx="90" cy="216" r="8"/><circle cx="160" cy="202" r="6"/><circle cx="245" cy="228" r="9"/><circle cx="340" cy="198" r="7"/><circle cx="455" cy="221" r="8"/><circle cx="550" cy="204" r="6"/><circle cx="670" cy="232" r="8"/><circle cx="780" cy="205" r="7"/><circle cx="900" cy="224" r="9"/><circle cx="1010" cy="201" r="7"/><circle cx="1120" cy="232" r="8"/>
+  </g>
+  <path d="M0 900 450 345h300l450 555z" fill="#4b5140"/>
+  <path d="M80 900 500 390h200l420 510M280 900l300-510h40l300 510M120 720h960M260 535h680" fill="none" stroke="#b8ad8b" stroke-width="4" opacity=".42"/>
+  <path d="M0 900h1200v-42H0z" fill="#171612" opacity=".7"/>
+  <g fill="#d5c89f" opacity=".6"><circle cx="85" cy="162" r="3"/><circle cx="220" cy="145" r="2"/><circle cx="380" cy="170" r="3"/><circle cx="860" cy="152" r="2"/><circle cx="1080" cy="170" r="3"/></g>
+</svg>

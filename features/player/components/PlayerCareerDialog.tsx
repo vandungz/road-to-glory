@@ -1,9 +1,10 @@
 "use client";
 
 import React, { useMemo } from "react";
-import { X, CalendarDays, Sparkles } from "lucide-react";
+import { X } from "lucide-react";
+import type { AchievementRecord, SeasonAwardRecord, StatSnapshot } from "@/types/domain";
 import type { ClientSafePlayer } from "@/types/squad";
-import { RARITY_ACCENT } from "@/types/squad";
+import { Modal } from "@/components/ui/Modal";
 import { PlayerOvrChart } from "./PlayerOvrChart";
 import { PlayerStickerCard } from "./PlayerStickerCard";
 
@@ -13,388 +14,167 @@ interface PlayerCareerDialogProps {
   onClose: () => void;
 }
 
+interface SeasonRow {
+  age: number;
+  clubName: string;
+  leagueName: string;
+  snap: StatSnapshot;
+  awards: SeasonAwardRecord[];
+  isDebut: boolean;
+  isTransfer: boolean;
+  isFinal: boolean;
+}
+
+interface HonourRow {
+  label: string;
+  count: number;
+  accent?: boolean;
+}
+
+function getHonourRows(achievements?: AchievementRecord): HonourRow[] {
+  if (!achievements) return [];
+  const rows: HonourRow[] = [];
+  if (achievements.ballonDor > 0) rows.push({ label: "Quả bóng vàng", count: achievements.ballonDor, accent: true });
+
+  const grouped = new Map<string, HonourRow>();
+  for (const trophy of achievements.trophies ?? []) {
+    const label = trophy.type === "league" ? `Vô địch ${trophy.name}` : trophy.name;
+    const key = `${trophy.type}:${label}`;
+    const current = grouped.get(key);
+    grouped.set(key, current ? { ...current, count: current.count + 1 } : { label, count: 1 });
+  }
+  rows.push(...grouped.values());
+  return rows;
+}
+
 export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDialogProps) {
-  const statsTimeline = player?.statsTimeline ?? [];
-  const clubStints = player?.clubStints ?? [];
+  const statsTimeline = useMemo(() => player?.statsTimeline ?? [], [player?.statsTimeline]);
+  const clubStints = useMemo(() => player?.clubStints ?? [], [player?.clubStints]);
   const debutAge = player?.debutAge ?? 18;
   const retireAge = player?.retireAge ?? 35;
-  const careerLength = player?.careerLengthYears ?? 15;
+  const careerLength = player?.careerLengthYears ?? Math.max(1, retireAge - debutAge);
 
-  // Tính thống kê trọn đời từ statsTimeline
   const summaryStats = useMemo(() => {
-    let apps = 0, goals = 0, assists = 0, cleanSheets = 0, ratingSum = 0, ratingCount = 0;
-    statsTimeline.forEach((snap: any) => {
+    let apps = 0;
+    let goals = 0;
+    let assists = 0;
+    let ratingSum = 0;
+    let ratingCount = 0;
+    for (const snap of statsTimeline) {
+      if (snap.age < debutAge || snap.age > retireAge) continue;
       apps += snap.apps ?? 0;
       goals += snap.goals ?? 0;
       assists += snap.assists ?? 0;
-      cleanSheets += snap.cleanSheets ?? 0;
-      if (snap.matchRating) { ratingSum += snap.matchRating; ratingCount++; }
-    });
-    const avgRating = ratingCount > 0 ? (ratingSum / ratingCount).toFixed(2) : "0.00";
-    return { apps, goals, assists, cleanSheets, avgRating };
-  }, [statsTimeline]);
+      if (snap.matchRating != null) {
+        ratingSum += snap.matchRating;
+        ratingCount += 1;
+      }
+    }
+    return { apps, goals, assists, avgRating: ratingCount > 0 ? (ratingSum / ratingCount).toFixed(2) : "—" };
+  }, [statsTimeline, debutAge, retireAge]);
 
   const minOvr = useMemo(() => {
-    // Bỏ entry "ma" ở retireAge + 1 mà handleNextSeason push khi retire
-    // (xem PlayerOvrChart.tsx) — không phải mùa đã chơi thật.
-    const played = statsTimeline.filter((s: any) => s.age >= debutAge && s.age <= retireAge);
-    if (played.length === 0) return player?.peakOvr ?? 0;
-    return Math.min(...played.map((s: any) => s.ovr));
-  }, [statsTimeline, debutAge, retireAge, player]);
+    const played = statsTimeline.filter((snap) => snap.age >= debutAge && snap.age <= retireAge);
+    return played.length > 0 ? Math.min(...played.map((snap) => snap.ovr)) : player?.peakOvr ?? 0;
+  }, [statsTimeline, debutAge, retireAge, player?.peakOvr]);
 
-  const finalClub = useMemo(() => {
-    if (clubStints.length === 0) return "Tự do";
-    return clubStints[clubStints.length - 1]?.clubName ?? "Tự do";
-  }, [clubStints]);
+  const finalClub = clubStints.at(-1)?.clubName ?? "Tự do";
+  const honours = useMemo(() => getHonourRows(player?.achievements), [player?.achievements]);
 
-  // Danh hiệu từ schema mới: achievements.trophies[]
-  const trophiesList = useMemo(() => {
-    if (!player?.achievements || typeof player.achievements !== "object") return [];
-    const ach = player.achievements as any;
-    const grouped = new Map<string, { type: string; name: string; icon: string; count: number }>();
-
-    if ((ach.ballonDor ?? 0) > 0) {
-      grouped.set("ballonDor", { type: "ballonDor", name: "Quả Bóng Vàng", icon: "🌟", count: ach.ballonDor });
-    }
-
-    (ach.trophies ?? []).forEach((t: any) => {
-      const icon = t.type === "league" ? "🏆" : t.type === "cup" ? "🥛" : t.type === "continental" ? "🌍" : "🎖️";
-      const displayName = t.club ? `${t.name} (${t.club})` : t.name;
-      const key = `${t.type}-${t.name}-${t.club ?? ""}`;
-      const existing = grouped.get(key);
-      if (existing) {
-        existing.count++;
-      } else {
-        grouped.set(key, { type: t.type, name: displayName, icon, count: 1 });
-      }
-    });
-
-    return Array.from(grouped.values());
-  }, [player?.achievements]);
-
-  // Per-season data: statsTimeline + clubStints + seasonAwards
-  const seasonRows = useMemo(() => {
-    const ach = (player?.achievements as any) ?? {};
-    const seasonAwards: any[] = ach.seasonAwards ?? [];
-    const rows = [];
-
-    for (const snap of statsTimeline) {
-      const age = snap.age;
-      if (age >= retireAge) continue;
-      const stint = clubStints.find((st: any) => age >= st.startAge && age <= st.endAge);
-      const prevSnap = statsTimeline.find((s: any) => s.age === age - 1);
-      const prevStint = prevSnap
-        ? clubStints.find((st: any) => (age - 1) >= st.startAge && (age - 1) <= st.endAge)
-        : null;
-      const isTransfer = prevStint && stint && prevStint.clubId !== stint.clubId;
-
-      rows.push({
-        age,
-        clubName: stint?.clubName ?? "—",
-        leagueName: stint?.leagueName ?? "",
-        snap,
-        awards: seasonAwards.filter((a: any) => a.age === age),
-        isTransfer,
-      });
-    }
-
-    return rows.sort((a, b) => a.age - b.age);
-  }, [statsTimeline, clubStints, player?.achievements, retireAge]);
+  const seasonRows = useMemo<SeasonRow[]>(() => {
+    const seasonAwards = player?.achievements?.seasonAwards ?? [];
+    return statsTimeline
+      .filter((snap) => snap.age >= debutAge && snap.age <= retireAge)
+      .map((snap) => {
+        const stint = clubStints.find((item) => snap.age >= item.startAge && snap.age <= item.endAge);
+        const previousStint = clubStints.find((item) => snap.age - 1 >= item.startAge && snap.age - 1 <= item.endAge);
+        return {
+          age: snap.age,
+          clubName: stint?.clubName ?? "—",
+          leagueName: stint?.leagueName ?? "—",
+          snap,
+          awards: seasonAwards.filter((award) => award.age === snap.age),
+          isDebut: snap.age === debutAge,
+          isTransfer: Boolean(stint && previousStint && stint.clubId !== previousStint.clubId),
+          isFinal: snap.age === retireAge,
+        };
+      })
+      .sort((a, b) => a.age - b.age);
+  }, [statsTimeline, clubStints, player?.achievements, debutAge, retireAge]);
 
   if (!isOpen || !player) return null;
 
-  const rarityColor = RARITY_ACCENT[player.cardRarity] ?? "#71717a";
-
   return (
-    <div
-      className="modal-overlay"
-      onClick={onClose}
-      style={{ backgroundColor: "rgba(0, 0, 0, 0.55)", backdropFilter: "blur(3px)", padding: "20px" }}
+    <Modal
+      open={isOpen}
+      title={`Hồ sơ sự nghiệp của ${player.name}`}
+      onClose={onClose}
+      className="rtg-career-modal"
+      mobileSheet={false}
+      style={{ width: "min(1056px, calc(100vw - 32px))", maxWidth: "1056px", height: "min(700px, calc(100dvh - 40px))", padding: 0, overflow: "hidden" }}
     >
-      <div
-        className="card-retro"
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          backgroundColor: "var(--cream)",
-          width: "100%",
-          maxWidth: "940px",
-          height: "90vh",
-          maxHeight: "680px",
-          display: "flex",
-          flexDirection: "row",
-          flexWrap: "nowrap",
-          overflow: "hidden",
-          position: "relative",
-          boxShadow: "8px 8px 0px var(--charcoal)",
-          border: "3px solid var(--charcoal)",
-          borderRadius: "4px",
-          transform: "none",
-        }}
-      >
-        {/* Close button */}
-        <button
-          onClick={onClose}
-          aria-label="Đóng bảng xem sự nghiệp"
-          style={{
-            position: "absolute", top: "12px", right: "12px",
-            width: "30px", height: "30px",
-            border: "2px solid var(--charcoal)", borderRadius: "3px",
-            backgroundColor: "var(--white)",
-            display: "flex", alignItems: "center", justifyContent: "center",
-            cursor: "pointer", boxShadow: "2px 2px 0 var(--charcoal)", zIndex: 10,
-            transition: "transform 80ms ease, box-shadow 80ms ease",
-          }}
-          onMouseEnter={(e) => { e.currentTarget.style.transform = "translate(1px, 1px)"; e.currentTarget.style.boxShadow = "1px 1px 0 var(--charcoal)"; }}
-          onMouseLeave={(e) => { e.currentTarget.style.transform = "none"; e.currentTarget.style.boxShadow = "2px 2px 0 var(--charcoal)"; }}
-        >
-          <X size={16} strokeWidth={2.5} color="var(--charcoal)" />
-        </button>
+      <div className="rtg-career-dialog">
+        <aside className="rtg-career-dialog__sidebar">
+          <PlayerStickerCard player={player} finalClub={finalClub} debutAge={debutAge} retireAge={retireAge} careerLength={careerLength} />
 
-        {/* ── CỘT TRÁI ── */}
-        <div style={{
-          flex: "0 0 350px", height: "100%",
-          borderRight: "2px solid var(--charcoal)",
-          backgroundColor: "var(--cream-dark)",
-          padding: "24px", display: "flex", flexDirection: "column", gap: "20px", overflowY: "auto",
-        }}>
-          <PlayerStickerCard
-            player={player} finalClub={finalClub}
-            debutAge={debutAge} retireAge={retireAge}
-            careerLength={careerLength} rarityColor={rarityColor}
-          />
+          <section className="rtg-career-dialog__section" aria-labelledby="career-total-title">
+            <h3 id="career-total-title">Trọn đời sự nghiệp</h3>
+            <div className="rtg-career-dialog__metric"><span>Ra sân</span><strong>{summaryStats.apps}</strong></div>
+            <div className="rtg-career-dialog__metric"><span>Bàn thắng</span><strong>{summaryStats.goals}</strong></div>
+            <div className="rtg-career-dialog__metric"><span>Kiến tạo</span><strong>{summaryStats.assists}</strong></div>
+            <div className="rtg-career-dialog__metric"><span>Phong độ trung bình</span><strong className="is-positive">{summaryStats.avgRating}</strong></div>
+          </section>
 
-          {/* Trophy Cabinet */}
-          <div style={{ border: "2px solid var(--charcoal)", borderRadius: "3px", backgroundColor: "var(--white)", padding: "12px 14px", boxShadow: "2px 2px 0 var(--charcoal)" }}>
-            <h4 style={{ fontFamily: "var(--font-headline)", fontSize: "0.8rem", color: "var(--charcoal)", borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "4px", marginBottom: "8px" }}>
-              BỘ SƯU TẬP DANH HIỆU
-            </h4>
-            <div style={{ display: "flex", flexDirection: "column", gap: "6px", maxHeight: "130px", overflowY: "auto", paddingRight: "4px" }}>
-              {trophiesList.length > 0 ? (
-                trophiesList.map((tr, idx) => (
-                  <div key={idx} style={{
-                    display: "flex", alignItems: "center", justifyContent: "space-between",
-                    padding: "4px 8px",
-                    backgroundColor: tr.type === "ballonDor" ? "#fef3c7" : "var(--cream-dark)",
-                    border: tr.type === "ballonDor" ? "1px solid #d97706" : "1px solid var(--cream-border)",
-                    borderRadius: "3px", fontSize: "0.78rem", fontFamily: "var(--font-body)",
-                  }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "6px" }}>
-                      <span style={{ fontSize: "1rem" }}>{tr.icon}</span>
-                      <span style={{ fontWeight: 600, color: "var(--charcoal)" }}>{tr.name}</span>
-                    </div>
-                    <span style={{
-                      fontFamily: "var(--font-headline)", fontSize: "0.78rem", fontWeight: 700,
-                      backgroundColor: tr.type === "ballonDor" ? "#d97706" : "var(--charcoal)",
-                      color: "var(--white)", padding: "1px 6px", borderRadius: "2px", lineHeight: 1.1,
-                    }}>
-                      x{tr.count}
-                    </span>
-                  </div>
-                ))
-              ) : (
-                <span style={{ fontFamily: "var(--font-body)", fontSize: "0.78rem", color: "var(--ink-light)", fontStyle: "italic", textAlign: "center", padding: "10px 0", width: "100%" }}>
-                  Chưa đạt danh hiệu nào
-                </span>
-              )}
+          <section className="rtg-career-dialog__section" aria-labelledby="honours-title">
+            <h3 id="honours-title">Danh hiệu</h3>
+            {honours.length === 0 ? <p className="rtg-career-dialog__empty">Chưa đạt danh hiệu nào</p> : honours.map((honour) => (
+              <div className="rtg-career-dialog__metric" key={honour.label}>
+                <span className={honour.accent ? "is-honour" : undefined}>{honour.label}</span>
+                <strong className={honour.accent ? "is-honour" : undefined}>{honour.count}</strong>
+              </div>
+            ))}
+          </section>
+        </aside>
+
+        <main className="rtg-career-dialog__main">
+          <header className="rtg-career-dialog__heading">
+            <div>
+              <span className="rtg-career-dialog__eyebrow">Hồ sơ lưu trữ · vị trí {player.position} · đội hình {finalClub}</span>
+              <h2>Tiến trình sự nghiệp</h2>
             </div>
-          </div>
+            <button type="button" className="rtg-career-dialog__close" onClick={onClose} aria-label="Đóng hồ sơ sự nghiệp"><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
+          </header>
 
-          {/* Lifetime Stats */}
-          <div style={{ border: "2px solid var(--charcoal)", borderRadius: "3px", backgroundColor: "var(--white)", padding: "12px 14px", boxShadow: "2px 2px 0 var(--charcoal)" }}>
-            <h4 style={{ fontFamily: "var(--font-headline)", fontSize: "0.8rem", color: "var(--charcoal)", borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "4px", marginBottom: "8px" }}>
-              THỐNG KÊ TRỌN ĐỜI SỰ NGHIỆP
-            </h4>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "10px" }}>
-              {[
-                { label: "Trận đấu (Apps)", value: summaryStats.apps },
-                { label: "Bàn thắng", value: summaryStats.goals },
-                { label: "Kiến tạo", value: summaryStats.assists },
-                { label: "Giữ sạch lưới", value: summaryStats.cleanSheets },
-              ].map((stat, i) => (
-                <div key={i} style={{ display: "flex", flexDirection: "column", padding: "4px 8px", backgroundColor: "var(--cream-dark)", borderRadius: "2px", border: "1px solid var(--cream-border)" }}>
-                  <span style={{ fontSize: "0.65rem", color: "var(--ink-gray)", textTransform: "uppercase", fontWeight: 600 }}>{stat.label}</span>
-                  <span style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 700, color: "var(--charcoal)" }}>{stat.value}</span>
-                </div>
-              ))}
+          <section className="rtg-career-dialog__chart" aria-labelledby="ovr-chart-title">
+            <div className="rtg-career-dialog__section-heading"><h3 id="ovr-chart-title">Đường phát triển OVR</h3><span>thấp nhất {minOvr} · đỉnh cao {player.peakOvr}</span></div>
+            <PlayerOvrChart statsTimeline={statsTimeline} debutAge={debutAge} retireAge={retireAge} />
+          </section>
+
+          <section className="rtg-career-dialog__seasons" aria-labelledby="season-stats-title">
+            <h3 id="season-stats-title">Thống kê từng mùa</h3>
+            <div className="rtg-career-dialog__table-wrap">
+              <table>
+                <thead><tr><th>Tuổi</th><th>Câu lạc bộ</th><th>Giải</th><th>OVR</th><th>Trận</th><th>Bàn</th><th>K.tạo</th><th>Phong độ</th></tr></thead>
+                <tbody>
+                  {seasonRows.length === 0 ? <tr><td className="rtg-career-dialog__empty" colSpan={8}>Chưa có dữ liệu mùa giải.</td></tr> : seasonRows.map((row) => (
+                    <React.Fragment key={row.age}>
+                      <tr>
+                        <td className={row.isDebut ? "is-debut" : undefined}>{row.age}</td>
+                        <td>{row.clubName} <small>{row.isDebut ? "ra mắt" : row.isTransfer ? "chuyển nhượng" : row.isFinal ? "mùa cuối" : ""}</small></td>
+                        <td>{row.leagueName}</td>
+                        <td className={row.snap.ovr === player.peakOvr ? "is-peak" : undefined}>{row.snap.ovr}</td>
+                        <td>{row.snap.apps ?? "—"}</td><td>{row.snap.goals ?? "—"}</td><td>{row.snap.assists ?? "—"}</td>
+                        <td className={(row.snap.matchRating ?? 0) >= 7.8 ? "is-positive" : undefined}>{row.snap.matchRating != null ? row.snap.matchRating.toFixed(2) : "—"}</td>
+                      </tr>
+                      {row.awards.length > 0 && <tr className="rtg-career-dialog__award-row"><td colSpan={8}>{row.awards.map((award) => award.label).join(" · ")}</td></tr>}
+                    </React.Fragment>
+                  ))}
+                </tbody>
+              </table>
             </div>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: "10px", paddingTop: "8px", borderTop: "1px dashed var(--cream-border)" }}>
-              <span style={{ fontSize: "0.78rem", color: "var(--ink-gray)", fontWeight: 500 }}>Điểm Match Rating TB</span>
-              <span style={{ fontFamily: "var(--font-headline)", fontSize: "1.25rem", fontWeight: 700, color: "var(--coral)" }}>{summaryStats.avgRating}</span>
-            </div>
-          </div>
-        </div>
-
-        {/* ── CỘT PHẢI ── */}
-        <div style={{
-          flex: "1 1 auto", height: "100%", padding: "24px",
-          display: "flex", flexDirection: "column", gap: "24px", overflowY: "auto",
-        }}>
-          <div>
-            <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.58rem", color: "var(--ink-gray)", letterSpacing: "0.15em", textTransform: "uppercase" }}>
-              Player Evolution & History
-            </span>
-            <h2 style={{ fontFamily: "var(--font-headline)", fontSize: "1.6rem", fontWeight: 700, color: "var(--charcoal)", marginTop: "2px", lineHeight: 1.1 }}>
-              TIẾN TRÌNH SỰ NGHIỆP CẦU THỦ
-            </h2>
-          </div>
-
-          {/* OVR Chart */}
-          <div style={{ border: "2px solid var(--charcoal)", borderRadius: "3px", backgroundColor: "var(--white)", padding: "14px 16px", boxShadow: "3px 3px 0 var(--charcoal)" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-              <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", color: "var(--charcoal)", display: "flex", alignItems: "center", gap: "6px" }}>
-                <Sparkles size={14} color="var(--coral)" /> BIỂU ĐỒ PHÁT TRIỂN CHỈ SỐ OVR THEO TUỔI
-              </h3>
-              <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)" }}>
-                MIN {minOvr} · PEAK {player.peakOvr}
-              </span>
-            </div>
-            <PlayerOvrChart statsTimeline={statsTimeline} debutAge={debutAge} retireAge={retireAge} peakOvr={player.peakOvr} />
-          </div>
-
-          {/* Per-season stats — table */}
-          <div style={{ border: "2px solid var(--charcoal)", borderRadius: "3px", backgroundColor: "var(--white)", padding: "14px 16px", boxShadow: "3px 3px 0 var(--charcoal)", display: "flex", flexDirection: "column", flex: 1, minHeight: 0 }}>
-            <h3 style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", color: "var(--charcoal)", borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "6px", marginBottom: "12px", display: "flex", alignItems: "center", gap: "6px", flexShrink: 0 }}>
-              <CalendarDays size={14} color="var(--coral)" /> THỐNG KÊ TỪNG MÙA GIẢI
-            </h3>
-
-            <div style={{ overflow: "auto", flex: 1, minHeight: 0 }}>
-              {seasonRows.length === 0 ? (
-                <div style={{ textAlign: "center", padding: "30px 0", color: "var(--ink-light)", fontFamily: "var(--font-body)", fontStyle: "italic", fontSize: "0.85rem" }}>
-                  Chưa có dữ liệu mùa giải.
-                </div>
-              ) : (
-                <table
-                  style={{
-                    width: "100%",
-                    borderCollapse: "collapse",
-                    fontFamily: "var(--font-body)",
-                    fontSize: "0.78rem",
-                  }}
-                >
-                  <thead>
-                    <tr style={{ backgroundColor: "var(--cream-dark)" }}>
-                      {[
-                        { key: "age", label: "Tuổi", align: "center" as const },
-                        { key: "club", label: "CLB", align: "left" as const },
-                        { key: "league", label: "Giải", align: "left" as const },
-                        { key: "ovr", label: "OVR", align: "center" as const },
-                        { key: "apps", label: "Trận", align: "center" as const },
-                        { key: "g", label: "Bàn", align: "center" as const },
-                        { key: "a", label: "KT", align: "center" as const },
-                        { key: "mr", label: "MR", align: "center" as const },
-                      ].map((col) => (
-                        <th
-                          key={col.key}
-                          style={{
-                            fontFamily: "var(--font-stamp)",
-                            fontSize: "0.52rem",
-                            letterSpacing: "0.08em",
-                            textTransform: "uppercase",
-                            color: "var(--ink-gray)",
-                            fontWeight: 700,
-                            textAlign: col.align,
-                            padding: "8px 6px",
-                            borderBottom: "2px solid var(--charcoal)",
-                            position: "sticky",
-                            top: 0,
-                            backgroundColor: "var(--cream-dark)",
-                            zIndex: 1,
-                            whiteSpace: "nowrap",
-                          }}
-                        >
-                          {col.label}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {seasonRows.map((row, idx) => {
-                      const isDebut = row.age === debutAge;
-                      const cellPad = "7px 6px";
-                      const border = "1px solid var(--cream-border)";
-                      return (
-                        <React.Fragment key={row.age}>
-                          <tr
-                            style={{
-                              backgroundColor: idx % 2 === 0 ? "var(--white)" : "var(--cream)",
-                            }}
-                          >
-                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle" }}>
-                              <span
-                                style={{
-                                  fontFamily: "var(--font-headline)",
-                                  fontSize: "0.75rem",
-                                  fontWeight: 700,
-                                  color: isDebut ? "var(--white)" : "var(--charcoal)",
-                                  backgroundColor: isDebut ? "var(--coral)" : "transparent",
-                                  border: isDebut ? "none" : "1.5px solid var(--charcoal)",
-                                  padding: "1px 6px",
-                                  borderRadius: "2px",
-                                  display: "inline-block",
-                                }}
-                              >
-                                {row.age}
-                              </span>
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, verticalAlign: "middle", fontWeight: 700, color: "var(--charcoal)", maxWidth: 140 }}>
-                              <span style={{ display: "inline-flex", alignItems: "center", gap: 4, flexWrap: "wrap" }}>
-                                {row.clubName}
-                                {row.isTransfer && (
-                                  <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.48rem", letterSpacing: "0.06em", color: "var(--coral)" }}>
-                                    ✈ TRANSFER
-                                  </span>
-                                )}
-                              </span>
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, verticalAlign: "middle", color: "var(--ink-gray)", maxWidth: 120 }}>
-                              {row.leagueName || "—"}
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
-                              {row.snap?.ovr ?? "—"}
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
-                              {row.snap?.apps ?? "—"}
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
-                              {row.snap?.goals ?? "—"}
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700 }}>
-                              {row.snap?.assists ?? "—"}
-                            </td>
-                            <td style={{ padding: cellPad, borderBottom: border, textAlign: "center", verticalAlign: "middle", fontFamily: "var(--font-headline)", fontWeight: 700, color: "var(--coral)" }}>
-                              {row.snap?.matchRating != null ? Number(row.snap.matchRating).toFixed(2) : "—"}
-                            </td>
-                          </tr>
-                          {row.awards.length > 0 && (
-                            <tr style={{ backgroundColor: "#fef3c7" }}>
-                              <td
-                                colSpan={8}
-                                style={{
-                                  padding: "4px 8px 6px",
-                                  borderBottom: border,
-                                  borderLeft: "3px solid #d97706",
-                                  fontSize: "0.72rem",
-                                  color: "var(--charcoal)",
-                                }}
-                              >
-                                {row.awards.map((award: any, aIdx: number) => (
-                                  <span key={aIdx} style={{ marginRight: 10 }}>
-                                    🥇 {award.label}
-                                  </span>
-                                ))}
-                              </td>
-                            </tr>
-                          )}
-                        </React.Fragment>
-                      );
-                    })}
-                  </tbody>
-                </table>
-              )}
-            </div>
-          </div>
-        </div>
+          </section>
+        </main>
       </div>
-    </div>
+    </Modal>
   );
 }

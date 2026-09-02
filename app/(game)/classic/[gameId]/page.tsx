@@ -18,16 +18,16 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     where: { id: gameId },
     select: { name: true },
   });
+
   return {
     title: session ? `${session.name} — Đội hình | Football Life` : "Đội hình | Football Life",
   };
 }
 
-export default async function SquadBoardPage({ params }: Props) {
+export default async function ClassicSquadBoardPage({ params }: Props) {
   const { gameId } = await params;
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
     select: {
@@ -90,6 +90,7 @@ export default async function SquadBoardPage({ params }: Props) {
         players={allPlayers}
         slots={slots}
         inProgressSlots={inProgressPlayers.map((player) => player.slotIndex)}
+        draftBasePath={`/classic/${gameId}`}
       />
     </AppShell>
   );
