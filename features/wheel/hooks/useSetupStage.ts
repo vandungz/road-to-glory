@@ -1,9 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { useWheelUiStore } from "../stores/useWheelUiStore";
 import { resolveWeightedOutcome } from "@/lib/wheel-engine/spin-resolver";
 import { getFlagEmoji } from "@/types/squad";
+import type { ClubSummary, LeagueSummary } from "@/types/domain";
 import {
   NATIONALITY_POOL,
   DEBUT_AGE_POOL,
@@ -17,16 +18,27 @@ import {
 
 interface UseSetupStageProps {
   position: string;
-  leagues: any[];
-  clubs: any[];
+  leagues: LeagueSummary[];
+  clubs: ClubSummary[];
   isMounted: boolean;
   mode: "setup" | "career" | "retired";
 }
 
+type ClubWheelValue = {
+  id: string;
+  name: string;
+  leagueId?: string;
+  leagueName?: string;
+  prestige?: number;
+  continentalType?: string;
+};
+type SetupWheelValue = string | number | ClubWheelValue;
+
 export function useSetupStage({ position, leagues, clubs, isMounted, mode }: UseSetupStageProps) {
-  const [wheelItems, setWheelItems] = useState<{ label: string; value: any }[]>([]);
+  const [wheelItems, setWheelItems] = useState<{ label: string; value: SetupWheelValue }[]>([]);
   const [targetIndex, setTargetIndex] = useState<number>(-1);
   const [tempValue, setTempValue] = useState<string | number | null>(null);
+  const setupResultRef = useRef<SetupWheelValue | null>(null);
 
   const {
     activeStep,
@@ -37,13 +49,16 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
     setStep,
   } = useWheelUiStore();
 
-  const filteredClubs = clubs.filter((c) => c.leagueId === draftData.leagueId);
+  const filteredClubs = useMemo(
+    () => clubs.filter((c) => c.leagueId === draftData.leagueId),
+    [clubs, draftData.leagueId],
+  );
 
   // ── THIẾT LẬP MÚI BÁNH XE SETUP ──
   useEffect(() => {
     if (!isMounted || mode !== "setup") return;
 
-    let items: { label: string; value: any }[] = [];
+    let items: { label: string; value: SetupWheelValue }[] = [];
     switch (activeStep) {
       case 0:
         items = NATIONALITY_POOL.map((x) => ({
@@ -106,21 +121,25 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
         }
         break;
     }
-    setWheelItems(items);
-  }, [activeStep, isMounted, leagues, filteredClubs.length, mode, position, draftData.height, draftData.nationality]);
+    setWheelItems((currentItems) => {
+      const isSamePool = currentItems.length === items.length
+        && currentItems.every((item, index) => item.label === items[index]?.label);
+      return isSamePool ? currentItems : items;
+    });
+  }, [activeStep, isMounted, leagues, filteredClubs, mode, position, draftData.height, draftData.nationality]);
 
   // ── SETUP WHEELS SPIN RESOLVER ──
   function handleSetupSpin() {
     if (isSpinning || activeStep >= 13 || wheelItems.length === 0) return;
 
-    let result: any = null;
+    let result: SetupWheelValue | null = null;
     let idx = -1;
 
     switch (activeStep) {
       case 0:
         result = resolveWeightedOutcome(NATIONALITY_POOL);
         idx = NATIONALITY_POOL.findIndex((x) => x.value === result);
-        setTempValue(`${getFlagEmoji(result)} ${result}`);
+        setTempValue(typeof result === "string" ? `${getFlagEmoji(result)} ${result}` : null);
         break;
       case 1:
         result = resolveWeightedOutcome(DEBUT_AGE_POOL);
@@ -160,33 +179,37 @@ export function useSetupStage({ position, leagues, clubs, isMounted, mode }: Use
       case 11:
         const leagueWeights = getLeagueWeights(leagues, draftData.nationality);
         result = resolveWeightedOutcome(leagueWeights);
-        idx = leagueWeights.findIndex((x) => x.value.id === result.id);
-        setTempValue(result.name);
+        const leagueResult = result;
+        if (leagueResult && typeof leagueResult !== "string" && typeof leagueResult !== "number") {
+          idx = leagueWeights.findIndex((x) => x.value.id === leagueResult.id);
+          setTempValue(leagueResult.name);
+        }
         break;
       case 12:
         if (filteredClubs.length === 0) {
-          result = { id: "", name: "Không có CLB", prestige: 3, continentalType: "none" };
+          result = { id: "", name: "Không có CLB", leagueId: "", prestige: 3, continentalType: "none" };
           idx = 0;
         } else {
           const clubWeights = getClubWeights(filteredClubs);
           result = resolveWeightedOutcome(clubWeights);
-          idx = clubWeights.findIndex((x) => x.value.id === result.id);
-          const fullClub = filteredClubs.find((c) => c.id === result.id);
+          const clubResult = result && typeof result === "object" ? result : null;
+          idx = clubWeights.findIndex((x) => x.value.id === clubResult?.id);
+          const fullClub = filteredClubs.find((c) => c.id === clubResult?.id);
           if (fullClub) {
-            result = { id: fullClub.id, name: fullClub.name, prestige: fullClub.prestige, continentalType: fullClub.continentalType };
+            result = { ...fullClub };
           }
         }
-        setTempValue(result.name);
+        setTempValue(typeof result === "object" && result !== null ? result.name : null);
         break;
     }
 
     setTargetIndex(idx);
     startSpin();
-    (window as any)._tempDraftResult = result;
+    setupResultRef.current = result;
   }
 
   function handleSetupSpinComplete() {
-    const result = (window as any)._tempDraftResult;
+    const result = setupResultRef.current;
     resolveStep(activeStep, result, position);
     setStep(activeStep + 1);
     setTargetIndex(-1);

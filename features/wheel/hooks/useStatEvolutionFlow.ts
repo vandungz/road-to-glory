@@ -2,16 +2,20 @@
 
 import { evolvePlayerStatsAction, generateTransferMarketAction } from "@/actions/season.actions";
 import type { TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { CareerSubStep, CurrentClub, ClubSummary, StatSnapshot } from "@/types/domain";
+import type { ContractOfferCard } from "@/features/transfer/services/transfer.service";
+import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import type { SetStateAction } from "react";
 
 interface StatEvolutionFlowProps {
   currentStats: Record<string, number>;
-  currentClub: any;
+  currentClub: CurrentClub | null;
   currentOvr: number;
   position: string;
   currentAge: number;
   playerDebutAge: number;
   playerCareerLength: number;
-  yearSimResult: any;
+  yearSimResult: SimulatedSeasonResult | null;
   yearEvolution: { direction: "increase" | "decrease" | "maintain" | null; count: number | null };
   selectorIndex: number;
   tempSelectedStat: string | null;
@@ -27,22 +31,23 @@ interface StatEvolutionFlowProps {
   currentWageAnnual: number;
   willingToMove: boolean;
   isUnemployed: boolean;
-  clubs: any[];
+  clubs: ClubSummary[];
   influenceScore: number;
-  setYearEvolution: (fn: (prev: any) => any) => void;
+  setYearEvolution: (fn: SetStateAction<{ direction: "increase" | "decrease" | "maintain" | null; count: number | null }>) => void;
   setSelectorIndex: (v: number) => void;
   setTempSelectedStat: (v: string | null) => void;
   setSelectedStatsList: (fn: (prev: string[]) => string[]) => void;
   setEvolvedStatsThisYear: (v: { stat: string; delta: number }[]) => void;
-  setCareerSubStep: (v: any) => void;
+  setCareerSubStep: (v: CareerSubStep) => void;
   setIsProcessing: (v: boolean) => void;
-  setTransferOffer: (v: any) => void;
+  setTransferOffer: (v: ContractOfferCard | null) => void;
   setTransferMarket: (v: TransferMarketResult | null) => void;
   setMarketValue: (v: number) => void;
   setBallonDorRank: (v: number | null) => void;
   setHasBallonDorWinner: (v: boolean) => void;
   setCurrentStats: (v: Record<string, number>) => void;
   setCurrentOvr: (v: number) => void;
+  setStatsTimeline: (fn: SetStateAction<StatSnapshot[]>) => void;
 }
 
 const COMPETITION_STEPS = new Set([
@@ -59,7 +64,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
   function resolveLeagueTier(): number {
     const leagueId = p.currentClub?.leagueId as string | undefined;
     if (!leagueId) return 1;
-    const sample = p.clubs.find((c: any) => c.leagueId === leagueId || c.id === p.currentClub?.id);
+    const sample = p.clubs.find((c) => c.leagueId === leagueId || c.id === p.currentClub?.id);
     return sample?.leagueTier ?? sample?.league?.tier ?? 1;
   }
 
@@ -71,14 +76,6 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
     overrideOvr?: number;
     overrideStats?: Record<string, number>;
   }) {
-    if (isFinalSeason()) {
-      p.setTransferOffer(null);
-      p.setTransferMarket(null);
-      p.setCareerSubStep("resolved");
-      p.setIsProcessing(false);
-      return;
-    }
-
     try {
       const retireAge = p.playerDebutAge + p.playerCareerLength;
       const unemployed = p.isUnemployed || !p.currentClub;
@@ -103,10 +100,29 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         influenceScore: p.influenceScore,
       });
 
+      // The season valuation is committed to the current season snapshot
+      // before the transfer UI is opened. Final-season players still receive
+      // a final market value; they simply do not open a transfer window.
+      p.setStatsTimeline((timeline) => timeline.map((snapshot) => (
+        snapshot.age === p.currentAge
+          ? {
+              ...snapshot,
+              marketValue: res.marketValue,
+              positionWeightedRating: res.valuation.positionWeightedRating,
+              effectivePositionOvr: res.valuation.effectivePositionOvr,
+            }
+          : snapshot
+      )));
       p.setTransferMarket(res);
       p.setMarketValue(res.marketValue);
-      p.setTransferOffer(res.inbound[0] ?? res.renewal ?? null);
-      p.setCareerSubStep("transfer");
+      if (isFinalSeason() || !res.hasWindow) {
+        p.setTransferOffer(null);
+        p.setTransferMarket(null);
+        p.setCareerSubStep("resolved");
+      } else {
+        p.setTransferOffer(res.inbound[0] ?? res.renewal ?? null);
+        p.setCareerSubStep("transfer");
+      }
     } catch (err) {
       console.error("Error checking transfer market:", err);
       p.setCareerSubStep("resolved");
@@ -115,7 +131,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
     }
   }
 
-  function handleSpinComplete(subStep: string, result: any) {
+  function handleSpinComplete(subStep: string, result: string | number) {
     if (COMPETITION_STEPS.has(subStep)) return;
 
     if (subStep === "dir_increase") {
@@ -151,12 +167,14 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
       p.setCareerSubStep("selector");
       p.setIsProcessing(false);
     } else if (subStep === "selector") {
-      p.setTempSelectedStat(result);
-      p.setSelectedStatsList((prev) => [...prev, result]);
+      const stat = typeof result === "string" ? result : "";
+      p.setTempSelectedStat(stat);
+      p.setSelectedStatsList((prev) => [...prev, stat]);
       p.setCareerSubStep("magnitude");
       p.setIsProcessing(false);
     } else if (subStep === "magnitude") {
-      const delta = p.yearEvolution.direction === "increase" ? result : -result;
+      const magnitude = typeof result === "number" ? result : 0;
+      const delta = p.yearEvolution.direction === "increase" ? magnitude : -magnitude;
       const evolutions = [...p.evolvedStatsThisYear, { stat: p.tempSelectedStat!, delta }];
       p.setEvolvedStatsThisYear(evolutions);
 

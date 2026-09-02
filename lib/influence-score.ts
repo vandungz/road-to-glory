@@ -8,7 +8,6 @@
  * relevance still pulls the blended score up/down season to season.
  */
 
-import { getCareerProgress } from "@/features/wheel/lib/simulation-helpers";
 
 // Verified persisted value (features/wheel/hooks/useCompetitionFlow.ts) — NOT the
 // raw wheel sentinel "called_up", which only exists transiently in client flow
@@ -127,6 +126,11 @@ export function computeLegacyScore(params: {
 }
 
 /** 0–100, recomputed fresh every checkpoint — never persisted as an input, only the final blend is cached. */
+function getCareerProgress(currentAge: number, debutAge: number, careerLength: number): number {
+  if (careerLength <= 0) return 1;
+  return Math.min(1, Math.max(0, (currentAge - debutAge) / careerLength));
+}
+
 export function computeCurrentFormIndex(params: {
   currentOvr: number;
   peakOvr: number;

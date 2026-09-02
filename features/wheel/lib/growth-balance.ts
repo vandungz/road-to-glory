@@ -17,7 +17,12 @@ import {
   isYoungByYears,
   isOldDualClock,
 } from "./simulation-helpers";
-import { FITNESS_COACH_SEVERITY_MULTIPLIER } from "@/lib/shop-catalog";
+import {
+  DEVELOPMENT_GATE_BONUS,
+  DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER,
+  DEVELOPMENT_SPECIALIST_WEIGHT_MULTIPLIER,
+  FITNESS_COACH_SEVERITY_MULTIPLIER,
+} from "@/lib/shop-catalog";
 
 export function getSoftCapFactor(ovr: number): number {
   if (ovr >= 99) return 0;
@@ -173,6 +178,7 @@ export function getEffectiveIncreaseGate(params: {
   seasonGoals?: number | null;
   seasonAssists?: number | null;
   seasonCleanSheets?: number | null;
+  eliteDevelopmentActive?: boolean;
 }): { yes: number; no: number } {
   const progressBand = getProgressBand(params.currentAge, params.debutAge, params.careerLength, params.position);
   const headroomBand = getHeadroomBand(params.currentOvr);
@@ -190,7 +196,11 @@ export function getEffectiveIncreaseGate(params: {
   const yesRaw = Math.max(YES_FLOOR, Math.min(YES_CEIL, Math.round(baseYes * formMul * kpiMul)));
 
   const softCap = getSoftCapFactor(params.currentOvr);
-  return applySoftCapToGate(yesRaw, 100 - yesRaw, softCap, params.currentOvr);
+  const gated = applySoftCapToGate(yesRaw, 100 - yesRaw, softCap, params.currentOvr);
+  if (!params.eliteDevelopmentActive || gated.yes <= 0) return gated;
+
+  const yes = Math.min(90, gated.yes + DEVELOPMENT_GATE_BONUS);
+  return { yes, no: Math.max(1, 100 - yes) };
 }
 
 export function getEffectiveDecreaseGate(params: {
@@ -310,6 +320,7 @@ export function getEffectiveMagnitudePool(params: {
   currentOvr: number;
   seasonApps?: number | null;
   fitnessCoachActive?: boolean;
+  eliteDevelopmentActive?: boolean;
 }): { value: number; weight: number }[] {
   const magTier = getMagnitudeTierForDirection(params.rating, params.isIncrease);
   let pool = getMagnitudePool(magTier, params.isIncrease);
@@ -324,6 +335,14 @@ export function getEffectiveMagnitudePool(params: {
       pool = blendWeightPools(pool, getMagnitudePool("kem", false), severity);
     }
   }
+  if (params.isIncrease && params.eliteDevelopmentActive) {
+    return pool.map((item) => ({
+      ...item,
+      weight: item.value >= 2
+        ? Math.max(1, Math.round(item.weight * DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER))
+        : item.weight,
+    }));
+  }
   return pool;
 }
 
@@ -335,8 +354,12 @@ export function getSelectorStatWeight(
   isMain: boolean,
   isIncrease: boolean,
   isOld: boolean,
+  eliteDevelopmentActive = false,
 ): number {
   if (isIncrease || !isOld) {
+    if (isIncrease && eliteDevelopmentActive && isMain) {
+      return Math.round(25 * DEVELOPMENT_SPECIALIST_WEIGHT_MULTIPLIER);
+    }
     return isMain ? 25 : 10;
   }
   // Late decline: weight main stats higher when cutting

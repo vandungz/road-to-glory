@@ -1,205 +1,40 @@
 "use client";
 
 import React from "react";
-import { Shield, Trophy, TrendingUp } from "lucide-react";
+import { ChevronRight, Trophy } from "lucide-react";
 import type { SeasonRecord } from "@/types/game";
 
-interface ClubStintItem {
-  clubName: string;
-  leagueName?: string;
-  startAge: number;
-  endAge?: number;
-  trophies?: string[];
-}
+interface ClubStintItem { clubName: string; leagueName?: string; startAge: number; endAge?: number; trophies?: string[]; }
+interface StoryRailProps { clubStints?: ClubStintItem[]; seasonRecords?: Record<number, SeasonRecord>; currentAge: number; playerDebutAge: number; currentOvr: number; peakOvrValue?: number; onOpenTrophyCabinet?: () => void; className?: string; style?: React.CSSProperties; }
 
-interface StoryRailProps {
-  clubStints?: ClubStintItem[];
-  seasonRecords?: Record<number, SeasonRecord>;
-  currentAge: number;
-  playerDebutAge: number;
-  currentOvr: number;
-  peakOvrValue?: number;
-  onOpenTrophyCabinet?: () => void;
-  className?: string;
-  style?: React.CSSProperties;
-}
-
-export function StoryRail({
-  clubStints = [],
-  seasonRecords = {},
-  currentAge,
-  playerDebutAge,
-  currentOvr,
-  peakOvrValue,
-  onOpenTrophyCabinet,
-  className = "hidden lg:flex",
-  style = {},
-}: StoryRailProps) {
+export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, playerDebutAge, currentOvr, peakOvrValue, onOpenTrophyCabinet, className = "hidden lg:flex", style = {} }: StoryRailProps) {
   let totalTrophies = 0;
   let ballonDorCount = 0;
-  const displayPeakOvr = peakOvrValue ?? currentOvr;
-
-  Object.values(seasonRecords).forEach((rec) => {
-    if (rec.standing === 1) totalTrophies++;
-    if (rec.domesticCup === "Winner") totalTrophies++;
-    if (rec.continentalCup?.result === "Winner") totalTrophies++;
-    if (rec.nationalTeam?.result === "Winner") totalTrophies++;
-    if (rec.ballonDorResult === 1 || rec.achievements?.ballonDor) ballonDorCount++;
+  Object.values(seasonRecords).forEach((record) => {
+    totalTrophies += Number(record.standing === 1) + Number(record.domesticCup === "Winner") + Number(record.continentalCup?.result === "Winner") + Number(record.nationalTeam?.result === "Winner");
+    ballonDorCount += Number(record.ballonDorResult === 1 || record.achievements?.ballonDor);
   });
-
   const totalSeasons = Math.max(1, currentAge - playerDebutAge + 1);
-
-  return (
-    <aside
-      className={className}
-      style={{
-        display: "flex",
-        width: "100%",
-        height: "100%",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        gap: "16px",
-        backgroundColor: "var(--white)",
-        border: "2px solid var(--charcoal)",
-        borderRadius: "4px",
-        boxShadow: "3px 3px 0 var(--charcoal)",
-        padding: "16px",
-        maxHeight: "100%",
-        overflowY: "auto",
-        boxSizing: "border-box",
-        ...style,
-      }}
-    >
-      {/* HEADER */}
-      <div style={{ borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "8px" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-stamp)",
-            fontSize: "0.55rem",
-            color: "var(--ink-gray)",
-            fontWeight: 700,
-            letterSpacing: "0.1em",
-            textTransform: "uppercase",
-          }}
-        >
-          NHẬT KÝ SỰ NGHIỆP
-        </span>
-        <h3
-          style={{
-            fontFamily: "var(--font-headline)",
-            fontSize: "1.1rem",
-            fontWeight: 900,
-            color: "var(--charcoal)",
-            margin: 0,
-            lineHeight: 1.1,
-          }}
-        >
-          HÀNH TRÌNH SỰ NGHIỆP
-        </h3>
-      </div>
-
-      {/* PEAK OVR & TROPHY CABINET HIGHLIGHT CARD */}
-      <div
-        onClick={onOpenTrophyCabinet}
-        style={{
-          backgroundColor: "#1f1a14",
-          border: "1.5px solid #D4960D",
-          borderRadius: "4px",
-          padding: "12px 14px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          boxShadow: "2px 2px 0 var(--charcoal)",
-          cursor: "pointer",
-          transition: "transform 0.15s ease",
-          boxSizing: "border-box",
-        }}
-        onMouseEnter={(e) => (e.currentTarget.style.transform = "translateY(-1px)")}
-        onMouseLeave={(e) => (e.currentTarget.style.transform = "translateY(0)")}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-          <Trophy size={22} color="#D4960D" />
-          <div>
-            <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "#D4960D", textTransform: "uppercase", letterSpacing: "0.1em" }}>
-              OVR ĐỈNH CAO ⚡ {displayPeakOvr}
-            </span>
-            <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.88rem", fontWeight: 800, color: "var(--cream)", marginTop: "1px" }}>
-              TỦ DANH HIỆU →
-            </div>
-          </div>
-        </div>
-        <div style={{ textAlign: "right" }}>
-          <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.25rem", fontWeight: 900, color: "#D4960D", lineHeight: 1 }}>
-            🏆 {totalTrophies}
-          </div>
-          {ballonDorCount > 0 && (
-            <span style={{ fontSize: "0.68rem", color: "var(--cream)", opacity: 0.9 }}>🏅 {ballonDorCount} QBV</span>
-          )}
-        </div>
-      </div>
-
-      {/* CLUB STINTS TIMELINE */}
-      <div style={{ display: "flex", flexDirection: "column", gap: "8px", flex: 1, overflow: "hidden" }}>
-        <span
-          style={{
-            fontFamily: "var(--font-headline)",
-            fontSize: "0.8rem",
-            fontWeight: 700,
-            color: "var(--charcoal)",
-            display: "flex",
-            alignItems: "center",
-            gap: "4px",
-          }}
-        >
-          <Shield size={14} color="var(--charcoal)" /> CÁC CLB ĐÃ THI ĐẤU
-        </span>
-
-        <div style={{ display: "flex", flexDirection: "column", gap: "6px", overflowY: "auto", flex: 1 }}>
-          {clubStints.length === 0 ? (
-            <p style={{ fontFamily: "var(--font-body)", fontSize: "0.75rem", color: "var(--ink-gray)", margin: 0 }}>
-              Đang khởi đầu sự nghiệp...
-            </p>
-          ) : (
-            clubStints.map((stint, idx) => (
-              <div
-                key={idx}
-                style={{
-                  padding: "6px 8px",
-                  borderLeft: "3px solid #266b3e",
-                  backgroundColor: "var(--cream)",
-                  fontSize: "0.75rem",
-                  borderRadius: "0 3px 3px 0",
-                }}
-              >
-                <div style={{ fontWeight: 700, fontFamily: "var(--font-headline)", fontSize: "0.82rem" }}>
-                  {stint.clubName}
-                </div>
-                <div style={{ color: "var(--ink-gray)", fontSize: "0.68rem", fontFamily: "var(--font-stamp)" }}>
-                  Tuổi {stint.startAge} {stint.endAge ? `→ ${stint.endAge}` : "(Hiện tại)"}
-                </div>
-              </div>
-            ))
-          )}
-        </div>
-      </div>
-
-      {/* CAREER TOTALS SUMMARY */}
-      <div
-        style={{
-          borderTop: "1.5px dashed var(--charcoal)",
-          paddingTop: "10px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: "0.72rem",
-          fontFamily: "var(--font-stamp)",
-          opacity: 0.85,
-        }}
-      >
-        <span>ĐÃ ĐÁ: <strong>{totalSeasons} MÙA</strong></span>
-        <span>CLB: <strong>{clubStints.length || 1}</strong></span>
-        <span>DANH HIỆU: <strong>{totalTrophies}</strong></span>
-      </div>
-    </aside>
-  );
+  return <aside className={`rtg-story-rail ${className}`.trim()} style={style}>
+    <header className="rtg-story-rail__header"><span className="rtg-eyebrow">Nhật ký sự nghiệp</span><h2>{totalSeasons} mùa đã đi qua</h2></header>
+    <section className="rtg-story-rail__summary" aria-label="Tóm tắt sự nghiệp">
+      <div><span>OVR đỉnh cao</span><strong>{peakOvrValue ?? currentOvr}</strong></div>
+      <div><span>Danh hiệu</span><strong>{totalTrophies}</strong></div>
+    </section>
+    <section className="rtg-story-rail__clubs">
+      <span className="rtg-eyebrow">Các câu lạc bộ</span>
+      {clubStints.length === 0 ? <p className="rtg-modal-note">Đang khởi đầu sự nghiệp.</p> : clubStints.map((stint, index) => {
+        const isCurrent = index === clubStints.length - 1;
+        return <div className={`rtg-story-rail__club${isCurrent ? " is-current" : ""}`} key={`${stint.clubName}-${index}`}>
+          <i aria-hidden="true" />
+          <div><strong>{stint.clubName}</strong><small>{stint.leagueName ?? ""} · tuổi {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : " · hiện tại"}</small></div>
+        </div>;
+      })}
+    </section>
+    <button type="button" className="rtg-story-rail__honours" onClick={onOpenTrophyCabinet}>
+      <span><Trophy size={14} aria-hidden="true" /> Tủ danh hiệu</span>
+      <strong>{totalTrophies}</strong><ChevronRight size={14} aria-hidden="true" />
+      {ballonDorCount > 0 && <small>{ballonDorCount} QBV</small>}
+    </button>
+  </aside>;
 }

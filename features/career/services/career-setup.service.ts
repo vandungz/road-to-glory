@@ -4,9 +4,11 @@ import { calculateOvrByPosition } from "@/lib/wheel-engine/weight-calculator";
 import {
   clampContractYears,
   computeMarketValue,
+  computePositionValueSnapshot,
   proposeContractYears,
   proposeWageAnnual,
 } from "@/lib/transfer-economy";
+import type { StatSnapshot } from "@/types/domain";
 
 export interface DraftDataInput {
   nationality: string;
@@ -56,7 +58,7 @@ export interface CareerSetupResult {
   };
   initStint: StintInfo;
   initStats: Record<string, number>;
-  initTimeline: any[];
+  initTimeline: StatSnapshot[];
   contractYearsTotal: number;
   contractYearsRemaining: number;
   currentWageAnnual: number;
@@ -111,7 +113,10 @@ export function startPlayerCareerService(
     age: draftData.debutAge,
     matchRating: 6.8,
     contractYearsRemaining,
+    position: draftData.position,
+    currentStats: initStats,
   });
+  const valuation = computePositionValueSnapshot(draftData.position, initStats, debutOvr);
 
   const initStint: StintInfo = {
     clubId: draftData.clubId,
@@ -129,6 +134,9 @@ export function startPlayerCareerService(
     {
       age: draftData.debutAge,
       ovr: debutOvr,
+      marketValue,
+      positionWeightedRating: valuation.positionWeightedRating,
+      effectivePositionOvr: valuation.effectivePositionOvr,
       ...initStats,
     },
   ];

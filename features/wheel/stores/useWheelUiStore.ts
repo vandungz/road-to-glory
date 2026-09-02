@@ -39,7 +39,7 @@ interface WheelUiState {
   setStep: (step: number) => void;
   startSpin: () => void;
   stopSpin: () => void;
-  resolveStep: (step: number, value: any, position?: string) => void;
+  resolveStep: (step: number, value: unknown, position?: string) => void;
   resetDraft: () => void;
 }
 

@@ -15,6 +15,8 @@ import {
   getSelectorStatWeight,
 } from "../lib/growth-balance";
 import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
+import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import type { CurrentClub } from "@/types/domain";
 import {
   buildStandingPool,
   buildDomesticCupPool,
@@ -33,14 +35,14 @@ interface UseCareerWheelItemsProps {
   playerDebutAge: number;
   playerCareerLength: number;
   playerNationality: string;
-  currentClub: any;
+  currentClub: CurrentClub | null;
   currentOvr: number;
   leagueSize: number;
   lastYearStanding: number;
   standingResult?: number | null;
   selectedStatsList: string[];
   position: string;
-  yearSimResult: any;
+  yearSimResult: SimulatedSeasonResult | null;
   selectorIndex: number;
   yearEvolutionDirection?: "increase" | "decrease" | "maintain" | null;
   currentStats: Record<string, number>;
@@ -49,6 +51,8 @@ interface UseCareerWheelItemsProps {
   luckRating?: number;
   /** docs/core-currency-shop-design.md §6.2 — must equal the resolve's value (career-wheel-resolver.ts). */
   fitnessCoachActive?: boolean;
+  nationalCallupBoostActive?: boolean;
+  eliteDevelopmentActive?: boolean;
 }
 
 export function useCareerWheelItems({
@@ -75,8 +79,10 @@ export function useCareerWheelItems({
   ballonDorRankWeights,
   luckRating = 10,
   fitnessCoachActive,
+  nationalCallupBoostActive,
+  eliteDevelopmentActive,
 }: UseCareerWheelItemsProps) {
-  const [careerWheelItems, setCareerWheelItems] = useState<{ label: string; value: any; weight?: number }[]>([]);
+  const [careerWheelItems, setCareerWheelItems] = useState<{ label: string; value: string | number; weight?: number }[]>([]);
 
   useEffect(() => {
     if (!isMounted || mode !== "career") return;
@@ -96,8 +102,9 @@ export function useCareerWheelItems({
       playerNationality,
       standingResult,
       position,
+      nationalCallupBoostActive,
     };
-    let items: { label: string; value: any; weight?: number }[] = [];
+    let items: { label: string; value: string | number; weight?: number }[] = [];
 
     switch (careerSubStep) {
       case "dir_increase": {
@@ -108,6 +115,7 @@ export function useCareerWheelItems({
           seasonGoals: yearSimResult?.goals ?? null,
           seasonAssists: yearSimResult?.assists ?? null,
           seasonCleanSheets: yearSimResult?.cleanSheets ?? null,
+          eliteDevelopmentActive,
         });
         items = [
           { label: "TĂNG CHỈ SỐ (YES)", value: "yes", weight: yesW },
@@ -145,6 +153,7 @@ export function useCareerWheelItems({
           debutAge: playerDebutAge, careerLength: playerCareerLength, currentOvr,
           seasonApps: yearSimResult?.apps ?? null,
           fitnessCoachActive,
+          eliteDevelopmentActive,
         });
         items = pool.map((p) => ({ label: `${p.value} Điểm`, value: p.value, weight: p.weight }));
         break;
@@ -179,14 +188,14 @@ export function useCareerWheelItems({
         items = available.map((c) => ({
           value: c.key,
           label: c.name.toUpperCase(),
-          weight: getSelectorStatWeight(mainStats.includes(c.key), !!isIncrease, isOld),
+          weight: getSelectorStatWeight(mainStats.includes(c.key), !!isIncrease, isOld, eliteDevelopmentActive),
         }));
         break;
       }
       case "standing": {
         const standingPool = buildStandingPool(teamCtx);
         items = standingPool.map((x) => ({
-          label: x.value === 1 ? "🏆 VÔ ĐỊCH (HẠNG 1)" : x.value === 2 ? "🥈 Á QUÂN (HẠNG 2)" : `HẠNG ${x.value}`,
+          label: x.value === 1 ? "VÔ ĐỊCH (HẠNG 1)" : x.value === 2 ? "Á QUÂN (HẠNG 2)" : `HẠNG ${x.value}`,
           value: x.value,
           weight: x.weight,
         }));
@@ -196,12 +205,12 @@ export function useCareerWheelItems({
         const pool = buildDomesticCupPool(teamCtx);
         items = pool.map((p) => ({
           label:
-            p.value === "Winner" ? "🏆 VÔ ĐỊCH CUP" :
-            p.value === "Runner-Up" ? "🥈 Á QUÂN CUP" :
-            p.value === "Semi-Finals" ? "🥉 BÁN KẾT" :
-            p.value === "Quarter-Finals" ? "⚡ TỨ KẾT" :
-            p.value === "Round of 16" ? "🛡️ VÒNG 1/8" :
-            p.value === "Round of 32" ? "⚽ VÒNG 1/16" : "❌ BỊ LOẠI SỚM",
+            p.value === "Winner" ? "VÔ ĐỊCH CUP" :
+            p.value === "Runner-Up" ? "Á QUÂN CUP" :
+            p.value === "Semi-Finals" ? "BÁN KẾT" :
+            p.value === "Quarter-Finals" ? "TỨ KẾT" :
+            p.value === "Round of 16" ? "VÒNG 1/8" :
+            p.value === "Round of 32" ? "VÒNG 1/16" : "BỊ LOẠI SỚM",
           value: p.value,
           weight: p.weight,
         }));
@@ -212,11 +221,11 @@ export function useCareerWheelItems({
         const pool = buildContinentalCupPool(teamCtx);
         items = pool.map((p) => ({
           label:
-            p.value === "Winner" ? `🏆 VÔ ĐỊCH ${nameLabel}` :
-            p.value === "Runner-Up" ? `🥈 Á QUÂN ${nameLabel}` :
-            p.value === "Semi-Finals" ? `🥉 BÁN KẾT` :
-            p.value === "Quarter-Finals" ? `⚡ TỨ KẾT` :
-            p.value === "Round of 16" ? `🛡️ VÒNG 1/8` : `❌ VÒNG BẢNG`,
+            p.value === "Winner" ? `VÔ ĐỊCH ${nameLabel}` :
+            p.value === "Runner-Up" ? `Á QUÂN ${nameLabel}` :
+            p.value === "Semi-Finals" ? `BÁN KẾT` :
+            p.value === "Quarter-Finals" ? `TỨ KẾT` :
+            p.value === "Round of 16" ? `VÒNG 1/8` : `VÒNG BẢNG`,
           value: p.value,
           weight: p.weight,
         }));
@@ -234,15 +243,15 @@ export function useCareerWheelItems({
       case "ballon_dor_nomination": {
         const w = ballonDorNominationWeight;
         items = [
-          { label: "ĐƯỢC ĐỀ CỬ TOP 10! 🏅", value: "yes", weight: w },
+          { label: "ĐƯỢC ĐỀ CỬ TOP 10", value: "yes", weight: w },
           { label: "Chưa được xét năm này", value: "no", weight: 100 - w },
         ];
         break;
       }
       case "ballon_dor_ranking": {
         const rankLabels = [
-          "🏆 HẠNG #1 — BALLON D'OR!",
-          "🥈 Hạng #2", "🥉 Hạng #3",
+          "HẠNG #1 — BALLON D'OR!",
+          "Hạng #2", "Hạng #3",
           "Hạng #4", "Hạng #5",
           "Hạng #6", "Hạng #7",
           "Hạng #8", "Hạng #9", "Hạng #10",
@@ -261,11 +270,11 @@ export function useCareerWheelItems({
         const pool = buildNationalTournamentPool(teamCtx);
         items = pool.map((p) => ({
           label:
-            p.value === "Winner" ? `🏆 VÔ ĐỊCH ${tourneyName}` :
-            p.value === "Runner-Up" ? `🥈 Á QUÂN ${tourneyName}` :
-            p.value === "Semi-Finals" ? `🥉 BÁN KẾT` :
-            p.value === "Quarter-Finals" ? `⚡ TỨ KẾT` :
-            p.value === "Round of 16" ? `🛡️ VÒNG 1/8` : `❌ VÒNG BẢNG`,
+            p.value === "Winner" ? `VÔ ĐỊCH ${tourneyName}` :
+            p.value === "Runner-Up" ? `Á QUÂN ${tourneyName}` :
+            p.value === "Semi-Finals" ? `BÁN KẾT` :
+            p.value === "Quarter-Finals" ? `TỨ KẾT` :
+            p.value === "Round of 16" ? `VÒNG 1/8` : `VÒNG BẢNG`,
           value: p.value,
           weight: p.weight,
         }));
@@ -278,7 +287,7 @@ export function useCareerWheelItems({
     playerCareerLength, playerNationality, currentClub, currentOvr, leagueSize,
     lastYearStanding, standingResult, selectedStatsList, position, yearSimResult,
     selectorIndex, yearEvolutionDirection, currentStats, ballonDorNominationWeight,
-    ballonDorRankWeights, luckRating, fitnessCoachActive,
+    ballonDorRankWeights, luckRating, fitnessCoachActive, nationalCallupBoostActive, eliteDevelopmentActive,
   ]);
 
   return { careerWheelItems, setCareerWheelItems };

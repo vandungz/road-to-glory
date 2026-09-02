@@ -7,38 +7,40 @@ import {
   generateLeagueTableAction,
   generateCupJourneyAction,
 } from "@/actions/season.actions";
-import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
 import type { ModalType } from "./useDraftDrum";
+import type { CareerSubStep, CurrentClub, HiddenStats } from "@/types/domain";
+import type { SeasonRecord } from "@/types/game";
+import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 
 interface CompetitionFlowProps {
+  playerId: string | null;
   currentAge: number;
   currentOvr: number;
   position: string;
-  currentClub: any;
+  currentClub: CurrentClub;
   currentContinentalCup: string;
   playerNationality: string;
   playerDebutAge: number;
-  hiddenStats: any;
+  hiddenStats: HiddenStats | null;
   currentStats: Record<string, number>;
   standingResult: number | null;
   domesticCupResult: string | null;
   continentalCupResult: string | null;
   nationalCallupResult: string | null;
-  yearSimResult: any;
-  shopInventory: ShopInventoryEntry[];
+  yearSimResult: SimulatedSeasonResult | null;
   setStandingResult: (v: number | null) => void;
   setDomesticCupResult: (v: string | null) => void;
   setContinentalCupResult: (v: string | null) => void;
   setNationalCallupResult: (v: string | null) => void;
   setNationalTournamentResult: (v: string | null) => void;
-  setCareerSubStep: (v: any) => void;
+  setCareerSubStep: (v: CareerSubStep) => void;
   setIsProcessing: (v: boolean) => void;
   setActiveModal: (v: ModalType) => void;
-  setYearSimResult: (v: any) => void;
+  setYearSimResult: (v: SimulatedSeasonResult | null) => void;
   setBallonDorNominationWeight: (v: number) => void;
   setBallonDorRankWeights: (v: number[]) => void;
-  applySimResultToRecords: (age: number, result: any) => void;
-  setSeasonRecords: (fn: (prev: any) => any) => void;
+  applySimResultToRecords: (age: number, result: SimulatedSeasonResult) => void;
+  setSeasonRecords: (fn: (prev: Record<number, SeasonRecord>) => Record<number, SeasonRecord>) => void;
   checkNationalCallupTransition: () => "national_callup" | "trigger_stats";
 }
 
@@ -57,12 +59,9 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         )
       : null;
 
-    // docs/core-currency-shop-design.md §6.2 — "Training Camp": general per-season buff,
-    // no conditional gating (bought at season start, applies to that season).
-    const trainingCampActive = isShopItemActiveForSeason(p.shopInventory, "training_camp", p.currentAge);
-
     try {
       const simRes = await simulatePlayerSeasonAction({
+        playerId: p.playerId,
         age: p.currentAge,
         ovr: p.currentOvr,
         position: p.position,
@@ -81,7 +80,6 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         nationalCallupResult: callup,
         nationalTournamentResult: tournament,
         nationalTournamentType,
-        trainingCampActive,
       });
 
       p.setYearSimResult(simRes);
@@ -107,7 +105,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     }
   }
 
-  function handleSpinComplete(subStep: string, result: any) {
+  function handleSpinComplete(subStep: string, result: string | number) {
     if (subStep === "standing") {
       const standingVal = result as number;
       p.setStandingResult(standingVal);

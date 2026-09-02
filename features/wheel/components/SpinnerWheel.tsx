@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useMotionValue, animate } from "framer-motion";
-import { useEffect, useRef, useState, useMemo } from "react";
+import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 // ============================================================
 // PROPS
@@ -9,7 +9,7 @@ import { useEffect, useRef, useState, useMemo } from "react";
 
 export interface SpinnerItem {
   label: string;
-  value: any;
+  value: unknown;
   weight?: number;
 }
 
@@ -26,14 +26,8 @@ interface Props {
 // ============================================================
 
 const SLICE_COLORS = [
-  "#FF5A43", // Coral Red
-  "#3B82F6", // Blue
-  "#10B981", // Green
-  "#F59E0B", // Yellow
-  "#8B5CF6", // Purple
-  "#EC4899", // Pink
-  "#14B8A6", // Teal
-  "#6366F1", // Indigo
+  "#E8502F", "#3D6EA8", "#2F7A5C", "#A97A18",
+  "#635399", "#9C3F6E", "#25736D", "#454E96",
 ];
 
 // ============================================================
@@ -74,33 +68,50 @@ function getLabelAtAngle(
 
 export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low" }: Props) {
   const rotateValue = useMotionValue(0);
-  const [activeLabel, setActiveLabel] = useState<string>(() => items[0]?.label ?? "");
+  const itemSignature = useMemo(
+    () => items.map((item) => `${item.label}\u0000${item.weight ?? 1}`).join("\u0001"),
+    [items],
+  );
+  const stableItemsRef = useRef(items);
+  const stableSignatureRef = useRef(itemSignature);
+  if (stableSignatureRef.current !== itemSignature) {
+    stableSignatureRef.current = itemSignature;
+    stableItemsRef.current = items;
+  }
+  const stableItems = stableItemsRef.current;
+  const [activeLabel, setActiveLabel] = useState<string>(() => stableItems[0]?.label ?? "");
+  const activeLabelRef = useRef(activeLabel);
 
-  const { arcSizes, startAngles } = useMemo(() => computeArcs(items), [items]);
+  const { arcSizes, startAngles } = useMemo(() => computeArcs(stableItems), [stableItems]);
+  const setLiveLabel = useCallback((nextLabel: string) => {
+    if (activeLabelRef.current === nextLabel) return;
+    activeLabelRef.current = nextLabel;
+    setActiveLabel(nextLabel);
+  }, []);
 
   const onSpinCompleteRef = useRef(onSpinComplete);
   useEffect(() => { onSpinCompleteRef.current = onSpinComplete; });
 
   // Sync active label on items change (substep changed)
   useEffect(() => {
-    if (items.length === 0) return;
+    if (stableItems.length === 0) return;
     const r = rotateValue.get();
     const pointerAngle = ((90 - (r % 360)) % 360 + 360) % 360;
-    setActiveLabel(getLabelAtAngle(pointerAngle, items, startAngles, arcSizes));
-  }, [items, startAngles, arcSizes]);
+    setLiveLabel(getLabelAtAngle(pointerAngle, stableItems, startAngles, arcSizes));
+  }, [stableItems, startAngles, arcSizes, rotateValue, setLiveLabel]);
 
   // Subscribe to rotation → update live label
   useEffect(() => {
     const unsubscribe = rotateValue.on("change", (r) => {
       const pointerAngle = ((90 - (r % 360)) % 360 + 360) % 360;
-      setActiveLabel(getLabelAtAngle(pointerAngle, items, startAngles, arcSizes));
+      setLiveLabel(getLabelAtAngle(pointerAngle, stableItems, startAngles, arcSizes));
     });
     return () => unsubscribe();
-  }, [rotateValue, items, startAngles, arcSizes]);
+  }, [rotateValue, stableItems, startAngles, arcSizes, setLiveLabel]);
 
   // Trigger animation
   useEffect(() => {
-    if (!isSpinning || targetIndex < 0 || targetIndex >= items.length) return;
+    if (!isSpinning || targetIndex < 0 || targetIndex >= stableItems.length) return;
 
     const targetMidAngle = startAngles[targetIndex] + arcSizes[targetIndex] / 2;
     const rotationToTarget = ((90 - targetMidAngle) % 360 + 360) % 360;
@@ -115,80 +126,35 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
     });
 
     return () => anim.stop();
-  }, [isSpinning, targetIndex]);
-
-  const wheelBorder =
-    stakes === "high"
-      ? "4px solid #D4960D"
-      : stakes === "mid"
-      ? "4px solid #266b3e"
-      : "4px solid var(--charcoal)";
-
-  const wheelShadow =
-    stakes === "high"
-      ? "0 0 12px rgba(212,150,13,0.5), 4px 4px 0 var(--charcoal)"
-      : "4px 4px 0 var(--charcoal)";
+  }, [isSpinning, targetIndex, startAngles, arcSizes, stableItems.length, rotateValue]);
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "10px", width: "100%" }}>
+    <div className={`rtg-spinner-wheel rtg-spinner-wheel--${stakes}`}>
 
       {/* ── LIVE LABEL ── */}
       <div
         aria-live="polite"
         aria-atomic="true"
-        style={{
-          minHeight: "38px",
-          width: "100%",
-          maxWidth: "340px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          backgroundColor: stakes === "high" ? "#1f1a14" : "var(--white)",
-          border: stakes === "high" ? "2px solid #D4960D" : "2px solid var(--charcoal)",
-          borderRadius: "3px",
-          boxShadow: stakes === "high" ? "2px 2px 0 #D4960D" : "2px 2px 0 var(--charcoal)",
-          padding: "6px 16px",
-          overflow: "hidden",
-        }}
+        className="rtg-spinner-wheel__label"
       >
         <span
-          style={{
-            fontFamily: "var(--font-headline)",
-            fontSize: "0.85rem",
-            fontWeight: 700,
-            letterSpacing: "0.07em",
-            textTransform: "uppercase",
-            color: stakes === "high" ? "#D4960D" : "var(--charcoal)",
-            textAlign: "center",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-            maxWidth: "100%",
-          }}
+          className="rtg-spinner-wheel__label-text"
         >
           {activeLabel || "—"}
         </span>
       </div>
 
       {/* ── WHEEL + POINTER WRAPPER ── */}
-      <div style={{ position: "relative", width: "100%", maxWidth: "380px", aspectRatio: "1 / 1", margin: "0 auto", display: "flex", alignItems: "center", justifyContent: "center" }}>
+      <div className="rtg-spinner-wheel__stage">
 
         {/* ── SPINNER WHEEL (ROTATE DIV) ── */}
         <motion.div
-          style={{
-            rotate: rotateValue,
-            width: "340px",
-            height: "340px",
-            borderRadius: "50%",
-            overflow: "hidden",
-            border: wheelBorder,
-            boxShadow: wheelShadow,
-            backgroundColor: "var(--white)",
-          }}
+          className="rtg-spinner-wheel__disc"
+          style={{ rotate: rotateValue }}
         >
           <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%" }}>
             <g>
-              {items.map((item, idx) => {
+              {stableItems.map((item, idx) => {
                 const startAngle = startAngles[idx];
                 const arcSize = arcSizes[idx];
                 const endAngle = startAngle + arcSize;
@@ -208,16 +174,16 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
 
                 // Text: center of arc, radial orientation
                 const textAngle = startAngle + arcSize / 2;
-                const showText  = arcSize >= 18;
-                const fontSize  = arcSize >= 50 ? "0.72rem" : arcSize >= 30 ? "0.58rem" : "0.45rem";
+                const showText  = stableItems.length <= 10 || arcSize >= 10;
+                const fontSize  = arcSize >= 50 ? "0.72rem" : arcSize >= 30 ? "0.58rem" : arcSize >= 16 ? "0.45rem" : "0.32rem";
 
                 return (
                   <g key={idx}>
                     <path
                       d={d}
                       fill={color}
-                      stroke="var(--charcoal)"
-                      strokeWidth="1.2"
+                      stroke="rgba(244,241,234,0.8)"
+                      strokeWidth="0.6"
                     />
                     {showText && (
                       <g transform={`rotate(${textAngle}, 100, 100)`}>
@@ -232,10 +198,6 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
                             fontWeight: 700,
                             letterSpacing: "0.04em",
                             textTransform: "uppercase",
-                            paintOrder: "stroke fill",
-                            stroke: "var(--charcoal)",
-                            strokeWidth: "2px",
-                            strokeLinejoin: "round",
                           }}
                           transform="rotate(90, 100, 40)"
                         >
@@ -249,26 +211,17 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
             </g>
 
             {/* Center pin */}
-            <circle cx="100" cy="100" r="20" fill="var(--white)" stroke="var(--charcoal)" strokeWidth="3.5" />
-            <circle cx="100" cy="100" r="6"  fill="var(--charcoal)" />
+            <circle cx="100" cy="100" r="18" fill="#F4F1EA" stroke="#21201D" strokeWidth="1.2" />
+            <circle cx="100" cy="100" r="5" fill="#21201D" />
           </svg>
         </motion.div>
 
         {/* ── POINTER (right side, 3 o'clock) ── */}
         <div
-          style={{
-            position: "absolute",
-            right: "12px",
-            top: "50%",
-            transform: "translateY(-50%)",
-            zIndex: 10,
-            pointerEvents: "none",
-            filter: "drop-shadow(2px 2px 0 var(--charcoal))",
-          }}
+          className="rtg-spinner-wheel__pointer"
         >
           <svg width="28" height="24" viewBox="0 0 28 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <polygon points="0,12 24,0 24,24" fill="#3B82F6" stroke="var(--charcoal)" strokeWidth="2.5" strokeLinejoin="round" />
-            <polygon points="4,12 21,3 21,21" fill="rgba(255,255,255,0.15)" />
+            <polygon points="0,12 24,0 24,24" fill="var(--rtg-ink)" stroke="var(--rtg-ink)" strokeWidth="1.2" strokeLinejoin="round" />
           </svg>
         </div>
 

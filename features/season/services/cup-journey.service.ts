@@ -70,7 +70,7 @@ export function generateDomesticCupJourneyService(params: {
   if (result === "Early Exit") {
     const opp = getRandomOpp();
     const score = generateCupScore(false, playerClubPrestige, opp.prestige);
-    journey.push(`Vòng 1/32: ${score} trước CLB ${opp.name} (Bị loại sớm) ❌`);
+    journey.push(`Vòng 1/32: ${score} trước CLB ${opp.name} (Bị loại sớm)`);
     return journey;
   }
 
@@ -82,7 +82,7 @@ export function generateDomesticCupJourneyService(params: {
   if (result === "Round of 32") {
     opp = getRandomOpp();
     score = generateCupScore(false, playerClubPrestige, opp.prestige);
-    journey.push(`Vòng 1/16: ${score} trước CLB ${opp.name} (Dừng bước) ❌`);
+    journey.push(`Vòng 1/16: ${score} trước CLB ${opp.name} (Dừng bước)`);
     return journey;
   }
 
@@ -94,7 +94,7 @@ export function generateDomesticCupJourneyService(params: {
   if (result === "Round of 16") {
     opp = getRandomOpp();
     score = generateCupScore(false, playerClubPrestige, opp.prestige);
-    journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name} (Dừng bước) ❌`);
+    journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name} (Dừng bước)`);
     return journey;
   }
 
@@ -118,7 +118,7 @@ export function generateDomesticCupJourneyService(params: {
   if (result === "Semi-Finals") {
     opp = getRandomOpp();
     score = generateCupScore(false, playerClubPrestige, opp.prestige);
-    journey.push(`Bán Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Bán Kết) 🥉`);
+    journey.push(`Bán Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Bán Kết)`);
     return journey;
   }
 
@@ -132,9 +132,9 @@ export function generateDomesticCupJourneyService(params: {
   const isWin = result === "Winner";
   score = generateCupScore(isWin, playerClubPrestige, opp.prestige);
   if (isWin) {
-    journey.push(`Chung Kết: ${score} trước CLB ${opp.name} 🏆 VÔ ĐỊCH!`);
+    journey.push(`Chung Kết: ${score} trước CLB ${opp.name} — VÔ ĐỊCH!`);
   } else {
-    journey.push(`Chung Kết: ${score} trước CLB ${opp.name} 🥈 Á QUÂN`);
+    journey.push(`Chung Kết: ${score} trước CLB ${opp.name} — Á QUÂN`);
   }
 
   return journey;
@@ -167,16 +167,16 @@ export function generateContinentalCupJourneyService(params: {
 
   // Vòng Bảng
   if (result === "Group Stage" || result === "Early Exit") {
-    journey.push(`Vòng Bảng: Xếp hạng 4/4 bảng đấu (Bị loại sau vòng bảng) ❌`);
+    journey.push(`Vòng Bảng: Xếp hạng 4/4 bảng đấu (Bị loại sau vòng bảng)`);
     return journey;
   }
 
   journey.push("Vòng Bảng: Vượt qua vòng bảng thuyết phục!");
 
   if (result === "Round of 16") {
-    let opp = getRandomOpp();
-    let score = generateCupScore(false, playerClubPrestige, opp.prestige);
-    journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name} (Dừng bước) ❌`);
+    const opp = getRandomOpp();
+    const score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name} (Dừng bước)`);
     return journey;
   }
 
@@ -200,7 +200,7 @@ export function generateContinentalCupJourneyService(params: {
   if (result === "Semi-Finals") {
     opp = getRandomOpp();
     score = generateCupScore(false, playerClubPrestige, opp.prestige);
-    journey.push(`Bán Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Bán kết) 🥉`);
+    journey.push(`Bán Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Bán kết)`);
     return journey;
   }
 
@@ -214,9 +214,9 @@ export function generateContinentalCupJourneyService(params: {
   const isWin = result === "Winner";
   score = generateCupScore(isWin, playerClubPrestige, opp.prestige);
   if (isWin) {
-    journey.push(`Chung Kết ${cupName}: ${score} trước CLB ${opp.name} 🏆 VÔ ĐỊCH!`);
+    journey.push(`Chung Kết ${cupName}: ${score} trước CLB ${opp.name} — VÔ ĐỊCH!`);
   } else {
-    journey.push(`Chung Kết ${cupName}: ${score} trước CLB ${opp.name} 🥈 Á QUÂN`);
+    journey.push(`Chung Kết ${cupName}: ${score} trước CLB ${opp.name} — Á QUÂN`);
   }
 
   return journey;
@@ -254,15 +254,15 @@ export function generateNationalTeamJourneyService(params: {
   const journey: string[] = [];
 
   if (result === "Group Stage") {
-    journey.push(`Vòng Bảng ${tourneyName}: Bị loại sau vòng bảng ❌`);
+    journey.push(`Vòng Bảng ${tourneyName}: Bị loại sau vòng bảng`);
     return journey;
   }
 
   journey.push(`Vòng Bảng ${tourneyName}: Vượt qua vòng bảng thuyết phục!`);
 
   if (result === "Round of 16") {
-    let nation = getRandomNation();
-    journey.push(`Vòng 1/8: Thua 1-2 trước ĐTQG ${nation} (Dừng bước) ❌`);
+    const nation = getRandomNation();
+    journey.push(`Vòng 1/8: Thua 1-2 trước ĐTQG ${nation} (Dừng bước)`);
     return journey;
   }
 
@@ -282,7 +282,7 @@ export function generateNationalTeamJourneyService(params: {
 
   if (result === "Semi-Finals") {
     nation = getRandomNation();
-    journey.push(`Bán Kết: Thua 0-1 trước ĐTQG ${nation} (Nhận huy chương đồng) 🥉`);
+    journey.push(`Bán Kết: Thua 0-1 trước ĐTQG ${nation} (Nhận huy chương đồng)`);
     return journey;
   }
 
@@ -294,9 +294,9 @@ export function generateNationalTeamJourneyService(params: {
   nation = getRandomNation();
   const isWin = result === "Winner";
   if (isWin) {
-    journey.push(`Chung Kết ${tourneyName}: Thắng 2-0 trước ĐTQG ${nation} 🏆 VÔ ĐỊCH QUỐC TẾ!`);
+    journey.push(`Chung Kết ${tourneyName}: Thắng 2-0 trước ĐTQG ${nation} — VÔ ĐỊCH QUỐC TẾ!`);
   } else {
-    journey.push(`Chung Kết ${tourneyName}: Thua 1-2 trước ĐTQG ${nation} 🥈 Á QUÂN`);
+    journey.push(`Chung Kết ${tourneyName}: Thua 1-2 trước ĐTQG ${nation} — Á QUÂN`);
   }
 
   return journey;

@@ -16,6 +16,7 @@ import {
   getNationalCallupWeights,
   getInfluenceProxy,
 } from "./simulation-helpers";
+import { NATIONAL_CALLUP_WEIGHT_BONUS } from "@/lib/shop-catalog";
 
 export interface TeamWheelCtx {
   effPositionOvr: number;
@@ -29,6 +30,8 @@ export interface TeamWheelCtx {
   /** Feeds the influence proxy (domestic/continental/national_tournament) + national_callup. */
   standingResult: number | null;
   position: string;
+  /** Temporary Shop bonus for the national call-up wheel. */
+  nationalCallupBoostActive?: boolean;
 }
 
 function influenceFor(ctx: TeamWheelCtx): number {
@@ -87,8 +90,12 @@ export function buildNationalTournamentPool(ctx: TeamWheelCtx) {
 
 export function buildNationalCallupPool(ctx: TeamWheelCtx) {
   const midOvr = nationalMidOvr(ctx.playerNationality);
-  const { wCall, wMiss } =
+  const baseWeights =
     getNationalCallupWeights(ctx.effPositionOvr, midOvr, ctx.standingResult, ctx.leagueSize, ctx.position);
+  const wCall = ctx.nationalCallupBoostActive
+    ? Math.min(90, baseWeights.wCall + NATIONAL_CALLUP_WEIGHT_BONUS)
+    : baseWeights.wCall;
+  const wMiss = Math.max(5, 100 - wCall);
   return [
     { value: "called_up", weight: wCall },
     { value: "missed", weight: wMiss },

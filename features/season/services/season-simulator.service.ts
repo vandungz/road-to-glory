@@ -1,4 +1,3 @@
-import { getNationalTier } from "@/lib/wheel-engine/weight-calculator";
 import { resolveRandom, resolveRandomFloat } from "@/lib/wheel-engine/spin-resolver";
 import {
   getPerAppRates,
@@ -8,7 +7,10 @@ import {
 } from "@/lib/season-stat-rates";
 import { estimateAppsRatio, getClubThreshold } from "@/lib/club-fit";
 import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
-import { TRAINING_CAMP_RATING_BONUS } from "@/lib/shop-catalog";
+import {
+  EXTRA_APPEARANCES_BONUS,
+  TRAINING_CAMP_RATING_BONUS,
+} from "@/lib/shop-catalog";
 
 
 export interface CompetitionStats {
@@ -41,6 +43,8 @@ export interface PlayerSeasonInput {
   nationalTournamentType?: string | null;    // "FIFA World Cup" | "Copa América" | ...
   /** docs/core-currency-shop-design.md §6.2 — "Training Camp" shop item. */
   trainingCampActive?: boolean;
+  /** Shop item that adds deterministic appearance opportunities this season. */
+  appearancePackActive?: boolean;
 }
 
 export interface BallonDorEligibility {
@@ -174,7 +178,7 @@ function rollCompetitionOutput(
 // ── Match Rating per competition ───────────────────────────────────────────
 
 /** SoT §7.1 (Updated 2026-08-03): Superstar player contributions (G/A/CS) are preserved 100% (scale 1.0). */
-function getOverqualifyPerfScale(_ovr: number, _clubPrestige: number): number {
+function getOverqualifyPerfScale(): number {
   return 1.0;
 }
 
@@ -213,7 +217,7 @@ function calcRating(
   const ovrVsClub = Math.max(-1.2, Math.min(1.2, (ovr - getClubThreshold(clubPrestige)) * 0.01));
   let base = 6.0 + ovrVsClub + (luckRating / 20) * 0.25 + standingBonus + perfBonus;
 
-  const perfScale = getOverqualifyPerfScale(ovr, clubPrestige);
+  const perfScale = getOverqualifyPerfScale();
 
   const gaFactor = (compStats.goals + compStats.assists) / compStats.apps;
   const csFactor = compStats.cleanSheets / compStats.apps;
@@ -346,10 +350,11 @@ function getRankWeights(rankScore: number): number[] {
 export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
   const {
     ovr, position, luckRating, clubPrestige, leagueClubsCount,
-    hasContinentalCup, playerNationality, currentStats,
+    hasContinentalCup, currentStats,
     standingResult, domesticCupResult, continentalCupResult, continentalCupType,
     nationalCallupResult, nationalTournamentResult, nationalTournamentType,
     trainingCampActive,
+    appearancePackActive,
   } = input;
 
   const events: { type: string; label: string }[] = [];
@@ -359,7 +364,6 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const cupMatches = getCupMatches(domesticCupResult);
   const continentalMatches = hasContinentalCup ? getContinentalMatches(continentalCupResult) : 0;
   const nationalMatches = getNationalMatches(nationalCallupResult, nationalTournamentResult);
-  const maxSeasonMatches = leagueMatches + cupMatches + continentalMatches + nationalMatches;
 
   // Estimate max team clean sheets from standing result (SoT §7.8)
   const maxLeagueTeamCS = standingResult != null && leagueClubsCount > 0
@@ -389,10 +393,26 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const perfBonus = trainingCampActive ? TRAINING_CAMP_RATING_BONUS : 0;
 
   // 3. Per-competition apps
-  const leagueApps = Math.max(1, Math.round(leagueMatches * finalAppsRatio));
-  const cupApps = cupMatches > 0 ? Math.max(0, Math.round(cupMatches * finalAppsRatio * 0.90)) : 0;
-  const continentalApps = continentalMatches > 0 ? Math.max(0, Math.round(continentalMatches * finalAppsRatio)) : 0;
-  const nationalApps = nationalMatches > 0 ? Math.max(0, Math.round(nationalMatches * finalAppsRatio * 0.85)) : 0;
+  let remainingAppearanceBonus = appearancePackActive ? EXTRA_APPEARANCES_BONUS : 0;
+  const addAppearanceBonus = (baseApps: number, maxMatches: number): number => {
+    if (remainingAppearanceBonus <= 0 || maxMatches <= baseApps) return baseApps;
+    const added = Math.min(maxMatches - baseApps, remainingAppearanceBonus);
+    remainingAppearanceBonus -= added;
+    return baseApps + added;
+  };
+  const leagueApps = addAppearanceBonus(Math.max(1, Math.round(leagueMatches * finalAppsRatio)), leagueMatches);
+  const cupApps = addAppearanceBonus(
+    cupMatches > 0 ? Math.max(0, Math.round(cupMatches * finalAppsRatio * 0.90)) : 0,
+    cupMatches,
+  );
+  const continentalApps = addAppearanceBonus(
+    continentalMatches > 0 ? Math.max(0, Math.round(continentalMatches * finalAppsRatio)) : 0,
+    continentalMatches,
+  );
+  const nationalApps = addAppearanceBonus(
+    nationalMatches > 0 ? Math.max(0, Math.round(nationalMatches * finalAppsRatio * 0.85)) : 0,
+    nationalMatches,
+  );
   const totalApps = leagueApps + cupApps + continentalApps + nationalApps;
 
   // 4. Per-competition goals/assists/CS (volume ∝ apps)

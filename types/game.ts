@@ -1,4 +1,5 @@
 import { z } from "zod/v4";
+import type { AchievementRecord } from "./domain";
 
 // ============================================================
 // FORMATION
@@ -18,6 +19,7 @@ export type Formation = (typeof FORMATIONS)[number];
 export interface GameSessionSummary {
   id: string;
   name: string;
+  formation: Formation;
   createdAt: Date;
   squadRating: number | null;
   status: "in_progress" | "completed";
@@ -55,6 +57,16 @@ export interface CompetitionStats {
   rating: number;
 }
 
+export interface LeagueTableRow {
+  clubId: string;
+  name: string;
+  played: number;
+  won: number;
+  drawn: number;
+  lost: number;
+  points: number;
+}
+
 export interface SeasonRecord {
   age: number;
   clubName: string;
@@ -64,7 +76,7 @@ export interface SeasonRecord {
   domesticCup: string | null;
   continentalCup: { type: string; result: string } | null;
   nationalTeam: { type: string; callup: string; result: string | null } | null;
-  leagueTable?: any[];
+  leagueTable?: LeagueTableRow[];
   domesticCupJourney?: string[];
   continentalCupJourney?: string[];
   nationalTeamJourney?: string[];
@@ -80,7 +92,7 @@ export interface SeasonRecord {
   continentalStats?: CompetitionStats;
   nationalStats?: CompetitionStats;
   ballonDorResult?: number | null;
-  achievements?: any;
+  achievements?: AchievementRecord;
 }
 
 const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt", "Chiều Cao", "Cân Nặng"];

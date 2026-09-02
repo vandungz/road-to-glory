@@ -1,454 +1,118 @@
 "use client";
 
-import React, { useState } from "react";
-import { X, ChevronDown, ChevronUp, Trophy, Star, Shield, Award, Globe } from "lucide-react";
-import type { SeasonRecord, CompetitionStats } from "@/types/game";
+import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
-import { getDomesticCupName, getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
+import { getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
+import { Button } from "@/components/ui/Button";
+import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 
 interface Props {
   record: SeasonRecord;
   yearSimResult: SimulatedSeasonResult;
   currentContinentalCup: string;
   playerDebutAge: number;
+  hasBallonDorWinner?: boolean;
   onClose: () => void;
 }
 
-function formatCupResultLabel(res: string | null | undefined): string {
-  if (!res) return "Tham gia";
-  if (res === "Winner") return "🏆 VÔ ĐỊCH";
-  if (res === "Runner-Up") return "🥈 Á QUÂN";
-  if (res === "Semi-Finals") return "🥉 BÁN KẾT";
-  if (res === "Quarter-Finals") return "⚡ TỨ KẾT";
-  if (res === "Round of 16") return "🛡️ VÒNG 1/8";
-  if (res === "Round of 32") return "⚽ VÒNG 1/16";
-  if (res === "Early Exit") return "❌ VÒNG LOẠI SỚM";
-  if (res === "Group Stage") return "❌ VÒNG BẢNG";
-  return res;
+function resultLabel(result: string | null | undefined) {
+  if (!result || result === "Chờ quay") return "—";
+  if (result === "Winner") return "Vô địch";
+  if (result === "Runner-Up") return "Á quân";
+  if (result === "Semi-Finals") return "Bán kết";
+  if (result === "Quarter-Finals") return "Tứ kết";
+  if (result === "Round of 16") return "Vòng 1/8";
+  if (result === "Round of 32") return "Vòng 1/16";
+  if (result === "Early Exit") return "Vòng loại sớm";
+  if (result === "Group Stage") return "Vòng bảng";
+  return result;
 }
 
-function MiniStatsBadge({ stats }: { stats?: CompetitionStats }) {
-  if (!stats || stats.apps === 0) return <span style={{ color: "var(--ink-light)", fontSize: "0.7rem" }}>—</span>;
+function getStandingLabel(record: SeasonRecord) {
+  if (!record.standing) return "—";
+  return record.standing === 1 ? "Vô địch" : `Hạng ${record.standing}`;
+}
+
+function SummaryMetric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.72rem", fontWeight: 700, color: "var(--charcoal)" }}>
-      {stats.apps} apps · {stats.goals}G {stats.assists}A · ★{stats.rating.toFixed(1)}
-    </span>
+    <div className="rtg-season-close__metric">
+      <span>{label}</span>
+      <strong className={accent ? "is-accent" : undefined}>{value}</strong>
+    </div>
   );
 }
 
-export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup, playerDebutAge, onClose }: Props) {
-  const [expandedTile, setExpandedTile] = useState<string | null>(null);
-
-  const toggleExpand = (tile: string) => {
-    setExpandedTile((prev) => (prev === tile ? null : tile));
-  };
-
-  const seasonYearStr = getSeasonYearString(record.age, playerDebutAge);
-  const awards = yearSimResult.events?.filter((e) => e.type === "individual_award") ?? [];
-
+function SeasonStat({ label, value, accent = false }: { label: string; value: number | string; accent?: boolean }) {
   return (
-    <div
-      onClick={onClose}
-      style={{
-        position: "fixed",
-        inset: 0,
-        backgroundColor: "rgba(0, 0, 0, 0.65)",
-        backdropFilter: "blur(4px)",
-        zIndex: 50,
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        padding: "16px",
-      }}
-    >
-      <div
-        onClick={(e) => e.stopPropagation()}
-        style={{
-          width: "100%",
-          maxWidth: "620px",
-          maxHeight: "90vh",
-          backgroundColor: "var(--white)",
-          border: "2px solid var(--charcoal)",
-          borderRadius: "4px",
-          boxShadow: "6px 6px 0 var(--charcoal)",
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-        }}
-      >
-        {/* HEADER */}
-        <div
-          style={{
-            backgroundColor: "var(--cream-dark)",
-            borderBottom: "2px solid var(--charcoal)",
-            padding: "16px 20px",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-          }}
-        >
-          <div>
-            <span
-              style={{
-                fontFamily: "var(--font-stamp)",
-                fontSize: "0.55rem",
-                color: "var(--coral)",
-                fontWeight: 700,
-                letterSpacing: "0.12em",
-                textTransform: "uppercase",
-              }}
-            >
-              TỔNG KẾT MÙA GIẢI {seasonYearStr} (TUỔI {record.age})
-            </span>
-            <h2
-              style={{
-                fontFamily: "var(--font-headline)",
-                fontSize: "1.35rem",
-                fontWeight: 900,
-                color: "var(--charcoal)",
-                margin: "2px 0 0 0",
-                textTransform: "uppercase",
-              }}
-            >
-              TỔNG KẾT MÙA GIẢI {record.clubName}
-            </h2>
-          </div>
-          <button
-            type="button"
-            onClick={onClose}
-            style={{
-              background: "none",
-              border: "1.5px solid var(--charcoal)",
-              borderRadius: "3px",
-              padding: "4px",
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              backgroundColor: "var(--white)",
-            }}
-          >
-            <X size={18} color="var(--charcoal)" />
-          </button>
-        </div>
+    <div className="rtg-season-close__stat">
+      <span>{label}</span>
+      <strong className={accent ? "is-positive" : undefined}>{value}</strong>
+    </div>
+  );
+}
 
-        {/* CONTENT BODY */}
-        <div style={{ padding: "20px", overflowY: "auto", display: "flex", flexDirection: "column", gap: "16px" }}>
-          {/* OVERALL STATS GRID */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: yearSimResult.cleanSheets > 0 ? "repeat(5, 1fr)" : "repeat(4, 1fr)",
-              gap: "8px",
-              backgroundColor: "var(--cream)",
-              border: "1.5px solid var(--charcoal)",
-              borderRadius: "4px",
-              padding: "12px 8px",
-              textAlign: "center",
-              boxShadow: "2px 2px 0 var(--charcoal)",
-            }}
-          >
-            <div>
-              <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-gray)" }}>APPS</div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900 }}>{yearSimResult.apps}</div>
-            </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-gray)" }}>GOALS</div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900 }}>{yearSimResult.goals}</div>
-            </div>
-            <div>
-              <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-gray)" }}>ASSISTS</div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900 }}>{yearSimResult.assists}</div>
-            </div>
-            {yearSimResult.cleanSheets > 0 && (
-              <div>
-                <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--coral)" }}>CLEAN SHEETS</div>
-                <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900, color: "var(--coral)" }}>{yearSimResult.cleanSheets}</div>
-              </div>
-            )}
-            <div>
-              <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-gray)" }}>RATING</div>
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.2rem", fontWeight: 900, color: "#266b3e" }}>
-                ★ {yearSimResult.matchRating.toFixed(2)}
-              </div>
-            </div>
-          </div>
-
-          {/* COMPETITION TILES (SKIM -> DRILL DOWN) */}
-          <div style={{ display: "flex", flexDirection: "column", gap: "10px" }}>
-            <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", fontWeight: 700, color: "var(--charcoal)" }}>
-              CHI TIẾT CÁC GIẢI ĐẤU
-            </span>
-
-            {/* LEAGUE TILE */}
-            <div
-              style={{
-                border: "1.5px solid var(--charcoal)",
-                borderRadius: "4px",
-                backgroundColor: "var(--white)",
-                overflow: "hidden",
-                boxShadow: "2px 2px 0 var(--charcoal)",
-              }}
-            >
-              <div
-                onClick={() => toggleExpand("league")}
-                style={{
-                  padding: "10px 14px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer",
-                  backgroundColor: expandedTile === "league" ? "var(--cream)" : "var(--white)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Shield size={16} color="#266b3e" />
-                  <div>
-                    <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
-                      {record.leagueName || "Giải VĐQG"}
-                    </span>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>
-                      {record.standing === 1 ? "🏆 VÔ ĐỊCH" : `HẠNG #${record.standing ?? "—"}`}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <MiniStatsBadge stats={record.leagueStats} />
-                  {expandedTile === "league" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-              </div>
-
-              {expandedTile === "league" && record.leagueTable && (
-                <div style={{ padding: "12px", borderTop: "1px solid var(--cream-border)", backgroundColor: "var(--cream)" }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "8px" }}>BẢNG XẾP HẠNG CHI TIẾT</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px", maxHeight: "240px", overflowY: "auto" }}>
-                    {record.leagueTable.map((row: any, idx: number) => {
-                      const rank = idx + 1;
-                      const clubName = row.name ?? row.clubName ?? "Unknown";
-                      const isPlayer = clubName.toLowerCase() === record.clubName.toLowerCase();
-
-                      return (
-                        <div
-                          key={idx}
-                          style={{
-                            display: "flex",
-                            alignItems: "center",
-                            justifyContent: "space-between",
-                            fontSize: "0.75rem",
-                            fontWeight: isPlayer ? 800 : 500,
-                            backgroundColor: isPlayer ? "var(--cream-dark)" : "var(--white)",
-                            color: isPlayer ? "var(--coral)" : "var(--charcoal)",
-                            padding: "4px 8px",
-                            borderRadius: "3px",
-                            borderLeft: isPlayer ? "3px solid var(--coral)" : "1px solid var(--cream-border)",
-                          }}
-                        >
-                          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                            <span style={{ fontFamily: "var(--font-stamp)", width: "24px", fontWeight: 700 }}>#{rank}</span>
-                            <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.82rem" }}>
-                              {clubName} {isPlayer ? "(BẠN)" : ""}
-                            </span>
-                          </div>
-                          <div style={{ fontFamily: "var(--font-stamp)", fontSize: "0.72rem" }}>
-                            <strong>{row.points} PTS</strong> · {row.played}P ({row.won}W {row.drawn}D {row.lost}L)
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* DOMESTIC CUP TILE */}
-            <div
-              style={{
-                border: "1.5px solid var(--charcoal)",
-                borderRadius: "4px",
-                backgroundColor: "var(--white)",
-                overflow: "hidden",
-                boxShadow: "2px 2px 0 var(--charcoal)",
-              }}
-            >
-              <div
-                onClick={() => toggleExpand("cup")}
-                style={{
-                  padding: "10px 14px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  cursor: "pointer",
-                  backgroundColor: expandedTile === "cup" ? "var(--cream)" : "var(--white)",
-                }}
-              >
-                <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                  <Trophy size={16} color="#D4960D" />
-                  <div>
-                    <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
-                      {getDomesticCupName(record.leagueName, record.leagueId)}
-                    </span>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--charcoal)" }}>
-                      {formatCupResultLabel(record.domesticCup)}
-                    </div>
-                  </div>
-                </div>
-                <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                  <MiniStatsBadge stats={record.domesticCupStats} />
-                  {expandedTile === "cup" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                </div>
-              </div>
-
-              {expandedTile === "cup" && record.domesticCupJourney && (
-                <div style={{ padding: "12px", borderTop: "1px solid var(--cream-border)", backgroundColor: "var(--cream)" }}>
-                  <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "6px" }}>HÀNH TRÌNH THI ĐẤU CÚP QUỐC GIA</div>
-                  <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                    {record.domesticCupJourney.map((j, i) => (
-                      <div key={i} style={{ fontSize: "0.72rem", color: "var(--charcoal)" }}>• {j}</div>
-                    ))}
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* CONTINENTAL CUP TILE */}
-            {currentContinentalCup !== "none" && (
-              <div
-                style={{
-                  border: "1.5px solid var(--charcoal)",
-                  borderRadius: "4px",
-                  backgroundColor: "var(--white)",
-                  overflow: "hidden",
-                  boxShadow: "2px 2px 0 var(--charcoal)",
-                }}
-              >
-                <div
-                  onClick={() => toggleExpand("continental")}
-                  style={{
-                    padding: "10px 14px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    cursor: "pointer",
-                    backgroundColor: expandedTile === "continental" ? "var(--cream)" : "var(--white)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Star size={16} color="#3B82F6" />
-                    <div>
-                      <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
-                        {getContinentalCupLabel(currentContinentalCup)}
-                      </span>
-                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "#3B82F6" }}>
-                        {formatCupResultLabel(record.continentalCup?.result)}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <MiniStatsBadge stats={record.continentalStats} />
-                    {expandedTile === "continental" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                </div>
-
-                {expandedTile === "continental" && record.continentalCupJourney && (
-                  <div style={{ padding: "12px", borderTop: "1px solid var(--cream-border)", backgroundColor: "var(--cream)" }}>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "6px" }}>HÀNH TRÌNH CÚP LỤC ĐỊA</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {record.continentalCupJourney.map((j, i) => (
-                        <div key={i} style={{ fontSize: "0.72rem", color: "var(--charcoal)" }}>• {j}</div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* NATIONAL TEAM TILE */}
-            {record.nationalTeam && record.nationalTeam.callup !== "Không được gọi" && (
-              <div
-                style={{
-                  border: "1.5px solid var(--charcoal)",
-                  borderRadius: "4px",
-                  backgroundColor: "var(--white)",
-                  overflow: "hidden",
-                  boxShadow: "2px 2px 0 var(--charcoal)",
-                }}
-              >
-                <div
-                  onClick={() => toggleExpand("national")}
-                  style={{
-                    padding: "10px 14px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    cursor: "pointer",
-                    backgroundColor: expandedTile === "national" ? "var(--cream)" : "var(--white)",
-                  }}
-                >
-                  <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
-                    <Globe size={16} color="var(--coral)" />
-                    <div>
-                      <span style={{ fontFamily: "var(--font-headline)", fontSize: "0.9rem", fontWeight: 700 }}>
-                        {record.nationalTeam.type ?? "ĐỘI TUYỂN QUỐC GIA"}
-                      </span>
-                      <div style={{ fontSize: "0.75rem", fontWeight: 700, color: "var(--coral)" }}>
-                        {formatCupResultLabel(record.nationalTeam.result)}
-                      </div>
-                    </div>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: "10px" }}>
-                    <MiniStatsBadge stats={record.nationalStats} />
-                    {expandedTile === "national" ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
-                  </div>
-                </div>
-
-                {expandedTile === "national" && record.nationalTeamJourney && (
-                  <div style={{ padding: "12px", borderTop: "1px solid var(--cream-border)", backgroundColor: "var(--cream)" }}>
-                    <div style={{ fontSize: "0.75rem", fontWeight: 700, marginBottom: "6px" }}>HÀNH TRÌNH ĐỘI TUYỂN QUỐC GIA</div>
-                    <div style={{ display: "flex", flexDirection: "column", gap: "4px" }}>
-                      {record.nationalTeamJourney.map((j, i) => (
-                        <div key={i} style={{ fontSize: "0.72rem", color: "var(--charcoal)" }}>• {j}</div>
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-
-            {/* AWARDS SECTION */}
-            {awards.length > 0 && (
-              <div style={{ backgroundColor: "var(--gold-light)", border: "1.5px solid #D4960D", borderRadius: "4px", padding: "10px 14px", display: "flex", alignItems: "center", gap: "10px" }}>
-                <Award size={20} color="#D4960D" />
-                <div>
-                  <div style={{ fontFamily: "var(--font-headline)", fontSize: "0.85rem", fontWeight: 700, color: "#D4960D" }}>
-                    DANH HIỆU CÁ NHÂN
-                  </div>
-                  {awards.map((a, i) => (
-                    <div key={i} style={{ fontSize: "0.75rem", fontWeight: 600 }}>• {a.label}</div>
-                  ))}
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* PRIMARY CTA */}
-          <button
-            type="button"
-            onClick={onClose}
-            className="btn-primary"
-            style={{
-              width: "100%",
-              fontSize: "1.05rem",
-              padding: "12px",
-              minHeight: "48px",
-              backgroundColor: "var(--coral)",
-              color: "var(--white)",
-              marginTop: "8px",
-            }}
-          >
-            TIẾP TỤC HÀNH TRÌNH →
-          </button>
-        </div>
+function AwardItem({ title, detail, accent = false }: { title: string; detail: string; accent?: boolean }) {
+  return (
+    <div className={`rtg-season-close__award${accent ? " is-accent" : ""}`}>
+      <i aria-hidden="true" />
+      <div>
+        <strong>{title}</strong>
+        <span>{detail}</span>
       </div>
     </div>
+  );
+}
+
+export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup, playerDebutAge, hasBallonDorWinner = false, onClose }: Props) {
+  const season = getSeasonYearString(record.age, playerDebutAge);
+  const continentalName = record.continentalCup?.type
+    ? getContinentalCupLabel(record.continentalCup.type)
+    : currentContinentalCup !== "none" ? getContinentalCupLabel(currentContinentalCup) : "Cúp châu lục";
+  const individualAwards = yearSimResult.events?.filter((event) => event.type === "individual_award") ?? [];
+  const awards = [
+    ...(record.continentalCup?.result === "Winner" ? [{ title: continentalName, detail: `Vô địch · ${record.clubName}` }] : []),
+    ...individualAwards.map((award) => ({ title: award.label, detail: `Mùa ${record.age}` })),
+    ...(hasBallonDorWinner ? [{ title: "Quả bóng vàng", detail: "Chiến thắng danh giá", accent: true }] : []),
+  ];
+
+  return (
+    <Modal open title={`Mùa giải khép lại · ${season}`} onClose={onClose} size="md" className="rtg-season-close-modal">
+      <ModalHeader onClose={onClose} closeLabel="Đóng tổng kết" eyebrow={`Kết quả mùa giải · ${record.clubName} · tuổi ${record.age}`}>
+        Mùa giải khép lại
+      </ModalHeader>
+
+      <ModalBody>
+        <section className="rtg-season-close__metrics" aria-label="Kết quả mùa giải">
+          <SummaryMetric label="Kết quả VĐQG" value={getStandingLabel(record)} />
+          <SummaryMetric label="Cúp quốc gia" value={resultLabel(record.domesticCup)} />
+          <SummaryMetric label="Cúp châu lục" value={record.continentalCup ? resultLabel(record.continentalCup.result) : "—"} accent={record.continentalCup?.result === "Winner"} />
+          <SummaryMetric label="Vòng quay" value="6 lần" />
+        </section>
+
+        <div className="rtg-season-close__columns">
+          <section className="rtg-season-close__section" aria-labelledby="season-close-stats">
+            <h3 id="season-close-stats">Số liệu mùa giải</h3>
+            <div className="rtg-season-close__stats">
+              <SeasonStat label="Ra sân" value={yearSimResult.apps} />
+              <SeasonStat label="Bàn thắng" value={yearSimResult.goals} />
+              <SeasonStat label="Kiến tạo" value={yearSimResult.assists} />
+              <SeasonStat label="Điểm phong độ" value={yearSimResult.matchRating.toFixed(2)} accent />
+            </div>
+          </section>
+
+          <section className="rtg-season-close__section" aria-labelledby="season-close-awards">
+            <h3 id="season-close-awards">Danh hiệu nhận được</h3>
+            <div className="rtg-season-close__awards">
+              {awards.length > 0 ? awards.map((award, index) => <AwardItem key={`${award.title}-${index}`} {...award} />) : <p className="rtg-modal-note">Chưa có danh hiệu mùa này.</p>}
+            </div>
+          </section>
+        </div>
+      </ModalBody>
+
+      <ModalFooter className="rtg-season-close__footer">
+        <p>Cửa sổ chuyển nhượng đã mở — các đề nghị mới đang chờ.</p>
+        <Button size="lg" onClick={onClose}>Vào cửa sổ chuyển nhượng</Button>
+      </ModalFooter>
+    </Modal>
   );
 }

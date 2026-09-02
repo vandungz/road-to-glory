@@ -1,393 +1,161 @@
 "use client";
 
-import { Globe } from "lucide-react";
-import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import type { CurrentClub } from "@/types/domain";
+import { Button } from "@/components/ui/Button";
+import { DataRow } from "@/components/ui/DataRow";
+import { ResultBanner } from "@/components/ui/ResultBanner";
 import { SpinnerWheel } from "./SpinnerWheel";
-import { TransferWindowPanel } from "./TransferWindowPanel";
-import { getSeasonYearString, getContinentalCupLabel } from "../lib/simulation-helpers";
-import { formatEuroThousands } from "@/lib/transfer-economy";
+import type { SpinnerItem } from "./SpinnerWheel";
+import { getSeasonYearString, getContinentalCupLabel, getDomesticCupName } from "../lib/simulation-helpers";
 
 interface CareerActionsPanelProps {
   careerSubStep: string;
   currentAge: number;
   playerDebutAge: number;
   playerCareerLength?: number;
-  currentClub: any;
+  currentClub: CurrentClub | null;
   currentContinentalCup: string;
   careerSpinning: boolean;
   isProcessing: boolean;
-  careerWheelItems: any[];
+  careerWheelItems: SpinnerItem[];
   careerTargetIndex: number;
   handleCareerSpinComplete: () => void;
   careerTempValue: string | null;
   handleCareerSpin: () => void;
-  handleStartSeason: () => void;
-  transferMarket: TransferMarketResult | null;
-  willingToMove: boolean;
-  setWillingToMove: (v: boolean) => void;
-  showShortlist: boolean;
-  setShowShortlist: (v: boolean) => void;
-  handleAcceptMarketOffer: (offer: ContractOfferCard) => void;
-  handleRejectTransferWindow: () => void;
-  handleApproachShortlist: (club: ShortlistClubCard) => void;
-  yearSimResult: any;
+  yearSimResult: SimulatedSeasonResult | null;
   standingResult: number | null;
   domesticCupResult: string | null;
   continentalCupResult: string | null;
   hasBallonDorWinner: boolean;
   handleNextSeason: () => void;
-  position: string;
   selectorIndex: number;
   yearEvolutionCount?: number | null;
   yearEvolutionDirection?: "increase" | "decrease" | "maintain" | null;
   tempSelectedStat?: string | null;
-  approachRejects: import("./TransferWindowPanel").ApproachRejectState;
-  approachBanner: string | null;
   isUnemployed: boolean;
   onOpenTransferModal?: () => void;
-  onOpenShopModal?: () => void;
-  walletBalance?: number;
+  onOpenShop?: () => void;
+}
+
+function getStageTitle(step: string, cup: string, index: number, total: number, direction?: string | null, stat?: string | null) {
+  const decrease = direction === "decrease";
+  const titles: Record<string, string> = {
+    idle: "Cửa hàng đầu mùa giải",
+    dir_increase: "Tăng trưởng chỉ số sự nghiệp",
+    dir_decrease: "Suy giảm chỉ số sự nghiệp",
+    count: decrease ? "Số lượng chỉ số suy giảm" : "Số lượng chỉ số thay đổi",
+    standing: "Vòng quay VĐQG — xếp hạng giải đấu",
+    domestic_cup: "Cúp quốc gia",
+    continental_cup: `Cúp lục địa — ${getContinentalCupLabel(cup)}`,
+    national_callup: "Đội tuyển quốc gia — triệu tập",
+    national_tournament: "Đội tuyển quốc gia — giải quốc tế",
+    ballon_dor_nomination: "Quả Bóng Vàng — top 10 đề cử",
+    ballon_dor_ranking: "Quả Bóng Vàng — xếp hạng chung cuộc",
+    season_stats: "Thống kê thành tích mùa giải",
+    transfer: "Thị trường chuyển nhượng và hợp đồng",
+    resolved: "Mùa giải đã hoàn thành",
+  };
+  if (step === "selector") return `${decrease ? "Chọn chỉ số suy giảm" : "Chọn chỉ số phát triển"} (${index + 1}/${total})`;
+  if (step === "magnitude") return `${decrease ? "Biên độ giảm" : "Biên độ tăng"} cho ${stat?.toUpperCase() ?? "chỉ số"} (${index + 1}/${total})`;
+  return titles[step] ?? "Tiếp tục sự nghiệp";
+}
+
+function getStageEyebrow(step: string, cup: string) {
+  const labels: Record<string, string> = {
+    standing: "Bước 1 / 5 · Vòng quay xếp hạng",
+    domestic_cup: "Bước 2 / 5 · Vòng quay cúp",
+    continental_cup: `Bước 2 / 5 · ${getContinentalCupLabel(cup)}`,
+    national_callup: "Bước 3 / 5 · Vòng quay đội tuyển",
+    national_tournament: "Bước 3 / 5 · Vòng quay danh hiệu",
+    dir_increase: "Bước 4 / 5 · Phát triển chỉ số",
+    dir_decrease: "Bước 4 / 5 · Phát triển chỉ số",
+    season_stats: "Bước 5 / 5 · Tổng kết mùa giải",
+    transfer: "Bước 5 / 5 · Chuyển nhượng",
+  };
+  return labels[step] ?? "Tiến trình sự nghiệp";
+}
+
+function cupResultLabel(result: string | null) {
+  if (result === "Winner") return "Vô địch";
+  if (result === "Runner-Up") return "Á quân";
+  if (result === "Semi-Finals") return "Bán kết";
+  return "Loại sớm";
 }
 
 export function CareerActionsPanel({
-  careerSubStep,
-  currentAge,
-  playerDebutAge,
-  playerCareerLength,
-  currentClub,
-  currentContinentalCup,
-  careerSpinning,
-  isProcessing,
-  careerWheelItems,
-  careerTargetIndex,
-  handleCareerSpinComplete,
-  careerTempValue,
-  handleCareerSpin,
-  handleStartSeason,
-  transferMarket,
-  willingToMove,
-  setWillingToMove,
-  showShortlist,
-  setShowShortlist,
-  handleAcceptMarketOffer,
-  handleRejectTransferWindow,
-  handleApproachShortlist,
-  yearSimResult,
-  standingResult,
-  domesticCupResult,
-  continentalCupResult,
-  hasBallonDorWinner,
-  handleNextSeason,
-  position,
-  selectorIndex,
-  yearEvolutionCount,
-  yearEvolutionDirection,
-  tempSelectedStat,
-  approachRejects,
-  approachBanner,
-  isUnemployed,
-  onOpenTransferModal,
-  onOpenShopModal,
-  walletBalance,
+  careerSubStep, currentAge, playerDebutAge, playerCareerLength, currentClub, currentContinentalCup,
+  careerSpinning, isProcessing, careerWheelItems, careerTargetIndex, handleCareerSpinComplete,
+  careerTempValue, handleCareerSpin, yearSimResult, standingResult, domesticCupResult, hasBallonDorWinner,
+  handleNextSeason, selectorIndex, yearEvolutionCount, yearEvolutionDirection, tempSelectedStat,
+  isUnemployed, onOpenTransferModal, onOpenShop,
 }: CareerActionsPanelProps) {
-  const currentSeasonStr = getSeasonYearString(currentAge, playerDebutAge);
+  const seasonLabel = getSeasonYearString(currentAge, playerDebutAge);
   const totalNeed = yearEvolutionCount ?? 1;
   const retireAge = playerDebutAge + (playerCareerLength ?? 15);
   const isFinalSeason = currentAge >= retireAge;
-
   const isHighStakes = ["national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep);
-  const isMidStakes = ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep);
-  const stakes: "low" | "mid" | "high" = isHighStakes ? "high" : isMidStakes ? "mid" : "low";
-
-  const panelBg = isHighStakes ? "#1f1a14" : isMidStakes ? "var(--cream-dark)" : "var(--white)";
-  const panelBorder = isHighStakes ? "2px solid #D4960D" : "2px solid var(--charcoal)";
-  const panelShadow = isHighStakes ? "0 0 12px rgba(212,150,13,0.3), 3px 3px 0 var(--charcoal)" : "3px 3px 0 var(--charcoal)";
+  const isWheelStep = ["dir_increase", "dir_decrease", "count", "selector", "magnitude", "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep);
+  const isShopStage = careerSubStep === "idle";
+  const clubLabel = isUnemployed || !currentClub ? "Thất nghiệp" : currentClub.name;
+  const domesticCupName = currentClub ? getDomesticCupName(currentClub.leagueName, currentClub.leagueId) : "Cúp quốc gia";
+  const stageTitle = careerSubStep === "domestic_cup"
+    ? domesticCupName
+    : getStageTitle(careerSubStep, currentContinentalCup, selectorIndex, totalNeed, yearEvolutionDirection, tempSelectedStat);
 
   return (
-    <div
-      style={{
-        width: "100%",
-        height: "100%",
-        backgroundColor: panelBg,
-        border: panelBorder,
-        borderRadius: "4px",
-        boxShadow: panelShadow,
-        padding: "20px 24px",
-        display: "flex",
-        flexDirection: "column",
-        justifyContent: "space-between",
-        alignItems: "center",
-        gap: "16px",
-        transition: "all 0.3s ease",
-        boxSizing: "border-box",
-      }}
-    >
-      {/* TOP HEADER: MATCHDAY BANNER */}
-      <div
-        style={{
-          width: "100%",
-          textAlign: "center",
-          borderBottom: "1.5px solid var(--charcoal)",
-          paddingBottom: "12px",
-        }}
-      >
-        <p
-          style={{
-            fontFamily: "var(--font-stamp)",
-            fontSize: "0.62rem",
-            color: isHighStakes ? "#D4960D" : "var(--coral)",
-            fontWeight: 700,
-            letterSpacing: "0.15em",
-            textTransform: "uppercase",
-            margin: "0 0 4px 0",
-          }}
-        >
-          MÙA GIẢI {currentSeasonStr} (TUỔI {currentAge}){isFinalSeason ? " · MÙA GIẢI CUỐI CÙNG" : ""} · CLB: {isUnemployed || !currentClub ? "THẤT NGHIỆP" : currentClub?.name}
-        </p>
-        <h3
-          style={{
-            fontFamily: "var(--font-headline)",
-            fontSize: "1.35rem",
-            fontWeight: 900,
-            textTransform: "uppercase",
-            margin: 0,
-            lineHeight: 1.2,
-            color: isHighStakes ? "var(--cream)" : "var(--charcoal)",
-          }}
-        >
-          {careerSubStep === "idle" && (isUnemployed || !currentClub ? "MÙA GIẢI THẤT NGHIỆP" : "SẴN SÀNG KHỞI ĐỘNG MÙA GIẢI")}
-          {careerSubStep === "dir_increase" && "TĂNG TRƯỞNG CHỈ SỐ SỰ NGHIỆP"}
-          {careerSubStep === "dir_decrease" && "SUY GIẢM CHỈ SỐ SỰ NGHIỆP"}
-          {careerSubStep === "count" && (yearEvolutionDirection === "decrease" ? "SỐ LƯỢNG CHỈ SỐ SUY GIẢM" : "SỐ LƯỢNG CHỈ SỐ THAY ĐỔI")}
-          {careerSubStep === "selector" && (yearEvolutionDirection === "decrease" ? `CHỌN CHỈ SỐ SUY GIẢM (${selectorIndex + 1}/${totalNeed})` : `CHỌN CHỈ SỐ PHÁT TRIỂN (${selectorIndex + 1}/${totalNeed})`)}
-          {careerSubStep === "magnitude" && (yearEvolutionDirection === "decrease" ? `BIÊN ĐỘ GIẢM CHO ${tempSelectedStat?.toUpperCase()} (${selectorIndex + 1}/${totalNeed})` : `BIÊN ĐỘ TĂNG CHO ${tempSelectedStat?.toUpperCase()} (${selectorIndex + 1}/${totalNeed})`)}
-          {careerSubStep === "standing" && "VÒNG QUAY VĐQG — XẾP HẠNG GIẢI ĐẤU"}
-          {careerSubStep === "domestic_cup" && "CÚP QUỐC GIA — THI ĐẤU CÚP"}
-          {careerSubStep === "continental_cup" && `CÚP LỤC ĐỊA — ${getContinentalCupLabel(currentContinentalCup).toUpperCase()}`}
-          {careerSubStep === "national_callup" && "ĐỘI TUYỂN QUỐC GIA — TRIỆU TẬP ĐTQG"}
-          {careerSubStep === "national_tournament" && "ĐỘI TUYỂN QUỐC GIA — CÚP QUỐC TẾ"}
-          {careerSubStep === "ballon_dor_nomination" && "🏅 QUẢ BÓNG VÀNG — TOP 10 ĐỀ CỬ"}
-          {careerSubStep === "ballon_dor_ranking" && "🏆 QUẢ BÓNG VÀNG — XẾP HẠNG CHUNG CUỘC"}
-          {careerSubStep === "season_stats" && "📊 THỐNG KÊ THÀNH TÍCH MÙA GIẢI"}
-          {careerSubStep === "transfer" && "THỊ TRƯỜNG CHUYỂN NHƯỢNG VÀ HỢP ĐỒNG"}
-          {careerSubStep === "resolved" && (
-            isFinalSeason
-              ? "TỔNG KẾT MÙA GIẢI CUỐI CÙNG — CHUẨN BỊ GIẢI NGHỆ"
-              : (isUnemployed || !currentClub ? "GHI NHẬN MÙA GIẢI THẤT NGHIỆP" : "MÙA GIẢI ĐÃ HOÀN THÀNH")
-          )}
-        </h3>
-      </div>
+    <section className={`rtg-action-panel${isHighStakes ? " rtg-action-panel--high-stakes" : ""}`}>
+      {!isShopStage && (
+        <header className="rtg-action-panel__header">
+          <span className="rtg-eyebrow">{getStageEyebrow(careerSubStep, currentContinentalCup)}</span>
+          <h2>{stageTitle}</h2>
+          {careerSubStep === "domestic_cup" && <p className="rtg-action-panel__description">Quay để biết {domesticCupName} đi được đến đâu ở mùa này.</p>}
+          {careerSubStep === "continental_cup" && <p className="rtg-action-panel__description">Quay để biết {getContinentalCupLabel(currentContinentalCup)} đi được đến đâu ở mùa này.</p>}
+          {isFinalSeason && <span className="rtg-action-panel__notice">Mùa giải cuối cùng</span>}
+        </header>
+      )}
 
-      {/* CENTER STAGE ACTION HUB */}
-      <div
-        style={{
-          flex: 1,
-          width: "100%",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          gap: "16px",
-        }}
-      >
-        {/* Idle Mode */}
+      <div className="rtg-action-panel__body">
         {careerSubStep === "idle" && (
-          <div style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "center", width: "100%" }}>
-            {(isUnemployed || !currentClub) ? (
-              <p style={{ margin: 0, fontSize: "0.85rem", opacity: 0.8, textAlign: "center" }}>
-                Đang tự do — không tham gia giải đấu mùa này.
-              </p>
-            ) : (
-              currentContinentalCup !== "none" && (
-                <div style={{ backgroundColor: "var(--cream-dark)", border: "1.5px solid var(--charcoal)", padding: "6px 18px", borderRadius: "20px", fontSize: "0.78rem", fontWeight: 700, display: "flex", alignItems: "center", gap: "6px" }}>
-                  <Globe size={14} color="var(--coral)" /> Đạt vé dự {getContinentalCupLabel(currentContinentalCup)}
-                </div>
-              )
-            )}
-            <button
-              type="button"
-              onClick={handleStartSeason}
-              disabled={isProcessing}
-              className="btn-primary"
-              style={{
-                fontSize: "1.1rem",
-                padding: "14px 44px",
-                backgroundColor: "var(--coral)",
-                opacity: isProcessing ? 0.6 : 1,
-                cursor: isProcessing ? "not-allowed" : "pointer",
-                width: "100%",
-                maxWidth: "340px",
-              }}
-            >
-              {(isUnemployed || !currentClub) ? "BẮT ĐẦU MÙA THẤT NGHIỆP" : "TIẾN VÀO MÙA GIẢI"}
-            </button>
+          <div className="rtg-career-shop-entry">
+            <span className="rtg-eyebrow">Mùa giải {seasonLabel} · tuổi {currentAge} · {clubLabel}</span>
+            <h2>Cửa hàng đầu mùa giải</h2>
+            <p>Mở module cửa hàng để dùng số dư ví cho các vật phẩm hỗ trợ mùa giải trước khi quay bánh xe.</p>
+            <Button size="lg" onClick={onOpenShop} disabled={isProcessing || !onOpenShop} className="rtg-action-panel__primary">
+              Mở cửa hàng
+            </Button>
           </div>
         )}
 
-        {/* Wheels Spinner */}
-        {["dir_increase", "dir_decrease", "count", "selector", "magnitude", "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep) && (
-          <>
-            <SpinnerWheel
-              isSpinning={careerSpinning}
-              items={careerWheelItems}
-              targetIndex={careerTargetIndex}
-              onSpinComplete={handleCareerSpinComplete}
-              stakes={stakes}
-            />
-            {careerTempValue !== null && !careerSpinning && (
-              <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.25rem", fontWeight: 700, border: isHighStakes ? "2px solid #D4960D" : "2px solid var(--charcoal)", padding: "6px 20px", backgroundColor: isHighStakes ? "#2a2218" : "var(--cream)", color: isHighStakes ? "#D4960D" : "var(--charcoal)", boxShadow: "2px 2px 0 var(--charcoal)", borderRadius: "3px", textTransform: "uppercase" }}>
-                {careerTempValue}
-              </div>
-            )}
-            <button
-              type="button"
-              onClick={handleCareerSpin}
-              disabled={careerSpinning || isProcessing}
-              className="btn-primary"
-              style={{
-                fontSize: "1.1rem",
-                padding: "12px 36px",
-                minHeight: "56px",
-                width: "100%",
-                maxWidth: "340px",
-                backgroundColor: isHighStakes ? "#D4960D" : "var(--coral)",
-                color: isHighStakes ? "#1f1a14" : "var(--white)",
-                opacity: (careerSpinning || isProcessing) ? 0.6 : 1,
-              }}
-            >
-              {isProcessing && !careerSpinning ? "ĐANG XỬ LÝ..." : isHighStakes ? "✨ VÒNG QUAY DANH HIỆU ✨" : "QUAY BÁNH XE"}
-            </button>
-          </>
+        {isWheelStep && (
+          <div className="rtg-wheel-stage">
+            <SpinnerWheel isSpinning={careerSpinning} items={careerWheelItems} targetIndex={careerTargetIndex} onSpinComplete={handleCareerSpinComplete} stakes={isHighStakes ? "high" : ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep) ? "mid" : "low"} />
+            {careerTempValue !== null && !careerSpinning && <ResultBanner>{careerTempValue}</ResultBanner>}
+            <Button size="lg" onClick={handleCareerSpin} disabled={careerSpinning || isProcessing} className="rtg-action-panel__primary">
+              {isProcessing && !careerSpinning ? "Đang xử lý..." : isHighStakes ? "Quay vòng danh hiệu" : "Quay bánh xe"}
+            </Button>
+          </div>
         )}
 
-        {/* Resolved reporting / End of Season summary */}
         {(careerSubStep === "resolved" || careerSubStep === "transfer") && yearSimResult && (
-          <div style={{ width: "100%", border: "1px dashed var(--charcoal)", borderRadius: "4px", padding: "16px", display: "flex", flexDirection: "column", gap: "12px" }}>
-            <div style={{ textAlign: "center", borderBottom: "1px solid var(--cream-border)", paddingBottom: "8px" }}>
-              <h4 style={{ fontFamily: "var(--font-headline)", fontSize: "0.95rem", fontWeight: 700, margin: 0 }}>
-                BÁO CÁO THÀNH TÍCH MÙA GIẢI {getSeasonYearString(currentAge, playerDebutAge)} (TUỔI {currentAge})
-              </h4>
+          <div className="rtg-season-report">
+            <div className="rtg-season-report__heading"><span className="rtg-eyebrow">Báo cáo thành tích</span><h3>Mùa giải {seasonLabel}</h3></div>
+            <div className="rtg-season-report__stats">
+              <DataRow label="Giải VĐQG" value={standingResult ? `Hạng ${standingResult}` : "Chưa có dữ liệu"} />
+              <DataRow label="Cúp quốc gia" value={cupResultLabel(domesticCupResult)} />
+              <DataRow label="Cá nhân" value={`${yearSimResult.apps} trận · ${yearSimResult.goals} bàn · ${yearSimResult.assists} kiến tạo`} />
+              <DataRow label="Match rating" value={<span className="rtg-data-row__value--accent">{yearSimResult.matchRating}</span>} />
             </div>
-
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px", width: "100%", margin: "4px 0" }}>
-              <div style={{ backgroundColor: "var(--white)", border: "2px solid var(--charcoal)", borderRadius: "4px", padding: "10px", boxShadow: "2px 2px 0 var(--charcoal)", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-gray)" }}>GIẢI VĐQG</span>
-                <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.45rem", fontWeight: 900 }}>#{standingResult ?? "—"}</div>
-              </div>
-              <div style={{ backgroundColor: "var(--white)", border: "2px solid var(--charcoal)", borderRadius: "4px", padding: "10px", boxShadow: "2px 2px 0 var(--charcoal)", display: "flex", flexDirection: "column", alignItems: "center" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.5rem", color: "var(--ink-gray)" }}>CÚP QUỐC GIA</span>
-                <div style={{ fontSize: "1.1rem", fontWeight: 700, marginTop: "2px" }}>
-                  {domesticCupResult === "Winner" ? "🏆 VÔ ĐỊCH" : domesticCupResult === "Runner-Up" ? "🥈 Á QUÂN" : domesticCupResult === "Semi-Finals" ? "🥉 BÁN KẾT" : "❌ LOẠI SỚM"}
-                </div>
-              </div>
-            </div>
-
-            <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: "12px" }}>
-              <div style={{ flex: "1 1 120px" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-light)" }}>THỐNG KÊ CÁ NHÂN</span>
-                <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.05rem", fontWeight: 700, marginTop: "2px" }}>
-                  {yearSimResult.apps} Trận · {yearSimResult.goals} Bàn · {yearSimResult.assists} Kiến tạo
-                </div>
-              </div>
-              <div style={{ flex: "1 1 120px", textAlign: "right" }}>
-                <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-light)" }}>ĐIỂM ĐÁNH GIÁ</span>
-                <div style={{ fontFamily: "var(--font-headline)", fontSize: "1.05rem", fontWeight: 700, color: "var(--coral)", marginTop: "2px" }}>
-                  ★ {yearSimResult.matchRating}
-                </div>
-              </div>
-            </div>
-
-            {hasBallonDorWinner && (
-              <div style={{ backgroundColor: "gold", border: "1.5px solid var(--charcoal)", padding: "6px", borderRadius: "3px", textAlign: "center", fontWeight: 700, fontSize: "0.85rem", color: "var(--charcoal)", boxShadow: "2px 2px 0 var(--charcoal)" }}>
-                🏆 ĐOẠT QUẢ BÓNG VÀNG BALLON D'OR DANH GIÁ!
-              </div>
-            )}
-
+            {hasBallonDorWinner && <ResultBanner tone="honour">Quả Bóng Vàng — chiến thắng danh giá</ResultBanner>}
             {careerSubStep === "transfer" ? (
-              <button
-                type="button"
-                onClick={onOpenTransferModal}
-                disabled={isProcessing}
-                className="btn-primary"
-                style={{
-                  width: "100%",
-                  fontSize: "1rem",
-                  padding: "12px",
-                  marginTop: "4px",
-                  backgroundColor: "#2d5a3d",
-                  color: "var(--white)",
-                  opacity: isProcessing ? 0.6 : 1,
-                  cursor: isProcessing ? "not-allowed" : "pointer",
-                }}
-              >
-                💼 MỞ CỬA SỔ CHUYỂN NHƯỢNG & HỢP ĐỒNG →
-              </button>
+              <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="rtg-action-panel__primary">Mở thị trường chuyển nhượng</Button>
             ) : (
-              <>
-                {!isFinalSeason && onOpenShopModal && (
-                  <button
-                    type="button"
-                    onClick={onOpenShopModal}
-                    disabled={isProcessing}
-                    style={{
-                      width: "100%",
-                      fontSize: "0.85rem",
-                      padding: "8px",
-                      backgroundColor: "var(--white)",
-                      color: "var(--charcoal)",
-                      border: "2px solid var(--charcoal)",
-                      borderRadius: "4px",
-                      boxShadow: "2px 2px 0 var(--charcoal)",
-                      opacity: isProcessing ? 0.6 : 1,
-                      cursor: isProcessing ? "not-allowed" : "pointer",
-                    }}
-                  >
-                    🛒 CỬA HÀNG {typeof walletBalance === "number" ? `(${formatEuroThousands(walletBalance)})` : ""}
-                  </button>
-                )}
-                <button
-                  type="button"
-                  onClick={handleNextSeason}
-                  disabled={isProcessing}
-                  className="btn-primary"
-                  style={{
-                    width: "100%",
-                    fontSize: "1rem",
-                    padding: "12px",
-                    marginTop: "4px",
-                    backgroundColor: isFinalSeason ? "var(--coral, #e85d42)" : "var(--charcoal)",
-                    color: "var(--white)",
-                    opacity: isProcessing ? 0.6 : 1,
-                    cursor: isProcessing ? "not-allowed" : "pointer",
-                  }}
-                >
-                  {isFinalSeason ? "GIẢI NGHỆ & TỔNG KẾT SỰ NGHIỆP →" : "TIẾN VÀO MÙA GIẢI TIẾP THEO →"}
-                </button>
-              </>
+              <Button size="lg" onClick={handleNextSeason} disabled={isProcessing} className="rtg-action-panel__primary">{isFinalSeason ? "Giải nghệ và tổng kết sự nghiệp" : "Tiến vào mùa giải tiếp theo"}</Button>
             )}
           </div>
         )}
       </div>
 
-      {/* BOTTOM FOOTER BAR */}
-      <div
-        style={{
-          width: "100%",
-          paddingTop: "10px",
-          borderTop: isHighStakes ? "1.5px dashed #D4960D" : "1.5px dashed var(--charcoal)",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          fontSize: "0.72rem",
-          fontFamily: "var(--font-stamp)",
-          color: isHighStakes ? "#D4960D" : "var(--charcoal)",
-          opacity: 0.85,
-        }}
-      >
-        <span>VỊ TRÍ: <strong>{position}</strong></span>
-        <span>TRẠNG THÁI: <strong>{isUnemployed ? "THẤT NGHIỆP" : "ĐANG THI ĐẤU"}</strong></span>
-        <span>CƠ HỘI MÙA: <strong>5 VÒNG QUAY</strong></span>
-      </div>
-    </div>
+    </section>
   );
 }
