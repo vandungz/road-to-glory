@@ -1,8 +1,8 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
-import { getSeasonYearString, getNationalTournamentName } from "../lib/simulation-helpers";
+import { getNationalTournamentName } from "../lib/simulation-helpers";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { useSetupStage } from "./useSetupStage";
 import { useCareerStats } from "./useCareerStats";
@@ -23,9 +23,33 @@ import { type SeasonRecord, getStepLabels } from "@/types/game";
 import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { approachChancePercent, computeEffectivePositionOvr } from "@/lib/transfer-economy";
 import { applyWageDealChance, type WageDealOption } from "@/lib/salary-negotiation";
-import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
+import {
+  isShopItemActiveForSeason,
+  type ShopInventoryEntry,
+} from "@/lib/shop-catalog";
 import type { ApproachRejectState } from "../components/TransferWindowPanel";
 import type { ShortlistClubCard } from "@/features/transfer/services/transfer.service";
+import type { ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { AchievementRecord, CareerSubStep, ClubStint, ClubSummary, LeagueSummary, SeasonHistory, StatSnapshot } from "@/types/domain";
+
+interface ResumeCareerPlayer {
+  name: string;
+  nationality: string;
+  debutAge: number;
+  careerLengthYears: number;
+  statsTimeline: StatSnapshot[];
+  clubStints: ClubStint[];
+  achievements: AchievementRecord | null;
+  seasonHistory?: Record<string, SeasonRecord>;
+  contractYearsRemaining?: number;
+  contractYearsTotal?: number;
+  currentWageAnnual?: number;
+  marketValue?: number;
+  walletBalance?: number;
+  influenceScore?: number;
+  shopInventory?: ShopInventoryEntry[];
+  isUnemployed?: boolean;
+}
 
 function emptyUnemployedSeasonResult(): SimulatedSeasonResult {
   const zeroComp = { apps: 0, goals: 0, assists: 0, cleanSheets: 0, rating: 6.0 };
@@ -52,8 +76,8 @@ export function useDraftDrum(
   gameId: string,
   slotIndex: number,
   position: string,
-  leagues: any[],
-  clubs: any[],
+  leagues: LeagueSummary[],
+  clubs: ClubSummary[],
   savedPlayerId?: string,
   savedContinentalCup?: string,
   initialMode: "setup" | "career" | "retired" = "setup"
@@ -66,25 +90,24 @@ export function useDraftDrum(
   const statsProps = useCareerStats({ gameId, slotIndex, position });
 
   const {
-    playerName, hiddenStats, statsTimeline, clubStints, achievements,
+    playerId, playerName, hiddenStats, statsTimeline, clubStints, achievements,
     playerNationality, playerDebutAge, playerCareerLength,
     currentAge, currentOvr, currentStats, currentClub,
     currentContinentalCup, lastYearStanding, seasonRecords,
-    selectedAgeForStats, setSelectedAgeForStats,
-    shopInventory,
+    selectedAgeForStats, setSelectedAgeForStats, shopInventory,
   } = statsProps;
 
   const fitnessCoachActive = isShopItemActiveForSeason(shopInventory, "fitness_coach", currentAge);
+  const nationalCallupBoostActive = isShopItemActiveForSeason(
+    shopInventory, "national_callup_boost", currentAge,
+  );
+  const eliteDevelopmentActive = isShopItemActiveForSeason(
+    shopInventory, "elite_development_program", currentAge,
+  );
 
-  const tempCareerResultRef = useRef<any>(null);
+  const tempCareerResultRef = useRef<string | number | null>(null);
 
-  const [careerSubStep, setCareerSubStep] = useState<
-    | "idle" | "standing" | "domestic_cup" | "continental_cup"
-    | "national_callup" | "national_tournament" | "season_stats"
-    | "ballon_dor_nomination" | "ballon_dor_ranking"
-    | "dir_increase" | "dir_decrease" | "count" | "selector" | "magnitude"
-    | "transfer" | "resolved"
-  >("idle");
+  const [careerSubStep, setCareerSubStep] = useState<CareerSubStep>("idle");
   const [careerSpinning, setCareerSpinning] = useState(false);
   const [careerTargetIndex, setCareerTargetIndex] = useState<number>(-1);
   const [careerTempValue, setCareerTempValue] = useState<string | null>(null);
@@ -106,17 +129,20 @@ export function useDraftDrum(
   const [nationalTournamentResult, setNationalTournamentResult] = useState<string | null>(null);
 
   const [yearSimResult, setYearSimResult] = useState<SimulatedSeasonResult | null>(null);
-  const [transferOffer, setTransferOffer] = useState<any>(null);
-  const [transferMarket, setTransferMarket] = useState<import("@/features/transfer/services/transfer.service").TransferMarketResult | null>(null);
+  const [transferOffer, setTransferOffer] = useState<ContractOfferCard | null>(null);
+  const [transferMarket, setTransferMarket] = useState<TransferMarketResult | null>(null);
   const [willingToMove, setWillingToMove] = useState(false);
   const [showShortlist, setShowShortlist] = useState(false);
   const [approachRejects, setApproachRejects] = useState<ApproachRejectState>({});
   const [approachBanner, setApproachBanner] = useState<string | null>(null);
+  const [proactiveRenewalRejectedAge, setProactiveRenewalRejectedAge] = useState<number | null>(null);
+  const proactiveRenewalInFlightRef = useRef(false);
   const [hasBallonDorWinner, setHasBallonDorWinner] = useState(false);
   const [ballonDorRank, setBallonDorRank] = useState<number | null>(null);
   const [ballonDorNominationWeight, setBallonDorNominationWeight] = useState(0);
   const [ballonDorRankWeights, setBallonDorRankWeights] = useState<number[]>([]);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
+  const [startCareerError, setStartCareerError] = useState<string | null>(null);
 
   // Đại diện cho toàn bộ khoảng thời gian từ lúc bấm 1 hành động (spin/transfer/
   // next season/start career) đến khi state thực sự ổn định — BAO GỒM cả server
@@ -129,17 +155,20 @@ export function useDraftDrum(
     careerSubStep, isMounted, mode, currentContinentalCup, currentAge,
     playerDebutAge, playerCareerLength,
     playerNationality, currentClub, currentOvr,
-    leagueSize: currentClub ? (clubs.filter((c: any) => c.leagueId === currentClub.leagueId).length || 10) : 10,
+    leagueSize: currentClub ? (clubs.filter((c) => c.leagueId === currentClub.leagueId).length || 10) : 10,
     lastYearStanding, standingResult,
     selectedStatsList, position, yearSimResult, selectorIndex,
     yearEvolutionDirection: yearEvolution.direction, currentStats,
     ballonDorNominationWeight, ballonDorRankWeights,
     luckRating: hiddenStats?.luckRating ?? 10,
     fitnessCoachActive,
+    nationalCallupBoostActive,
+    eliteDevelopmentActive,
   });
 
   const competitionFlow = useCompetitionFlow({
-    currentAge, currentOvr, position, currentClub, currentContinentalCup,
+    playerId,
+    currentAge, currentOvr, position, currentClub: currentClub!, currentContinentalCup,
     playerNationality, playerDebutAge, hiddenStats, currentStats,
     standingResult, domesticCupResult, continentalCupResult,
     nationalCallupResult, yearSimResult,
@@ -147,7 +176,6 @@ export function useDraftDrum(
     setNationalCallupResult, setNationalTournamentResult,
     setCareerSubStep, setIsProcessing, setActiveModal, setYearSimResult,
     setBallonDorNominationWeight, setBallonDorRankWeights,
-    shopInventory,
     applySimResultToRecords: statsProps.applySimResultToRecords,
     setSeasonRecords: statsProps.setSeasonRecords,
     checkNationalCallupTransition: statsProps.checkNationalCallupTransition,
@@ -176,9 +204,11 @@ export function useDraftDrum(
     setHasBallonDorWinner,
     setCurrentStats: statsProps.setCurrentStats,
     setCurrentOvr: statsProps.setCurrentOvr,
+    setStatsTimeline: statsProps.setStatsTimeline,
   });
 
   const prevAgeRef = useRef<number | null>(null);
+  const autoStartSeasonRef = useRef(false);
 
   // Career resume on mount
   useEffect(() => {
@@ -187,23 +217,24 @@ export function useDraftDrum(
       getCareerPlayerAction({ playerId: savedPlayerId })
         .then((player) => {
           if (controller.signal.aborted || !player) return;
-          const lastStats = (player.statsTimeline as any[]).at(-1);
-          const lastStint = (player.clubStints as any[]).at(-1);
+          const playerRecord = player as unknown as ResumeCareerPlayer;
+          const lastStats = playerRecord.statsTimeline.at(-1);
+          const lastStint = playerRecord.clubStints.at(-1);
           if (!lastStats || !lastStint) { resetDraft(); setMode("setup"); setIsMounted(true); return; }
 
           statsProps.setPlayerId(savedPlayerId);
-          statsProps.setPlayerName(player.name);
-          statsProps.setPlayerNationality(player.nationality);
-          statsProps.setPlayerDebutAge(player.debutAge);
-          statsProps.setPlayerCareerLength(player.careerLengthYears);
-          statsProps.setStatsTimeline(player.statsTimeline as any[]);
-          statsProps.setClubStints(player.clubStints as any[]);
-          statsProps.setAchievements((player.achievements as any) ?? { ballonDor: 0, trophies: [], seasonAwards: [] });
+          statsProps.setPlayerName(playerRecord.name);
+          statsProps.setPlayerNationality(playerRecord.nationality);
+          statsProps.setPlayerDebutAge(playerRecord.debutAge);
+          statsProps.setPlayerCareerLength(playerRecord.careerLengthYears);
+          statsProps.setStatsTimeline(playerRecord.statsTimeline);
+          statsProps.setClubStints(playerRecord.clubStints);
+          statsProps.setAchievements(playerRecord.achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] });
 
-          if (player.seasonHistory && typeof player.seasonHistory === "object") {
+          if (playerRecord.seasonHistory) {
             const restored: Record<number, SeasonRecord> = {};
-            for (const [k, v] of Object.entries(player.seasonHistory as Record<string, any>)) {
-              restored[parseInt(k)] = v as SeasonRecord;
+            for (const [k, v] of Object.entries(playerRecord.seasonHistory)) {
+              restored[parseInt(k)] = v;
             }
             statsProps.setSeasonRecords(restored);
           }
@@ -215,29 +246,29 @@ export function useDraftDrum(
             : ["pac", "sho", "pas", "dri", "def", "phy"];
           statsProps.setCurrentStats(Object.fromEntries(statKeys.map((k) => [k, lastStats[k] ?? 60])));
 
-          if (typeof (player as any).contractYearsRemaining === "number") {
-            statsProps.setContractYearsRemaining((player as any).contractYearsRemaining);
+          if (typeof playerRecord.contractYearsRemaining === "number") {
+            statsProps.setContractYearsRemaining(playerRecord.contractYearsRemaining);
           }
-          if (typeof (player as any).contractYearsTotal === "number") {
-            statsProps.setContractYearsTotal((player as any).contractYearsTotal);
+          if (typeof playerRecord.contractYearsTotal === "number") {
+            statsProps.setContractYearsTotal(playerRecord.contractYearsTotal);
           }
-          if (typeof (player as any).currentWageAnnual === "number") {
-            statsProps.setCurrentWageAnnual((player as any).currentWageAnnual);
+          if (typeof playerRecord.currentWageAnnual === "number") {
+            statsProps.setCurrentWageAnnual(playerRecord.currentWageAnnual);
           }
-          if (typeof (player as any).marketValue === "number") {
-            statsProps.setMarketValue((player as any).marketValue);
+          if (typeof playerRecord.marketValue === "number") {
+            statsProps.setMarketValue(playerRecord.marketValue);
           }
-          statsProps.setWalletBalance((player as any).walletBalance ?? 0);
-          statsProps.setInfluenceScore((player as any).influenceScore ?? 0);
-          statsProps.setShopInventory(((player as any).shopInventory as ShopInventoryEntry[]) ?? []);
+          statsProps.setWalletBalance(playerRecord.walletBalance ?? 0);
+          statsProps.setInfluenceScore(playerRecord.influenceScore ?? 0);
+          statsProps.setShopInventory(playerRecord.shopInventory ?? []);
 
-          const unemployed = !!(player as any).isUnemployed;
+          const unemployed = !!playerRecord.isUnemployed;
           statsProps.setIsUnemployed(unemployed);
           if (unemployed) {
             statsProps.setCurrentClub(null);
             statsProps.setCurrentContinentalCup("none");
           } else {
-            const fullClub = clubs.find((c: any) => c.id === lastStint.clubId);
+            const fullClub = clubs.find((c) => c.id === lastStint.clubId);
             statsProps.setCurrentClub({
               id: lastStint.clubId, name: lastStint.clubName,
               leagueId: lastStint.leagueId, leagueName: lastStint.leagueName,
@@ -268,7 +299,17 @@ export function useDraftDrum(
       };
       statsProps.setCurrentClub(defaultClub);
       statsProps.setStatsTimeline([{ age: 21, ovr: 71, pac: 70, sho: 73, pas: 55, dri: 68, def: 31, phy: 61 }]);
-      statsProps.setClubStints([{ clubId: defaultClub.id, clubName: defaultClub.name, leagueId: defaultClub.leagueId, leagueName: defaultClub.leagueName, startAge: 21 }]);
+      statsProps.setClubStints([{
+        clubId: defaultClub.id,
+        clubName: defaultClub.name,
+        leagueId: defaultClub.leagueId,
+        leagueName: defaultClub.leagueName,
+        startAge: 21,
+        endAge: 21,
+        yearsAtClub: 1,
+        ovrAtJoining: 71,
+        ovrAtLeaving: 71,
+      }]);
       setCareerSubStep("idle");
       setMode("career");
       setIsMounted(true);
@@ -276,6 +317,8 @@ export function useDraftDrum(
       resetDraft(); setMode("setup"); setIsMounted(true);
     }
     return () => controller.abort();
+  // This hydrates the draft exactly once; dependencies are intentionally frozen.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Background save after each season — serialize để tránh 2 request bay song
@@ -288,8 +331,8 @@ export function useDraftDrum(
   const saveInFlightRef = useRef(false);
   const pendingSaveRef = useRef(false);
   const latestSaveSnapshotRef = useRef<{
-    statsTimeline: any[]; clubStints: any[]; achievements: any; currentContinentalCup: string;
-    seasonHistory: Record<number, any>;
+    statsTimeline: StatSnapshot[]; clubStints: ClubStint[]; achievements: AchievementRecord; currentContinentalCup: string;
+    seasonHistory: SeasonHistory;
     contractYearsTotal: number;
     contractYearsRemaining: number;
     currentWageAnnual: number;
@@ -313,7 +356,7 @@ export function useDraftDrum(
 
     latestSaveSnapshotRef.current = {
       statsTimeline, clubStints, achievements, currentContinentalCup,
-      seasonHistory: seasonRecords as Record<number, any>,
+      seasonHistory: seasonRecords,
       contractYearsTotal: statsProps.contractYearsTotal,
       contractYearsRemaining: statsProps.contractYearsRemaining,
       currentWageAnnual: statsProps.currentWageAnnual,
@@ -355,6 +398,29 @@ export function useDraftDrum(
       });
   }
 
+  // Module pages unmount this hook. Persist the completed season before
+  // navigating to transfer/shop; waiting for an age change is too late because
+  // the wheel result still only exists in React state at that point.
+  async function persistCurrentProgress(): Promise<boolean> {
+    const pid = statsProps.playerId;
+    const snapshot = latestSaveSnapshotRef.current;
+    if (!pid || !snapshot || isProcessing) return !isProcessing;
+
+    setIsProcessing(true);
+    try {
+      const result = await updateSeasonProgressAction({ playerId: pid, ...snapshot });
+      statsProps.setWalletBalance(result.walletBalance);
+      statsProps.setInfluenceScore(result.influenceScore);
+      statsProps.setShopInventory(result.shopInventory);
+      return true;
+    } catch (err) {
+      console.error("Progress save before module navigation failed:", err);
+      return false;
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   // Two valid shopping windows — both are "the upcoming season's wheels haven't spun
   // yet", just viewed from either side of the "Next Season" click:
   //  - "resolved": season `currentAge` just finished, target `currentAge + 1`.
@@ -384,10 +450,16 @@ export function useDraftDrum(
   }
 
   useEffect(() => {
-    if (mode !== "career" || prevAgeRef.current === null) { prevAgeRef.current = currentAge; return; }
+    const previousAge = prevAgeRef.current;
     prevAgeRef.current = currentAge;
+    // Hydration also changes currentAge from its placeholder value to the
+    // persisted value. That is not a completed season and must not trigger a
+    // background save with partially restored state.
+    if (mode !== "career" || previousAge === null || previousAge === currentAge) return;
     const pid = statsProps.playerId;
     if (pid) runBackgroundSave(pid);
+  // The save snapshot is maintained in refs so this effect only tracks a season change.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAge]);
 
   // Init season record for current age
@@ -413,6 +485,8 @@ export function useDraftDrum(
       });
       setSelectedAgeForStats(currentAge);
     }
+  // statsProps is a mutable facade; the listed state inputs are the record boundaries.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentAge, mode, currentClub, currentContinentalCup, playerNationality, playerDebutAge]);
 
   function resetSeasonState() {
@@ -429,20 +503,34 @@ export function useDraftDrum(
   async function handleStartCareer() {
     if (isProcessing) return;
     setIsProcessing(true);
+    setStartCareerError(null);
     try {
-      const initPayload = await startPlayerCareerAction({ ...setupProps.draftData, position });
-      statsProps.handleStartCareer(setupProps.draftData, initPayload, clubs);
-
       const draftData = setupProps.draftData;
-      const selectedClub = clubs.find((c: any) => c.id === draftData.clubId);
+      const requiredDraftFields = [
+        draftData.nationality,
+        draftData.debutAge,
+        draftData.height,
+        draftData.weight,
+        draftData.careerLength,
+        draftData.leagueId,
+        draftData.leagueName,
+        draftData.clubId,
+        draftData.clubName,
+      ];
+      if (requiredDraftFields.some((value) => value === null || value === undefined || value === "")) {
+        throw new Error("Bản draft chưa hoàn tất. Hãy quay đủ các vòng trước khi bắt đầu sự nghiệp.");
+      }
+
+      const initPayload = await startPlayerCareerAction({ ...draftData, position });
+      const selectedClub = clubs.find((c) => c.id === draftData.clubId);
       const initialContinentalCup = selectedClub?.continentalType ?? "none";
       const debutOvr = initPayload.debutOvr;
 
-      initCareerPlayerAction({
+      const { id } = await initCareerPlayerAction({
         gameId, slotIndex, position, name: initPayload.playerName,
-        nationality: draftData.nationality!, debutAge: draftData.debutAge!,
-        careerLength: draftData.careerLength!, debutOvr,
-        height: draftData.height!, weight: draftData.weight!,
+        nationality: draftData.nationality, debutAge: draftData.debutAge,
+        careerLength: draftData.careerLength, debutOvr,
+        height: draftData.height, weight: draftData.weight,
         preferredFoot: initPayload.preferredFoot,
         currentContinentalCup: initialContinentalCup,
         statsTimeline: initPayload.initTimeline, clubStints: [initPayload.initStint],
@@ -451,19 +539,25 @@ export function useDraftDrum(
         contractYearsRemaining: initPayload.contractYearsRemaining,
         currentWageAnnual: initPayload.currentWageAnnual,
         marketValue: initPayload.marketValue,
-      }).then(({ id }) => statsProps.setPlayerId(id))
-        .catch((err) => console.error("Error creating career player in DB:", err));
+      });
 
+      statsProps.setPlayerId(id);
+      statsProps.handleStartCareer(draftData, initPayload, clubs);
       resetSeasonState(); setTransferOffer(null); setTransferMarket(null); setWillingToMove(false);
       setMode("career"); setCareerSubStep("idle");
     } catch (err) {
       console.error("Error starting career:", err);
+      setStartCareerError(
+        err instanceof Error && err.message
+          ? err.message
+          : "Không thể bắt đầu sự nghiệp lúc này. Vui lòng thử lại.",
+      );
     } finally {
       setIsProcessing(false);
     }
   }
 
-  function handleStartSeason() {
+  const handleStartSeason = useCallback(() => {
     setSelectorIndex(0); setSelectedStatsList([]); setTempSelectedStat(null); setEvolvedStatsThisYear([]);
     setApproachRejects({});
     setApproachBanner(null);
@@ -507,7 +601,13 @@ export function useDraftDrum(
     }
 
     setCareerSubStep("standing");
-  }
+  }, [currentAge, currentClub, statsProps]);
+
+  useEffect(() => {
+    if (!autoStartSeasonRef.current || mode !== "career") return;
+    autoStartSeasonRef.current = false;
+    handleStartSeason();
+  }, [currentAge, mode, handleStartSeason]);
 
   function handleCareerSpin() {
     if (isProcessing || careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved"
@@ -516,12 +616,14 @@ export function useDraftDrum(
 
     const ctx = {
       currentAge, playerDebutAge, playerCareerLength, currentOvr, position, yearSimResult, hiddenStats, currentClub,
-      leagueSize: currentClub ? (clubs.filter((c: any) => c.leagueId === currentClub.leagueId).length || 10) : 10,
+    leagueSize: currentClub ? (clubs.filter((c) => c.leagueId === currentClub.leagueId).length || 10) : 10,
       lastYearStanding, standingResult,
       currentContinentalCup, playerNationality, selectedStatsList, selectorIndex,
       yearEvolutionDirection: yearEvolution.direction, currentStats,
       ballonDorNominationWeight, ballonDorRankWeights,
       fitnessCoachActive,
+      nationalCallupBoostActive,
+      eliteDevelopmentActive,
     };
     const { result, idx, tempValue } = getCareerWheelPoolAndValue(careerSubStep, ctx);
     setIsProcessing(true);
@@ -535,9 +637,9 @@ export function useDraftDrum(
     const result = tempCareerResultRef.current;
     setCareerSpinning(false); setCareerTargetIndex(-1); setCareerTempValue(null);
     if (COMPETITION_STEPS.has(careerSubStep)) {
-      competitionFlow.handleSpinComplete(careerSubStep, result);
+      if (result !== null) competitionFlow.handleSpinComplete(careerSubStep, result);
     } else {
-      statFlow.handleSpinComplete(careerSubStep, result);
+      if (result !== null) statFlow.handleSpinComplete(careerSubStep, result);
     }
   }
 
@@ -560,7 +662,7 @@ export function useDraftDrum(
     setIsProcessing(false);
   }
 
-  function handleAcceptMarketOffer(offer: any) {
+  function handleAcceptMarketOffer(offer: ContractOfferCard) {
     console.log("[Transfer Flow] User accepted offer:", offer.clubName, offer);
     setTransferOffer(offer);
     statsProps.handleAcceptTransfer(
@@ -652,7 +754,13 @@ export function useDraftDrum(
   }
 
   async function handleProactiveRenewal(wageOption?: WageDealOption): Promise<boolean> {
-    if (isProcessing || !currentClub) return false;
+    if (
+      isProcessing ||
+      !currentClub ||
+      proactiveRenewalInFlightRef.current ||
+      proactiveRenewalRejectedAge === currentAge
+    ) return false;
+    proactiveRenewalInFlightRef.current = true;
     setIsProcessing(true);
     setApproachBanner(null);
     const retireAge = playerDebutAge + playerCareerLength;
@@ -685,6 +793,7 @@ export function useDraftDrum(
         return true;
       } else {
         console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} REJECTED.`);
+        setProactiveRenewalRejectedAge(currentAge);
         setApproachBanner(`Gia hạn không thành công — ${res.rejectReason}`);
         return false;
       }
@@ -693,6 +802,7 @@ export function useDraftDrum(
       setApproachBanner("Không thể gửi đề nghị gia hạn — thử lại");
       return false;
     } finally {
+      proactiveRenewalInFlightRef.current = false;
       setIsProcessing(false);
     }
   }
@@ -707,6 +817,7 @@ export function useDraftDrum(
     const retireAge = playerDebutAge + playerCareerLength;
     return searchClubsForApproachAction({
       ...params,
+      currentClubId: currentClub?.id ?? null,
       currentOvr,
       currentStats: statsProps.statsTimeline?.[statsProps.statsTimeline.length - 1] as Record<string, number> | undefined,
       currentAge,
@@ -728,15 +839,58 @@ export function useDraftDrum(
     }
   }
 
-  function handleNextSeason() {
-    if (isProcessing) return;
+  function advanceToNextSeason(autoStart = false) {
+    const canAdvanceFromCompletedSeason = ["resolved", "transfer"].includes(careerSubStep);
+    const isHydratedModuleReturn = autoStart && careerSubStep === "idle";
+    if (isProcessing || (!canAdvanceFromCompletedSeason && !isHydratedModuleReturn)) return;
+    if (autoStart) autoStartSeasonRef.current = true;
     setIsProcessing(true);
     const { isRetire } = statsProps.handleNextSeason(
       standingResult, domesticCupResult, continentalCupResult,
       nationalCallupResult, nationalTournamentResult, yearSimResult, ballonDorRank,
     );
-    if (isRetire) { setMode("retired"); } else { resetSeasonState(); setCareerSubStep("idle"); }
+    if (isRetire) {
+      autoStartSeasonRef.current = false;
+      setMode("retired");
+    } else {
+      resetSeasonState();
+      setCareerSubStep("idle");
+    }
     setIsProcessing(false);
+  }
+
+  function handleNextSeason() {
+    advanceToNextSeason();
+  }
+
+  function handleContinueFromShop() {
+    if (isProcessing || shopTargetSeason === null) return;
+    if (careerSubStep === "idle") {
+      setActiveModal(null);
+      handleStartSeason();
+      return;
+    }
+    if (careerSubStep === "resolved") {
+      advanceToNextSeason(true);
+    }
+  }
+
+  function handleShopReturn(action: "start" | "advance") {
+    if (isProcessing) return;
+    if (action === "advance") {
+      advanceToNextSeason(true);
+      return;
+    }
+    if (careerSubStep === "idle") handleStartSeason();
+  }
+
+  function handleTransferReturn(action: "start" | "advance") {
+    if (isProcessing) return;
+    if (action === "advance") {
+      advanceToNextSeason(true);
+      return;
+    }
+    if (careerSubStep === "idle") handleStartSeason();
   }
 
   return {
@@ -750,12 +904,14 @@ export function useDraftDrum(
     lastYearStanding, seasonRecords, selectedAgeForStats, setSelectedAgeForStats,
     activeModal, setActiveModal, careerSubStep, setCareerSubStep,
     isProcessing,
+    startCareerError,
     careerSpinning, careerWheelItems, careerTargetIndex, careerTempValue,
     yearEvolution, evolvedStatsThisYear,
     standingResult, domesticCupResult, continentalCupResult,
     nationalCallupResult, nationalTournamentResult,
     yearSimResult, transferOffer, transferMarket, willingToMove, showShortlist,
     approachRejects, approachBanner,
+    proactiveRenewalRejected: proactiveRenewalRejectedAge === currentAge,
     hasBallonDorWinner,
     isUnemployed: statsProps.isUnemployed,
     contractYearsTotal: statsProps.contractYearsTotal,
@@ -775,7 +931,8 @@ export function useDraftDrum(
     handleStartCareer, handleStartSeason, handleCareerSpin,
     handleCareerSpinComplete, handleAcceptTransfer, handleAcceptMarketOffer,
     handleRejectTransferWindow, handleApproachShortlist, handleProactiveRenewal, handleSearchClubs, handleSetWillingToMove,
-    setShowShortlist, handleNextSeason,
+    setShowShortlist, handleNextSeason, handleContinueFromShop, handleShopReturn, handleTransferReturn,
+    persistCurrentProgress,
     handleSeasonStatsModalClose: competitionFlow.handleSeasonStatsModalClose,
     handleSavePlayer: statsProps.handleSavePlayer,
     STEP_LABELS: getStepLabels(position),

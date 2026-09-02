@@ -1,8 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import Link from "next/link";
-import { ArrowLeft } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useDraftDrum } from "../hooks/useDraftDrum";
 import { SeasonStrip } from "./SeasonStrip";
 import { StoryRail } from "./StoryRail";
@@ -12,13 +11,24 @@ import { SeasonProfile } from "./SeasonProfile";
 import { PaniniSticker } from "./PaniniSticker";
 import { RetiredStage } from "./RetiredStage";
 import { SeasonResultModal } from "./SeasonResultModal";
-import { SeasonStatsModal } from "./SeasonStatsModal";
 import { SeasonRecapModal } from "./SeasonRecapModal";
-import { TransferDecisionModal } from "./TransferDecisionModal";
 import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
-import { ShopModal } from "./ShopModal";
+import { MobileCareerContext } from "./MobileCareerContext";
+import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
+import { Button } from "@/components/ui/Button";
+import { DataRow } from "@/components/ui/DataRow";
 import { formatEuroThousands } from "@/lib/transfer-economy";
+import { WheelGameHeader } from "./WheelGameHeader";
+import { SeasonSideSummary } from "./SeasonSideSummary";
+import { getSeasonYearString } from "../lib/simulation-helpers";
+
+function consumeReturnQuery(param: "shopReturn" | "transferReturn") {
+  const url = new URL(window.location.href);
+  if (!url.searchParams.has(param)) return;
+  url.searchParams.delete(param);
+  window.history.replaceState(window.history.state, "", `${url.pathname}${url.search}${url.hash}`);
+}
 
 interface DraftDrumScreenProps {
   gameId: string;
@@ -29,6 +39,10 @@ interface DraftDrumScreenProps {
   savedPlayerId?: string;
   savedContinentalCup?: string;
   initialMode?: "setup" | "career" | "retired";
+  backHref?: string;
+  gameName?: string;
+  shopReturnAction?: "start" | "advance";
+  transferReturnAction?: "start" | "advance";
 }
 
 export function DraftDrumScreen({ 
@@ -39,8 +53,13 @@ export function DraftDrumScreen({
   clubs, 
   savedPlayerId, 
   savedContinentalCup, 
-  initialMode = "setup" 
+  initialMode = "setup",
+  backHref = `/${gameId}`,
+  gameName,
+  shopReturnAction,
+  transferReturnAction,
 }: DraftDrumScreenProps) {
+  const router = useRouter();
   const {
     isMounted,
     isSaving,
@@ -67,6 +86,7 @@ export function DraftDrumScreen({
     setActiveModal,
     careerSubStep,
     isProcessing,
+    startCareerError,
     careerSpinning,
     careerWheelItems,
     careerTargetIndex,
@@ -80,22 +100,17 @@ export function DraftDrumScreen({
     careerTotalStats,
     peakOvrValue,
     yearSimResult,
-    transferOffer,
     transferMarket,
     willingToMove,
-    showShortlist,
     approachRejects,
     approachBanner,
+    proactiveRenewalRejected,
     isUnemployed,
     clubStints,
     nationalCallupResult,
     nationalTournamentResult,
     tempSelectedStat,
-    walletBalance,
-    influenceScore,
-    shopInventory,
     shopTargetSeason,
-    handlePurchaseShopItem,
     contractYearsTotal,
     contractYearsRemaining,
     currentWageAnnual,
@@ -103,18 +118,18 @@ export function DraftDrumScreen({
     handleSetupSpin,
     handleSetupSpinComplete,
     handleStartCareer,
-    handleStartSeason,
     handleCareerSpin,
     handleCareerSpinComplete,
-    handleAcceptTransfer,
     handleAcceptMarketOffer,
     handleRejectTransferWindow,
     handleApproachShortlist,
     handleProactiveRenewal,
     handleSearchClubs,
     handleSetWillingToMove,
-    setShowShortlist,
     handleNextSeason,
+    handleShopReturn,
+    handleTransferReturn,
+    persistCurrentProgress,
     handleSeasonStatsModalClose,
     handleSavePlayer,
     STEP_LABELS,
@@ -131,92 +146,73 @@ export function DraftDrumScreen({
     }
   }, [careerSubStep, transferMarket]);
 
+  const handledShopReturnRef = React.useRef(false);
+  React.useEffect(() => {
+    if (
+      !shopReturnAction ||
+      handledShopReturnRef.current ||
+      !isMounted ||
+      mode !== "career" ||
+      isProcessing
+    ) return;
+    handledShopReturnRef.current = true;
+    consumeReturnQuery("shopReturn");
+    handleShopReturn(shopReturnAction);
+  }, [handleShopReturn, isMounted, isProcessing, mode, shopReturnAction]);
+
+  const handledTransferReturnRef = React.useRef(false);
+  React.useEffect(() => {
+    if (
+      !transferReturnAction ||
+      handledTransferReturnRef.current ||
+      !isMounted ||
+      mode !== "career" ||
+      isProcessing
+    ) return;
+    handledTransferReturnRef.current = true;
+    consumeReturnQuery("transferReturn");
+    handleTransferReturn(transferReturnAction);
+  }, [handleTransferReturn, isMounted, isProcessing, mode, transferReturnAction]);
+
   if (!isMounted) return null;
 
   const activeRecord = seasonRecords[selectedAgeForStats] ?? null;
+  const shopHref = shopTargetSeason === null
+    ? undefined
+    : `/classic/${gameId}/shop/${slotIndex}?season=${shopTargetSeason}&return=${careerSubStep === "resolved" ? "advance" : "start"}`;
+  const transferHref = `/classic/${gameId}/transfer/${slotIndex}?return=${careerSubStep === "transfer" ? "advance" : "start"}`;
+
+  async function openModule(href: string, shouldPersist: boolean) {
+    if (shouldPersist && !(await persistCurrentProgress())) return;
+    router.push(href);
+  }
 
   return (
     <div
-      className="game-dashboard-wrapper"
+      className="game-dashboard-wrapper rtg-wheel-shell"
       style={{
         backgroundColor: "var(--cream)",
-        backgroundImage:
-          "repeating-linear-gradient(0deg, transparent, transparent 28px, rgba(0,0,0,0.018) 28px, rgba(0,0,0,0.018) 29px)",
+        backgroundImage: "none",
       }}
     >
-      {/* ── HEADER NAVIGATION BAR ── */}
-      <header
-        style={{
-          borderBottom: "2px solid var(--charcoal)",
-          backgroundColor: "var(--white)",
-          padding: "12px 16px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "10px",
-          boxShadow: "0 2px 0 rgba(0,0,0,0.05)",
-        }}
-      >
-        <div style={{ display: "flex", alignItems: "center", gap: "12px", flexWrap: "wrap" }}>
-          <Link
-            href={`/${gameId}`}
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "6px",
-              fontFamily: "var(--font-headline)",
-              fontSize: "0.85rem",
-              fontWeight: 700,
-              color: "var(--ink-light)",
-              textDecoration: "none",
-              border: "1.5px solid var(--charcoal)",
-              padding: "6px 12px",
-              borderRadius: "3px",
-              backgroundColor: "var(--white)",
-              boxShadow: "1.5px 1.5px 0 var(--charcoal)",
-              transition: "transform 0.1s ease",
-              minHeight: "36px",
-            }}
-            onMouseDown={(e) => (e.currentTarget.style.transform = "translate(1.5px, 1.5px)")}
-            onMouseUp={(e) => (e.currentTarget.style.transform = "translate(0, 0)")}
-          >
-            <ArrowLeft size={16} /> TRỞ VỀ SQUAD
-          </Link>
-          <div>
-            <h1
-              style={{
-                fontFamily: "var(--font-headline)",
-                fontSize: "1.05rem",
-                fontWeight: 900,
-                letterSpacing: "0.02em",
-                textTransform: "uppercase",
-                color: "var(--charcoal)",
-                margin: 0,
-              }}
-            >
-              VÒNG QUAY SỰ NGHIỆP (ROAD TO GLORY)
-            </h1>
-            <div
-              style={{
-                fontFamily: "var(--font-stamp)",
-                fontSize: "0.5rem",
-                color: "var(--ink-gray)",
-                fontWeight: 700,
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                marginTop: "2px",
-              }}
-            >
-              {mode === "setup" ? "1. GIAI ĐOẠN SETUP" : mode === "career" ? "2. GIAI ĐOẠN THI ĐẤU" : "3. GIẢI NGHỆ"}
-            </div>
-          </div>
-        </div>
-      </header>
+      <WheelGameHeader
+        backHref={backHref}
+        gameName={gameName}
+        position={position}
+        slotIndex={slotIndex}
+        mode={mode}
+        seasonLabel={mode === "setup" ? undefined : getSeasonYearString(currentAge, playerDebutAge)}
+        age={mode === "setup" ? undefined : currentAge}
+        currentClubName={mode === "setup" ? undefined : currentClub?.name}
+        overall={mode === "setup" ? undefined : currentOvr}
+        shopHref={shopHref}
+        onOpenTrophyCabinet={() => setIsTrophyCabinetOpen(true)}
+      />
 
       {/* ── MODE 1: SETUP WHEELS ── */}
       {mode === "setup" && (
         <SetupStage
+          slotIndex={slotIndex}
           activeStep={activeStep}
           isSpinning={isSpinning}
           wheelItems={wheelItems}
@@ -226,6 +222,7 @@ export function DraftDrumScreen({
           handleSetupSpin={handleSetupSpin}
           handleStartCareer={handleStartCareer}
           isProcessing={isProcessing}
+          startCareerError={startCareerError}
           draftData={draftData}
           position={position}
           STEP_LABELS={STEP_LABELS}
@@ -236,117 +233,24 @@ export function DraftDrumScreen({
       {mode === "career" && (
         <>
           <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
-          <div
-            style={{
-              maxWidth: "1440px",
-              margin: "8px auto 0",
-              padding: "0 16px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "flex-end",
-              gap: 10,
-            }}
-          >
-            <div
-              style={{
-                display: "flex",
-                alignItems: "center",
-                gap: 8,
-                padding: "6px 12px",
-                borderRadius: 8,
-                background: "var(--white, #ffffff)",
-                border: "2px solid var(--charcoal, #1e293b)",
-                fontSize: "0.82rem",
-              }}
-            >
-              <span>💰</span>
-              <strong style={{ color: "#15803d" }}>{formatEuroThousands(walletBalance)}</strong>
-            </div>
-            <button
-              type="button"
-              onClick={() => setActiveModal("shop")}
-              title={
-                shopTargetSeason !== null
-                  ? `Mua vật phẩm cho mùa giải Tuổi ${shopTargetSeason}`
-                  : "Xem trước cửa hàng — mở mua vào đầu/cuối mỗi mùa giải"
-              }
-              style={{
-                padding: "6px 14px",
-                borderRadius: 8,
-                background: "var(--white, #ffffff)",
-                border: "2px solid var(--charcoal, #1e293b)",
-                boxShadow: "2px 2px 0 var(--charcoal, #1e293b)",
-                fontSize: "0.8rem",
-                fontFamily: "var(--font-headline, sans-serif)",
-                fontWeight: 700,
-                cursor: "pointer",
-                opacity: shopTargetSeason !== null ? 1 : 0.7,
-              }}
-            >
-              🛒 SHOP
-            </button>
-          </div>
           <main className="game-dashboard-main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
-            <div className="game-mobile-switcher" style={{ display: "flex", gap: "6px", marginBottom: "16px" }}>
-              <button
-                type="button"
-                onClick={() => setMobileSection("action")}
-                style={{
-                  flex: 1,
-                  padding: "8px 10px",
-                  fontSize: "0.75rem",
-                  fontFamily: "var(--font-headline)",
-                  fontWeight: 700,
-                  backgroundColor: mobileSection === "action" ? "var(--coral)" : "var(--white)",
-                  color: mobileSection === "action" ? "var(--white)" : "var(--charcoal)",
-                  border: "1.5px solid var(--charcoal)",
-                  borderRadius: "3px",
-                  boxShadow: "1.5px 1.5px 0 var(--charcoal)",
-                  cursor: "pointer",
-                }}
-              >
-                🎮 THAO TÁC
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileSection("story")}
-                style={{
-                  flex: 1,
-                  padding: "8px 10px",
-                  fontSize: "0.75rem",
-                  fontFamily: "var(--font-headline)",
-                  fontWeight: 700,
-                  backgroundColor: mobileSection === "story" ? "var(--coral)" : "var(--white)",
-                  color: mobileSection === "story" ? "var(--white)" : "var(--charcoal)",
-                  border: "1.5px solid var(--charcoal)",
-                  borderRadius: "3px",
-                  boxShadow: "1.5px 1.5px 0 var(--charcoal)",
-                  cursor: "pointer",
-                }}
-              >
-                📜 NHẬT KÝ
-              </button>
-              <button
-                type="button"
-                onClick={() => setMobileSection("panini")}
-                style={{
-                  flex: 1,
-                  padding: "8px 10px",
-                  fontSize: "0.75rem",
-                  fontFamily: "var(--font-headline)",
-                  fontWeight: 700,
-                  backgroundColor: mobileSection === "panini" ? "var(--coral)" : "var(--white)",
-                  color: mobileSection === "panini" ? "var(--white)" : "var(--charcoal)",
-                  border: "1.5px solid var(--charcoal)",
-                  borderRadius: "3px",
-                  boxShadow: "1.5px 1.5px 0 var(--charcoal)",
-                  cursor: "pointer",
-                }}
-              >
-                🎴 THẺ PANINI
-              </button>
-            </div>
+            <TabsList className="game-mobile-switcher">
+              <TabsTrigger value="action" active={mobileSection === "action"} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thao tác</TabsTrigger>
+              <TabsTrigger value="story" active={mobileSection === "story"} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Nhật ký</TabsTrigger>
+              <TabsTrigger value="panini" active={mobileSection === "panini"} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thẻ</TabsTrigger>
+            </TabsList>
+
+            <MobileCareerContext
+              currentAge={currentAge}
+              currentOvr={currentOvr}
+              currentClub={currentClub}
+              isUnemployed={isUnemployed}
+              careerSubStep={careerSubStep}
+              isProcessing={isProcessing}
+              seasonApps={yearSimResult?.apps}
+              seasonRating={yearSimResult?.matchRating}
+            />
 
             <div className="game-dashboard-grid">
               
@@ -381,17 +285,6 @@ export function DraftDrumScreen({
                   handleCareerSpinComplete={handleCareerSpinComplete}
                   careerTempValue={careerTempValue}
                   handleCareerSpin={handleCareerSpin}
-                  handleStartSeason={handleStartSeason}
-                  transferMarket={transferMarket}
-                  willingToMove={willingToMove}
-                  setWillingToMove={handleSetWillingToMove}
-                  showShortlist={showShortlist}
-                  setShowShortlist={setShowShortlist}
-                  handleAcceptMarketOffer={handleAcceptMarketOffer}
-                  handleRejectTransferWindow={handleRejectTransferWindow}
-                  handleApproachShortlist={handleApproachShortlist}
-                  approachRejects={approachRejects}
-                  approachBanner={approachBanner}
                   isUnemployed={isUnemployed}
                   yearSimResult={yearSimResult}
                   standingResult={standingResult}
@@ -399,14 +292,12 @@ export function DraftDrumScreen({
                   continentalCupResult={continentalCupResult}
                   hasBallonDorWinner={hasBallonDorWinner}
                   handleNextSeason={handleNextSeason}
-                  position={position}
                   selectorIndex={selectorIndex}
                   yearEvolutionCount={yearEvolution.count}
                   yearEvolutionDirection={yearEvolution.direction}
                   tempSelectedStat={tempSelectedStat}
-                  onOpenTransferModal={() => setActiveModal("transfer")}
-                  onOpenShopModal={() => setActiveModal("shop")}
-                  walletBalance={walletBalance}
+                  onOpenTransferModal={() => void openModule(transferHref, true)}
+                  onOpenShop={shopHref ? () => void openModule(shopHref, careerSubStep === "resolved") : undefined}
                 />
               </div>
 
@@ -414,150 +305,67 @@ export function DraftDrumScreen({
               <div className={`game-column-right ${mobileSection === "panini" ? "" : "max-lg:hidden"}`}>
                 
                 {/* TAB SWITCH HEADER */}
-                <div style={{ display: "flex", gap: "4px", backgroundColor: "var(--cream-dark)", padding: "4px", borderRadius: "4px", border: "1.5px solid var(--charcoal)", boxShadow: "2px 2px 0 var(--charcoal)" }}>
-                  <button
-                    type="button"
-                    onClick={() => setRightTab("panini")}
-                    style={{
-                      flex: 1,
-                      padding: "6px 4px",
-                      fontSize: "0.7rem",
-                      fontFamily: "var(--font-headline)",
-                      fontWeight: 700,
-                      backgroundColor: rightTab === "panini" ? "var(--white)" : "transparent",
-                      color: rightTab === "panini" ? "var(--coral)" : "var(--charcoal)",
-                      border: rightTab === "panini" ? "1.5px solid var(--charcoal)" : "none",
-                      borderRadius: "3px",
-                      cursor: "pointer",
-                      boxShadow: rightTab === "panini" ? "1.5px 1.5px 0 var(--charcoal)" : "none",
-                    }}
-                  >
-                    🎴 THẺ PANINI
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRightTab("profile")}
-                    style={{
-                      flex: 1,
-                      padding: "6px 4px",
-                      fontSize: "0.7rem",
-                      fontFamily: "var(--font-headline)",
-                      fontWeight: 700,
-                      backgroundColor: rightTab === "profile" ? "var(--white)" : "transparent",
-                      color: rightTab === "profile" ? "var(--coral)" : "var(--charcoal)",
-                      border: rightTab === "profile" ? "1.5px solid var(--charcoal)" : "none",
-                      borderRadius: "3px",
-                      cursor: "pointer",
-                      boxShadow: rightTab === "profile" ? "1.5px 1.5px 0 var(--charcoal)" : "none",
-                    }}
-                  >
-                    📊 HỒ SƠ
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setRightTab("transfer")}
-                    style={{
-                      flex: 1,
-                      padding: "6px 4px",
-                      fontSize: "0.7rem",
-                      fontFamily: "var(--font-headline)",
-                      fontWeight: 700,
-                      backgroundColor: rightTab === "transfer" ? "#2d5a3d" : "transparent",
-                      color: rightTab === "transfer" ? "#ffffff" : "var(--charcoal)",
-                      border: rightTab === "transfer" ? "1.5px solid var(--charcoal)" : "none",
-                      borderRadius: "3px",
-                      cursor: "pointer",
-                      boxShadow: rightTab === "transfer" ? "1.5px 1.5px 0 var(--charcoal)" : "none",
-                    }}
-                  >
-                    💼 CHUYỂN NHƯỢNG
-                  </button>
-                </div>
+                <TabsList className="rtg-tab-list">
+                  <TabsTrigger value="panini" active={rightTab === "panini"} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Thẻ cầu thủ</TabsTrigger>
+                  <TabsTrigger value="profile" active={rightTab === "profile"} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Mùa giải</TabsTrigger>
+                  <TabsTrigger value="transfer" active={rightTab === "transfer"} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Hợp đồng</TabsTrigger>
+                </TabsList>
 
-                {rightTab === "panini" ? (
-                  <PaniniSticker
-                    playerName={playerName}
-                    position={position}
-                    playerNationality={playerNationality}
-                    currentOvr={currentOvr}
-                    currentAge={currentAge}
-                    playerDebutAge={playerDebutAge}
-                    playerCareerLength={playerCareerLength}
-                    currentContinentalCup={currentContinentalCup}
-                    standingResult={standingResult}
-                    domesticCupResult={domesticCupResult}
-                    continentalCupResult={continentalCupResult}
-                    nationalCallupResult={nationalCallupResult}
-                    nationalTournamentResult={nationalTournamentResult}
-                    hasBallonDorWinner={hasBallonDorWinner}
-                    currentStats={currentStats}
-                    evolvedStatsThisYear={evolvedStatsThisYear}
-                    currentClubName={currentClub?.name}
-                    cleanSheets={yearSimResult?.cleanSheets}
-                  />
-                ) : rightTab === "profile" ? (
-                  <SeasonProfile
-                    seasonRecords={seasonRecords}
-                    currentAge={currentAge}
-                    playerDebutAge={playerDebutAge}
-                    selectedAgeForStats={selectedAgeForStats}
-                    setSelectedAgeForStats={setSelectedAgeForStats}
-                    position={position}
-                    onOpenModal={setActiveModal}
-                  />
-                ) : (
-                  <div style={{ width: "100%", height: "100%", display: "flex", flexDirection: "column", justifyContent: "space-between", gap: "12px" }}>
-                    <div style={{ backgroundColor: "var(--white)", border: "2px solid var(--charcoal)", borderRadius: "4px", boxShadow: "3px 3px 0 var(--charcoal)", padding: "16px", display: "flex", flexDirection: "column", gap: "14px", flex: 1 }}>
-                      <div style={{ borderBottom: "1.5px solid var(--charcoal)", paddingBottom: "8px" }}>
-                        <span style={{ fontFamily: "var(--font-stamp)", fontSize: "0.55rem", color: "var(--ink-gray)", textTransform: "uppercase", letterSpacing: "0.08em" }}>TỔNG QUAN CHUYỂN NHƯỢNG</span>
-                        <h4 style={{ fontFamily: "var(--font-headline)", fontSize: "1rem", fontWeight: 900, margin: 0, color: "var(--charcoal)" }}>
-                          THÔNG TIN HỢP ĐỒNG & THỊ TRƯỜNG
-                        </h4>
-                      </div>
-
-                      <div style={{ display: "flex", flexDirection: "column", gap: "10px", backgroundColor: "var(--cream)", border: "1.5px solid var(--charcoal)", borderRadius: "4px", padding: "12px", boxShadow: "2px 2px 0 var(--charcoal)" }}>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
-                          <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>CLB HIỆN TẠI</span>
-                          <strong style={{ fontFamily: "var(--font-headline)" }}>{currentClub?.name || "Tự do (Thất nghiệp)"}</strong>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
-                          <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>THỜI HẠN HỢP ĐỒNG</span>
-                          <strong style={{ fontFamily: "var(--font-headline)", color: "#10B981" }}>
-                            {isUnemployed ? "Tự do" : `${contractYearsRemaining}/${contractYearsTotal} Năm còn lại`}
-                          </strong>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
-                          <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>LƯƠNG HÀNG NĂM</span>
-                          <strong style={{ fontFamily: "var(--font-headline)" }}>{formatEuroThousands(currentWageAnnual)} / năm</strong>
-                        </div>
-                        <div style={{ display: "flex", justifyContent: "space-between", fontSize: "0.78rem" }}>
-                          <span style={{ fontFamily: "var(--font-stamp)", color: "var(--ink-gray)" }}>GIÁ TRỊ THỊ TRƯỜNG</span>
-                          <strong style={{ fontFamily: "var(--font-headline)", color: "var(--coral)" }}>{formatEuroThousands(marketValue)}</strong>
-                        </div>
-                      </div>
-
-                      <p style={{ fontSize: "0.78rem", color: "var(--ink-gray)", margin: "4px 0 0 0", textAlign: "center", lineHeight: 1.4 }}>
-                        Bấm nút bên dưới để mở toàn bộ cửa sổ đàm phán hợp đồng, xem lời đề nghị chuyển nhượng hoặc tìm kiếm CLB mới.
-                      </p>
-
-                      <button
-                        type="button"
-                        onClick={() => setActiveModal("transfer")}
-                        className="btn-primary"
-                        style={{
-                          width: "100%",
-                          padding: "14px",
-                          backgroundColor: "#2d5a3d",
-                          color: "#ffffff",
-                          fontSize: "0.92rem",
-                          marginTop: "auto",
-                        }}
-                      >
-                        💼 MỞ CỬA SỔ CHUYỂN NHƯỢNG & HỢP ĐỒNG →
-                      </button>
+                <div className="rtg-dossier-body">
+                  {rightTab === "panini" ? (
+                    <>
+                    <PaniniSticker
+                      playerName={playerName}
+                      position={position}
+                      playerNationality={playerNationality}
+                      currentOvr={currentOvr}
+                      currentAge={currentAge}
+                      playerDebutAge={playerDebutAge}
+                      currentContinentalCup={currentContinentalCup}
+                      standingResult={standingResult}
+                      domesticCupResult={domesticCupResult}
+                      continentalCupResult={continentalCupResult}
+                      nationalCallupResult={nationalCallupResult}
+                      nationalTournamentResult={nationalTournamentResult}
+                      hasBallonDorWinner={hasBallonDorWinner}
+                      currentStats={currentStats}
+                      evolvedStatsThisYear={evolvedStatsThisYear}
+                    />
+                    <SeasonSideSummary
+                      result={yearSimResult}
+                      playerDebutAge={playerDebutAge}
+                      playerCareerLength={playerCareerLength}
+                    />
+                    </>
+                  ) : rightTab === "profile" ? (
+                    <SeasonProfile
+                      seasonRecords={seasonRecords}
+                      currentAge={currentAge}
+                      playerDebutAge={playerDebutAge}
+                      selectedAgeForStats={selectedAgeForStats}
+                      setSelectedAgeForStats={setSelectedAgeForStats}
+                      position={position}
+                      onOpenModal={setActiveModal}
+                    />
+                  ) : (
+                    <section className="rtg-contract-summary">
+                    <div className="rtg-contract-summary__heading">
+                      <span className="rtg-eyebrow">Tổng quan chuyển nhượng</span>
+                      <h2>Thông tin hợp đồng & thị trường</h2>
                     </div>
-                  </div>
-                )}
+                    <div className="rtg-contract-summary__rows">
+                      <DataRow label="CLB hiện tại" value={currentClub?.name || "Tự do (Thất nghiệp)"} />
+                      <DataRow label="Thời hạn hợp đồng" value={isUnemployed ? "Tự do" : `${contractYearsRemaining}/${contractYearsTotal} năm còn lại`} />
+                      <DataRow label="Lương hàng năm" value={`${formatEuroThousands(currentWageAnnual)} / năm`} />
+                      <DataRow label="Giá trị thị trường" value={formatEuroThousands(marketValue)} className="rtg-data-row__value--accent" />
+                    </div>
+                    <p className="rtg-contract-summary__note">Mở cửa sổ để xem đề nghị chuyển nhượng, gia hạn hoặc tìm kiếm CLB mới.</p>
+                    <Button fullWidth disabled={careerSubStep !== "transfer"} onClick={() => router.push(transferHref)}>
+                      {careerSubStep === "transfer" ? "Mở cửa sổ chuyển nhượng & hợp đồng" : "Cửa sổ mở ở cuối mùa"}
+                    </Button>
+                    </section>
+                  )}
+                </div>
               </div>
 
             </div>
@@ -607,11 +415,15 @@ export function DraftDrumScreen({
             shortlist: [],
             isUnemployedMarket: isUnemployed,
             mandatoryBuyout: 4500,
+            valuation: {
+              positionWeightedRating: currentOvr,
+              effectivePositionOvr: currentOvr,
+            },
           }}
           willingToMove={willingToMove}
           setWillingToMove={handleSetWillingToMove}
           isProcessing={isProcessing}
-          onAcceptOffer={(offer) => {
+                  onAcceptOffer={(offer) => {
             handleAcceptMarketOffer(offer);
             setActiveModal(null);
           }}
@@ -634,21 +446,10 @@ export function DraftDrumScreen({
             return accepted;
           }}
           onSearchClubs={handleSearchClubs}
+          currentClubId={currentClub?.id ?? null}
+          proactiveRenewalRejected={proactiveRenewalRejected}
           approachRejects={approachRejects}
           approachBanner={approachBanner}
-          onClose={() => setActiveModal(null)}
-        />
-      )}
-
-      {/* ── SHOP FLOATING MODAL ── */}
-      {activeModal === "shop" && (
-        <ShopModal
-          walletBalance={walletBalance}
-          shopInventory={shopInventory}
-          currentAge={currentAge}
-          isProcessing={isProcessing}
-          targetSeason={shopTargetSeason}
-          onPurchase={handlePurchaseShopItem}
           onClose={() => setActiveModal(null)}
         />
       )}
@@ -660,6 +461,7 @@ export function DraftDrumScreen({
           yearSimResult={yearSimResult}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
+          hasBallonDorWinner={hasBallonDorWinner}
           onClose={handleSeasonStatsModalClose}
         />
       )}

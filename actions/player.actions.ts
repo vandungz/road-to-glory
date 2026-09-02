@@ -1,11 +1,11 @@
 "use server";
 
 import { z } from "zod";
+import type { Prisma } from "@/app/generated/prisma/client";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
-import { generateFictionalName } from "@/lib/name-gen";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
@@ -346,7 +346,7 @@ export async function saveCareerPlayer(input: unknown) {
       isUnemployed: isUnemployed ?? false,
       // No prior row to increment from in this branch — literal value.
       walletBalance: income.totalIncome,
-      walletLedger: nextWalletLedger as unknown as any,
+      walletLedger: nextWalletLedger as unknown as Prisma.InputJsonValue,
       influenceScore,
     },
     update: {
@@ -368,7 +368,7 @@ export async function saveCareerPlayer(input: unknown) {
       isRetired: true,
       ...contractData,
       walletBalance: { increment: income.totalIncome },
-      walletLedger: nextWalletLedger as unknown as any,
+      walletLedger: nextWalletLedger as unknown as Prisma.InputJsonValue,
       influenceScore,
     },
   });

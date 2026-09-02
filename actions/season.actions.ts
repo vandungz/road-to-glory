@@ -1,6 +1,7 @@
 "use server";
 
 import { z } from "zod";
+import type { Prisma } from "@/app/generated/prisma/client";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -8,7 +9,12 @@ import { createClient } from "@/lib/supabase/server";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
-import { SHOP_CATALOG, type ShopInventoryEntry } from "@/lib/shop-catalog";
+import {
+  isShopItemActiveForSeason,
+  isShopItemAvailableForSeason,
+  SHOP_CATALOG,
+  type ShopInventoryEntry,
+} from "@/lib/shop-catalog";
 
 // ── Cup opponents caches (data thay đổi chỉ khi re-seed) ──────────────────
 
@@ -80,6 +86,8 @@ import {
   generateNationalTeamJourneyService 
 } from "@/features/season/services/cup-journey.service";
 import { evolvePlayerStatsService, type StatsEvolutionResult } from "@/features/player/services/stats-evolution.service";
+import type { AchievementRecord, ClubStint, SeasonHistory, StatSnapshot } from "@/types/domain";
+import type { SeasonRecord } from "@/types/game";
 
 // ============================================================
 // TYPES & SCHEMAS
@@ -87,9 +95,9 @@ import { evolvePlayerStatsService, type StatsEvolutionResult } from "@/features/
 
 interface PlayerUpdateInput {
   id: string;
-  statsTimeline: any[];
-  clubStints: any[];
-  events: any[];
+  statsTimeline: StatSnapshot[];
+  clubStints: ClubStint[];
+  events: Array<Record<string, string | number>>;
   slotIndex: number;
   currentContinentalCup?: string;
   contractYearsTotal?: number;
@@ -106,11 +114,11 @@ interface SaveProgressParams {
 
 interface SeasonProgressUpdate {
   playerId: string;
-  statsTimeline: any[];
-  clubStints: any[];
-  achievements: any;
+  statsTimeline: StatSnapshot[];
+  clubStints: ClubStint[];
+  achievements: AchievementRecord;
   currentContinentalCup: string;
-  seasonHistory: Record<number, any>;
+  seasonHistory: SeasonHistory;
   contractYearsTotal?: number;
   contractYearsRemaining?: number;
   currentWageAnnual?: number;
@@ -128,6 +136,7 @@ interface SeasonProgressUpdate {
 }
 
 const simulatePlayerSeasonSchema = z.object({
+  playerId: z.string().optional().nullable(),
   age: z.number().int().min(15).max(50),
   ovr: z.number().int().min(10).max(99),
   position: z.string(),
@@ -149,6 +158,19 @@ const simulatePlayerSeasonSchema = z.object({
   nationalTournamentType: z.string().nullable().optional(),
   trainingCampActive: z.boolean().optional().default(false),
 });
+
+async function getShopItemActiveForSeason(
+  playerId: string,
+  itemId: string,
+  season: number,
+): Promise<boolean> {
+  const player = await prisma.careerPlayer.findUnique({
+    where: { id: playerId },
+    select: { shopInventory: true },
+  });
+  const inventory = (player?.shopInventory as unknown as ShopInventoryEntry[]) ?? [];
+  return isShopItemActiveForSeason(inventory, itemId, season);
+}
 
 const generateLeagueTableSchema = z.object({
   leagueId: z.string(),
@@ -229,6 +251,7 @@ const resolveProactiveRenewalSchema = z.object({
 });
 
 const searchClubsForApproachSchema = z.object({
+  currentClubId: z.string().nullable().optional(),
   query: z.string().optional(),
   leagueId: z.string().optional(),
   prestigeMin: z.number().int().optional(),
@@ -268,6 +291,17 @@ const resolveShortlistApproachSchema = z.object({
   influenceScore: z.number().min(0).max(100).optional(),
 });
 
+const completeTransferSchema = z.object({
+  gameId: z.string().uuid(),
+  playerId: z.string().uuid(),
+  slotIndex: z.number().int().min(0).max(10),
+  kind: z.enum(["transfer", "free_agent", "renewal"]),
+  clubId: z.string(),
+  wageAnnual: z.number().int().min(0),
+  contractYears: z.number().int().min(0).max(10),
+  transferFee: z.number().int().min(0),
+});
+
 const generateCupJourneySchema = z.object({
   type: z.enum(["domestic", "continental", "national"]),
   result: z.string(),
@@ -305,8 +339,8 @@ async function verifyGameOwnership(gameId: string): Promise<void> {
         throw new Error("Forbidden");
       }
     }
-  } catch (err: any) {
-    if (err.message === "Forbidden") throw err;
+  } catch (err: unknown) {
+    if (err instanceof Error && err.message === "Forbidden") throw err;
     // Allow guest play / local dev mode when no user is logged in
   }
 }
@@ -320,7 +354,7 @@ async function requireAuth(): Promise<void> {
     if (user) {
       await checkRateLimit(user.id);
     }
-  } catch (err) {
+  } catch {
     // In local dev mode or guest play without active Supabase session, fail gracefully without throwing Unauthorized
   }
 }
@@ -335,7 +369,7 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
         where: { id: player.id },
         data: {
           statsTimeline: player.statsTimeline,
-          clubStints: player.clubStints,
+          clubStints: player.clubStints as unknown as Prisma.InputJsonValue,
           events: player.events,
           slotIndex: player.slotIndex,
           currentContinentalCup: player.currentContinentalCup,
@@ -390,29 +424,100 @@ export async function updateSeasonProgressAction(
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
-    select: { gameSession: { select: { userId: true } }, walletLedger: true, shopInventory: true },
+    select: {
+      gameSession: { select: { userId: true } },
+      statsTimeline: true,
+      clubStints: true,
+      seasonHistory: true,
+      walletBalance: true,
+      walletLedger: true,
+      influenceScore: true,
+      shopInventory: true,
+    },
   });
   if (player?.gameSession.userId !== user.id) throw new Error("Forbidden");
+
+  // A refresh can leave a previous background request in flight while the new
+  // page hydrates. Never allow that older request to overwrite a newer career
+  // snapshot. `currentAge` is represented by the last timeline entry because
+  // CareerPlayer does not have a separate currentAge column.
+  const persistedTimeline = (player.statsTimeline as unknown as StatSnapshot[] | null) ?? [];
+  const persistedCurrentAge = persistedTimeline.at(-1)?.age;
+  if (typeof persistedCurrentAge === "number" && currentAge < persistedCurrentAge) {
+    return {
+      walletBalance: player.walletBalance,
+      influenceScore: player.influenceScore,
+      shopInventory: (player.shopInventory as unknown as ShopInventoryEntry[] | null) ?? [],
+    };
+  }
+
+  // Merge history-shaped JSON instead of replacing it with a possibly stale
+  // client snapshot. This protects completed seasons if a request from a page
+  // that was refreshed arrives after the current page has already saved.
+  const persistedSeasonHistory =
+    (player.seasonHistory as unknown as SeasonHistory | null) ?? {};
+  const mergedSeasonHistory: SeasonHistory = { ...persistedSeasonHistory };
+  for (const [age, incomingRecord] of Object.entries(seasonHistory)) {
+    const previousRecord = persistedSeasonHistory[Number(age)];
+    const mergedContinentalCup: SeasonRecord["continentalCup"] =
+      previousRecord?.continentalCup && incomingRecord.continentalCup
+        ? { ...previousRecord.continentalCup, ...incomingRecord.continentalCup }
+        : incomingRecord.continentalCup ?? previousRecord?.continentalCup ?? null;
+    const mergedNationalTeam: SeasonRecord["nationalTeam"] =
+      previousRecord?.nationalTeam && incomingRecord.nationalTeam
+        ? { ...previousRecord.nationalTeam, ...incomingRecord.nationalTeam }
+        : incomingRecord.nationalTeam ?? previousRecord?.nationalTeam ?? null;
+    mergedSeasonHistory[Number(age)] = previousRecord
+      ? {
+          ...previousRecord,
+          ...incomingRecord,
+          continentalCup: mergedContinentalCup,
+          nationalTeam: mergedNationalTeam,
+        }
+      : incomingRecord;
+  }
+
+  const persistedClubStints =
+    (player.clubStints as unknown as ClubStint[] | null) ?? [];
+  const mergedClubStints = Array.from(
+    new Map(
+      [...persistedClubStints, ...clubStints].map((stint) => [
+        `${stint.clubId}:${stint.startAge}`,
+        stint,
+      ]),
+    ).values(),
+  ).sort((left, right) => left.startAge - right.startAge);
+  const mergedStatsTimeline = Array.from(
+    new Map(
+      [...persistedTimeline, ...statsTimeline].map((snapshot) => [snapshot.age, snapshot]),
+    ).values(),
+  ).sort((left, right) => left.age - right.age);
 
   // Wallet — server-authoritative: income always computed server-side, never trusted from client.
   const income = computeSeasonWalletIncome({
     currentWageAnnual: currentWageAnnual ?? 0,
     transferFeeThisSeason,
   });
-  const nextWalletLedger: WalletLedgerEntry[] = [
-    ...((player?.walletLedger as unknown as WalletLedgerEntry[] | undefined) ?? []),
-    ...buildWalletLedgerEntries(currentAge, income),
-  ];
+  const currentWalletLedger = Array.isArray(player.walletLedger)
+    ? (player.walletLedger as unknown as WalletLedgerEntry[])
+    : [];
+  const newWalletEntries = buildWalletLedgerEntries(currentAge, income).filter(
+    (entry) => !currentWalletLedger.some(
+      (existing) => existing.age === entry.age && existing.type === entry.type,
+    ),
+  );
+  const nextWalletLedger: WalletLedgerEntry[] = [...currentWalletLedger, ...newWalletEntries];
+  const creditedIncome = newWalletEntries.reduce((total, entry) => total + entry.amount, 0);
 
   // Influence Score — derived cache, recomputed each checkpoint from data already on the player.
   const legacyScore = computeLegacyScore({
     trophies: achievements?.trophies,
-    seasonHistory,
+    seasonHistory: mergedSeasonHistory,
     ballonDorWins: achievements?.ballonDor,
-    statsTimeline,
+    statsTimeline: mergedStatsTimeline,
   });
   const currentFormIndex = computeCurrentFormIndex({
-    currentOvr: statsTimeline.at(-1)?.ovr ?? peakOvr,
+    currentOvr: mergedStatsTimeline.at(-1)?.ovr ?? peakOvr,
     peakOvr,
     matchRating: matchRatingThisSeason,
     clubPrestige,
@@ -437,20 +542,22 @@ export async function updateSeasonProgressAction(
   const updated = await prisma.careerPlayer.update({
     where: { id: playerId },
     data: {
-      statsTimeline,
-      clubStints,
-      achievements,
+      statsTimeline: mergedStatsTimeline,
+      clubStints: mergedClubStints as unknown as Prisma.InputJsonValue,
+      achievements: achievements as unknown as Prisma.InputJsonValue,
       currentContinentalCup,
-      seasonHistory,
+      seasonHistory: mergedSeasonHistory as unknown as Prisma.InputJsonValue,
       ...(contractYearsTotal !== undefined ? { contractYearsTotal } : {}),
       ...(contractYearsRemaining !== undefined ? { contractYearsRemaining } : {}),
       ...(currentWageAnnual !== undefined ? { currentWageAnnual } : {}),
       ...(marketValue !== undefined ? { marketValue } : {}),
       ...(isUnemployed !== undefined ? { isUnemployed } : {}),
-      walletBalance: { increment: income.totalIncome },
-      walletLedger: nextWalletLedger as unknown as any,
+      // Ledger entries are keyed by season + type. This makes retries safe:
+      // the same checkpoint cannot credit the wallet twice after a refresh.
+      walletBalance: { increment: creditedIncome },
+      walletLedger: nextWalletLedger as unknown as Prisma.InputJsonValue,
       influenceScore,
-      shopInventory: nextShopInventory as unknown as any,
+      shopInventory: nextShopInventory as unknown as Prisma.InputJsonValue,
     },
     select: { walletBalance: true, influenceScore: true, shopInventory: true },
   });
@@ -494,6 +601,9 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
   if (targetSeason !== currentAge && targetSeason !== currentAge + 1) {
     throw new Error("Invalid target season");
   }
+  if (!isShopItemAvailableForSeason(item, targetSeason)) {
+    throw new Error("Vật phẩm này chỉ mở bán ở mùa có giải đấu quốc gia");
+  }
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -533,8 +643,8 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
       where: { id: playerId },
       data: {
         walletBalance: { decrement: item.priceThousands },
-        walletLedger: nextLedger as unknown as any,
-        shopInventory: nextInventory as unknown as any,
+      walletLedger: nextLedger as unknown as Prisma.InputJsonValue,
+      shopInventory: nextInventory as unknown as Prisma.InputJsonValue,
       },
       select: { walletBalance: true, shopInventory: true },
     });
@@ -600,7 +710,12 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     nationalCallupResult: validated.nationalCallupResult,
     nationalTournamentResult: validated.nationalTournamentResult,
     nationalTournamentType: validated.nationalTournamentType,
-    trainingCampActive: validated.trainingCampActive,
+    trainingCampActive: validated.playerId
+      ? await getShopItemActiveForSeason(validated.playerId, "training_camp", validated.age)
+      : validated.trainingCampActive,
+    appearancePackActive: validated.playerId
+      ? await getShopItemActiveForSeason(validated.playerId, "appearance_pack", validated.age)
+      : false,
   });
 }
 
@@ -652,25 +767,13 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
   const validated = generateTransferMarketSchema.parse(input);
   const isUnemployed = validated.isUnemployed || !validated.currentClubId;
 
-  const expectedPrestige = Math.min(5, Math.max(1, Math.round((validated.currentOvr - 50) / 8)));
-  const minPrestige = Math.max(1, expectedPrestige - 2);
-  const maxPrestige = Math.min(5, expectedPrestige + 2);
-
   const dbClubs = await prisma.club.findMany({
-    where: isUnemployed
-      ? { prestige: { gte: minPrestige, lte: maxPrestige } }
-      : {
-          OR: [
-            { id: validated.currentClubId! },
-            { prestige: { gte: minPrestige, lte: maxPrestige } },
-          ],
-        },
     select: {
       id: true,
       name: true,
       leagueId: true,
       prestige: true,
-      league: { select: { name: true, tier: true } },
+      league: { select: { name: true, tier: true, prestige: true, country: true, confederation: true } },
     },
   });
 
@@ -721,6 +824,9 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
       prestige: c.prestige,
       leagueName: c.league?.name,
       leagueTier: c.league?.tier ?? 1,
+      leaguePrestige: c.league?.prestige,
+      leagueCountry: c.league?.country,
+      confederation: c.league?.confederation,
       leagueSize: leagueSizeById.get(c.leagueId) ?? 20,
     })),
   });
@@ -740,7 +846,7 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
   await requireAuth();
   const validated = searchClubsForApproachSchema.parse(input);
 
-  const where: any = {};
+  const where: Prisma.ClubWhereInput = {};
   if (validated.query && validated.query.trim().length > 0) {
     where.name = { contains: validated.query.trim(), mode: "insensitive" };
   }
@@ -753,6 +859,9 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
       lte: validated.prestigeMax ?? 5,
     };
   }
+  if (validated.currentClubId) {
+    where.id = { not: validated.currentClubId };
+  }
 
   const [dbClubs, totalCount, allLeagues] = await Promise.all([
     prisma.club.findMany({
@@ -764,7 +873,7 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
         name: true,
         leagueId: true,
         prestige: true,
-        league: { select: { name: true, tier: true } },
+      league: { select: { name: true, tier: true, prestige: true, country: true, confederation: true } },
       },
       orderBy: [{ prestige: "desc" }, { name: "asc" }],
     }),
@@ -780,6 +889,8 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
     age: validated.currentAge,
     matchRating: validated.matchRating,
     contractYearsRemaining: validated.contractYearsRemaining,
+    position: validated.position,
+    currentStats: validated.currentStats,
   });
   const mandatoryBuyout = computeMandatoryBuyout(marketVal, validated.contractYearsRemaining);
   const canApproachGate = validated.contractYearsRemaining <= 1 || validated.isUnemployed;
@@ -799,7 +910,7 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
       matchRating: validated.matchRating,
     });
     const wage = proposeWageAnnual({
-      ovr: validated.currentOvr,
+      ovr: effPositionOvr,
       age: validated.currentAge,
       currentWage: 500,
       prestige: club.prestige,
@@ -857,6 +968,76 @@ export async function resolveShortlistApproachAction(input: unknown): Promise<Re
   await requireAuth();
   const validated = resolveShortlistApproachSchema.parse(input);
   return resolveApproachService(validated);
+}
+
+/** Persist the selected destination after the transfer UI has resolved an offer. */
+export async function completeTransferAction(input: unknown): Promise<{
+  clubName: string;
+  leagueName: string;
+  fee: number;
+  contractYears: number;
+  wageAnnual: number;
+  age: number;
+}> {
+  const validated = completeTransferSchema.parse(input);
+  await verifyGameOwnership(validated.gameId);
+
+  const player = await prisma.careerPlayer.findFirst({
+    where: { id: validated.playerId, gameSessionId: validated.gameId, slotIndex: validated.slotIndex, isRetired: false },
+    select: { id: true, statsTimeline: true, clubStints: true },
+  });
+  if (!player) throw new Error("Cầu thủ không tồn tại hoặc không thuộc game này");
+
+  const destination = await prisma.club.findUnique({
+    where: { id: validated.clubId },
+    select: { id: true, name: true, leagueId: true, prestige: true, continentalType: true, league: { select: { name: true } } },
+  });
+  if (!destination) throw new Error("CLB đích không tồn tại");
+
+  const timeline = (player.statsTimeline as unknown as StatSnapshot[]) ?? [];
+  const snapshot = timeline.at(-1);
+  if (!snapshot || typeof snapshot.age !== "number") throw new Error("Thiếu mốc mùa giải hiện tại");
+  const currentAge = snapshot.age;
+
+  const stints = [...((player.clubStints as unknown as ClubStint[]) ?? [])];
+  const lastStint = stints.at(-1);
+  if (validated.kind === "renewal") {
+    if (!lastStint || lastStint.clubId !== destination.id) throw new Error("CLB gia hạn không khớp trạng thái hiện tại");
+  } else {
+    if (lastStint?.clubId === destination.id) throw new Error("Không thể chuyển đến chính CLB hiện tại");
+    if (lastStint) {
+      lastStint.endAge = currentAge;
+      lastStint.yearsAtClub = Math.max(1, currentAge - lastStint.startAge + 1);
+      lastStint.ovrAtLeaving = snapshot.ovr;
+    }
+    stints.push({
+      clubId: destination.id,
+      clubName: destination.name,
+      leagueId: destination.leagueId,
+      leagueName: destination.league.name,
+      startAge: currentAge + 1,
+      endAge: currentAge + 1,
+      yearsAtClub: 1,
+      ovrAtJoining: snapshot.ovr,
+      ovrAtLeaving: snapshot.ovr,
+      wageAtJoining: validated.wageAnnual,
+      feePaid: validated.transferFee,
+    });
+  }
+
+  await prisma.careerPlayer.update({
+    where: { id: player.id },
+    data: {
+      clubStints: stints as unknown as Prisma.InputJsonValue,
+      currentContinentalCup: destination.continentalType,
+      contractYearsTotal: validated.contractYears,
+      contractYearsRemaining: validated.contractYears,
+      currentWageAnnual: validated.wageAnnual,
+      isUnemployed: false,
+    },
+  });
+  revalidatePath(`/classic/${validated.gameId}/draft/${validated.slotIndex}`);
+  return { clubName: destination.name, leagueName: destination.league.name, fee: validated.transferFee, contractYears: validated.contractYears, wageAnnual: validated.wageAnnual, age: currentAge + 1 };
 }
 
 /** @deprecated Prefer generateTransferMarketAction */

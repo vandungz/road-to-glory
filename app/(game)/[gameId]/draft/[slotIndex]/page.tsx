@@ -78,6 +78,7 @@ export default async function DraftSlotPage({ params }: Props) {
       key={`${gameId}_${slotIndex}`}
       gameId={gameId}
       slotIndex={slotIndex}
+      gameName={session.name}
       position={slot.position}
       leagues={leagues}
       clubs={clubs}

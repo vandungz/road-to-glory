@@ -12,6 +12,10 @@ import {
   getNationalTournamentName,
 } from "../lib/simulation-helpers";
 import { type ShopInventoryEntry } from "@/lib/shop-catalog";
+import type { AchievementRecord, CareerSubStep, ClubStint, ClubSummary, CurrentClub, HiddenStats, StatSnapshot } from "@/types/domain";
+import type { CareerSetupResult } from "@/features/career/services/career-setup.service";
+import type { ContractOfferCard } from "@/features/transfer/services/transfer.service";
+import type { DraftData } from "../stores/useWheelUiStore";
 
 interface UseCareerStatsProps {
   gameId: string;
@@ -22,10 +26,10 @@ interface UseCareerStatsProps {
 export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsProps) {
   const [isSaving, setIsSaving] = useState(false);
   const [playerName, setPlayerName] = useState<string>("");
-  const [hiddenStats, setHiddenStats] = useState<any>(null);
-  const [statsTimeline, setStatsTimeline] = useState<any[]>([]);
-  const [clubStints, setClubStints] = useState<any[]>([]);
-  const [achievements, setAchievements] = useState<any>({
+  const [hiddenStats, setHiddenStats] = useState<HiddenStats | null>(null);
+  const [statsTimeline, setStatsTimeline] = useState<StatSnapshot[]>([]);
+  const [clubStints, setClubStints] = useState<ClubStint[]>([]);
+  const [achievements, setAchievements] = useState<AchievementRecord>({
     ballonDor: 0,
     trophies: [],
     seasonAwards: [],
@@ -42,7 +46,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       ? { div: 60, han: 60, kic: 60, ref: 60, spd: 60, pos: 60 }
       : { pac: 60, sho: 60, pas: 60, dri: 60, def: 60, phy: 60 }
   );
-  const [currentClub, setCurrentClub] = useState<any>(null);
+  const [currentClub, setCurrentClub] = useState<CurrentClub | null>(null);
 
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [currentContinentalCup, setCurrentContinentalCup] = useState<string>("none");
@@ -165,7 +169,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
   const careerTotalStats = useMemo(() => {
     let apps = 0, goals = 0, assists = 0;
-    statsTimeline.forEach((snap: any) => {
+    statsTimeline.forEach((snap) => {
       apps += snap.apps ?? 0;
       goals += snap.goals ?? 0;
       assists += snap.assists ?? 0;
@@ -182,7 +186,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     return seasonRecords[selectedAgeForStats] || null;
   }, [seasonRecords, selectedAgeForStats]);
 
-  function handleStartCareer(draftData: any, initPayload: any, clubs: any[]) {
+  function handleStartCareer(draftData: DraftData, initPayload: CareerSetupResult, clubs: ClubSummary[]) {
     const debutOvr = initPayload.debutOvr ?? initPayload.initTimeline?.[0]?.ovr ?? draftData.debutOvr!;
     setPlayerName(initPayload.playerName);
     setHiddenStats(initPayload.hiddenStats);
@@ -217,6 +221,51 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setSelectedAgeForStats(draftData.debutAge!);
   }
 
+  function finalizeSeasonRecord(
+    standingResult: number | null,
+    domesticCupResult: string | null,
+    continentalCupResult: string | null,
+    nationalCallupResult: string | null,
+    nationalTournamentResult: string | null,
+    yearSimResult: SimulatedSeasonResult | null,
+    ballonDorRank: number | null,
+  ) {
+    setSeasonRecords((prev) => {
+      const record = prev[currentAge];
+      if (!record) return prev;
+
+      const finalized: SeasonRecord = { ...record };
+      if (standingResult !== null) finalized.standing = standingResult;
+      if (domesticCupResult !== null) finalized.domesticCup = domesticCupResult;
+      if (finalized.continentalCup && continentalCupResult !== null) {
+        finalized.continentalCup = { ...finalized.continentalCup, result: continentalCupResult };
+      }
+      if (finalized.nationalTeam && nationalCallupResult !== null) {
+        finalized.nationalTeam = {
+          ...finalized.nationalTeam,
+          callup: nationalCallupResult === "called_up" ? "Được triệu tập" : "Không được gọi",
+        };
+      }
+      if (finalized.nationalTeam && nationalTournamentResult !== null) {
+        finalized.nationalTeam = { ...finalized.nationalTeam, result: nationalTournamentResult };
+      }
+      if (yearSimResult) {
+        finalized.apps = yearSimResult.apps;
+        finalized.goals = yearSimResult.goals;
+        finalized.assists = yearSimResult.assists;
+        finalized.cleanSheets = yearSimResult.cleanSheets;
+        finalized.matchRating = yearSimResult.matchRating;
+        finalized.leagueStats = yearSimResult.leagueStats;
+        finalized.domesticCupStats = yearSimResult.domesticCupStats;
+        if (yearSimResult.continentalStats) finalized.continentalStats = yearSimResult.continentalStats;
+        if (yearSimResult.nationalStats) finalized.nationalStats = yearSimResult.nationalStats;
+      }
+      if (ballonDorRank !== null) finalized.ballonDorResult = ballonDorRank;
+
+      return { ...prev, [currentAge]: finalized };
+    });
+  }
+
   function handleNextSeason(
     standingResult: number | null,
     domesticCupResult: string | null,
@@ -228,12 +277,12 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   ): { isRetire: boolean; nextContinentalCup: string } {
     const nextAge = currentAge + 1;
     const actualStint =
-      clubStints.find((st: any) => currentAge >= st.startAge && currentAge <= st.endAge) ||
+      clubStints.find((st) => currentAge >= st.startAge && currentAge <= st.endAge) ||
       clubStints[clubStints.length - 1];
 
-    const actualClubName = actualStint?.clubName ?? currentClub.name;
-    const actualLeagueName = actualStint?.leagueName ?? currentClub.leagueName;
-    const actualStintLeagueId = actualStint?.leagueId ?? currentClub.leagueId;
+    const actualClubName = actualStint?.clubName ?? currentClub?.name ?? "Không CLB";
+    const actualLeagueName = actualStint?.leagueName ?? currentClub?.leagueName ?? "";
+    const actualStintLeagueId = actualStint?.leagueId ?? currentClub?.leagueId ?? "";
 
     // Nếu cầu thủ đã accept transfer TRƯỚC khi bấm "mùa giải tiếp theo" (currentClub
     // đã là CLB mới, nhưng actualStint vẫn là CLB vừa thi đấu mùa này), thì KHÔNG
@@ -263,6 +312,19 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       );
     }
 
+    // Persist the complete season outcome in one final record update before
+    // currentAge advances. This prevents a placeholder created at season start
+    // from replacing the wheel results in the background save snapshot.
+    finalizeSeasonRecord(
+      standingResult,
+      domesticCupResult,
+      continentalCupResult,
+      nationalCallupResult,
+      nationalTournamentResult,
+      yearSimResult,
+      ballonDorRank,
+    );
+
     let nextContinentalCup = currentContinentalCup;
     if (standingResult !== null) {
       if (hasTransferredAway) {
@@ -281,7 +343,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       }
     }
 
-    setAchievements((prev: any) => {
+    setAchievements((prev) => {
       const trophies = [...(prev.trophies ?? [])];
       const seasonAwards = [...(prev.seasonAwards ?? [])];
       let ballonDor = prev.ballonDor ?? 0;
@@ -321,10 +383,34 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     const isRetiring = nextAge > retireAge;
 
     if (isRetiring) {
+      // Chốt snapshot của mùa cuối bằng OVR/stats sau cùng. Snapshot tuổi
+      // retireAge được tạo từ OVR đầu mùa; nếu không cập nhật tại đây thì
+      // Peak OVR của mùa cuối chỉ tồn tại trong currentOvr và bị mất khi save.
+      const finalSeasonStats = yearSimResult
+        ? {
+            apps: yearSimResult.apps,
+            goals: yearSimResult.goals,
+            assists: yearSimResult.assists,
+            cleanSheets: yearSimResult.cleanSheets,
+            matchRating: yearSimResult.matchRating,
+          }
+        : {};
+      setStatsTimeline((prev) => {
+        const hasCurrentAge = prev.some((item) => item.age === currentAge);
+        if (!hasCurrentAge) {
+          return [...prev, { age: currentAge, ovr: currentOvr, ...currentStats, ...finalSeasonStats }];
+        }
+        return prev.map((item) =>
+          item.age === currentAge
+            ? { ...item, ...currentStats, ovr: currentOvr, ...finalSeasonStats }
+            : item,
+        );
+      });
+
       // Không push timeline/stint tuổi retireAge+1 (entry “ma”) và bỏ stint
       // transfer chưa bao giờ đá (startAge > retireAge).
       setClubStints((prev) => {
-        const played = prev.filter((st: any) => st.startAge <= retireAge);
+        const played = prev.filter((st) => st.startAge <= retireAge);
         if (played.length === 0) return played;
         const updated = [...played];
         const last = { ...updated[updated.length - 1] };
@@ -366,10 +452,10 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
   function handleAcceptTransfer(
     accept: boolean,
-    transferOffer: any,
-    clubs: any[],
-    setTransferOffer: (offer: any) => void,
-    setCareerSubStep: (step: any) => void,
+    transferOffer: ContractOfferCard | null,
+    clubs: ClubSummary[],
+    setTransferOffer: (offer: ContractOfferCard | null) => void,
+    setCareerSubStep: (step: CareerSubStep) => void,
     clearMarket?: () => void,
   ) {
     const retireAge = playerDebutAge + playerCareerLength;
@@ -382,9 +468,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         setContractYearsTotal(transferOffer.contractYears ?? contractYearsTotal);
         setContractYearsRemaining(transferOffer.contractYears ?? contractYearsRemaining);
         setCurrentWageAnnual(transferOffer.wageAnnual ?? currentWageAnnual);
-        if (typeof transferOffer.marketValue === "number") {
-          setMarketValue(transferOffer.marketValue);
-        }
         setIsUnemployed(false);
         setTransferOffer(null);
         clearMarket?.();
