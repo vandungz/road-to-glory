@@ -3,6 +3,7 @@
 import type { CompetitionStats, SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { getContinentalCupLabel, getDomesticCupName } from "../lib/simulation-helpers";
+import { getCompetitionResultLabel } from "../lib/competition-result-labels";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
@@ -32,11 +33,7 @@ function CompetitionRow({ label, stats, result }: { label: string; stats?: Compe
 }
 
 function cupResult(result: string | null | undefined): string {
-  if (!result || result === "Chờ quay") return "";
-  if (result === "Winner") return "Vô địch";
-  if (result === "Runner-Up") return "Á quân";
-  if (result === "Semi-Finals") return "Bán kết";
-  return "Vòng loại";
+  return getCompetitionResultLabel(result, "");
 }
 
 export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup, onClose }: Props) {

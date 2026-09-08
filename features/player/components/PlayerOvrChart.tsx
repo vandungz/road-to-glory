@@ -1,10 +1,10 @@
 "use client";
 
 import { useMemo } from "react";
-import type { StatSnapshot } from "@/types/domain";
+import type { CareerArchiveSnapshot } from "@/features/career/services/career-summary.service";
 
 interface PlayerOvrChartProps {
-  statsTimeline: StatSnapshot[];
+  statsTimeline: CareerArchiveSnapshot[];
   debutAge: number;
   retireAge: number;
 }
@@ -21,6 +21,7 @@ export function PlayerOvrChart({ statsTimeline, debutAge, retireAge }: PlayerOvr
   const chart = useMemo(() => {
     const timeline = statsTimeline
       .filter((snapshot) => snapshot.age >= debutAge && snapshot.age <= retireAge)
+      .filter((snapshot): snapshot is CareerArchiveSnapshot & { ovr: number } => typeof snapshot.ovr === "number")
       .sort((a, b) => a.age - b.age);
     if (timeline.length === 0) return null;
 

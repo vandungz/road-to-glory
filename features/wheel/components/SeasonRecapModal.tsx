@@ -3,6 +3,7 @@
 import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
+import { getCompetitionResultLabel } from "../lib/competition-result-labels";
 import { Button } from "@/components/ui/Button";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 
@@ -16,16 +17,7 @@ interface Props {
 }
 
 function resultLabel(result: string | null | undefined) {
-  if (!result || result === "Chờ quay") return "—";
-  if (result === "Winner") return "Vô địch";
-  if (result === "Runner-Up") return "Á quân";
-  if (result === "Semi-Finals") return "Bán kết";
-  if (result === "Quarter-Finals") return "Tứ kết";
-  if (result === "Round of 16") return "Vòng 1/8";
-  if (result === "Round of 32") return "Vòng 1/16";
-  if (result === "Early Exit") return "Vòng loại sớm";
-  if (result === "Group Stage") return "Vòng bảng";
-  return result;
+  return getCompetitionResultLabel(result, "—");
 }
 
 function getStandingLabel(record: SeasonRecord) {
@@ -68,6 +60,24 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
   const continentalName = record.continentalCup?.type
     ? getContinentalCupLabel(record.continentalCup.type)
     : currentContinentalCup !== "none" ? getContinentalCupLabel(currentContinentalCup) : "Cúp châu lục";
+  const nationalResult = record.nationalTeam?.result;
+  const hasNationalResult = Boolean(nationalResult && nationalResult !== "Chờ quay");
+  const summaryMetrics = [
+    { label: "Kết quả VĐQG", value: getStandingLabel(record) },
+    { label: "Cúp quốc gia", value: resultLabel(record.domesticCup) },
+    {
+      label: "Cúp châu lục",
+      value: record.continentalCup ? resultLabel(record.continentalCup.result) : "—",
+      accent: record.continentalCup?.result === "Winner",
+    },
+    ...(hasNationalResult
+      ? [{
+          label: "Tuyển quốc gia",
+          value: resultLabel(nationalResult),
+          accent: nationalResult === "Winner",
+        }]
+      : []),
+  ];
   const individualAwards = yearSimResult.events?.filter((event) => event.type === "individual_award") ?? [];
   const awards = [
     ...(record.continentalCup?.result === "Winner" ? [{ title: continentalName, detail: `Vô địch · ${record.clubName}` }] : []),
@@ -82,11 +92,8 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
       </ModalHeader>
 
       <ModalBody>
-        <section className="rtg-season-close__metrics" aria-label="Kết quả mùa giải">
-          <SummaryMetric label="Kết quả VĐQG" value={getStandingLabel(record)} />
-          <SummaryMetric label="Cúp quốc gia" value={resultLabel(record.domesticCup)} />
-          <SummaryMetric label="Cúp châu lục" value={record.continentalCup ? resultLabel(record.continentalCup.result) : "—"} accent={record.continentalCup?.result === "Winner"} />
-          <SummaryMetric label="Vòng quay" value="6 lần" />
+        <section className="rtg-season-close__metrics" data-count={summaryMetrics.length} aria-label="Kết quả mùa giải">
+          {summaryMetrics.map((metric) => <SummaryMetric key={metric.label} {...metric} />)}
         </section>
 
         <div className="rtg-season-close__columns">
@@ -96,6 +103,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
               <SeasonStat label="Ra sân" value={yearSimResult.apps} />
               <SeasonStat label="Bàn thắng" value={yearSimResult.goals} />
               <SeasonStat label="Kiến tạo" value={yearSimResult.assists} />
+              <SeasonStat label="Clean Sheet" value={yearSimResult.cleanSheets} />
               <SeasonStat label="Điểm phong độ" value={yearSimResult.matchRating.toFixed(2)} accent />
             </div>
           </section>
@@ -110,8 +118,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
       </ModalBody>
 
       <ModalFooter className="rtg-season-close__footer">
-        <p>Cửa sổ chuyển nhượng đã mở — các đề nghị mới đang chờ.</p>
-        <Button size="lg" onClick={onClose}>Vào cửa sổ chuyển nhượng</Button>
+        <Button size="lg" onClick={onClose}>Tiếp tục phát triển chỉ số</Button>
       </ModalFooter>
     </Modal>
   );

@@ -2,6 +2,7 @@
 
 import type { CompetitionStats, SeasonRecord } from "@/types/game";
 import { getDomesticCupName, getContinentalCupLabel } from "../lib/simulation-helpers";
+import { getCompetitionResultLabel } from "../lib/competition-result-labels";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
@@ -16,11 +17,7 @@ interface Props {
 }
 
 function getCupResultLabel(result: string | null | undefined) {
-  if (!result || result === "Chờ quay") return "Chưa có kết quả";
-  if (result === "Winner") return "Vô địch";
-  if (result === "Runner-Up") return "Á quân";
-  if (result === "Semi-Finals") return "Bán kết";
-  return "Loại sớm";
+  return getCompetitionResultLabel(result, "Chưa có kết quả");
 }
 
 function StatsList({ stats }: { stats: CompetitionStats }) {

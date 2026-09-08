@@ -11,6 +11,7 @@ import { SeasonProfile } from "./SeasonProfile";
 import { PaniniSticker } from "./PaniniSticker";
 import { RetiredStage } from "./RetiredStage";
 import { SeasonResultModal } from "./SeasonResultModal";
+import { BallonDorNominationModal } from "./BallonDorNominationModal";
 import { SeasonRecapModal } from "./SeasonRecapModal";
 import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
@@ -18,6 +19,7 @@ import { MobileCareerContext } from "./MobileCareerContext";
 import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
+import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
 import { formatEuroThousands } from "@/lib/transfer-economy";
 import { WheelGameHeader } from "./WheelGameHeader";
 import { SeasonSideSummary } from "./SeasonSideSummary";
@@ -42,6 +44,7 @@ interface DraftDrumScreenProps {
   backHref?: string;
   gameName?: string;
   shopReturnAction?: "start" | "advance";
+  shopReturnToken?: string;
   transferReturnAction?: "start" | "advance";
 }
 
@@ -57,6 +60,7 @@ export function DraftDrumScreen({
   backHref = `/${gameId}`,
   gameName,
   shopReturnAction,
+  shopReturnToken,
   transferReturnAction,
 }: DraftDrumScreenProps) {
   const router = useRouter();
@@ -86,6 +90,7 @@ export function DraftDrumScreen({
     setActiveModal,
     careerSubStep,
     isProcessing,
+    isBallonDorTransitioning,
     startCareerError,
     careerSpinning,
     careerWheelItems,
@@ -97,6 +102,7 @@ export function DraftDrumScreen({
     domesticCupResult,
     continentalCupResult,
     hasBallonDorWinner,
+    ballonDorResult,
     careerTotalStats,
     peakOvrValue,
     yearSimResult,
@@ -131,6 +137,7 @@ export function DraftDrumScreen({
     handleTransferReturn,
     persistCurrentProgress,
     handleSeasonStatsModalClose,
+    handleCompetitionResultModalClose,
     handleSavePlayer,
     STEP_LABELS,
     selectorIndex,
@@ -146,19 +153,31 @@ export function DraftDrumScreen({
     }
   }, [careerSubStep, transferMarket]);
 
-  const handledShopReturnRef = React.useRef(false);
+  const ballonDorNavigationStartedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (!ballonDorResult || ballonDorResult.phase !== "ranking") return;
+    if (ballonDorNavigationStartedRef.current) return;
+    ballonDorNavigationStartedRef.current = true;
+    router.replace(`/classic/${gameId}/draft/${slotIndex}/ballon-dor`);
+  }, [ballonDorResult, gameId, router, slotIndex]);
+
+  const handledShopReturnRef = React.useRef<string | null>(null);
+  const shopReturnKey = shopReturnAction
+    ? `${shopReturnAction}:${shopReturnToken ?? "legacy"}`
+    : null;
   React.useEffect(() => {
     if (
       !shopReturnAction ||
-      handledShopReturnRef.current ||
+      !shopReturnKey ||
+      handledShopReturnRef.current === shopReturnKey ||
       !isMounted ||
       mode !== "career" ||
       isProcessing
     ) return;
-    handledShopReturnRef.current = true;
+    handledShopReturnRef.current = shopReturnKey;
     consumeReturnQuery("shopReturn");
     handleShopReturn(shopReturnAction);
-  }, [handleShopReturn, isMounted, isProcessing, mode, shopReturnAction]);
+  }, [handleShopReturn, isMounted, isProcessing, mode, shopReturnAction, shopReturnKey]);
 
   const handledTransferReturnRef = React.useRef(false);
   React.useEffect(() => {
@@ -189,7 +208,7 @@ export function DraftDrumScreen({
 
   return (
     <div
-      className="game-dashboard-wrapper rtg-wheel-shell"
+      className={`game-dashboard-wrapper rtg-wheel-shell${mode === "retired" ? " rtg-retired-shell" : ""}`}
       style={{
         backgroundColor: "var(--cream)",
         backgroundImage: "none",
@@ -232,7 +251,11 @@ export function DraftDrumScreen({
       {/* ── MODE 2: CAREER PLAYING LOOP ── */}
       {mode === "career" && (
         <>
-          <SeasonStrip careerSubStep={careerSubStep} isUnemployed={isUnemployed} />
+          <SeasonStrip
+            careerSubStep={careerSubStep}
+            isUnemployed={isUnemployed}
+            hasBallonDorEligibility={yearSimResult?.ballonDor.eligible}
+          />
           <main className="game-dashboard-main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
             <TabsList className="game-mobile-switcher">
@@ -424,12 +447,12 @@ export function DraftDrumScreen({
           setWillingToMove={handleSetWillingToMove}
           isProcessing={isProcessing}
                   onAcceptOffer={(offer) => {
-            handleAcceptMarketOffer(offer);
-            setActiveModal(null);
+            void handleAcceptMarketOffer(offer).then((accepted) => {
+              if (accepted) setActiveModal(null);
+            });
           }}
           onRejectAll={() => {
-            handleRejectTransferWindow();
-            setActiveModal(null);
+            void handleRejectTransferWindow().then(() => setActiveModal(null));
           }}
           onApproachShortlist={async (club, wageOption) => {
             const accepted = await handleApproachShortlist(club, wageOption);
@@ -466,15 +489,45 @@ export function DraftDrumScreen({
         />
       )}
 
-      {/* LEGACY INDIVIDUAL COMPETITION MODALS (fallback if activeRecord modal opened manually from profile) */}
-      {activeModal && !["season_stats", "season_recap", "transfer", "shop"].includes(activeModal) && activeRecord && (
+      {activeModal === "ballon_dor_nomination" && ballonDorResult?.phase === "nomination" && (
+        <BallonDorNominationModal
+          nominated={ballonDorResult.nominated}
+          age={currentAge}
+          onClose={() => setActiveModal(null)}
+        />
+      )}
+
+      {/* Individual competition result modal, opened automatically after league/cup wheels or from the profile. */}
+      {activeModal && !["season_stats", "season_recap", "ballon_dor_nomination", "transfer", "shop"].includes(activeModal) && activeRecord && (
         <SeasonResultModal
           type={activeModal as "league" | "cup" | "continental" | "national"}
           record={activeRecord}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
-          onClose={() => setActiveModal(null)}
+          onClose={handleCompetitionResultModalClose}
         />
+      )}
+
+      {isBallonDorTransitioning && (
+        <Modal
+          open
+          title="Đang mở kết quả Ballon d’Or"
+          onClose={() => undefined}
+          closeOnBackdrop={false}
+          size="sm"
+          className="rtg-ballon-dor-transition-modal"
+        >
+          <ModalHeader eyebrow="Quả Bóng Vàng · Xếp hạng chung cuộc">
+            Đang mở kết quả…
+          </ModalHeader>
+          <ModalBody>
+            <div className="rtg-ballon-dor-transition__status" role="status" aria-live="polite" aria-busy="true">
+              <span className="rtg-ballon-dor-transition__spinner" aria-hidden="true" />
+              <strong>Kết quả đã được ghi nhận</strong>
+            </div>
+            <p className="rtg-ballon-dor-transition__note">Vui lòng chờ trang kết quả hiển thị.</p>
+          </ModalBody>
+        </Modal>
       )}
 
     </div>

@@ -34,7 +34,7 @@ const getCachedLeaguesAndClubs = unstable_cache(
 
 interface Props {
   params: Promise<{ gameId: string; slotIndex: string }>;
-  searchParams: Promise<{ shopReturn?: string; transferReturn?: string }>;
+  searchParams: Promise<{ shopReturn?: string; shopAge?: string; transferReturn?: string }>;
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -44,7 +44,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function ClassicDraftSlotPage({ params, searchParams }: Props) {
   const { gameId, slotIndex: slotStr } = await params;
-  const { shopReturn, transferReturn } = await searchParams;
+  const { shopReturn, shopAge, transferReturn } = await searchParams;
   const slotIndex = parseInt(slotStr, 10);
   if (Number.isNaN(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
 
@@ -79,6 +79,7 @@ export default async function ClassicDraftSlotPage({ params, searchParams }: Pro
       savedContinentalCup={inProgressPlayer?.currentContinentalCup}
       backHref={`/classic/${gameId}`}
       shopReturnAction={shopReturn === "advance" ? "advance" : shopReturn === "start" ? "start" : undefined}
+      shopReturnToken={shopAge}
       transferReturnAction={transferReturn === "advance" ? "advance" : transferReturn === "start" ? "start" : undefined}
     />
   );

@@ -6,6 +6,7 @@ import { Check } from "lucide-react";
 interface SeasonStripProps {
   careerSubStep: string;
   isUnemployed?: boolean;
+  hasBallonDorEligibility?: boolean;
 }
 
 interface StageInfo {
@@ -48,8 +49,13 @@ const STAGES: StageInfo[] = [
   },
 ];
 
-function getActiveStageIndex(subStep: string): number {
+function getActiveStageIndex(subStep: string, hasBallonDorEligibility: boolean): number {
   if (subStep === "idle") return 0;
+  // The season recap is shown after the competition wheels but before the
+  // next actionable stage. Keep the progress cursor there instead of making
+  // growth appear completed while the recap is open. If Ballon d'Or is
+  // pending, the next actionable stage is still awards.
+  if (subStep === "season_stats") return hasBallonDorEligibility ? 2 : 3;
   for (let i = 0; i < STAGES.length; i++) {
     if (STAGES[i].subSteps.includes(subStep)) {
       return i;
@@ -58,8 +64,8 @@ function getActiveStageIndex(subStep: string): number {
   return 0;
 }
 
-export function SeasonStrip({ careerSubStep, isUnemployed }: SeasonStripProps) {
-  const activeStageIndex = getActiveStageIndex(careerSubStep);
+export function SeasonStrip({ careerSubStep, isUnemployed, hasBallonDorEligibility = false }: SeasonStripProps) {
+  const activeStageIndex = getActiveStageIndex(careerSubStep, hasBallonDorEligibility);
 
   return (
     <div className="rtg-season-strip" data-unemployed={isUnemployed ? "true" : "false"}>

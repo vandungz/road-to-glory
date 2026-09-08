@@ -4,7 +4,6 @@ import { RefreshCw, Trophy } from "lucide-react";
 import { getFlagEmoji } from "@/types/squad";
 import type { AchievementRecord, ClubStint } from "@/types/domain";
 import { Button } from "@/components/ui/Button";
-import { DataRow } from "@/components/ui/DataRow";
 import { ResultBanner } from "@/components/ui/ResultBanner";
 
 interface RetiredStageProps {
@@ -31,7 +30,11 @@ export function RetiredStage({ position, playerNationality, peakOvrValue, player
         <div className="rtg-hall-card__foot">Road to Glory · 2025/26</div>
       </section>
       <section className="rtg-retired-stage__details">
-        <div className="rtg-retired-stage__section"><span className="rtg-eyebrow">Thống kê toàn bộ sự nghiệp</span><div className="rtg-retired-stage__stats"><DataRow label="Trận ra sân" value={careerTotalStats.apps} /><DataRow label="Bàn thắng" value={careerTotalStats.goals} /><DataRow label="Kiến tạo" value={careerTotalStats.assists} /></div></div>
+        <div className="rtg-retired-stage__section"><span className="rtg-eyebrow">Thống kê toàn bộ sự nghiệp</span><div className="rtg-retired-stage__stats" aria-label="Thống kê toàn bộ sự nghiệp">
+          <div className="rtg-retired-stage__stat"><span>Trận ra sân</span><strong>{careerTotalStats.apps}</strong></div>
+          <div className="rtg-retired-stage__stat"><span>Bàn thắng</span><strong>{careerTotalStats.goals}</strong></div>
+          <div className="rtg-retired-stage__stat"><span>Kiến tạo</span><strong>{careerTotalStats.assists}</strong></div>
+        </div></div>
         {ballonDorCount > 0 && <ResultBanner tone="honour"><Trophy size={16} aria-hidden="true" /> {ballonDorCount} Quả Bóng Vàng</ResultBanner>}
         <div className="rtg-retired-stage__section"><span className="rtg-eyebrow">Hành trình qua các câu lạc bộ</span><div className="rtg-retired-stage__clubs">{clubStints.length === 0 ? <p className="rtg-modal-note">Chưa có dữ liệu câu lạc bộ.</p> : clubStints.map((stint, index) => <div className="rtg-retired-stage__club" key={`${stint.clubName}-${index}`}><div><strong>{stint.clubName}</strong>{stint.leagueName && <small>{stint.leagueName}</small>}</div><span>Tuổi {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : " · hiện tại"}</span><b>{stint.yearsAtClub} mùa</b></div>)}</div></div>
       </section>

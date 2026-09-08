@@ -176,15 +176,27 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
                 const textAngle = startAngle + arcSize / 2;
                 const showText  = stableItems.length <= 10 || arcSize >= 10;
                 const fontSize  = arcSize >= 50 ? "0.72rem" : arcSize >= 30 ? "0.58rem" : arcSize >= 16 ? "0.45rem" : "0.32rem";
+                const isFullCircle = arcSize >= 359.999;
 
                 return (
                   <g key={idx}>
-                    <path
-                      d={d}
-                      fill={color}
-                      stroke="rgba(244,241,234,0.8)"
-                      strokeWidth="0.6"
-                    />
+                    {arcSize > 0 && (isFullCircle ? (
+                      <circle
+                        cx="100"
+                        cy="100"
+                        r={R}
+                        fill={color}
+                        stroke="rgba(244,241,234,0.8)"
+                        strokeWidth="0.6"
+                      />
+                    ) : (
+                      <path
+                        d={d}
+                        fill={color}
+                        stroke="rgba(244,241,234,0.8)"
+                        strokeWidth="0.6"
+                      />
+                    ))}
                     {showText && (
                       <g transform={`rotate(${textAngle}, 100, 100)`}>
                         <text

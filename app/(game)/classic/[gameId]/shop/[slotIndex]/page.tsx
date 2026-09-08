@@ -43,22 +43,35 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
       influenceScore: true,
       shopInventory: true,
       isRetired: true,
+      currentAge: true,
+      currentStep: true,
+      checkpointVersion: true,
+      revision: true,
+      retireAge: true,
       gameSession: { select: { userId: true } },
     },
   });
 
   if (!player || player.gameSession.userId !== user.id || player.isRetired) notFound();
+  if (
+    player.checkpointVersion >= 2 &&
+    !["idle", "transfer", "resolved"].includes(player.currentStep ?? "")
+  ) notFound();
 
   const statsTimeline = player.statsTimeline as unknown as StatSnapshot[];
-  const currentAge = statsTimeline.at(-1)?.age;
+  const currentAge = player.currentAge ?? statsTimeline.at(-1)?.age;
   if (typeof currentAge !== "number") notFound();
+  if (player.checkpointVersion >= 2 && currentAge >= player.retireAge) notFound();
 
   const requestedSeason = Number(season);
-  const targetSeason = requestedSeason === currentAge + 1 ? requestedSeason : currentAge;
+  const targetSeason = player.checkpointVersion >= 2 &&
+    ["transfer", "resolved"].includes(player.currentStep ?? "")
+    ? currentAge + 1
+    : requestedSeason === currentAge + 1 ? requestedSeason : currentAge;
   const normalizedReturnAction = returnAction === "advance" && targetSeason === currentAge + 1
     ? "advance"
     : "start";
-  const returnHref = `/classic/${gameId}/draft/${slotIndex}?shopReturn=${normalizedReturnAction}`;
+  const returnHref = `/classic/${gameId}/draft/${slotIndex}?shopReturn=${normalizedReturnAction}&shopAge=${currentAge}`;
   const inventory = (player.shopInventory as unknown as ShopInventoryEntry[]) ?? [];
 
   return (
@@ -87,6 +100,8 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
         playerId={player.id}
         currentAge={currentAge}
         targetSeason={targetSeason}
+        revision={player.revision}
+        checkpointVersion={player.checkpointVersion}
         walletBalance={player.walletBalance}
         shopInventory={inventory}
         returnHref={returnHref}

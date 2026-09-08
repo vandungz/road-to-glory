@@ -4,6 +4,7 @@ import { ChevronRight } from "lucide-react";
 import type { ModalType } from "../hooks/useDraftDrum";
 import type { SeasonRecord } from "@/types/game";
 import { getDomesticCupName, getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
+import { getCompetitionResultLabel } from "../lib/competition-result-labels";
 
 interface SeasonProfileProps {
   seasonRecords: Record<number, SeasonRecord>;
@@ -23,11 +24,7 @@ function leagueResult(standing: number | null): string {
 }
 
 function cupResult(result: string | null | undefined): string {
-  if (!result || result === "Chờ quay") return "Chờ quay";
-  if (result === "Winner") return "Vô địch";
-  if (result === "Runner-Up") return "Á quân";
-  if (result === "Semi-Finals") return "Bán kết";
-  return "Vòng loại";
+  return getCompetitionResultLabel(result, "Chờ quay");
 }
 
 export function SeasonProfile({ seasonRecords, currentAge, playerDebutAge, selectedAgeForStats, setSelectedAgeForStats, onOpenModal }: SeasonProfileProps) {
