@@ -5,9 +5,9 @@ import { Redis } from "@upstash/redis";
 // request có thể chạy trên 1 instance khác nhau, không thể giữ bộ nhớ trong
 // tiến trình Node như 1 server truyền thống.
 //
-// CHƯA config env var (UPSTASH_REDIS_REST_URL/TOKEN) → tự động NO-OP, không
-// chặn request nào (chỉ log cảnh báo 1 lần) — an toàn để deploy ngay cả khi
-// chưa có tài khoản Upstash, không phá app hiện tại.
+// Development không cần Upstash để chạy local. Production fail closed nếu
+// thiếu cấu hình, vì không được tuyên bố mutation boundary đã được bảo vệ khi
+// rate limiting đang tắt.
 //
 // Setup: tạo free database tại https://console.upstash.com → copy
 // "REST URL" + "REST TOKEN" → thêm vào Vercel Project Settings → Environment
@@ -36,11 +36,14 @@ let warnedOnce = false;
 
 /**
  * Chặn 1 identifier (thường là user.id) gọi quá nhiều Server Action trong
- * khoảng thời gian ngắn. Throw nếu vượt giới hạn. No-op nếu chưa config
- * Upstash (xem comment ở trên).
+ * khoảng thời gian ngắn. Throw nếu vượt giới hạn. Local development vẫn
+ * no-op khi chưa config Upstash; production thì fail closed.
  */
 export async function checkRateLimit(identifier: string): Promise<void> {
   if (!ratelimit) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Rate limiting chưa được cấu hình cho production.");
+    }
     if (!warnedOnce) {
       console.warn(
         "[rate-limit] UPSTASH_REDIS_REST_URL/TOKEN chưa được set — rate limiting đang TẮT. " +

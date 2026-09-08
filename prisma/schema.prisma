@@ -70,8 +70,113 @@ model CareerPlayer {
   seasonHistory     Json        @default("{}") // Record<age, SeasonRecord> — persisted for resume
   isRetired         Boolean     @default(false)
 
+  // V2 persistence projection. Nullable progress fields preserve compatibility
+  // with existing rows until the resumable backfill is run.
+  currentAge         Int?
+  currentStep        String?
+  currentWheel       String?
+  checkpointVersion  Int         @default(1)
+  revision           Int         @default(0)
+  lastCheckpointId   String?     @db.Uuid
+  lastCheckpointAt   DateTime?
+  createdAt          DateTime    @default(now())
+  updatedAt          DateTime    @updatedAt
+
+  seasons            CareerSeason[]
+  wheelCheckpoints   WheelCheckpoint[]
+  careerEvents       CareerEvent[]
+  commands           CareerCommand[]
+
   @@unique([gameSessionId, slotIndex])
   @@map("career_players")
+}
+
+model CareerSeason {
+  id              String            @id @default(uuid()) @db.Uuid
+  careerPlayerId  String            @db.Uuid
+  careerPlayer    CareerPlayer      @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonNumber    Int
+  age             Int
+  clubId          String?
+  clubName        String?
+  leagueId        String?
+  leagueName      String?
+  status          String            @default("in_progress") // in_progress | completed | retired
+  runtimeState    Json              @default("{}")
+  summary         Json?
+  startedAt       DateTime          @default(now())
+  completedAt     DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  wheelCheckpoints WheelCheckpoint[]
+  events          CareerEvent[]
+  commands        CareerCommand[]
+
+  @@unique([careerPlayerId, seasonNumber])
+  @@index([careerPlayerId, status])
+  @@index([careerPlayerId, age])
+  @@map("career_seasons")
+}
+
+model WheelCheckpoint {
+  id              String       @id @default(uuid()) @db.Uuid
+  careerPlayerId  String       @db.Uuid
+  careerPlayer    CareerPlayer @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId        String       @db.Uuid
+  season          CareerSeason @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  stepKey         String
+  wheelType       String
+  resolverVersion String
+  input           Json?
+  outcome         Json
+  publicResult    Json?
+  revisionBefore  Int
+  revisionAfter   Int
+  idempotencyKey  String
+  createdAt       DateTime     @default(now())
+
+  // Growth wheels repeat the same logical step (selector/magnitude). The
+  // revision identifies the concrete wheel occurrence for idempotency.
+  @@unique([careerPlayerId, seasonId, stepKey, revisionBefore])
+  @@unique([careerPlayerId, idempotencyKey])
+  @@index([careerPlayerId, createdAt])
+  @@index([seasonId, createdAt])
+  @@map("wheel_checkpoints")
+}
+
+model CareerEvent {
+  id             String        @id @default(uuid()) @db.Uuid
+  careerPlayerId String        @db.Uuid
+  careerPlayer   CareerPlayer  @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId       String?       @db.Uuid
+  season         CareerSeason? @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  type           String
+  label          String
+  payload        Json?
+  createdAt      DateTime      @default(now())
+
+  @@index([careerPlayerId, createdAt])
+  @@index([seasonId, createdAt])
+  @@map("career_events")
+}
+
+model CareerCommand {
+  id              String        @id @default(uuid()) @db.Uuid
+  careerPlayerId  String        @db.Uuid
+  careerPlayer    CareerPlayer  @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId        String?       @db.Uuid
+  season          CareerSeason? @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  commandType     String
+  idempotencyKey  String
+  input           Json?
+  result          Json
+  revisionBefore  Int
+  revisionAfter   Int
+  createdAt       DateTime      @default(now())
+
+  @@unique([careerPlayerId, idempotencyKey])
+  @@index([careerPlayerId, commandType, createdAt])
+  @@map("career_commands")
 }
 
 model League {
@@ -110,3 +215,6 @@ model Club {
 
   @@map("clubs")
 }
+
+// Development-only reusable fixtures. These are cloned into an authenticated
+// user's own GameSession by a guarded dev action; they are never gameplay truth.
