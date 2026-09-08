@@ -126,7 +126,7 @@ retired peak — đều đọc state đã được wheel/sim ghi.
 - **Apps:** `effPositionOvr` (§12.1) vs `clubThreshold`, prestige depth, standing bonus. CLB tuyển theo vị trí cụ thể.
 - **G/A/CS:** Attribute bundle §7.7 — mỗi metric dùng `R_eff` riêng (Goals = SHO-heavy, Assists = PAS-heavy, CS = DEF/REF-heavy). Không dùng OVR phẳng.
 - **Rating:** `effPositionOvr` term — CB với DEF 88 có base rating cao hơn tại vị trí, dù OVR tổng thấp hơn ST cùng CLB.
-- **Ballon eligibility:** `currentOvr` ≥ 88 gate + rating + G + trophies + position modifier.
+- **Ballon eligibility:** `currentOvr` ≥ 85 gate + bộ thuộc tính theo vị trí + G/A/Clean Sheet theo vai trò + số trận/rating + thành tích và độ khó giải. Cùng evaluation này tạo weight cho cả wheel đề cử và wheel Top 10.
 - **Mọi output đều core** — UI chỉ mirror.
 
 ### 3.6 Growth wheels
@@ -184,10 +184,10 @@ Hai mục tiêu **không được đánh đổi mù**:
 
 1. **Integrity** — game truth không bị client tự bịa (OVR, outcomes, peak).  
 2. **Latency & cost ở traffic cao** — một career year có ~10–20+ bước spin + sim.
-   Nếu mỗi bước = 1 Server Action + DB → UX chậm, Vercel/DB/rate-limit nổ, chi phí
-   tuyến tính theo số spin × user đồng thời.
+   Checkpoint theo wheel là một command/transaction hẹp sau khi resolve; không được
+   ghi theo từng frame animation hoặc rewrite toàn bộ CareerPlayer JSON.
 
-**Cấm hiểu nhầm:** “đẩy hết lên server” ≠ gọi API/DB từng cú quay bánh xe.
+**Cấm hiểu nhầm:** “checkpoint mỗi wheel” ≠ gọi API/DB từng frame của animation.
 
 ### Budget thời gian / I/O (SoT vận hành)
 
@@ -200,18 +200,17 @@ Hai mục tiêu **không được đánh đổi mù**:
 | League table + cup journeys | 1–4 | **Có nhưng cache nặng** opponents/clubs (đã có hướng `getCached*`) |
 | `evolvePlayerStats` | 1 | **Có** — 1 action, pure (không DB) |
 | Transfer offer | 0–1 | **Có** — 1 action; query clubs **scoped + cached** |
-| Persist progress | 1 (cuối mùa / debounce) | **Có** — batched write, không save từng spin |
+| Persist progress | 1 mỗi wheel đã resolve + season close | **Có** — transaction hẹp, immutable checkpoint, không save từng animation frame |
 
-**Mục tiêu UX:** spin cảm giác tức thì (<16ms logic local). Round-trip chỉ ở **checkpoint**
-(sau cụm competition → sim; sau cụm growth → evolve; cuối mùa → save).
+**Mục tiêu UX:** animation không bị giật vì DB. Round-trip xảy ra một lần ở **wheel resolve**,
+sau đó UI render authoritative response; không gọi database cho từng frame.
 
 **Anti-pattern (không làm khi scale):**
 
 ```text
-❌ spin standing → Server Action → DB
-❌ spin cup → Server Action → DB
-❌ mỗi magnitude → evolvePlayerStatsAction → …
-→ 15 × (RTT + cold start + auth) / mùa / user
+❌ animation frame → Server Action → DB
+❌ gửi full CareerPlayer snapshot sau mỗi frame
+✅ một wheel resolve → một command transaction → một WheelCheckpoint
 ```
 
 ### Mô hình đích (ba tầng)
@@ -223,14 +222,14 @@ Hai mục tiêu **không được đánh đổi mù**:
 │   continental qualification, G/A rates (sau 7.0)                │
 │   → zero network; preview === resolve nếu cùng input            │
 ├─────────────────────────────────────────────────────────────────┤
-│ T2 — Client orchestration + animation                           │
-│   resolve từ (serverSeed | localRng) + T1 pools                 │
-│   giữ year state trong memory; KHÔNG hit DB mỗi spin            │
+│ T2 — Client animation + command intent                          │
+│   không tự quyết định outcome; gửi choice/revision/idempotency  │
+│   không hit DB theo frame                                        │
 ├─────────────────────────────────────────────────────────────────┤
-│ T3 — Server checkpoints (ít, có auth + Zod + optional DB)       │
-│   start career | simulateSeason | evolveStats | transfer |      │
-│   saveProgress | retire                                         │
-│   → recompute/verify những field critical; cache reference data │
+│ T3 — Server wheel checkpoints (auth + Zod + transaction)        │
+│   resolve outcome → immutable checkpoint → projection/event     │
+│   start season | shop | transfer | season close cũng là command │
+│   → authoritative DTO; cache reference data, không cache truth  │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -240,16 +239,18 @@ Hai mục tiêu **không được đánh đổi mù**:
 |---|---|---|---|---|
 | **A. Seeded season (ưu tiên)** | Đầu mùa (hoặc sau idle): 1 action cấp `seasonSeed` (hoặc derive từ server). Mọi spin trong mùa = hash/stream từ seed + subStep index qua `resolveWeightedOutcome` deterministic. Cuối cụm: 1 `commitSeasonPhase` gửi outcomes; server **re-simulate rolls từ cùng seed** để verify, rồi chạy sim/evolve. | Tốt | Cao | **SoT mặc định khi harden** |
 | **B. Trust-but-recompute** | Client quay như hiện tại; checkpoint server **bỏ qua** việc tin OVR/peak/deltas — luôn `calculateOvrByPosition` / clamp / derive peak từ timeline. Outcomes wheel vẫn tin trong biên Zod (anti-cheat nhẹ). | Tốt (ít đổi) | Trung bình | **Pass gần**: debutOVR, peak, evolve |
-| **C. Per-spin Server Action** | Mỗi bánh xe gọi server | Rất xấu ở scale | Cao | **Cấm** làm mặc định |
+| **C. Per-wheel command** | Mỗi wheel resolve gọi một command transaction; animation không gọi DB | Cần đo | Cao | **Đang triển khai theo persistence SoT** |
 
-Không chọn C trừ cheat-critical niche (vd gambling) — game này không cần.
+Phương án C là quyết định mới cho Classic Mode vì requirement correctness/security yêu cầu
+checkpoint durable cho từng wheel. Phương án A (server seed + deterministic resolver) vẫn là
+đích dài hạn nếu cần replay/audit tốt hơn. Không được mở rộng C thành request cho từng frame.
 
 ### Hiện trạng vs đích
 
 | Hạng mục | Hiện tại | Đích (integrity × scale) |
 |---|---|---|
 | Debut OVR | Client tính, server tin (O9) | **B:** server recompute từ stats trong `startPlayerCareerAction` — 0 thêm RTT |
-| Wheel outcomes | Client RNG, server tin (O12) | **A** dài hạn; ngắn hạn giữ client + sửa preview sync |
+| Wheel outcomes | Client RNG, server tin (O12) | **C** trước mắt; **A** là hướng nâng cấp resolver dài hạn |
 | Growth deltas | Client gửi, server clamp+OVR | **B** đủ cho pass 1; **A** khi seed |
 | Season sim | 1× Server Action | Giữ 1×; giảm query — truyền `clubPrestige`/`leagueSize` đã trust từ session hoặc cache |
 | Table / journey | N actions + DB opponents | Giữ; **cache** opponent lists theo league/cupType (TTL dài — data tĩnh) |
@@ -282,7 +283,7 @@ Không chọn C trừ cheat-critical niche (vd gambling) — game này không c�
 |---|---|
 | Spinner animation, labels, modals | Pure UI |
 | Pool preview (`useCareerWheelItems`) | Phải = T1; zero network |
-| Resolve spin trong năm (trước khi có seed verify) | Tránh RTT; sau này gắn seed |
+| Resolve wheel trong năm | Một command server sau mỗi wheel; animation chỉ chạy sau response/được gắn với response |
 | Flow hooks orchestration | Không chứa truth cuối |
 | `setClubAndContinental` local | Sync UX; persist ở checkpoint |
 
@@ -299,14 +300,15 @@ Không chọn C trừ cheat-critical niche (vd gambling) — game này không c�
 
 **Pass 2 — harden integrity khi user/traffic lớn**
 
-4. `seasonSeed` + verify-at-checkpoint (phương án A) — **không** per-spin API.  
-5. Cache reference data (clubs/leagues/opponents) + giảm query trong journey/transfer.  
-6. Giữ persist batched; theo dõi p95 Server Action duration & Upstash rate-limit hits.
+4. Per-wheel command + immutable checkpoint (phương án C) — không gọi DB theo animation frame.
+5. `seasonSeed` + verify-at-checkpoint (phương án A) — tối ưu/replay dài hạn sau khi C ổn định.
+6. Cache reference data (clubs/leagues/opponents) + giảm query trong journey/transfer.
+7. Theo dõi p95 Server Action duration, checkpoint conflicts & Upstash rate-limit hits.
 
 ### Checklist khi thêm Server Action mới
 
 - [ ] Có thể làm bằng pure lib + checkpoint hiện có không?  
-- [ ] Có bị gọi trong vòng lặp spin không? → **cấm** trừ khi đã batch.  
+- [ ] Có bị gọi trong vòng lặp animation không? → **cấm**; một resolve wheel chỉ có một command.
 - [ ] Reference data đã cache chưa?  
 - [ ] Auth + Zod + rate limit có, nhưng không thay cho thiết kế giảm số lần gọi.  
 
@@ -421,3 +423,4 @@ Aligned với balance SoT:
 | 2026-07-31 | Link **transfer redesign** discussion: `docs/core-transfer-design.md` (market browse + soft contract feasibility). |
 | 2026-07-31 | Transfer design **v1.1:** fee + wage bắt buộc; buying power derive prestige×tier (chống đội yếu chi 100M). |
 | 2026-07-31 | Transfer design **v1.3:** lock buying power §5.3. |
+| 2026-09-02 | Persistence SoT supersedes the old “batched/no per-spin API” default: Classic now targets one durable per-wheel command/checkpoint, while animation frames remain local and the long-term seeded resolver remains a separate optimization. |

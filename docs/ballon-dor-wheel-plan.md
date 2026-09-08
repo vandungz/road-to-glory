@@ -1,6 +1,8 @@
 # Ballon d'Or Wheel Feature — Plan
 
-> Trạng thái: ĐANG THIẾT KẾ — chưa implement
+> Trạng thái: OUTDATED — historical plan, không phải SoT hiện hành
+>
+> SoT hiện hành: [`docs/achievements-honours/achievements-honours-sot.md`](achievements-honours/achievements-honours-sot.md)
 
 ---
 
