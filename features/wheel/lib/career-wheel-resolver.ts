@@ -1,6 +1,6 @@
 // features/wheel/lib/career-wheel-resolver.ts
 
-import { resolveWeightedOutcome } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom, resolveWeightedOutcome, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 import { getNationalContinentalCup, getMainStatsByPosition } from "@/lib/wheel-engine/weight-calculator";
 import { getFlagEmoji } from "@/types/squad";
 import {
@@ -54,7 +54,11 @@ interface CareerWheelContext {
   eliteDevelopmentActive?: boolean;
 }
 
-export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelContext) {
+export function getCareerWheelPoolAndValue(
+  subStep: string,
+  ctx: CareerWheelContext,
+  randomSource: RandomSource = resolveRandom,
+) {
   let result: string | number | null = null;
   let idx = -1;
   let tempValue: string | null = null;
@@ -96,7 +100,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       { value: "yes", weight: yesW },
       { value: "no", weight: noW },
     ];
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = result === "yes" ? "TĂNG CHỈ SỐ: YES" : "TĂNG CHỈ SỐ: NO";
   }
@@ -113,7 +117,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       { value: "yes", weight: yesW },
       { value: "no", weight: noW },
     ];
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = result === "yes" ? "GIẢM CHỈ SỐ: YES" : "GIỮ NGUYÊN CHỈ SỐ";
   }
@@ -130,7 +134,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       seasonApps: ctx.yearSimResult?.apps ?? null,
       fitnessCoachActive: ctx.fitnessCoachActive,
     });
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = `${result} Chỉ Số`;
   }
@@ -166,7 +170,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       label: c.name.toUpperCase(),
       weight: getSelectorStatWeight(mainStats.includes(c.key), isIncrease, isOld, ctx.eliteDevelopmentActive),
     }));
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     const matchedName = coreStats.find(c => c.key === result)?.name ?? result;
     tempValue = matchedName.toUpperCase();
@@ -185,19 +189,19 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       fitnessCoachActive: ctx.fitnessCoachActive,
       eliteDevelopmentActive: ctx.eliteDevelopmentActive,
     });
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = `${isInc ? "+" : "-"}${result} Điểm`;
   }
   else if (subStep === "standing") {
     const standingPool = buildStandingPool(teamCtx);
-    result = resolveWeightedOutcome(standingPool);
+    result = resolveWeightedOutcome(standingPool, randomSource);
     idx = standingPool.findIndex((x) => x.value === result);
     tempValue = result === 1 ? "VÔ ĐỊCH (HẠNG 1)" : result === 2 ? "Á QUÂN (HẠNG 2)" : `HẠNG #${result}`;
   }
   else if (subStep === "domestic_cup") {
     const pool = buildDomesticCupPool(teamCtx);
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue =
       result === "Winner" ? "VÔ ĐỊCH CUP!" :
@@ -209,7 +213,7 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   }
   else if (subStep === "continental_cup") {
     const pool = buildContinentalCupPool(teamCtx);
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     const cupLabel = getContinentalCupLabel(ctx.currentContinentalCup);
     tempValue =
@@ -221,13 +225,13 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
   }
   else if (subStep === "national_callup") {
     const pool = buildNationalCallupPool(teamCtx);
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = result === "called_up" ? `ĐƯỢC TRIỆU TẬP ĐTQG! ${getFlagEmoji(ctx.playerNationality)}` : "Không được gọi";
   }
   else if (subStep === "national_tournament") {
     const pool = buildNationalTournamentPool(teamCtx);
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     const tourney = getNationalTournamentName(
       ctx.playerNationality, ctx.currentAge, ctx.playerDebutAge, getNationalContinentalCup,
@@ -245,13 +249,13 @@ export function getCareerWheelPoolAndValue(subStep: string, ctx: CareerWheelCont
       { value: "yes", weight: w },
       { value: "no", weight: 100 - w },
     ];
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = result === "yes" ? "ĐƯỢC ĐỀ CỬ TOP 10 QBV" : "Năm này chưa được xét";
   }
   else if (subStep === "ballon_dor_ranking") {
     const pool = ctx.ballonDorRankWeights.map((w, i) => ({ value: i + 1, weight: w }));
-    result = resolveWeightedOutcome(pool);
+    result = resolveWeightedOutcome(pool, randomSource);
     idx = pool.findIndex((x) => x.value === result);
     tempValue = result === 1 ? "HẠNG #1 — BALLON D'OR!" : `HẠNG #${result} TRONG TOP 10`;
   }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useRef } from "react";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { getContinentalCupLabel, getNationalTournamentName } from "../lib/simulation-helpers";
 import {
@@ -42,9 +43,26 @@ interface CompetitionFlowProps {
   applySimResultToRecords: (age: number, result: SimulatedSeasonResult) => void;
   setSeasonRecords: (fn: (prev: Record<number, SeasonRecord>) => Record<number, SeasonRecord>) => void;
   checkNationalCallupTransition: () => "national_callup" | "trigger_stats";
+  /** V2 path: server commits the simulation; legacy careers keep the old action. */
+  commitSeasonStats?: () => Promise<{ seasonStats: SimulatedSeasonResult }>;
 }
 
 export function useCompetitionFlow(p: CompetitionFlowProps) {
+  const pendingAfterCompetitionModalRef = useRef<(() => void) | null>(null);
+
+  function updateCurrentSeasonRecord(updater: (record: SeasonRecord) => SeasonRecord) {
+    p.setSeasonRecords((prev) => {
+      const existing = prev[p.currentAge];
+      if (!existing) return prev;
+      return { ...prev, [p.currentAge]: updater({ ...existing }) };
+    });
+  }
+
+  function showCompetitionResultModal(type: "league" | "cup" | "continental", continueAfterClose?: () => void) {
+    pendingAfterCompetitionModalRef.current = continueAfterClose ?? null;
+    p.setActiveModal(type);
+  }
+
   async function triggerSeasonStats(
     standing: number | null,
     domestic: string | null,
@@ -60,27 +78,29 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       : null;
 
     try {
-      const simRes = await simulatePlayerSeasonAction({
-        playerId: p.playerId,
-        age: p.currentAge,
-        ovr: p.currentOvr,
-        position: p.position,
-        luckRating: luck,
-        clubPrestige: p.currentClub?.prestige ?? 3,
-        clubName: p.currentClub.name,
-        leagueName: p.currentClub.leagueName,
-        leagueId: p.currentClub.leagueId,
-        hasContinentalCup: p.currentContinentalCup !== "none",
-        playerNationality: p.playerNationality,
-        currentStats: p.currentStats,
-        standingResult: standing,
-        domesticCupResult: domestic,
-        continentalCupResult: continental,
-        continentalCupType: p.currentContinentalCup !== "none" ? p.currentContinentalCup : null,
-        nationalCallupResult: callup,
-        nationalTournamentResult: tournament,
-        nationalTournamentType,
-      });
+      const simRes = p.commitSeasonStats
+        ? (await p.commitSeasonStats()).seasonStats
+        : await simulatePlayerSeasonAction({
+            playerId: p.playerId,
+            age: p.currentAge,
+            ovr: p.currentOvr,
+            position: p.position,
+            luckRating: luck,
+            clubPrestige: p.currentClub?.prestige ?? 3,
+            clubName: p.currentClub.name,
+            leagueName: p.currentClub.leagueName,
+            leagueId: p.currentClub.leagueId,
+            hasContinentalCup: p.currentContinentalCup !== "none",
+            playerNationality: p.playerNationality,
+            currentStats: p.currentStats,
+            standingResult: standing,
+            domesticCupResult: domestic,
+            continentalCupResult: continental,
+            continentalCupType: p.currentContinentalCup !== "none" ? p.currentContinentalCup : null,
+            nationalCallupResult: callup,
+            nationalTournamentResult: tournament,
+            nationalTournamentType,
+          });
 
       p.setYearSimResult(simRes);
       p.setBallonDorNominationWeight(simRes.ballonDor.nominationWeight);
@@ -97,6 +117,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
   }
 
   function handleSeasonStatsModalClose() {
+    pendingAfterCompetitionModalRef.current = null;
     p.setActiveModal(null);
     if (p.yearSimResult?.ballonDor.eligible) {
       p.setCareerSubStep("ballon_dor_nomination");
@@ -105,7 +126,15 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     }
   }
 
+  function handleCompetitionResultModalClose() {
+    const continueAfterClose = pendingAfterCompetitionModalRef.current;
+    pendingAfterCompetitionModalRef.current = null;
+    p.setActiveModal(null);
+    continueAfterClose?.();
+  }
+
   function handleSpinComplete(subStep: string, result: string | number) {
+    pendingAfterCompetitionModalRef.current = null;
     if (subStep === "standing") {
       const standingVal = result as number;
       p.setStandingResult(standingVal);
@@ -115,67 +144,78 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         playerClubName: p.currentClub.name,
         playerStanding: standingVal,
       }).then((mockTable) => {
-        p.setSeasonRecords((prev) => {
-          const rec = { ...prev[p.currentAge] };
-          rec.standing = standingVal;
-          rec.leagueTable = mockTable;
-          return { ...prev, [p.currentAge]: rec };
-        });
+        updateCurrentSeasonRecord((record) => ({ ...record, standing: standingVal, leagueTable: mockTable }));
         p.setCareerSubStep("domestic_cup");
         p.setIsProcessing(false);
+        showCompetitionResultModal("league");
       }).catch((err) => {
         console.error("Error generating league table:", err);
+        updateCurrentSeasonRecord((record) => ({ ...record, standing: standingVal }));
         p.setCareerSubStep("domestic_cup");
         p.setIsProcessing(false);
+        showCompetitionResultModal("league");
       });
     }
     else if (subStep === "domestic_cup") {
       const cupVal = result as string;
       p.setDomesticCupResult(cupVal);
+
+      const advanceFromDomesticCup = () => {
+        if (p.currentContinentalCup !== "none") {
+          p.setCareerSubStep("continental_cup");
+          p.setIsProcessing(false);
+          showCompetitionResultModal("cup");
+          return;
+        }
+
+        const next = p.checkNationalCallupTransition();
+        if (next === "national_callup") {
+          p.setCareerSubStep("national_callup");
+          p.setIsProcessing(false);
+          showCompetitionResultModal("cup");
+          return;
+        }
+
+        p.setIsProcessing(false);
+        showCompetitionResultModal("cup", () => {
+          void triggerSeasonStats(p.standingResult, cupVal, p.continentalCupResult, null, null);
+        });
+      };
+
       generateCupJourneyAction({
         type: "domestic",
         result: cupVal,
         playerClubId: p.currentClub.id,
         playerClubPrestige: p.currentClub.prestige ?? 3,
       }).then((journey) => {
-        p.setSeasonRecords((prev) => {
-          const rec = { ...prev[p.currentAge] };
-          rec.domesticCup = cupVal;
-          rec.domesticCupJourney = journey;
-          return { ...prev, [p.currentAge]: rec };
-        });
-        if (p.currentContinentalCup !== "none") {
-          p.setCareerSubStep("continental_cup");
-          p.setIsProcessing(false);
-        } else {
-          const next = p.checkNationalCallupTransition();
-          if (next === "national_callup") {
-            p.setCareerSubStep("national_callup");
-            p.setIsProcessing(false);
-          } else {
-            triggerSeasonStats(p.standingResult, cupVal, p.continentalCupResult, null, null);
-          }
-        }
+        updateCurrentSeasonRecord((record) => ({ ...record, domesticCup: cupVal, domesticCupJourney: journey }));
+        advanceFromDomesticCup();
       }).catch((err) => {
         console.error("Error generating domestic cup journey:", err);
-        if (p.currentContinentalCup !== "none") {
-          p.setCareerSubStep("continental_cup");
-          p.setIsProcessing(false);
-        } else {
-          const next = p.checkNationalCallupTransition();
-          if (next === "national_callup") {
-            p.setCareerSubStep("national_callup");
-            p.setIsProcessing(false);
-          } else {
-            triggerSeasonStats(p.standingResult, cupVal, p.continentalCupResult, null, null);
-          }
-        }
+        updateCurrentSeasonRecord((record) => ({ ...record, domesticCup: cupVal }));
+        advanceFromDomesticCup();
       });
     }
     else if (subStep === "continental_cup") {
       const contVal = result as string;
       p.setContinentalCupResult(contVal);
       const cupLabel = getContinentalCupLabel(p.currentContinentalCup);
+
+      const advanceFromContinentalCup = () => {
+        const next = p.checkNationalCallupTransition();
+        if (next === "national_callup") {
+          p.setCareerSubStep("national_callup");
+          p.setIsProcessing(false);
+          showCompetitionResultModal("continental");
+          return;
+        }
+
+        p.setIsProcessing(false);
+        showCompetitionResultModal("continental", () => {
+          void triggerSeasonStats(p.standingResult, p.domesticCupResult, contVal, null, null);
+        });
+      };
+
       generateCupJourneyAction({
         type: "continental",
         result: contVal,
@@ -184,28 +224,23 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         cupName: cupLabel,
         cupType: p.currentContinentalCup,
       }).then((journey) => {
-        p.setSeasonRecords((prev) => {
-          const rec = { ...prev[p.currentAge] };
-          if (rec.continentalCup) rec.continentalCup.result = contVal;
-          rec.continentalCupJourney = journey;
-          return { ...prev, [p.currentAge]: rec };
-        });
-        const next = p.checkNationalCallupTransition();
-        if (next === "national_callup") {
-          p.setCareerSubStep("national_callup");
-          p.setIsProcessing(false);
-        } else {
-          triggerSeasonStats(p.standingResult, p.domesticCupResult, contVal, null, null);
-        }
+        updateCurrentSeasonRecord((record) => ({
+          ...record,
+          continentalCup: record.continentalCup
+            ? { ...record.continentalCup, result: contVal }
+            : record.continentalCup,
+          continentalCupJourney: journey,
+        }));
+        advanceFromContinentalCup();
       }).catch((err) => {
         console.error("Error generating continental cup journey:", err);
-        const next = p.checkNationalCallupTransition();
-        if (next === "national_callup") {
-          p.setCareerSubStep("national_callup");
-          p.setIsProcessing(false);
-        } else {
-          triggerSeasonStats(p.standingResult, p.domesticCupResult, contVal, null, null);
-        }
+        updateCurrentSeasonRecord((record) => ({
+          ...record,
+          continentalCup: record.continentalCup
+            ? { ...record.continentalCup, result: contVal }
+            : record.continentalCup,
+        }));
+        advanceFromContinentalCup();
       });
     }
     else if (subStep === "national_callup") {
@@ -251,5 +286,10 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     }
   }
 
-  return { triggerSeasonStats, handleSpinComplete, handleSeasonStatsModalClose };
+  return {
+    triggerSeasonStats,
+    handleSpinComplete,
+    handleSeasonStatsModalClose,
+    handleCompetitionResultModalClose,
+  };
 }

@@ -9,6 +9,8 @@ export interface WeightedItem<T> {
   weight: number;
 }
 
+export type RandomSource = () => number;
+
 /** Uniform random float trong [0, 1) */
 export function resolveRandom(): number {
   return Math.random();
@@ -27,7 +29,10 @@ export function resolveRandomInt(min: number, max: number): number {
 /**
  * Chọn một phần tử ngẫu nhiên có trọng số từ danh sách.
  */
-export function resolveWeightedOutcome<T>(items: WeightedItem<T>[]): T {
+export function resolveWeightedOutcome<T>(
+  items: WeightedItem<T>[],
+  randomSource: RandomSource = resolveRandom,
+): T {
   if (items.length === 0) {
     throw new Error("resolveWeightedOutcome: Items list is empty");
   }
@@ -36,12 +41,12 @@ export function resolveWeightedOutcome<T>(items: WeightedItem<T>[]): T {
   const validItems = items.filter((item) => item.weight > 0);
   if (validItems.length === 0) {
     // Nếu tất cả weights đều <= 0, chọn ngẫu nhiên đều
-    const randomIndex = Math.floor(Math.random() * items.length);
+    const randomIndex = Math.floor(randomSource() * items.length);
     return items[randomIndex].value;
   }
 
   const totalWeight = validItems.reduce((sum, item) => sum + item.weight, 0);
-  let randomValue = Math.random() * totalWeight;
+  let randomValue = randomSource() * totalWeight;
 
   for (const item of validItems) {
     if (randomValue < item.weight) {

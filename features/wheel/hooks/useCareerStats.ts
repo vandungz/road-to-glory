@@ -16,6 +16,10 @@ import type { AchievementRecord, CareerSubStep, ClubStint, ClubSummary, CurrentC
 import type { CareerSetupResult } from "@/features/career/services/career-setup.service";
 import type { ContractOfferCard } from "@/features/transfer/services/transfer.service";
 import type { DraftData } from "../stores/useWheelUiStore";
+import {
+  aggregateCareerStats,
+  calculatePeakOvr,
+} from "@/features/career/services/career-summary.service";
 
 interface UseCareerStatsProps {
   gameId: string;
@@ -41,6 +45,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
   const [currentAge, setCurrentAge] = useState<number>(18);
   const [currentOvr, setCurrentOvr] = useState<number>(60);
+  const [peakOvr, setPeakOvr] = useState<number>(60);
   const [currentStats, setCurrentStats] = useState<Record<string, number>>(
     position === "GK"
       ? { div: 60, han: 60, kic: 60, ref: 60, spd: 60, pos: 60 }
@@ -126,7 +131,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     if (isSaving) return;
     setIsSaving(true);
     try {
-      const peakOvr = Math.max(...statsTimeline.map((s) => s.ovr));
       const retireAge = playerDebutAge + playerCareerLength;
       // Real transfer fee credited only if the LAST club stint started this exact
       // season (derived from clubStints, not separate state — avoids a reset-timing
@@ -145,7 +149,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         debutAge: playerDebutAge,
         retireAge,
         careerLength: playerCareerLength,
-        peakOvr,
+        peakOvr: peakOvrValue,
         statsTimeline,
         clubStints,
         ...(hiddenStats ? { hiddenStats } : {}),
@@ -168,19 +172,12 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   }
 
   const careerTotalStats = useMemo(() => {
-    let apps = 0, goals = 0, assists = 0;
-    statsTimeline.forEach((snap) => {
-      apps += snap.apps ?? 0;
-      goals += snap.goals ?? 0;
-      assists += snap.assists ?? 0;
-    });
-    return { apps, goals, assists };
-  }, [statsTimeline]);
+    return aggregateCareerStats({ seasonHistory: seasonRecords, statsTimeline });
+  }, [seasonRecords, statsTimeline]);
 
   const peakOvrValue = useMemo(() => {
-    const allOvrs = [currentOvr, ...statsTimeline.map((s) => (typeof s?.ovr === "number" ? s.ovr : 0))];
-    return Math.max(1, ...allOvrs);
-  }, [statsTimeline, currentOvr]);
+    return calculatePeakOvr(statsTimeline, Math.max(peakOvr, currentOvr));
+  }, [peakOvr, statsTimeline, currentOvr]);
 
   const activeRecord = useMemo(() => {
     return seasonRecords[selectedAgeForStats] || null;
@@ -189,11 +186,15 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
   function handleStartCareer(draftData: DraftData, initPayload: CareerSetupResult, clubs: ClubSummary[]) {
     const debutOvr = initPayload.debutOvr ?? initPayload.initTimeline?.[0]?.ovr ?? draftData.debutOvr!;
     setPlayerName(initPayload.playerName);
-    setHiddenStats(initPayload.hiddenStats);
+    // Hidden modifiers are server-only. V2 wheel resolvers load them from the
+    // persisted CareerPlayer row; keeping a client copy would create a second
+    // source of truth. Legacy rows use the neutral fallback until retired.
+    setHiddenStats(null);
     setClubStints([initPayload.initStint]);
     setStatsTimeline(initPayload.initTimeline);
     setCurrentAge(draftData.debutAge!);
     setCurrentOvr(debutOvr);
+    setPeakOvr(debutOvr);
     setCurrentStats(initPayload.initStats);
 
     const fullClub = clubs.find((c) => c.id === draftData.clubId);
@@ -406,6 +407,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
             : item,
         );
       });
+      setPeakOvr((prev) => Math.max(prev, currentOvr));
 
       // Không push timeline/stint tuổi retireAge+1 (entry “ma”) và bỏ stint
       // transfer chưa bao giờ đá (startAge > retireAge).
@@ -414,8 +416,9 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         if (played.length === 0) return played;
         const updated = [...played];
         const last = { ...updated[updated.length - 1] };
-        last.endAge = Math.min(last.endAge ?? currentAge, currentAge);
-        if (last.endAge < last.startAge) last.endAge = last.startAge;
+        // A resumed career may still have the one-season seed as endAge. The
+        // final played age is the authoritative terminal boundary.
+        last.endAge = Math.max(last.startAge, currentAge);
         last.yearsAtClub = last.endAge - last.startAge + 1;
         last.ovrAtLeaving = currentOvr;
         updated[updated.length - 1] = last;
@@ -428,6 +431,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       ...prev,
       { age: nextAge, ovr: currentOvr, ...currentStats },
     ]);
+    setPeakOvr((prev) => Math.max(prev, currentOvr));
 
     setClubStints((prev) => {
       const updated = [...prev];
@@ -549,6 +553,8 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setCurrentAge,
     currentOvr,
     setCurrentOvr,
+    peakOvr,
+    setPeakOvr,
     currentStats,
     setCurrentStats,
     currentClub,

@@ -1,4 +1,4 @@
-import { resolveRandom, resolveRandomFloat } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 import {
   getPerAppRates,
   applyPrestigeToCsRate,
@@ -11,6 +11,9 @@ import {
   EXTRA_APPEARANCES_BONUS,
   TRAINING_CAMP_RATING_BONUS,
 } from "@/lib/shop-catalog";
+import { evaluateBallonDor, type BallonDorEligibility } from "./ballon-dor.service";
+
+export type { BallonDorEligibility } from "./ballon-dor.service";
 
 
 export interface CompetitionStats {
@@ -26,6 +29,7 @@ export interface PlayerSeasonInput {
   ovr: number;
   position: string;
   luckRating: number;
+  professionalism?: number;
   clubPrestige: number;
   clubName: string;
   leagueName: string;
@@ -45,12 +49,8 @@ export interface PlayerSeasonInput {
   trainingCampActive?: boolean;
   /** Shop item that adds deterministic appearance opportunities this season. */
   appearancePackActive?: boolean;
-}
-
-export interface BallonDorEligibility {
-  eligible: boolean;
-  nominationWeight: number;  // % Yes trong Wheel 1 (0 nếu không eligible)
-  rankWeights: number[];     // 10 phần tử cho Wheel 2 ([] nếu không eligible)
+  /** Server commands inject a cryptographically secure source; tests may inject a seeded source. */
+  randomSource?: RandomSource;
 }
 
 export interface SimulatedSeasonResult {
@@ -148,12 +148,13 @@ function rollCompetitionOutput(
   context: CompContext,
   currentStats?: Record<string, number>,
   maxTeamCleanSheets?: number,
+  randomSource: RandomSource = resolveRandom,
 ): { goals: number; assists: number; cleanSheets: number } {
   if (apps <= 0) return { goals: 0, assists: 0, cleanSheets: 0 };
 
   const rates = getPerAppRates(position, ovr, context, currentStats);
   const rateCs = applyPrestigeToCsRate(rates.cleanSheets, clubPrestige);
-  const noise = () => 1 + resolveRandomFloat(-0.2, 0.2);
+  const noise = () => 1 + (randomSource() * 0.4 - 0.2);
 
   let goals = Math.round(apps * rates.goals * noise());
   let assists = Math.round(apps * rates.assists * noise());
@@ -164,7 +165,7 @@ function rollCompetitionOutput(
   // GK: rare assist instead of rate noise sometimes
   if (position === "GK") {
     goals = 0;
-    assists = resolveRandom() > 0.97 ? 1 : 0;
+    assists = randomSource() > 0.97 ? 1 : 0;
   }
 
   // Bound player CS by Team Result Invariant (SoT §7.8)
@@ -210,6 +211,7 @@ function calcRating(
   standingBonus = 0,
   /** docs/core-currency-shop-design.md §6.2 — "Training Camp" shop item, flat rating bonus. */
   perfBonus = 0,
+  randomSource: RandomSource = resolveRandom,
 ): number {
   if (compStats.apps === 0) return 0;
 
@@ -224,138 +226,23 @@ function calcRating(
   const weights = POSITION_RATING_WEIGHTS[position] ?? { ga: 1.0, cs: 1.0 };
   base += (gaFactor * weights.ga + csFactor * weights.cs) * perfScale;
 
-  base += resolveRandomFloat(-0.15, 0.15);
+  base += randomSource() * 0.3 - 0.15;
   return Math.min(9.0, Math.max(5.5, Math.round(base * 100) / 100));
-}
-
-// ── Ballon d'Or eligibility ────────────────────────────────────────────────
-
-const ATTACKER_POSITIONS = ["ST", "LW", "RW", "CAM"];
-const POSITION_MODIFIER: Record<string, number> = {
-  ST: 0, LW: 0, RW: 0, CAM: 0,
-  CM: -20, CDM: -20, LB: -20, RB: -20,
-  CB: -25,
-  GK: -30,
-};
-
-function calcTrophyScore(
-  standing: number | null | undefined,
-  clubPrestige: number,
-  domesticCup: string | null | undefined,
-  continentalResult: string | null | undefined,
-  continentalType: string | null | undefined,
-  nationalResult: string | null | undefined,
-  nationalType: string | null | undefined,
-): number {
-  let score = 0;
-
-  // League title
-  if (standing === 1) {
-    score += clubPrestige >= 4 ? 20 : 10;
-  }
-
-  // Domestic cup
-  if (domesticCup === "Winner") score += 5;
-
-  // Continental cup — phân biệt tier theo type
-  if (continentalResult === "Winner") {
-    const topCups = ["UCL", "Libertadores"];
-    score += topCups.includes(continentalType ?? "") ? 40 : 25;
-  }
-
-  // National tournament — World Cup vs giải châu lục
-  if (nationalResult === "Winner") {
-    score += nationalType === "FIFA World Cup" ? 40 : 25;
-  }
-
-  return score;
-}
-
-function calcBallonDorEligibility(
-  ovr: number,
-  position: string,
-  matchRating: number,
-  totalGoals: number,
-  standing: number | null | undefined,
-  clubPrestige: number,
-  domesticCup: string | null | undefined,
-  continentalResult: string | null | undefined,
-  continentalType: string | null | undefined,
-  nationalResult: string | null | undefined,
-  nationalType: string | null | undefined,
-): BallonDorEligibility {
-  // Individual score (OVR + Rating only — goals không tính vào gate)
-  let individualScore = 0;
-  if (ovr >= 96) individualScore += 45;
-  else if (ovr >= 93) individualScore += 35;
-  else if (ovr >= 90) individualScore += 20;
-  else if (ovr >= 88) individualScore += 10;
-
-  if (matchRating >= 8.30) individualScore += 30;
-  else if (matchRating >= 8.00) individualScore += 20;
-  else if (matchRating >= 7.80) individualScore += 10;
-
-  const trophyScore = calcTrophyScore(standing, clubPrestige, domesticCup, continentalResult, continentalType, nationalResult, nationalType);
-  const posModifier = POSITION_MODIFIER[position] ?? 0;
-  const eligibilityScore = individualScore + trophyScore + posModifier;
-
-  if (eligibilityScore < 75) {
-    return { eligible: false, nominationWeight: 0, rankWeights: [] };
-  }
-
-  // nominationWeight — % Yes trong Wheel 1
-  let nominationWeight: number;
-  if (eligibilityScore >= 115) nominationWeight = 82;
-  else if (eligibilityScore >= 105) nominationWeight = 70;
-  else if (eligibilityScore >= 95) nominationWeight = 55;
-  else if (eligibilityScore >= 85) nominationWeight = 35;
-  else nominationWeight = 20;
-
-  // rankScore — dùng cho Wheel 2 (goals tính ở đây)
-  const trophyBonus = calcRankTrophyBonus(continentalResult, continentalType, nationalResult, nationalType, standing, clubPrestige);
-  const goalBonus = ATTACKER_POSITIONS.includes(position)
-    ? (totalGoals >= 30 ? 20 : totalGoals >= 20 ? 10 : 0)
-    : 0;
-  const rankScore = (ovr - 88) * 2 + (matchRating - 7.80) * 20 + trophyBonus + goalBonus;
-
-  const rankWeights = getRankWeights(rankScore);
-
-  return { eligible: true, nominationWeight, rankWeights };
-}
-
-function calcRankTrophyBonus(
-  continentalResult: string | null | undefined,
-  continentalType: string | null | undefined,
-  nationalResult: string | null | undefined,
-  nationalType: string | null | undefined,
-  standing: number | null | undefined,
-  clubPrestige: number,
-): number {
-  let bonus = 0;
-  if (nationalResult === "Winner") bonus += nationalType === "FIFA World Cup" ? 35 : 20;
-  if (continentalResult === "Winner") bonus += ["UCL", "Libertadores"].includes(continentalType ?? "") ? 30 : 15;
-  if (standing === 1) bonus += clubPrestige >= 4 ? 15 : 8;
-  return bonus;
-}
-
-function getRankWeights(rankScore: number): number[] {
-  if (rankScore > 30) return [25, 22, 18, 12, 8, 5, 4, 3, 2, 1];
-  if (rankScore > 20) return [15, 18, 17, 13, 12, 8, 7, 5, 3, 2];
-  if (rankScore > 10) return [8, 12, 15, 13, 12, 10, 10, 8, 6, 6];
-  return [3, 7, 10, 10, 10, 15, 15, 15, 8, 7];
 }
 
 // ── Main service ───────────────────────────────────────────────────────────
 
 export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
   const {
-    ovr, position, luckRating, clubPrestige, leagueClubsCount,
+    ovr, position, luckRating, professionalism, clubPrestige, leagueClubsCount,
     hasContinentalCup, currentStats,
     standingResult, domesticCupResult, continentalCupResult, continentalCupType,
     nationalCallupResult, nationalTournamentResult, nationalTournamentType,
     trainingCampActive,
     appearancePackActive,
   } = input;
+  const randomSource = input.randomSource ?? resolveRandom;
+  const randomFloat = (min: number, max: number) => min + (max - min) * randomSource();
 
   const events: { type: string; label: string }[] = [];
 
@@ -364,6 +251,7 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const cupMatches = getCupMatches(domesticCupResult);
   const continentalMatches = hasContinentalCup ? getContinentalMatches(continentalCupResult) : 0;
   const nationalMatches = getNationalMatches(nationalCallupResult, nationalTournamentResult);
+  const expectedMatches = leagueMatches + cupMatches + continentalMatches + nationalMatches;
 
   // Estimate max team clean sheets from standing result (SoT §7.8)
   const maxLeagueTeamCS = standingResult != null && leagueClubsCount > 0
@@ -384,7 +272,7 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
 
   // 2. Apps ratio — player↔club fit (SoT §7.6) + standing
   const standingBonus = getStandingBonus(standingResult);
-  const randModifier = resolveRandomFloat(-0.05, 0.05);
+  const randModifier = randomFloat(-0.05, 0.05);
   const finalAppsRatio = Math.min(
     0.95,
     Math.max(0.05, estimateAppsRatio(effPositionOvr, clubPrestige) + standingBonus + randModifier),
@@ -417,31 +305,31 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
 
   // 4. Per-competition goals/assists/CS (volume ∝ apps)
   const { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS,
+    position, effPositionOvr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS, randomSource,
   );
   const { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, cupApps, "domestic_cup", currentStats, maxCupTeamCS,
+    position, effPositionOvr, clubPrestige, cupApps, "domestic_cup", currentStats, maxCupTeamCS, randomSource,
   );
   const { goals: ctGoals, assists: ctAssists, cleanSheets: contCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, continentalApps, "continental", currentStats, maxContinentalTeamCS,
+    position, effPositionOvr, clubPrestige, continentalApps, "continental", currentStats, maxContinentalTeamCS, randomSource,
   );
   const { goals: ntGoals, assists: ntAssists, cleanSheets: natCS } = rollCompetitionOutput(
-    position, effPositionOvr, clubPrestige, nationalApps, "national", currentStats, maxNationalTeamCS,
+    position, effPositionOvr, clubPrestige, nationalApps, "national", currentStats, maxNationalTeamCS, randomSource,
   );
 
   // 5. Match ratings per competition (SoT §7.3: use effPositionOvr for ovrVsClub)
   const lgRatingBonus = getStandingBonus(standingResult) * 0.8;
   const leagueRating = leagueApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus, perfBonus)
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, apps: leagueApps }, lgRatingBonus, perfBonus, randomSource)
     : 0;
   const cupRating = cupApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps }, 0, perfBonus)
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, apps: cupApps }, 0, perfBonus, randomSource)
     : 0;
   const contRating = continentalApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps }, 0, perfBonus)
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ctGoals, assists: ctAssists, cleanSheets: contCS, apps: continentalApps }, 0, perfBonus, randomSource)
     : 0;
   const natRating = nationalApps > 0
-    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps }, 0, perfBonus)
+    ? calcRating(position, effPositionOvr, luckRating, clubPrestige, { goals: ntGoals, assists: ntAssists, cleanSheets: natCS, apps: nationalApps }, 0, perfBonus, randomSource)
     : 0;
 
   // 6. Totals (weighted average rating)
@@ -475,12 +363,27 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   }
 
   // 8. Ballon d'Or eligibility — không còn random boolean, client sẽ spin wheels
-  const ballonDor = calcBallonDorEligibility(
-    ovr, position, matchRating, totalGoals,
-    standingResult, clubPrestige,
-    domesticCupResult, continentalCupResult, continentalCupType,
-    nationalTournamentResult, nationalTournamentType,
-  );
+  const ballonDor = evaluateBallonDor({
+    ovr,
+    position,
+    currentStats,
+    apps: totalApps,
+    expectedMatches,
+    goals: totalGoals,
+    assists: totalAssists,
+    cleanSheets: totalCS,
+    matchRating,
+    luckRating,
+    professionalism,
+    standing: standingResult,
+    leagueSize: leagueClubsCount,
+    clubPrestige,
+    domesticCup: domesticCupResult,
+    continentalResult: continentalCupResult,
+    continentalType: continentalCupType,
+    nationalResult: nationalTournamentResult,
+    nationalType: nationalTournamentType,
+  });
 
   return {
     apps: totalApps,

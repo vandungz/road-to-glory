@@ -72,6 +72,8 @@ export interface SeasonRecord {
   clubName: string;
   leagueName: string;
   leagueId?: string;
+  /** End-of-season OVR persisted for the career archive. */
+  ovr?: number;
   standing: number | null;
   domesticCup: string | null;
   continentalCup: { type: string; result: string } | null;

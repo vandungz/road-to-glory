@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 import { getNationalContinentalCup, getMainStatsByPosition } from "@/lib/wheel-engine/weight-calculator";
 import {
   getContinentalCupLabel,
@@ -82,10 +82,8 @@ export function useCareerWheelItems({
   nationalCallupBoostActive,
   eliteDevelopmentActive,
 }: UseCareerWheelItemsProps) {
-  const [careerWheelItems, setCareerWheelItems] = useState<{ label: string; value: string | number; weight?: number }[]>([]);
-
-  useEffect(() => {
-    if (!isMounted || mode !== "career") return;
+  const careerWheelItems = useMemo(() => {
+    if (!isMounted || mode !== "career") return [];
 
     const rating = yearSimResult?.matchRating ?? 7.0;
     const prestige = currentClub?.prestige ?? 3;
@@ -281,7 +279,7 @@ export function useCareerWheelItems({
         break;
       }
     }
-    setCareerWheelItems(items);
+    return items;
   }, [
     careerSubStep, isMounted, mode, currentContinentalCup, currentAge, playerDebutAge,
     playerCareerLength, playerNationality, currentClub, currentOvr, leagueSize,
@@ -290,5 +288,5 @@ export function useCareerWheelItems({
     ballonDorRankWeights, luckRating, fitnessCoachActive, nationalCallupBoostActive, eliteDevelopmentActive,
   ]);
 
-  return { careerWheelItems, setCareerWheelItems };
+  return { careerWheelItems };
 }

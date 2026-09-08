@@ -3,12 +3,14 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { getNationalTournamentName } from "../lib/simulation-helpers";
+import { hydrateCurrentSeasonRecord } from "../lib/season-record-hydration";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { useSetupStage } from "./useSetupStage";
 import { useCareerStats } from "./useCareerStats";
 import { useCareerWheelItems } from "./useCareerWheelItems";
 import { useCompetitionFlow } from "./useCompetitionFlow";
 import { useStatEvolutionFlow } from "./useStatEvolutionFlow";
+import { useCareerCheckpointSync } from "@/features/career/hooks/useCareerCheckpointSync";
 import { useWheelUiStore } from "../stores/useWheelUiStore";
 import {
   startPlayerCareerAction,
@@ -18,7 +20,13 @@ import {
   searchClubsForApproachAction,
   purchaseShopItemAction,
 } from "@/actions/season.actions";
+import { purchaseShopItemCommandAction } from "@/actions/career-command.actions";
 import { initCareerPlayerAction, getCareerPlayerAction } from "@/actions/player.actions";
+import {
+  completeTransferCommandAction,
+  resolveTransferNegotiationCommandAction,
+  searchTransferClubsCommandAction,
+} from "@/actions/career-transfer.actions";
 import { type SeasonRecord, getStepLabels } from "@/types/game";
 import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { approachChancePercent, computeEffectivePositionOvr } from "@/lib/transfer-economy";
@@ -31,12 +39,15 @@ import type { ApproachRejectState } from "../components/TransferWindowPanel";
 import type { ShortlistClubCard } from "@/features/transfer/services/transfer.service";
 import type { ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { AchievementRecord, CareerSubStep, ClubStint, ClubSummary, LeagueSummary, SeasonHistory, StatSnapshot } from "@/types/domain";
+import { getWheelTypeForStep } from "@/features/career/contracts/wheel-step.contract";
+import { shouldResumeSeasonStatsModal } from "../lib/career-resume-state";
 
 interface ResumeCareerPlayer {
   name: string;
   nationality: string;
   debutAge: number;
   careerLengthYears: number;
+  peakOvr?: number;
   statsTimeline: StatSnapshot[];
   clubStints: ClubStint[];
   achievements: AchievementRecord | null;
@@ -49,6 +60,11 @@ interface ResumeCareerPlayer {
   influenceScore?: number;
   shopInventory?: ShopInventoryEntry[];
   isUnemployed?: boolean;
+  currentAge?: number | null;
+  currentStep?: string | null;
+  currentWheel?: string | null;
+  checkpointVersion?: number;
+  revision?: number;
 }
 
 function emptyUnemployedSeasonResult(): SimulatedSeasonResult {
@@ -66,7 +82,11 @@ function emptyUnemployedSeasonResult(): SimulatedSeasonResult {
   };
 }
 
-export type ModalType = "league" | "cup" | "continental" | "national" | "season_stats" | "season_recap" | "transfer" | "shop" | null;
+export type ModalType = "league" | "cup" | "continental" | "national" | "ballon_dor_nomination" | "season_stats" | "season_recap" | "transfer" | "shop" | null;
+
+export type BallonDorResult =
+  | { phase: "nomination"; nominated: boolean }
+  | { phase: "ranking"; rank: number };
 
 const COMPETITION_STEPS = new Set([
   "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament",
@@ -96,6 +116,7 @@ export function useDraftDrum(
     currentContinentalCup, lastYearStanding, seasonRecords,
     selectedAgeForStats, setSelectedAgeForStats, shopInventory,
   } = statsProps;
+  const checkpointSync = useCareerCheckpointSync();
 
   const fitnessCoachActive = isShopItemActiveForSeason(shopInventory, "fitness_coach", currentAge);
   const nationalCallupBoostActive = isShopItemActiveForSeason(
@@ -106,6 +127,10 @@ export function useDraftDrum(
   );
 
   const tempCareerResultRef = useRef<string | number | null>(null);
+  const pendingCheckpointStatsRef = useRef<{
+    currentStats: Record<string, number>;
+    currentOvr: number;
+  } | null>(null);
 
   const [careerSubStep, setCareerSubStep] = useState<CareerSubStep>("idle");
   const [careerSpinning, setCareerSpinning] = useState(false);
@@ -137,10 +162,14 @@ export function useDraftDrum(
   const [approachBanner, setApproachBanner] = useState<string | null>(null);
   const [proactiveRenewalRejectedAge, setProactiveRenewalRejectedAge] = useState<number | null>(null);
   const proactiveRenewalInFlightRef = useRef(false);
+  const transferCommandKeyRef = useRef<string | null>(null);
+  const shopCommandKeysRef = useRef(new Map<string, string>());
   const [hasBallonDorWinner, setHasBallonDorWinner] = useState(false);
   const [ballonDorRank, setBallonDorRank] = useState<number | null>(null);
   const [ballonDorNominationWeight, setBallonDorNominationWeight] = useState(0);
   const [ballonDorRankWeights, setBallonDorRankWeights] = useState<number[]>([]);
+  const [ballonDorResult, setBallonDorResult] = useState<BallonDorResult | null>(null);
+  const [isBallonDorTransitioning, setIsBallonDorTransitioning] = useState(false);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [startCareerError, setStartCareerError] = useState<string | null>(null);
 
@@ -179,6 +208,7 @@ export function useDraftDrum(
     applySimResultToRecords: statsProps.applySimResultToRecords,
     setSeasonRecords: statsProps.setSeasonRecords,
     checkNationalCallupTransition: statsProps.checkNationalCallupTransition,
+    commitSeasonStats: checkpointSync.isEnabled ? checkpointSync.commitSeasonStats : undefined,
   });
 
   const statFlow = useStatEvolutionFlow({
@@ -193,6 +223,10 @@ export function useDraftDrum(
     currentWageAnnual: statsProps.currentWageAnnual,
     willingToMove,
     isUnemployed: statsProps.isUnemployed,
+    playerId: checkpointSync.state.playerId,
+    seasonId: checkpointSync.state.seasonId,
+    revision: checkpointSync.state.revision,
+    checkpointVersion: checkpointSync.state.checkpointVersion,
     clubs,
     influenceScore: statsProps.influenceScore,
     setYearEvolution, setSelectorIndex, setTempSelectedStat,
@@ -205,6 +239,7 @@ export function useDraftDrum(
     setCurrentStats: statsProps.setCurrentStats,
     setCurrentOvr: statsProps.setCurrentOvr,
     setStatsTimeline: statsProps.setStatsTimeline,
+    serverAuthoritativeGrowth: checkpointSync.isEnabled,
   });
 
   const prevAgeRef = useRef<number | null>(null);
@@ -215,9 +250,29 @@ export function useDraftDrum(
     const controller = new AbortController();
     if (savedPlayerId) {
       getCareerPlayerAction({ playerId: savedPlayerId })
-        .then((player) => {
+        .then(async (player) => {
           if (controller.signal.aborted || !player) return;
           const playerRecord = player as unknown as ResumeCareerPlayer;
+          const progress = await checkpointSync.hydrate(savedPlayerId).catch((error) => {
+            // Legacy rows can still be opened while the projection is being
+            // rolled out. Keep the old resume path if the V2 read is unavailable.
+            console.error("Career checkpoint hydration failed:", error);
+            if ((playerRecord.checkpointVersion ?? 1) >= 2) {
+              // Do not fall back to client RNG for a V2 career when its
+              // authoritative read failed. The transport stays enabled and
+              // will fail closed until a fresh hydration succeeds.
+              checkpointSync.attach({
+                playerId: savedPlayerId,
+                revision: playerRecord.revision ?? 0,
+                checkpointVersion: playerRecord.checkpointVersion ?? 2,
+                currentAge: playerRecord.currentAge ?? null,
+                currentStep: playerRecord.currentStep ?? null,
+                currentWheel: playerRecord.currentWheel ?? "career",
+              });
+            }
+            return null;
+          });
+          if (controller.signal.aborted) return;
           const lastStats = playerRecord.statsTimeline.at(-1);
           const lastStint = playerRecord.clubStints.at(-1);
           if (!lastStats || !lastStint) { resetDraft(); setMode("setup"); setIsMounted(true); return; }
@@ -229,17 +284,21 @@ export function useDraftDrum(
           statsProps.setPlayerCareerLength(playerRecord.careerLengthYears);
           statsProps.setStatsTimeline(playerRecord.statsTimeline);
           statsProps.setClubStints(playerRecord.clubStints);
+          statsProps.setPeakOvr(playerRecord.peakOvr ?? lastStats.ovr);
           statsProps.setAchievements(playerRecord.achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] });
 
+          const restoredSeasonRecords: Record<number, SeasonRecord> = {};
           if (playerRecord.seasonHistory) {
-            const restored: Record<number, SeasonRecord> = {};
             for (const [k, v] of Object.entries(playerRecord.seasonHistory)) {
-              restored[parseInt(k)] = v;
+              restoredSeasonRecords[parseInt(k)] = v;
             }
-            statsProps.setSeasonRecords(restored);
           }
 
-          statsProps.setCurrentAge(lastStats.age);
+          const persistedAge = typeof playerRecord.currentAge === "number"
+            ? playerRecord.currentAge
+            : lastStats.age;
+          statsProps.setCurrentAge(persistedAge);
+          statsProps.setSelectedAgeForStats(persistedAge);
           statsProps.setCurrentOvr(lastStats.ovr);
           const statKeys = position === "GK"
             ? ["div", "han", "kic", "ref", "spd", "pos"]
@@ -262,6 +321,91 @@ export function useDraftDrum(
           statsProps.setInfluenceScore(playerRecord.influenceScore ?? 0);
           statsProps.setShopInventory(playerRecord.shopInventory ?? []);
 
+          const runtime = progress?.currentSeason?.runtimeState;
+          const runtimeRecord = runtime !== null && typeof runtime === "object" && !Array.isArray(runtime)
+            ? runtime as Record<string, unknown>
+            : {};
+          const runtimeArray = (key: string): unknown[] =>
+            Array.isArray(runtimeRecord[key]) ? runtimeRecord[key] : [];
+          const runtimeString = (key: string): string | null =>
+            typeof runtimeRecord[key] === "string" ? runtimeRecord[key] as string : null;
+          const runtimeNumber = (key: string): number | null =>
+            typeof runtimeRecord[key] === "number" ? runtimeRecord[key] as number : null;
+
+          const currentSeason = progress?.currentSeason;
+          if (currentSeason?.status === "in_progress") {
+            restoredSeasonRecords[currentSeason.age] = hydrateCurrentSeasonRecord({
+              existing: restoredSeasonRecords[currentSeason.age],
+              age: currentSeason.age,
+              clubName: currentSeason.clubName ?? lastStint.clubName,
+              leagueName: currentSeason.leagueName ?? lastStint.leagueName,
+              leagueId: currentSeason.leagueId ?? lastStint.leagueId,
+              continentalType: savedContinentalCup ?? "none",
+              nationality: playerRecord.nationality,
+              debutAge: playerRecord.debutAge,
+              runtimeState: runtimeRecord,
+            });
+          }
+          statsProps.setSeasonRecords(restoredSeasonRecords);
+
+          let restoredStep = (progress?.player.currentStep ?? playerRecord.currentStep) as CareerSubStep | null;
+          // Older V2 rows could be left at `transfer` after the final season
+          // because the client tried to open a market that the server correctly
+          // rejected. Treat that persisted state as the terminal resolved state
+          // so resume cannot expose a transfer/shop action for a career with no
+          // next season.
+          const isPersistedFinalSeason = persistedAge >= playerRecord.debutAge + playerRecord.careerLengthYears;
+          if (isPersistedFinalSeason && restoredStep === "transfer") {
+            restoredStep = "resolved";
+          }
+          // A career that was left at the final age before the auto-start
+          // recovery existed has no valid Shop window. Resume it by opening
+          // the final season on the server instead of leaving the user on a
+          // disabled Shop entry with no path forward.
+          if (isPersistedFinalSeason && restoredStep === "idle") {
+            autoStartSeasonRef.current = true;
+          }
+          setStandingResult(runtimeNumber("standingResult"));
+          setDomesticCupResult(runtimeString("domesticCupResult"));
+          setContinentalCupResult(runtimeString("continentalCupResult"));
+          setNationalCallupResult(runtimeString("nationalCallupResult"));
+          setNationalTournamentResult(runtimeString("nationalTournamentResult"));
+          setYearEvolution({
+            direction: runtimeRecord.yearEvolutionDirection === "increase" || runtimeRecord.yearEvolutionDirection === "decrease" || runtimeRecord.yearEvolutionDirection === "maintain"
+              ? runtimeRecord.yearEvolutionDirection
+              : null,
+            count: runtimeNumber("evolutionCount"),
+          });
+          setSelectorIndex(runtimeNumber("selectorIndex") ?? 0);
+          setSelectedStatsList(runtimeArray("selectedStatsList").filter((value): value is string => typeof value === "string"));
+          setEvolvedStatsThisYear(runtimeArray("evolvedStatsThisYear").filter((value): value is { stat: string; delta: number } => {
+            if (!value || typeof value !== "object" || Array.isArray(value)) return false;
+            const record = value as Record<string, unknown>;
+            return typeof record.stat === "string" && typeof record.delta === "number";
+          }));
+          setBallonDorNominationWeight(runtimeNumber("ballonDorNominationWeight") ?? 0);
+          setBallonDorRankWeights(runtimeArray("ballonDorRankWeights").filter((value): value is number => typeof value === "number"));
+          let restoredYearResult = runtimeRecord.yearSimResult;
+          if (
+            restoredStep === "season_stats" &&
+            (!restoredYearResult || typeof restoredYearResult !== "object" || Array.isArray(restoredYearResult)) &&
+            progress !== null && progress.player.checkpointVersion >= 2
+          ) {
+            try {
+              const committed = await checkpointSync.commitSeasonStats();
+              restoredYearResult = committed.seasonStats;
+              restoredStep = committed.nextStep as CareerSubStep;
+            } catch (error) {
+              console.error("Resume season stats commit failed:", error);
+            }
+          }
+          if (restoredYearResult && typeof restoredYearResult === "object" && !Array.isArray(restoredYearResult)) {
+            const restoredStats = restoredYearResult as SimulatedSeasonResult;
+            setYearSimResult(restoredStats);
+            setBallonDorNominationWeight(restoredStats.ballonDor.nominationWeight);
+            setBallonDorRankWeights(restoredStats.ballonDor.rankWeights);
+          }
+
           const unemployed = !!playerRecord.isUnemployed;
           statsProps.setIsUnemployed(unemployed);
           if (unemployed) {
@@ -277,8 +421,15 @@ export function useDraftDrum(
             if (savedContinentalCup) statsProps.setCurrentContinentalCup(savedContinentalCup);
           }
 
-          prevAgeRef.current = lastStats.age;
-          setCareerSubStep("idle");
+          prevAgeRef.current = persistedAge;
+          setCareerSubStep(restoredStep && restoredStep !== "season_stats" ? restoredStep : "idle");
+          const lastWheelStep = runtimeRecord.lastWheel && typeof runtimeRecord.lastWheel === "object" && !Array.isArray(runtimeRecord.lastWheel)
+            ? (runtimeRecord.lastWheel as Record<string, unknown>).stepKey
+            : null;
+          if (shouldResumeSeasonStatsModal(restoredStep, restoredYearResult, lastWheelStep)) {
+            setActiveModal("season_stats");
+            setCareerSubStep("season_stats");
+          }
           setMode("career");
           setIsMounted(true);
         })
@@ -375,6 +526,10 @@ export function useDraftDrum(
   });
 
   function runBackgroundSave(pid: string) {
+    // V2 checkpoints already persist the complete authoritative transition.
+    // Do not send the legacy aggregate snapshot after a season transition:
+    // it would increment revision again and reintroduce client-owned writes.
+    if (checkpointSync.isEnabled) return;
     if (saveInFlightRef.current) {
       pendingSaveRef.current = true;
       return;
@@ -402,6 +557,7 @@ export function useDraftDrum(
   // navigating to transfer/shop; waiting for an age change is too late because
   // the wheel result still only exists in React state at that point.
   async function persistCurrentProgress(): Promise<boolean> {
+    if (checkpointSync.isEnabled) return !isProcessing;
     const pid = statsProps.playerId;
     const snapshot = latestSaveSnapshotRef.current;
     if (!pid || !snapshot || isProcessing) return !isProcessing;
@@ -425,24 +581,45 @@ export function useDraftDrum(
   // yet", just viewed from either side of the "Next Season" click:
   //  - "resolved": season `currentAge` just finished, target `currentAge + 1`.
   //  - "idle": season `currentAge` about to start, target `currentAge` itself.
+  const isFinalCareerSeason = currentAge >= playerDebutAge + playerCareerLength;
   const shopTargetSeason =
-    careerSubStep === "resolved" ? currentAge + 1 : careerSubStep === "idle" ? currentAge : null;
+    !isFinalCareerSeason && careerSubStep === "resolved" ? currentAge + 1
+      : !isFinalCareerSeason && careerSubStep === "idle" ? currentAge
+        : null;
 
   async function handlePurchaseShopItem(itemId: string): Promise<void> {
     const pid = statsProps.playerId;
     if (!pid || isProcessing || shopTargetSeason === null) return;
     setIsProcessing(true);
     try {
-      const result = await purchaseShopItemAction({
-        playerId: pid,
-        itemId,
-        currentAge,
-        targetSeason: shopTargetSeason,
-      });
+      const { revision } = checkpointSync.state;
+      const requestKey = `${pid}:${itemId}:${shopTargetSeason}:${revision ?? "legacy"}`;
+      const idempotencyKey = shopCommandKeysRef.current.get(requestKey) ?? globalThis.crypto.randomUUID();
+      shopCommandKeysRef.current.set(requestKey, idempotencyKey);
+      if (checkpointSync.isEnabled && revision === null) {
+        throw new Error("Thiếu revision checkpoint hiện tại");
+      }
+      const result = checkpointSync.isEnabled
+        ? await purchaseShopItemCommandAction({
+            playerId: pid,
+            itemId,
+            targetSeason: shopTargetSeason,
+            expectedRevision: revision,
+            idempotencyKey,
+          })
+        : await purchaseShopItemAction({
+            playerId: pid,
+            itemId,
+            currentAge,
+            targetSeason: shopTargetSeason,
+          });
+      shopCommandKeysRef.current.delete(requestKey);
       statsProps.setWalletBalance(result.walletBalance);
-      statsProps.setShopInventory(result.shopInventory);
+      statsProps.setShopInventory(result.shopInventory as ShopInventoryEntry[]);
+      if ("revision" in result) checkpointSync.applyShopPurchase(result.revision);
     } catch (err) {
       console.error("Purchase shop item failed:", err);
+      if (checkpointSync.isEnabled) await checkpointSync.resync();
       throw err;
     } finally {
       setIsProcessing(false);
@@ -490,12 +667,15 @@ export function useDraftDrum(
   }, [currentAge, mode, currentClub, currentContinentalCup, playerNationality, playerDebutAge]);
 
   function resetSeasonState() {
+    transferCommandKeyRef.current = null;
     setYearEvolution({ direction: null, count: null });
     setSelectorIndex(0); setSelectedStatsList([]); setTempSelectedStat(null); setEvolvedStatsThisYear([]);
     setStandingResult(null); setDomesticCupResult(null); setContinentalCupResult(null);
     setNationalCallupResult(null); setNationalTournamentResult(null); setYearSimResult(null);
     setHasBallonDorWinner(false);
     setBallonDorRank(null); setBallonDorNominationWeight(0); setBallonDorRankWeights([]);
+    setBallonDorResult(null);
+    setIsBallonDorTransitioning(false);
     setActiveModal(null);
     setIsProcessing(false);
   }
@@ -521,12 +701,17 @@ export function useDraftDrum(
         throw new Error("Bản draft chưa hoàn tất. Hãy quay đủ các vòng trước khi bắt đầu sự nghiệp.");
       }
 
-      const initPayload = await startPlayerCareerAction({ ...draftData, position });
+      const initPayload = await startPlayerCareerAction({
+        ...draftData,
+        gameId,
+        slotIndex,
+        position,
+      });
       const selectedClub = clubs.find((c) => c.id === draftData.clubId);
       const initialContinentalCup = selectedClub?.continentalType ?? "none";
       const debutOvr = initPayload.debutOvr;
 
-      const { id } = await initCareerPlayerAction({
+      const initResult = await initCareerPlayerAction({
         gameId, slotIndex, position, name: initPayload.playerName,
         nationality: draftData.nationality, debutAge: draftData.debutAge,
         careerLength: draftData.careerLength, debutOvr,
@@ -534,13 +719,22 @@ export function useDraftDrum(
         preferredFoot: initPayload.preferredFoot,
         currentContinentalCup: initialContinentalCup,
         statsTimeline: initPayload.initTimeline, clubStints: [initPayload.initStint],
-        hiddenStats: initPayload.hiddenStats,
+        setupToken: initPayload.setupToken,
         contractYearsTotal: initPayload.contractYearsTotal,
         contractYearsRemaining: initPayload.contractYearsRemaining,
         currentWageAnnual: initPayload.currentWageAnnual,
         marketValue: initPayload.marketValue,
       });
+      const { id } = initResult;
 
+      checkpointSync.attach({
+        playerId: id,
+        revision: 0,
+        checkpointVersion: initResult.checkpointVersion,
+        currentAge: draftData.debutAge!,
+        currentStep: "idle",
+        currentWheel: "career",
+      });
       statsProps.setPlayerId(id);
       statsProps.handleStartCareer(draftData, initPayload, clubs);
       resetSeasonState(); setTransferOffer(null); setTransferMarket(null); setWillingToMove(false);
@@ -557,7 +751,22 @@ export function useDraftDrum(
     }
   }
 
-  const handleStartSeason = useCallback(() => {
+  const handleStartSeason = useCallback(async () => {
+    if (isProcessing) return;
+    let serverStep: CareerSubStep | null = null;
+    if (checkpointSync.isEnabled) {
+      setIsProcessing(true);
+      try {
+        const started = await checkpointSync.startSeason();
+        serverStep = (started?.currentStep ?? null) as CareerSubStep | null;
+      } catch (error) {
+        console.error("Career season start failed:", error);
+        setApproachBanner("Không thể bắt đầu mùa giải — hãy thử lại");
+        setIsProcessing(false);
+        return;
+      }
+    }
+
     setSelectorIndex(0); setSelectedStatsList([]); setTempSelectedStat(null); setEvolvedStatsThisYear([]);
     setApproachRejects({});
     setApproachBanner(null);
@@ -596,23 +805,67 @@ export function useDraftDrum(
           matchRating: 6.0,
         },
       }));
-      setCareerSubStep("dir_increase");
+      setCareerSubStep(serverStep ?? "dir_increase");
+      setIsProcessing(false);
       return;
     }
 
-    setCareerSubStep("standing");
-  }, [currentAge, currentClub, statsProps]);
+    setCareerSubStep(serverStep ?? "standing");
+    setIsProcessing(false);
+  }, [checkpointSync, currentAge, currentClub, isProcessing, statsProps]);
 
   useEffect(() => {
-    if (!autoStartSeasonRef.current || mode !== "career") return;
+    // The season transition updates currentAge before the async transition
+    // handler releases isProcessing. If this effect consumed the flag during
+    // that intermediate render, handleStartSeason would return immediately
+    // and the new season would remain at the idle Shop gate forever.
+    if (!autoStartSeasonRef.current || mode !== "career" || isProcessing) return;
     autoStartSeasonRef.current = false;
-    handleStartSeason();
-  }, [currentAge, mode, handleStartSeason]);
+    void handleStartSeason();
+  }, [currentAge, handleStartSeason, isProcessing, mode]);
 
-  function handleCareerSpin() {
+  async function handleCareerSpin() {
     if (isProcessing || careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved"
-      || careerSubStep === "season_stats" || careerWheelItems.length === 0) return;
+      || careerSubStep === "season_stats" || isBallonDorTransitioning || careerWheelItems.length === 0) return;
     if (careerSubStep === "ballon_dor_nomination" && ballonDorNominationWeight === 0) return;
+
+    if (checkpointSync.isEnabled) {
+      const wheelType = getWheelTypeForStep(careerSubStep);
+      if (!wheelType) return;
+      setIsProcessing(true);
+      try {
+        const checkpoint = await checkpointSync.resolveWheel({
+          stepKey: careerSubStep,
+          wheelType,
+        });
+        const result = checkpoint.outcome;
+        if (typeof result !== "string" && typeof result !== "number") {
+          throw new Error("Server trả về outcome wheel không hợp lệ");
+        }
+        const idx = careerWheelItems.findIndex((item) => item.value === result);
+        if (idx < 0) {
+          throw new Error("Outcome " + String(result) + " không có trong pool FE hiện tại");
+        }
+        if (careerSubStep === "magnitude") {
+          // Defer the React state update until the current animation ends.
+          // Rebuilding wheel items during animation would restart the existing
+          // Framer Motion timeline and change the visible realtime behavior.
+          pendingCheckpointStatsRef.current = {
+            currentStats: checkpoint.currentStats,
+            currentOvr: checkpoint.currentOvr,
+          };
+        }
+        setCareerTargetIndex(idx);
+        setCareerSpinning(true);
+        setCareerTempValue(typeof checkpoint.publicResult === "string" ? checkpoint.publicResult : String(result));
+        tempCareerResultRef.current = result;
+      } catch (error) {
+        console.error("Career wheel checkpoint failed:", error);
+        setIsProcessing(false);
+        setApproachBanner("Không thể chốt kết quả — hãy thử lại");
+      }
+      return;
+    }
 
     const ctx = {
       currentAge, playerDebutAge, playerCareerLength, currentOvr, position, yearSimResult, hiddenStats, currentClub,
@@ -635,57 +888,171 @@ export function useDraftDrum(
 
   function handleCareerSpinComplete() {
     const result = tempCareerResultRef.current;
+    const pendingStats = pendingCheckpointStatsRef.current;
+    pendingCheckpointStatsRef.current = null;
     setCareerSpinning(false); setCareerTargetIndex(-1); setCareerTempValue(null);
+    if (pendingStats) {
+      statsProps.setCurrentStats(pendingStats.currentStats);
+      statsProps.setCurrentOvr(pendingStats.currentOvr);
+      statsProps.setPeakOvr((previous) => Math.max(previous, pendingStats.currentOvr));
+      statsProps.setStatsTimeline((timeline) => timeline.map((snapshot) => (
+        snapshot.age === currentAge
+          ? { ...snapshot, ...pendingStats.currentStats, ovr: pendingStats.currentOvr }
+          : snapshot
+      )));
+    }
+    if (careerSubStep === "ballon_dor_nomination" || careerSubStep === "ballon_dor_ranking") {
+      if (careerSubStep === "ballon_dor_nomination") {
+        setBallonDorResult({ phase: "nomination", nominated: result === "yes" });
+      } else if (typeof result === "number" && result >= 1 && result <= 10) {
+        setBallonDorResult({ phase: "ranking", rank: result });
+        // The stat flow moves to the next step in the same callback. Lock the
+        // whole draft surface before that state can render, otherwise users
+        // can click the development wheel while the result route is opening.
+        setIsBallonDorTransitioning(true);
+      }
+      if (result !== null) {
+        statFlow.handleSpinComplete(careerSubStep, result, pendingStats?.currentStats, pendingStats?.currentOvr);
+        if (careerSubStep === "ballon_dor_nomination") setActiveModal("ballon_dor_nomination");
+      }
+      return;
+    }
     if (COMPETITION_STEPS.has(careerSubStep)) {
       if (result !== null) competitionFlow.handleSpinComplete(careerSubStep, result);
     } else {
-      if (result !== null) statFlow.handleSpinComplete(careerSubStep, result);
+      if (result !== null) {
+        statFlow.handleSpinComplete(
+          careerSubStep,
+          result,
+          pendingStats?.currentStats,
+          pendingStats?.currentOvr,
+        );
+      }
     }
   }
 
-  function handleAcceptTransfer(accept: boolean) {
-    if (isProcessing) return;
-    setIsProcessing(true);
-    statsProps.handleAcceptTransfer(
-      accept,
-      transferOffer,
-      clubs,
-      setTransferOffer,
-      setCareerSubStep,
-      () => {
-        setTransferMarket(null);
-        setShowShortlist(false);
-        setApproachRejects({});
-        setApproachBanner(null);
-      },
-    );
-    setIsProcessing(false);
+  async function commitTransferSelection(
+    offer: ContractOfferCard,
+    wageOption: WageDealOption = "standard",
+  ): Promise<ContractOfferCard | null> {
+    if (!checkpointSync.isEnabled) return offer;
+    const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
+    if (!syncPlayerId || !seasonId || revision === null) {
+      setApproachBanner("Không thể xác nhận chuyển nhượng — thiếu checkpoint mùa hiện tại.");
+      return null;
+    }
+    try {
+      const result = await completeTransferCommandAction({
+        playerId: syncPlayerId,
+        seasonId,
+        expectedRevision: revision,
+        idempotencyKey: transferCommandKeyRef.current ?? (
+          transferCommandKeyRef.current = globalThis.crypto.randomUUID()
+        ),
+        kind: offer.kind,
+        clubId: offer.clubId,
+        wageOption,
+      });
+      checkpointSync.applyTransferCompletion(result);
+      return {
+        ...offer,
+        clubId: result.clubId ?? offer.clubId,
+        clubName: result.clubName,
+        leagueName: result.leagueName,
+        transferFee: result.fee,
+        contractYears: result.contractYears,
+        wageAnnual: result.wageAnnual,
+      };
+    } catch (error) {
+      console.error("Transfer completion command failed:", error);
+      if (checkpointSync.isEnabled) await checkpointSync.resync();
+      setApproachBanner("Không thể chốt chuyển nhượng — hãy thử lại.");
+      return null;
+    }
   }
 
-  function handleAcceptMarketOffer(offer: ContractOfferCard) {
-    console.log("[Transfer Flow] User accepted offer:", offer.clubName, offer);
-    setTransferOffer(offer);
+  async function handleAcceptTransfer(accept: boolean, offerOverride?: ContractOfferCard | null) {
+    const selectedOffer = offerOverride ?? transferOffer;
+    if (isProcessing || !accept || !selectedOffer) return;
+    const authoritativeOffer = await commitTransferSelection(selectedOffer);
+    if (!authoritativeOffer) return;
     statsProps.handleAcceptTransfer(
       true,
-      offer,
+      authoritativeOffer,
       clubs,
       setTransferOffer,
       setCareerSubStep,
       () => {
         setTransferMarket(null);
         setShowShortlist(false);
-        setWillingToMove(false);
         setApproachRejects({});
         setApproachBanner(null);
       },
     );
   }
 
-  function handleRejectTransferWindow() {
+  async function handleAcceptMarketOffer(
+    offer: ContractOfferCard,
+    wageOption: WageDealOption = "standard",
+  ): Promise<boolean> {
+    console.log("[Transfer Flow] User accepted offer:", offer.clubName, offer);
+    const ownsProcessing = !isProcessing;
+    if (ownsProcessing) setIsProcessing(true);
+    try {
+      const authoritativeOffer = await commitTransferSelection(offer, wageOption);
+      if (!authoritativeOffer) return false;
+      setTransferOffer(authoritativeOffer);
+      statsProps.handleAcceptTransfer(
+        true,
+        authoritativeOffer,
+        clubs,
+        setTransferOffer,
+        setCareerSubStep,
+        () => {
+          setTransferMarket(null);
+          setShowShortlist(false);
+          setWillingToMove(false);
+          setApproachRejects({});
+          setApproachBanner(null);
+        },
+      );
+      return true;
+    } finally {
+      if (ownsProcessing) setIsProcessing(false);
+    }
+  }
+
+  async function handleRejectTransferWindow() {
     if (isProcessing) return;
     console.log("[Transfer Flow] User bypassed/rejected transfer window. Staying at current club. Transitioning careerSubStep to 'resolved'.");
     const remaining = transferMarket?.contract.yearsRemaining ?? statsProps.contractYearsRemaining;
     const fa = remaining <= 0 || statsProps.isUnemployed || !currentClub;
+    if (checkpointSync.isEnabled) {
+      const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
+      if (!syncPlayerId || !seasonId || revision === null) {
+        setApproachBanner("Không thể chốt ở lại — thiếu checkpoint mùa hiện tại.");
+        return;
+      }
+      setIsProcessing(true);
+      try {
+        const result = await completeTransferCommandAction({
+          playerId: syncPlayerId,
+          seasonId,
+          expectedRevision: revision,
+          idempotencyKey: transferCommandKeyRef.current ?? (
+            transferCommandKeyRef.current = globalThis.crypto.randomUUID()
+          ),
+          kind: "stay",
+        });
+        checkpointSync.applyTransferCompletion(result);
+      } catch (error) {
+        console.error("Stay transfer command failed:", error);
+        await checkpointSync.resync();
+        setApproachBanner("Không thể chốt ở lại — hãy thử lại.");
+        setIsProcessing(false);
+        return;
+      }
+    }
     if (fa) {
       statsProps.enterUnemployed();
     }
@@ -695,6 +1062,7 @@ export function useDraftDrum(
     setApproachRejects({});
     setApproachBanner(null);
     setCareerSubStep("resolved");
+    setIsProcessing(false);
   }
 
   async function handleApproachShortlist(club: ShortlistClubCard, wageOption?: WageDealOption): Promise<boolean> {
@@ -704,35 +1072,49 @@ export function useDraftDrum(
     setApproachBanner(null);
     try {
       const selectedOption = wageOption ?? "standard";
-      const adjustedChance = applyWageDealChance(club.acceptChance, selectedOption);
-      const effPosOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
-
-      const res = await resolveShortlistApproachAction({
-        clubId: club.clubId,
-        clubName: club.clubName,
-        leagueId: club.leagueId,
-        leagueName: club.leagueName,
-        prestige: club.prestige,
-        leagueTier: club.leagueTier,
-        previewFee: club.previewFee,
-        previewWage: club.previewWage,
-        previewYears: club.previewYears,
-        wageOption: selectedOption,
-        clientAcceptChance: adjustedChance,
-        currentOvr,
-        effPositionOvr: effPosOvr,
-        currentAge,
-        matchRating: yearSimResult?.matchRating ?? 6.0,
-        contractYearsRemaining: statsProps.contractYearsRemaining,
-        isUnemployed: statsProps.isUnemployed || !currentClub,
-        influenceScore: statsProps.influenceScore,
-      });
+      const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
+      let res;
+      if (checkpointSync.isEnabled) {
+        if (!syncPlayerId || !seasonId || revision === null) {
+          throw new Error("Thiếu checkpoint mùa hiện tại");
+        }
+        res = await resolveTransferNegotiationCommandAction({
+          playerId: syncPlayerId,
+          seasonId,
+          expectedRevision: revision,
+          kind: "approach",
+          clubId: club.clubId,
+          wageOption: selectedOption,
+        });
+      } else {
+        const adjustedChance = applyWageDealChance(club.acceptChance, selectedOption);
+        const effPosOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+        res = await resolveShortlistApproachAction({
+          clubId: club.clubId,
+          clubName: club.clubName,
+          leagueId: club.leagueId,
+          leagueName: club.leagueName,
+          prestige: club.prestige,
+          leagueTier: club.leagueTier,
+          previewFee: club.previewFee,
+          previewWage: club.previewWage,
+          previewYears: club.previewYears,
+          wageOption: selectedOption,
+          clientAcceptChance: adjustedChance,
+          currentOvr,
+          effPositionOvr: effPosOvr,
+          currentAge,
+          matchRating: yearSimResult?.matchRating ?? 6.0,
+          contractYearsRemaining: statsProps.contractYearsRemaining,
+          isUnemployed: statsProps.isUnemployed || !currentClub,
+          influenceScore: statsProps.influenceScore,
+        });
+      }
 
       if (res.accepted) {
         console.log(`[Transfer Flow] Approach to ${club.clubName} ACCEPTED!`);
         setApproachBanner(`${club.clubName} đồng ý ký (${approachChancePercent(res.acceptChance)}%)`);
-        handleAcceptMarketOffer(res.offer);
-        return true;
+        return await handleAcceptMarketOffer(res.offer, selectedOption);
       } else {
         console.log(`[Transfer Flow] Approach to ${club.clubName} REJECTED.`);
         setApproachRejects((prev) => ({
@@ -746,6 +1128,7 @@ export function useDraftDrum(
       }
     } catch (err) {
       console.error("Approach resolve failed:", err);
+      if (checkpointSync.isEnabled) await checkpointSync.resync();
       setApproachBanner("Không thể ngỏ lời — thử lại");
       return false;
     } finally {
@@ -765,32 +1148,46 @@ export function useDraftDrum(
     setApproachBanner(null);
     const retireAge = playerDebutAge + playerCareerLength;
     try {
-      const res = await resolveProactiveRenewalAction({
-        currentClubId: currentClub.id,
-        currentClubName: currentClub.name,
-        currentClubLeagueId: currentClub.leagueId,
-        currentClubLeagueName: currentClub.leagueName,
-        currentClubPrestige: currentClub.prestige,
-        currentClubLeagueTier: currentClub.leagueTier,
-        currentOvr,
-        currentStats: statsProps.statsTimeline?.[statsProps.statsTimeline.length - 1] as Record<string, number> | undefined,
-        position,
-        currentAge,
-        retireAge,
-        matchRating: yearSimResult?.matchRating ?? 6.0,
-        goals: yearSimResult?.goals ?? 0,
-        assists: yearSimResult?.assists ?? 0,
-        cleanSheets: yearSimResult?.cleanSheets ?? 0,
-        contractYearsRemaining: statsProps.contractYearsRemaining,
-        currentWageAnnual: statsProps.currentWageAnnual,
-        wageOption,
-      });
+      const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
+      let res;
+      if (checkpointSync.isEnabled) {
+        if (!syncPlayerId || !seasonId || revision === null) {
+          throw new Error("Thiếu checkpoint mùa hiện tại");
+        }
+        res = await resolveTransferNegotiationCommandAction({
+          playerId: syncPlayerId,
+          seasonId,
+          expectedRevision: revision,
+          kind: "renewal",
+          wageOption,
+        });
+      } else {
+        res = await resolveProactiveRenewalAction({
+          currentClubId: currentClub.id,
+          currentClubName: currentClub.name,
+          currentClubLeagueId: currentClub.leagueId,
+          currentClubLeagueName: currentClub.leagueName,
+          currentClubPrestige: currentClub.prestige,
+          currentClubLeagueTier: currentClub.leagueTier,
+          currentOvr,
+          currentStats: statsProps.statsTimeline?.[statsProps.statsTimeline.length - 1] as Record<string, number> | undefined,
+          position,
+          currentAge,
+          retireAge,
+          matchRating: yearSimResult?.matchRating ?? 6.0,
+          goals: yearSimResult?.goals ?? 0,
+          assists: yearSimResult?.assists ?? 0,
+          cleanSheets: yearSimResult?.cleanSheets ?? 0,
+          contractYearsRemaining: statsProps.contractYearsRemaining,
+          currentWageAnnual: statsProps.currentWageAnnual,
+          wageOption,
+        });
+      }
 
       if (res.accepted) {
         console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} ACCEPTED!`);
         setApproachBanner(`Gia hạn thành công với ${currentClub.name}!`);
-        handleAcceptMarketOffer(res.offer);
-        return true;
+        return await handleAcceptMarketOffer(res.offer, wageOption);
       } else {
         console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} REJECTED.`);
         setProactiveRenewalRejectedAge(currentAge);
@@ -799,6 +1196,7 @@ export function useDraftDrum(
       }
     } catch (err) {
       console.error("Proactive renewal failed:", err);
+      if (checkpointSync.isEnabled) await checkpointSync.resync();
       setApproachBanner("Không thể gửi đề nghị gia hạn — thử lại");
       return false;
     } finally {
@@ -815,6 +1213,23 @@ export function useDraftDrum(
     page: number;
   }) {
     const retireAge = playerDebutAge + playerCareerLength;
+    const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
+    if (checkpointSync.isEnabled) {
+      if (!syncPlayerId || !seasonId || revision === null) {
+        throw new Error("Thiếu checkpoint mùa hiện tại");
+      }
+      return searchTransferClubsCommandAction({
+        playerId: syncPlayerId,
+        seasonId,
+        expectedRevision: revision,
+        query: params.query,
+        leagueId: params.leagueId,
+        prestigeMin: params.prestigeMin,
+        prestigeMax: params.prestigeMax,
+        page: params.page,
+        pageSize: 8,
+      });
+    }
     return searchClubsForApproachAction({
       ...params,
       currentClubId: currentClub?.id ?? null,
@@ -839,17 +1254,79 @@ export function useDraftDrum(
     }
   }
 
-  function advanceToNextSeason(autoStart = false) {
+  async function advanceToNextSeason(
+    autoStart = false,
+    shopDecision: "completed" | "skipped" = "completed",
+  ) {
     const canAdvanceFromCompletedSeason = ["resolved", "transfer"].includes(careerSubStep);
     const isHydratedModuleReturn = autoStart && careerSubStep === "idle";
     if (isProcessing || (!canAdvanceFromCompletedSeason && !isHydratedModuleReturn)) return;
     if (autoStart) autoStartSeasonRef.current = true;
     setIsProcessing(true);
+    let serverTransition: Awaited<ReturnType<typeof checkpointSync.advanceSeason>> | null = null;
+    if (checkpointSync.isEnabled) {
+      try {
+        serverTransition = await checkpointSync.advanceSeason(shopDecision);
+      } catch (error) {
+        console.error("Career season transition failed:", error);
+        autoStartSeasonRef.current = false;
+        setApproachBanner("Không thể chốt mùa giải — hãy thử lại.");
+        setIsProcessing(false);
+        return;
+      }
+    }
     const { isRetire } = statsProps.handleNextSeason(
       standingResult, domesticCupResult, continentalCupResult,
       nationalCallupResult, nationalTournamentResult, yearSimResult, ballonDorRank,
     );
-    if (isRetire) {
+    // The server is authoritative for projection fields that must survive a
+    // refresh. Keep the local state aligned for the current tab as well; this
+    // does not alter wheel timing or the visible season flow.
+    if (serverTransition) {
+      if (typeof serverTransition.currentContinentalCup === "string") {
+        statsProps.setCurrentContinentalCup(serverTransition.currentContinentalCup);
+      }
+      if (typeof serverTransition.contractYearsRemaining === "number") {
+        statsProps.setContractYearsRemaining(serverTransition.contractYearsRemaining);
+      }
+      if (typeof serverTransition.walletBalance === "number") {
+        statsProps.setWalletBalance(serverTransition.walletBalance);
+      }
+      if (typeof serverTransition.peakOvr === "number") {
+        statsProps.setPeakOvr(serverTransition.peakOvr);
+      }
+      if (Array.isArray(serverTransition.statsTimeline)) {
+        statsProps.setStatsTimeline(serverTransition.statsTimeline as StatSnapshot[]);
+      }
+      if (Array.isArray(serverTransition.clubStints)) {
+        statsProps.setClubStints(serverTransition.clubStints as ClubStint[]);
+      }
+    }
+    const serverRetired = serverTransition?.isRetired === true;
+    if (serverRetired && statsProps.playerId) {
+      // The transition transaction is the source of truth for the final
+      // record. Re-read the player once so totals, achievements, timeline and
+      // repaired club boundaries shown in the current tab match the committed
+      // DB row instead of a stale local snapshot.
+      try {
+        const persisted = await getCareerPlayerAction({ playerId: statsProps.playerId });
+        const record = persisted as unknown as ResumeCareerPlayer;
+        statsProps.setStatsTimeline(record.statsTimeline);
+        statsProps.setClubStints(record.clubStints);
+        statsProps.setPeakOvr(record.peakOvr ?? 1);
+        statsProps.setAchievements(record.achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] });
+        if (record.seasonHistory) {
+          const persistedRecords: Record<number, SeasonRecord> = {};
+          for (const [age, value] of Object.entries(record.seasonHistory)) {
+            persistedRecords[Number(age)] = value;
+          }
+          statsProps.setSeasonRecords(persistedRecords);
+        }
+      } catch (error) {
+        console.error("Final career summary hydration failed:", error);
+      }
+    }
+    if (isRetire || serverRetired) {
       autoStartSeasonRef.current = false;
       setMode("retired");
     } else {
@@ -860,25 +1337,25 @@ export function useDraftDrum(
   }
 
   function handleNextSeason() {
-    advanceToNextSeason();
+    void advanceToNextSeason(false, isFinalCareerSeason ? "skipped" : "completed");
   }
 
   function handleContinueFromShop() {
     if (isProcessing || shopTargetSeason === null) return;
     if (careerSubStep === "idle") {
       setActiveModal(null);
-      handleStartSeason();
+      void handleStartSeason();
       return;
     }
     if (careerSubStep === "resolved") {
-      advanceToNextSeason(true);
+      void advanceToNextSeason(true, "completed");
     }
   }
 
   function handleShopReturn(action: "start" | "advance") {
     if (isProcessing) return;
     if (action === "advance") {
-      advanceToNextSeason(true);
+      void advanceToNextSeason(true, "completed");
       return;
     }
     if (careerSubStep === "idle") handleStartSeason();
@@ -887,7 +1364,7 @@ export function useDraftDrum(
   function handleTransferReturn(action: "start" | "advance") {
     if (isProcessing) return;
     if (action === "advance") {
-      advanceToNextSeason(true);
+      void advanceToNextSeason(true, "completed");
       return;
     }
     if (careerSubStep === "idle") handleStartSeason();
@@ -903,7 +1380,7 @@ export function useDraftDrum(
     currentAge, currentOvr, currentStats, currentClub, currentContinentalCup,
     lastYearStanding, seasonRecords, selectedAgeForStats, setSelectedAgeForStats,
     activeModal, setActiveModal, careerSubStep, setCareerSubStep,
-    isProcessing,
+    isProcessing, isBallonDorTransitioning,
     startCareerError,
     careerSpinning, careerWheelItems, careerTargetIndex, careerTempValue,
     yearEvolution, evolvedStatsThisYear,
@@ -913,6 +1390,7 @@ export function useDraftDrum(
     approachRejects, approachBanner,
     proactiveRenewalRejected: proactiveRenewalRejectedAge === currentAge,
     hasBallonDorWinner,
+    ballonDorResult,
     isUnemployed: statsProps.isUnemployed,
     contractYearsTotal: statsProps.contractYearsTotal,
     contractYearsRemaining: statsProps.contractYearsRemaining,
@@ -934,6 +1412,7 @@ export function useDraftDrum(
     setShowShortlist, handleNextSeason, handleContinueFromShop, handleShopReturn, handleTransferReturn,
     persistCurrentProgress,
     handleSeasonStatsModalClose: competitionFlow.handleSeasonStatsModalClose,
+    handleCompetitionResultModalClose: competitionFlow.handleCompetitionResultModalClose,
     handleSavePlayer: statsProps.handleSavePlayer,
     STEP_LABELS: getStepLabels(position),
     selectorIndex, tempSelectedStat,

@@ -1,5 +1,5 @@
 import type { Formation } from "./game";
-import type { AchievementRecord, ClubStint, StatSnapshot } from "./domain";
+import type { AchievementRecord, ClubStint, SeasonHistory, StatSnapshot } from "./domain";
 
 // ============================================================
 // SLOT CONFIGURATION — Formation pitch positions
@@ -79,6 +79,8 @@ export interface ClientSafePlayer {
   careerLengthYears?: number;
   statsTimeline?: StatSnapshot[];
   clubStints?: ClubStint[];
+  seasonHistory?: SeasonHistory;
+  archiveOvrByAge?: Record<number, number>;
   achievements?: AchievementRecord;
 }
 

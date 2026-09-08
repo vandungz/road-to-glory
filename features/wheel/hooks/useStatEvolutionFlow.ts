@@ -1,6 +1,7 @@
 "use client";
 
 import { evolvePlayerStatsAction, generateTransferMarketAction } from "@/actions/season.actions";
+import { getTransferMarketCommandAction } from "@/actions/career-transfer.actions";
 import type { TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { CareerSubStep, CurrentClub, ClubSummary, StatSnapshot } from "@/types/domain";
 import type { ContractOfferCard } from "@/features/transfer/services/transfer.service";
@@ -33,6 +34,10 @@ interface StatEvolutionFlowProps {
   isUnemployed: boolean;
   clubs: ClubSummary[];
   influenceScore: number;
+  playerId?: string | null;
+  seasonId?: string | null;
+  revision?: number | null;
+  checkpointVersion?: number;
   setYearEvolution: (fn: SetStateAction<{ direction: "increase" | "decrease" | "maintain" | null; count: number | null }>) => void;
   setSelectorIndex: (v: number) => void;
   setTempSelectedStat: (v: string | null) => void;
@@ -48,6 +53,8 @@ interface StatEvolutionFlowProps {
   setCurrentStats: (v: Record<string, number>) => void;
   setCurrentOvr: (v: number) => void;
   setStatsTimeline: (fn: SetStateAction<StatSnapshot[]>) => void;
+  /** V2 growth checkpoints already mutate stats on the server per magnitude. */
+  serverAuthoritativeGrowth?: boolean;
 }
 
 const COMPETITION_STEPS = new Set([
@@ -77,28 +84,48 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
     overrideStats?: Record<string, number>;
   }) {
     try {
+      // The final season has no off-season transfer market. The server resolver
+      // already advances the projection to `resolved`; do not issue a market
+      // read against that terminal step and then overwrite the local UI with a
+      // stale `transfer` fallback when the read is rejected.
+      if (isFinalSeason()) {
+        p.setTransferOffer(null);
+        p.setTransferMarket(null);
+        p.setCareerSubStep("resolved");
+        return;
+      }
       const retireAge = p.playerDebutAge + p.playerCareerLength;
       const unemployed = p.isUnemployed || !p.currentClub;
-      const res = await generateTransferMarketAction({
-        currentClubId: p.currentClub?.id ?? null,
-        currentClubPrestige: unemployed ? 2 : (p.currentClub?.prestige ?? 3),
-        currentClubLeagueTier: unemployed ? 1 : resolveLeagueTier(),
-        currentOvr: overrides?.overrideOvr ?? p.currentOvr,
-        currentStats: overrides?.overrideStats ?? p.currentStats,
-        currentAge: p.currentAge,
-        retireAge,
-        matchRating: p.yearSimResult?.matchRating ?? (unemployed ? 6.0 : 6.0),
-        goals: p.yearSimResult?.goals ?? 0,
-        assists: p.yearSimResult?.assists ?? 0,
-        cleanSheets: p.yearSimResult?.cleanSheets ?? 0,
-        position: p.position,
-        contractYearsRemaining: p.contractYearsRemaining,
-        contractYearsTotal: p.contractYearsTotal,
-        currentWageAnnual: p.currentWageAnnual,
-        willingToMove: overrides?.willingToMove ?? p.willingToMove,
-        isUnemployed: unemployed,
-        influenceScore: p.influenceScore,
-      });
+      const hasV2Context = p.serverAuthoritativeGrowth === true &&
+        p.checkpointVersion !== undefined && p.checkpointVersion >= 2 &&
+        Boolean(p.playerId && p.seasonId) && p.revision !== null && p.revision !== undefined;
+      const res = hasV2Context
+        ? await getTransferMarketCommandAction({
+            playerId: p.playerId,
+            seasonId: p.seasonId,
+            expectedRevision: p.revision,
+            willingToMove: overrides?.willingToMove ?? p.willingToMove,
+          })
+        : await generateTransferMarketAction({
+            currentClubId: p.currentClub?.id ?? null,
+            currentClubPrestige: unemployed ? 2 : (p.currentClub?.prestige ?? 3),
+            currentClubLeagueTier: unemployed ? 1 : resolveLeagueTier(),
+            currentOvr: overrides?.overrideOvr ?? p.currentOvr,
+            currentStats: overrides?.overrideStats ?? p.currentStats,
+            currentAge: p.currentAge,
+            retireAge,
+            matchRating: p.yearSimResult?.matchRating ?? (unemployed ? 6.0 : 6.0),
+            goals: p.yearSimResult?.goals ?? 0,
+            assists: p.yearSimResult?.assists ?? 0,
+            cleanSheets: p.yearSimResult?.cleanSheets ?? 0,
+            position: p.position,
+            contractYearsRemaining: p.contractYearsRemaining,
+            contractYearsTotal: p.contractYearsTotal,
+            currentWageAnnual: p.currentWageAnnual,
+            willingToMove: overrides?.willingToMove ?? p.willingToMove,
+            isUnemployed: unemployed,
+            influenceScore: p.influenceScore,
+          });
 
       // The season valuation is committed to the current season snapshot
       // before the transfer UI is opened. Final-season players still receive
@@ -125,13 +152,24 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
       }
     } catch (err) {
       console.error("Error checking transfer market:", err);
-      p.setCareerSubStep("resolved");
+      // A failed authoritative market lookup must not silently skip the
+      // transfer step. Keep the persisted step visible so the user can retry.
+      if (p.serverAuthoritativeGrowth && p.checkpointVersion !== undefined && p.checkpointVersion >= 2) {
+        p.setCareerSubStep("transfer");
+      } else {
+        p.setCareerSubStep("resolved");
+      }
     } finally {
       p.setIsProcessing(false);
     }
   }
 
-  function handleSpinComplete(subStep: string, result: string | number) {
+  function handleSpinComplete(
+    subStep: string,
+    result: string | number,
+    authoritativeStats?: Record<string, number>,
+    authoritativeOvr?: number,
+  ) {
     if (COMPETITION_STEPS.has(subStep)) return;
 
     if (subStep === "dir_increase") {
@@ -185,20 +223,30 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         p.setCareerSubStep("selector");
         p.setIsProcessing(false);
       } else {
-        evolvePlayerStatsAction({
-          currentStats: p.currentStats,
-          position: p.position,
-          evolutions,
-        })
-          .then((res) => {
-            p.setCurrentStats(res.nextStats);
-            p.setCurrentOvr(res.nextOvr);
-            triggerTransferCheck({ overrideOvr: res.nextOvr, overrideStats: res.nextStats });
-          })
-          .catch((err) => {
-            console.error("Error evolving player stats on backend:", err);
-            triggerTransferCheck();
+        if (p.serverAuthoritativeGrowth) {
+          // Each magnitude was committed before its animation started. The
+          // latest state is therefore already authoritative and must not be
+          // applied a second time through the legacy batch action.
+          triggerTransferCheck({
+            overrideOvr: authoritativeOvr ?? p.currentOvr,
+            overrideStats: authoritativeStats ?? p.currentStats,
           });
+        } else {
+          evolvePlayerStatsAction({
+            currentStats: p.currentStats,
+            position: p.position,
+            evolutions,
+          })
+            .then((res) => {
+              p.setCurrentStats(res.nextStats);
+              p.setCurrentOvr(res.nextOvr);
+              triggerTransferCheck({ overrideOvr: res.nextOvr, overrideStats: res.nextStats });
+            })
+            .catch((err) => {
+              console.error("Error evolving player stats on backend:", err);
+              triggerTransferCheck();
+            });
+        }
       }
     } else if (subStep === "ballon_dor_nomination") {
       if (result === "yes") {
