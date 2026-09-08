@@ -1,5 +1,6 @@
+import { randomInt } from "node:crypto";
 import { generateFictionalName } from "@/lib/name-gen";
-import { resolveRandomInt, resolveRandom } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom } from "@/lib/wheel-engine/spin-resolver";
 import { calculateOvrByPosition } from "@/lib/wheel-engine/weight-calculator";
 import {
   clampContractYears,
@@ -51,11 +52,6 @@ export interface CareerSetupResult {
   playerName: string;
   preferredFoot: string;
   debutOvr: number;
-  hiddenStats: {
-    luckRating: number;
-    professionalism: number;
-    personality: string;
-  };
   initStint: StintInfo;
   initStats: Record<string, number>;
   initTimeline: StatSnapshot[];
@@ -63,6 +59,28 @@ export interface CareerSetupResult {
   contractYearsRemaining: number;
   currentWageAnnual: number;
   marketValue: number;
+  /** Signed server setup projection consumed once by initCareerPlayerAction. */
+  setupToken: string;
+}
+
+export interface ServerCareerSetupResult extends Omit<CareerSetupResult, "setupToken"> {
+  hiddenStats: HiddenCareerStats;
+}
+
+export interface HiddenCareerStats {
+  luckRating: number;
+  professionalism: number;
+  personality: string;
+}
+
+/** Hidden modifiers are generated only in a server module with secure RNG. */
+export function createServerHiddenStats(): HiddenCareerStats {
+  const personalityPool = ["Loyal", "Professional", "Ambitious", "Mercenary", "Temperamental", "Normal"];
+  return {
+    luckRating: randomInt(1, 21),
+    professionalism: randomInt(1, 21),
+    personality: personalityPool[randomInt(0, personalityPool.length)] ?? "Normal",
+  };
 }
 
 export function startPlayerCareerService(
@@ -70,19 +88,10 @@ export function startPlayerCareerService(
   clubPrestige: number,
   _clubContinentalType: string,
   leagueTier = 1,
-): CareerSetupResult {
+): ServerCareerSetupResult {
   const playerName = generateFictionalName(draftData.nationality);
   const preferredFoot = resolveRandom() > 0.8 ? "Left" : "Right";
-  const luckRating = resolveRandomInt(1, 20);
-  const professionalism = resolveRandomInt(1, 20);
-  const personalityPool = ["Loyal", "Professional", "Ambitious", "Mercenary", "Temperamental", "Normal"];
-  const personality = personalityPool[resolveRandomInt(0, personalityPool.length - 1)];
-
-  const hiddenStats = {
-    luckRating,
-    professionalism,
-    personality,
-  };
+  const hiddenStats = createServerHiddenStats();
 
   const initStats: Record<string, number> = draftData.position === "GK"
     ? { div: draftData.div ?? 60, han: draftData.han ?? 60, kic: draftData.kic ?? 60, ref: draftData.ref ?? 60, spd: draftData.spd ?? 60, pos: draftData.pos ?? 60 }

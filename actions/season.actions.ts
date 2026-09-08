@@ -5,7 +5,7 @@ import type { Prisma } from "@/app/generated/prisma/client";
 import { revalidatePath, unstable_cache } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuthenticatedUser, requireGameOwnership } from "@/lib/auth/guards";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
@@ -60,6 +60,7 @@ const getCachedClubCountry = unstable_cache(
 import { simulatePlayerSeasonService, type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { simulateDynamicLeagueTableService, type TableRow } from "@/features/season/services/table-simulator.service";
 import { startPlayerCareerService, type CareerSetupResult } from "@/features/career/services/career-setup.service";
+import { createCareerSetupToken } from "@/features/career/services/career-setup-token.service";
 import {
   generateTransferMarketService,
   resolveApproachService,
@@ -78,7 +79,9 @@ import {
   expectedAppsAtClub,
   proposeContractYears,
   proposeWageAnnual,
+  randomizeWageAnnual,
 } from "@/lib/transfer-economy";
+import { secureRandom } from "@/lib/secure-random";
 import { estimateAppsRatio } from "@/lib/club-fit";
 import { 
   generateDomesticCupJourneyService, 
@@ -135,6 +138,44 @@ interface SeasonProgressUpdate {
   transferFeeThisSeason?: number;
 }
 
+const seasonProgressUpdateSchema = z.object({
+  playerId: z.string().uuid(),
+  statsTimeline: z.array(
+    z.object({
+      age: z.number().int().min(10).max(70),
+      ovr: z.number().int().min(1).max(99),
+    }).catchall(z.number()),
+  ),
+  clubStints: z.array(z.object({
+    clubId: z.string(),
+    clubName: z.string(),
+    leagueId: z.string(),
+    leagueName: z.string(),
+    startAge: z.number().int(),
+    endAge: z.number().int(),
+    yearsAtClub: z.number().int(),
+    ovrAtJoining: z.number().int(),
+    ovrAtLeaving: z.number().int(),
+    wageAtJoining: z.number().int().optional(),
+    feePaid: z.number().int().optional(),
+  })),
+  achievements: z.unknown(),
+  currentContinentalCup: z.string(),
+  seasonHistory: z.record(z.string(), z.any()),
+  contractYearsTotal: z.number().int().min(0).max(10).optional(),
+  contractYearsRemaining: z.number().int().min(0).max(10).optional(),
+  currentWageAnnual: z.number().int().min(0).optional(),
+  marketValue: z.number().int().min(0).optional(),
+  isUnemployed: z.boolean().optional(),
+  currentAge: z.number().int().min(15).max(70),
+  peakOvr: z.number().int().min(1).max(99),
+  debutAge: z.number().int().min(10).max(35),
+  careerLength: z.number().int().min(1).max(30),
+  clubPrestige: z.number().int().min(1).max(5),
+  matchRatingThisSeason: z.number().min(0).max(10),
+  transferFeeThisSeason: z.number().int().min(0).optional(),
+});
+
 const simulatePlayerSeasonSchema = z.object({
   playerId: z.string().optional().nullable(),
   age: z.number().int().min(15).max(50),
@@ -180,11 +221,15 @@ const generateLeagueTableSchema = z.object({
 });
 
 const startPlayerCareerSchema = z.object({
+  gameId: z.string().uuid(),
+  slotIndex: z.number().int().min(0).max(10),
   nationality: z.string(),
   debutAge: z.number().int(),
   /** Optional / ignored — server recomputes from stats. */
   debutOvr: z.number().int().optional(),
   careerLength: z.number().int(),
+  height: z.number().int().min(100).max(230),
+  weight: z.number().int().min(30).max(200),
   clubId: z.string(),
   clubName: z.string(),
   leagueId: z.string(),
@@ -204,7 +249,7 @@ const startPlayerCareerSchema = z.object({
   ref: z.number().int().nullish(),
   spd: z.number().int().nullish(),
   pos: z.number().int().nullish(),
-});
+}).strict();
 
 const generateTransferMarketSchema = z.object({
   currentClubId: z.string().nullable(),
@@ -325,43 +370,31 @@ const evolvePlayerStatsSchema = z.object({
 // SERVER ACTIONS
 // ============================================================
 
-async function verifyGameOwnership(gameId: string): Promise<void> {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await checkRateLimit(user.id);
-      const session = await prisma.gameSession.findUnique({
-        where: { id: gameId },
-        select: { userId: true },
-      });
-      if (session?.userId && session.userId !== user.id) {
-        throw new Error("Forbidden");
-      }
-    }
-  } catch (err: unknown) {
-    if (err instanceof Error && err.message === "Forbidden") throw err;
-    // Allow guest play / local dev mode when no user is logged in
-  }
+async function verifyGameOwnership(gameId: string) {
+  return requireGameOwnership(gameId);
 }
 
 // Dùng cho action tính toán thuần (không ghi DB gắn với gameId cụ thể, nên
 // không check ownership) — chỉ cần chặn truy cập ẩn danh, tránh bot/script gọi
-async function requireAuth(): Promise<void> {
-  try {
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await checkRateLimit(user.id);
-    }
-  } catch {
-    // In local dev mode or guest play without active Supabase session, fail gracefully without throwing Unauthorized
-  }
+async function requireAuth() {
+  return requireAuthenticatedUser();
 }
 
 export async function saveSeasonProgress(params: SaveProgressParams) {
   const { gameId, playersUpdate } = params;
-  await verifyGameOwnership(gameId);
+  const owner = await verifyGameOwnership(gameId);
+  await checkRateLimit(owner.id);
+
+  const v2Players = await prisma.careerPlayer.count({
+    where: {
+      gameSessionId: gameId,
+      id: { in: playersUpdate.map((player) => player.id) },
+      checkpointVersion: { gte: 2 },
+    },
+  });
+  if (v2Players > 0) {
+    throw new Error("Legacy season save không được phép ghi Career V2.");
+  }
 
   await prisma.$transaction(
     playersUpdate.map((player) =>
@@ -394,8 +427,9 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
 }
 
 export async function updateSeasonProgressAction(
-  params: SeasonProgressUpdate
-): Promise<{ walletBalance: number; influenceScore: number; shopInventory: ShopInventoryEntry[] }> {
+  params: unknown
+): Promise<{ walletBalance: number; influenceScore: number; shopInventory: ShopInventoryEntry[]; revision: number }> {
+  const validated: SeasonProgressUpdate = seasonProgressUpdateSchema.parse(params) as SeasonProgressUpdate;
   const {
     playerId,
     statsTimeline,
@@ -415,12 +449,10 @@ export async function updateSeasonProgressAction(
     clubPrestige,
     matchRatingThisSeason,
     transferFeeThisSeason,
-  } = params;
+  } = validated;
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  await checkRateLimit(user.id);
+  const { id: userId } = await requireAuthenticatedUser();
+  await checkRateLimit(userId);
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
@@ -433,21 +465,28 @@ export async function updateSeasonProgressAction(
       walletLedger: true,
       influenceScore: true,
       shopInventory: true,
+      currentAge: true,
+      revision: true,
+      checkpointVersion: true,
     },
   });
-  if (player?.gameSession.userId !== user.id) throw new Error("Forbidden");
+  if (player?.gameSession.userId !== userId) throw new Error("Forbidden");
+  if (player.checkpointVersion >= 2) {
+    throw new Error("Legacy season save không được phép ghi Career V2.");
+  }
 
   // A refresh can leave a previous background request in flight while the new
   // page hydrates. Never allow that older request to overwrite a newer career
-  // snapshot. `currentAge` is represented by the last timeline entry because
-  // CareerPlayer does not have a separate currentAge column.
+  // snapshot. V2 uses the projection column; legacy rows fall back to the
+  // last timeline entry until backfill completes.
   const persistedTimeline = (player.statsTimeline as unknown as StatSnapshot[] | null) ?? [];
-  const persistedCurrentAge = persistedTimeline.at(-1)?.age;
+  const persistedCurrentAge = player.currentAge ?? persistedTimeline.at(-1)?.age;
   if (typeof persistedCurrentAge === "number" && currentAge < persistedCurrentAge) {
     return {
       walletBalance: player.walletBalance,
       influenceScore: player.influenceScore,
       shopInventory: (player.shopInventory as unknown as ShopInventoryEntry[] | null) ?? [],
+      revision: player.revision,
     };
   }
 
@@ -558,14 +597,17 @@ export async function updateSeasonProgressAction(
       walletLedger: nextWalletLedger as unknown as Prisma.InputJsonValue,
       influenceScore,
       shopInventory: nextShopInventory as unknown as Prisma.InputJsonValue,
+      currentAge,
+      revision: { increment: 1 },
     },
-    select: { walletBalance: true, influenceScore: true, shopInventory: true },
+    select: { walletBalance: true, influenceScore: true, shopInventory: true, revision: true },
   });
 
   return {
     walletBalance: updated.walletBalance,
     influenceScore: updated.influenceScore,
     shopInventory: updated.shopInventory as unknown as ShopInventoryEntry[],
+    revision: updated.revision,
   };
 }
 
@@ -605,22 +647,24 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
     throw new Error("Vật phẩm này chỉ mở bán ở mùa có giải đấu quốc gia");
   }
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  await checkRateLimit(user.id);
+  const { id: userId } = await requireAuthenticatedUser();
+  await checkRateLimit(userId);
 
   return prisma.$transaction(async (tx) => {
     const player = await tx.careerPlayer.findUnique({
       where: { id: playerId },
       select: {
         gameSession: { select: { userId: true } },
+        checkpointVersion: true,
         walletBalance: true,
         walletLedger: true,
         shopInventory: true,
       },
     });
-    if (!player || player.gameSession.userId !== user.id) throw new Error("Forbidden");
+    if (!player || player.gameSession.userId !== userId) throw new Error("Forbidden");
+    if (player.checkpointVersion >= 2) {
+      throw new Error("Legacy Shop purchase không được phép ghi Career V2.");
+    }
 
     const inventory = (player.shopInventory as unknown as ShopInventoryEntry[]) ?? [];
     if (inventory.some((e) => e.itemId === itemId && e.appliedSeason === targetSeason)) {
@@ -657,7 +701,8 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
 }
 
 export async function completeGameSession(gameId: string) {
-  await verifyGameOwnership(gameId);
+  const owner = await verifyGameOwnership(gameId);
+  await checkRateLimit(owner.id);
   console.log(`[completeGameSession] Completing game session: ${gameId}...`);
 
   const players = await prisma.careerPlayer.findMany({
@@ -742,24 +787,61 @@ export async function generateLeagueTableAction(input: unknown): Promise<TableRo
 }
 
 export async function startPlayerCareerAction(input: unknown): Promise<CareerSetupResult> {
-  await requireAuth();
   const validated = startPlayerCareerSchema.parse(input);
+  const user = await verifyGameOwnership(validated.gameId);
+  await checkRateLimit(user.id);
 
   const dbClub = await prisma.club.findUnique({
     where: { id: validated.clubId },
     select: {
+      id: true,
+      name: true,
       prestige: true,
       continentalType: true,
-      league: { select: { tier: true } },
+      league: { select: { id: true, name: true, tier: true } },
     },
   });
+  if (!dbClub) throw new Error("CLB khởi đầu không tồn tại.");
 
-  return startPlayerCareerService(
-    validated,
-    dbClub?.prestige ?? 3,
-    dbClub?.continentalType ?? "none",
-    dbClub?.league?.tier ?? 1,
+  const setup = startPlayerCareerService(
+    {
+      ...validated,
+      clubName: dbClub.name,
+      leagueId: dbClub.league.id,
+      leagueName: dbClub.league.name,
+    },
+    dbClub.prestige,
+    dbClub.continentalType,
+    dbClub.league.tier,
   );
+  const publicSetup: Omit<CareerSetupResult, "setupToken"> = {
+    playerName: setup.playerName,
+    preferredFoot: setup.preferredFoot,
+    debutOvr: setup.debutOvr,
+    initStint: setup.initStint,
+    initStats: setup.initStats,
+    initTimeline: setup.initTimeline,
+    contractYearsTotal: setup.contractYearsTotal,
+    contractYearsRemaining: setup.contractYearsRemaining,
+    currentWageAnnual: setup.currentWageAnnual,
+    marketValue: setup.marketValue,
+  };
+  return {
+    ...publicSetup,
+    setupToken: createCareerSetupToken({
+      userId: user.id,
+      gameId: validated.gameId,
+      slotIndex: validated.slotIndex,
+      position: validated.position,
+      nationality: validated.nationality,
+      debutAge: validated.debutAge,
+      careerLength: validated.careerLength,
+      height: validated.height,
+      weight: validated.weight,
+      currentContinentalCup: dbClub.continentalType ?? "none",
+      setup: publicSetup,
+    }),
+  };
 }
 
 export async function generateTransferMarketAction(input: unknown): Promise<TransferMarketResult> {
@@ -817,6 +899,7 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
     willingToMove: validated.willingToMove,
     isUnemployed,
     influenceScore: validated.influenceScore,
+    randomSource: secureRandom,
     clubs: dbClubs.map((c) => ({
       id: c.id,
       name: c.name,
@@ -835,7 +918,7 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
 export async function resolveProactiveRenewalAction(input: unknown): Promise<ResolveProactiveRenewalResult> {
   await requireAuth();
   const validated = resolveProactiveRenewalSchema.parse(input);
-  return resolveProactiveRenewalService(validated);
+  return resolveProactiveRenewalService({ ...validated, randomSource: secureRandom });
 }
 
 export async function searchClubsForApproachAction(input: unknown): Promise<{
@@ -909,7 +992,8 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
       retireAge: validated.retireAge,
       matchRating: validated.matchRating,
     });
-    const wage = proposeWageAnnual({
+    const wage = randomizeWageAnnual({
+      proposedWage: proposeWageAnnual({
       ovr: effPositionOvr,
       age: validated.currentAge,
       currentWage: 500,
@@ -918,6 +1002,10 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
       matchRating: validated.matchRating,
       stepUpPrestige: 0,
       acceptLowerWage: true,
+      }),
+      prestige: club.prestige,
+      leagueTier: club.league?.tier ?? 1,
+      randomSource: secureRandom,
     });
 
     const acceptChance =
@@ -967,7 +1055,7 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
 export async function resolveShortlistApproachAction(input: unknown): Promise<ResolveApproachResult> {
   await requireAuth();
   const validated = resolveShortlistApproachSchema.parse(input);
-  return resolveApproachService(validated);
+  return resolveApproachService({ ...validated, randomSource: secureRandom });
 }
 
 /** Persist the selected destination after the transfer UI has resolved an offer. */
@@ -983,10 +1071,13 @@ export async function completeTransferAction(input: unknown): Promise<{
   await verifyGameOwnership(validated.gameId);
 
   const player = await prisma.careerPlayer.findFirst({
-    where: { id: validated.playerId, gameSessionId: validated.gameId, slotIndex: validated.slotIndex, isRetired: false },
-    select: { id: true, statsTimeline: true, clubStints: true },
+      where: { id: validated.playerId, gameSessionId: validated.gameId, slotIndex: validated.slotIndex, isRetired: false },
+    select: { id: true, checkpointVersion: true, statsTimeline: true, clubStints: true },
   });
   if (!player) throw new Error("Cầu thủ không tồn tại hoặc không thuộc game này");
+  if (player.checkpointVersion >= 2) {
+    throw new Error("Legacy transfer completion không được phép ghi Career V2.");
+  }
 
   const destination = await prisma.club.findUnique({
     where: { id: validated.clubId },

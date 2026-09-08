@@ -5,10 +5,14 @@ import type { Prisma } from "@/app/generated/prisma/client";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuthenticatedUser, requireGameOwnership } from "@/lib/auth/guards";
 import { checkRateLimit } from "@/lib/rate-limit";
+import { isCheckpointV2EnabledForNewCareer } from "@/lib/career/checkpoint-feature";
+import { createServerHiddenStats } from "@/features/career/services/career-setup.service";
+import { setupDataForInit, verifyCareerSetupToken } from "@/features/career/services/career-setup-token.service";
 import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
+import { normalizeClubStints } from "@/features/career/services/career-summary.service";
 
 // ============================================================
 // HELPERS
@@ -68,14 +72,16 @@ const initCareerPlayerSchema = z.object({
   weight: z.number().int().min(30).max(200),
   preferredFoot: z.enum(["Left", "Right", "Both"]),
   currentContinentalCup: z.string(),
+  setupToken: z.string().min(1).max(4096),
   statsTimeline: z.array(statSnapshotSchema),
   clubStints: z.array(clubStintSchema),
-  hiddenStats: hiddenStatsSchema,
+  /** Accepted only for old callers; init always generates hiddenStats server-side. */
+  hiddenStats: hiddenStatsSchema.optional(),
   contractYearsTotal: z.number().int().min(1).max(10).optional(),
   contractYearsRemaining: z.number().int().min(0).max(10).optional(),
   currentWageAnnual: z.number().int().min(0).optional(),
   marketValue: z.number().int().min(0).optional(),
-});
+}).strict();
 type InitCareerParams = z.infer<typeof initCareerPlayerSchema>;
 
 const saveCareerPlayerSchema = z.object({
@@ -113,88 +119,85 @@ const getCareerPlayerSchema = z.object({
   playerId: z.string().uuid(),
 });
 
-async function verifyGameOwnership(gameId: string): Promise<string> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  await checkRateLimit(user.id);
-
-  const session = await prisma.gameSession.findUnique({
-    where: { id: gameId },
-    select: { userId: true },
-  });
-  if (session?.userId !== user.id) throw new Error("Forbidden");
-
-  return user.id;
-}
-
-export async function initCareerPlayerAction(input: unknown): Promise<{ id: string }> {
+export async function initCareerPlayerAction(input: unknown): Promise<{ id: string; checkpointVersion: number }> {
   const params: InitCareerParams = initCareerPlayerSchema.parse(input);
-  await verifyGameOwnership(params.gameId);
+  const owner = await requireGameOwnership(params.gameId);
+  await checkRateLimit(owner.id);
+
+  const setupToken = verifyCareerSetupToken({
+    token: params.setupToken,
+    userId: owner.id,
+    gameId: params.gameId,
+    slotIndex: params.slotIndex,
+  });
+  const setup = setupDataForInit(setupToken);
+  const hiddenStats = createServerHiddenStats();
+  const checkpointV2 = isCheckpointV2EnabledForNewCareer();
 
   const {
-    gameId, slotIndex, position, name, nationality,
-    debutAge, careerLength, debutOvr, height, weight, preferredFoot,
-    currentContinentalCup, statsTimeline, clubStints, hiddenStats,
+    gameId, slotIndex,
     contractYearsTotal = 3,
     contractYearsRemaining = 3,
     currentWageAnnual = 0,
     marketValue = 0,
   } = params;
+  const initialWageAnnual = setup.currentWageAnnual ?? currentWageAnnual;
+  const initialWalletIncome = computeSeasonWalletIncome({
+    currentWageAnnual: initialWageAnnual,
+  });
 
   const player = await prisma.careerPlayer.upsert({
     where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
-    create: {
-      gameSessionId: gameId,
-      slotIndex,
-      name,
-      nationality,
-      position,
-      height,
-      weight,
-      preferredFoot,
-      debutAge,
-      retireAge: debutAge + careerLength,
-      careerLengthYears: careerLength,
-      debutOvr,
-      peakOvr: debutOvr,
-      cardRarity: "bronze",
-      currentContinentalCup,
-      statsTimeline,
-      clubStints,
-      events: [],
-      hiddenStats,
-      achievements: { ballonDor: 0, trophies: [], seasonAwards: [] },
-      contractYearsTotal,
-      contractYearsRemaining,
-      currentWageAnnual,
-      marketValue,
-    },
-    update: {
-      name,
-      nationality,
-      currentContinentalCup,
-      statsTimeline,
-      clubStints,
-      hiddenStats,
-      contractYearsTotal,
-      contractYearsRemaining,
-      currentWageAnnual,
-      marketValue,
-    },
-    select: { id: true },
+      create: {
+        gameSessionId: gameId,
+        slotIndex,
+        name: setup.name,
+        nationality: setupToken.nationality,
+        position: setupToken.position,
+        height: setupToken.height,
+        weight: setupToken.weight,
+        preferredFoot: setup.preferredFoot,
+        debutAge: setupToken.debutAge,
+        retireAge: setupToken.debutAge + setupToken.careerLength,
+        careerLengthYears: setupToken.careerLength,
+        debutOvr: setup.debutOvr,
+        peakOvr: setup.debutOvr,
+        cardRarity: "bronze",
+        currentContinentalCup: setupToken.currentContinentalCup,
+        statsTimeline: setup.statsTimeline,
+        clubStints: setup.clubStints as unknown as Prisma.InputJsonValue,
+        events: [],
+        hiddenStats: hiddenStats as unknown as Prisma.InputJsonValue,
+        achievements: { ballonDor: 0, trophies: [], seasonAwards: [] },
+        contractYearsTotal: setup.contractYearsTotal ?? contractYearsTotal,
+        contractYearsRemaining: setup.contractYearsRemaining ?? contractYearsRemaining,
+        currentWageAnnual: initialWageAnnual,
+        marketValue: setup.marketValue ?? marketValue,
+        walletBalance: initialWalletIncome.totalIncome,
+        walletLedger: buildWalletLedgerEntries(setupToken.debutAge, initialWalletIncome) as unknown as Prisma.InputJsonValue,
+        ...(checkpointV2
+          ? {
+              currentAge: setupToken.debutAge,
+              currentStep: "idle",
+              currentWheel: "career",
+              checkpointVersion: 2,
+              revision: 0,
+            }
+          : { checkpointVersion: 1 }),
+      },
+    // Initialisation is idempotent. A refresh or repeated callback must never
+    // overwrite a career that has already progressed.
+    update: {},
+    select: { id: true, checkpointVersion: true },
   });
 
-  return { id: player.id };
+  return { id: player.id, checkpointVersion: player.checkpointVersion };
 }
 
 export async function getCareerPlayerAction(input: unknown) {
   const { playerId } = getCareerPlayerSchema.parse(input);
 
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
-  await checkRateLimit(user.id);
+  const { id: userId } = await requireAuthenticatedUser();
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
@@ -204,6 +207,7 @@ export async function getCareerPlayerAction(input: unknown) {
       nationality: true,
       debutAge: true,
       careerLengthYears: true,
+      peakOvr: true,
       statsTimeline: true,
       clubStints: true,
       achievements: true,
@@ -217,18 +221,40 @@ export async function getCareerPlayerAction(input: unknown) {
       walletBalance: true,
       influenceScore: true,
       shopInventory: true,
+      currentAge: true,
+      currentStep: true,
+      currentWheel: true,
+      checkpointVersion: true,
+      revision: true,
+      lastCheckpointId: true,
+      lastCheckpointAt: true,
       // hiddenStats: không trả về client — invariant
     },
   });
 
-  if (!player || player.gameSession.userId !== user.id) throw new Error("Forbidden");
+  if (!player || player.gameSession.userId !== userId) throw new Error("Forbidden");
 
-  return player;
+  const persistedClubStints = Array.isArray(player.clubStints)
+    ? player.clubStints as unknown as import("@/types/domain").ClubStint[]
+    : [];
+
+  return {
+    ...player,
+    // Older V2 rows may have a destination stint seeded with one season even
+    // though seasonHistory already contains later seasons at that club. Repair
+    // this derived boundary on read so the archive is correct immediately;
+    // future season transitions also persist the same invariant server-side.
+    clubStints: normalizeClubStints(
+      persistedClubStints,
+      player.seasonHistory,
+    ),
+  };
 }
 
 export async function saveCareerPlayer(input: unknown) {
   const params: SavePlayerParams = saveCareerPlayerSchema.parse(input);
-  await verifyGameOwnership(params.gameId);
+  const owner = await requireGameOwnership(params.gameId);
+  await checkRateLimit(owner.id);
 
   const {
     gameId,
@@ -272,8 +298,24 @@ export async function saveCareerPlayer(input: unknown) {
   // Giữ hiddenStats + walletLedger trong DB nếu client không gửi lại (resume/retire path)
   const existing = await prisma.careerPlayer.findUnique({
     where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex } },
-    select: { hiddenStats: true, walletLedger: true },
+    select: {
+      hiddenStats: true,
+      walletLedger: true,
+      checkpointVersion: true,
+      isRetired: true,
+      currentStep: true,
+    },
   });
+  if (!existing) throw new Error("Career chưa được khởi tạo bằng server setup token.");
+  if (existing?.checkpointVersion !== undefined && existing.checkpointVersion >= 2) {
+    if (!existing.isRetired || existing.currentStep !== "retired") {
+      throw new Error("Legacy player save không được phép ghi Career V2.");
+    }
+    // V2 already persists retirement atomically in season transition. The old
+    // Hall-of-Fame button remains a navigation acknowledgement only.
+    revalidatePath(`/${gameId}`);
+    redirect(`/${gameId}`);
+  }
   let resolvedHiddenStats = hiddenStats ?? null;
   if (!resolvedHiddenStats) {
     resolvedHiddenStats = (existing?.hiddenStats as z.infer<typeof hiddenStatsSchema> | null) ?? {
@@ -344,6 +386,11 @@ export async function saveCareerPlayer(input: unknown) {
       currentWageAnnual: currentWageAnnual ?? 0,
       marketValue: marketValue ?? 0,
       isUnemployed: isUnemployed ?? false,
+      currentAge: retireAge,
+      currentStep: "retired",
+      currentWheel: "career",
+      checkpointVersion: 2,
+      revision: 1,
       // No prior row to increment from in this branch — literal value.
       walletBalance: income.totalIncome,
       walletLedger: nextWalletLedger as unknown as Prisma.InputJsonValue,
@@ -366,6 +413,11 @@ export async function saveCareerPlayer(input: unknown) {
       achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
       ...(seasonHistory !== undefined ? { seasonHistory } : {}),
       isRetired: true,
+      currentAge: retireAge,
+      currentStep: "retired",
+      currentWheel: "career",
+      checkpointVersion: 2,
+      revision: { increment: 1 },
       ...contractData,
       walletBalance: { increment: income.totalIncome },
       walletLedger: nextWalletLedger as unknown as Prisma.InputJsonValue,

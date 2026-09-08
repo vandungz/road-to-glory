@@ -2,7 +2,8 @@
 
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
-import { createClient } from "@/lib/supabase/server";
+import { requireAuthenticatedUser } from "@/lib/auth/guards";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { createGameSchema, type CreateGameResult } from "@/types/game";
 
 /**
@@ -12,8 +13,6 @@ import { createGameSchema, type CreateGameResult } from "@/types/game";
  * - Ghi vào DB qua Prisma singleton
  * - Redirect sang trang Squad Management Board
  *
- * NOTE: Phase 1 chưa có Auth — userId tạm thời là "anonymous".
- * Phase 2 sẽ tích hợp Supabase Auth và lấy userId thực.
  */
 export async function createGameSession(
   formData: FormData
@@ -33,10 +32,9 @@ export async function createGameSession(
 
   const { name, formation } = parsed.data;
 
-  // 2. Lấy userId từ Supabase Auth
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) throw new Error("Unauthorized");
+  // 2. Require an authenticated owner before creating durable game state.
+  const user = await requireAuthenticatedUser();
+  await checkRateLimit(user.id);
 
   // 3. Tạo GameSession trong DB
   let newSession;
