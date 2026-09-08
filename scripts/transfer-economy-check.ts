@@ -2,8 +2,10 @@ import assert from "node:assert/strict";
 import {
   computeMarketValue,
   computePositionValueSnapshot,
+  getBuyingPowerBand,
   getPositionAttributeWeights,
   leagueCompetitivenessScore,
+  randomizeWageAnnual,
 } from "@/lib/transfer-economy";
 import { generateTransferMarketService } from "@/features/transfer/services/transfer.service";
 
@@ -45,6 +47,55 @@ assert.ok(
   "A competitive league must score above a weak league independently of club prestige",
 );
 
+const sameBandLowQuote = randomizeWageAnnual({
+  proposedWage: 350,
+  prestige: 2,
+  leagueTier: 2,
+  randomSource: () => 0,
+});
+const sameBandHighQuote = randomizeWageAnnual({
+  proposedWage: 350,
+  prestige: 2,
+  leagueTier: 2,
+  randomSource: () => 0.999999,
+});
+const lowerPlusBand = getBuyingPowerBand(2, 2);
+assert.notEqual(sameBandLowQuote, sameBandHighQuote, "Same-band clubs must support different annual wage quotes");
+assert.ok(sameBandLowQuote >= lowerPlusBand.minWage && sameBandLowQuote <= lowerPlusBand.maxWage);
+assert.ok(sameBandHighQuote >= lowerPlusBand.minWage && sameBandHighQuote <= lowerPlusBand.maxWage);
+
+const clubs = [
+  {
+    id: "current",
+    name: "Current Club",
+    leagueId: "current-league",
+    prestige: 3,
+    leagueTier: 1,
+    leaguePrestige: 3,
+    leagueSize: 20,
+  },
+  {
+    id: "competitive-low-prestige",
+    name: "Competitive League Club",
+    leagueId: "strong-league",
+    prestige: 2,
+    leagueTier: 1,
+    leaguePrestige: 5,
+    confederation: "UEFA",
+    leagueSize: 20,
+  },
+  {
+    id: "weak-league-club",
+    name: "Weak League Club",
+    leagueId: "weak-league",
+    prestige: 3,
+    leagueTier: 2,
+    leaguePrestige: 2,
+    confederation: "AFC",
+    leagueSize: 20,
+  },
+];
+
 const market = generateTransferMarketService({
   currentClubId: "current",
   currentClubPrestige: 3,
@@ -62,37 +113,7 @@ const market = generateTransferMarketService({
   contractYearsTotal: 3,
   currentWageAnnual: 800,
   willingToMove: true,
-  clubs: [
-    {
-      id: "current",
-      name: "Current Club",
-      leagueId: "current-league",
-      prestige: 3,
-      leagueTier: 1,
-      leaguePrestige: 3,
-      leagueSize: 20,
-    },
-    {
-      id: "competitive-low-prestige",
-      name: "Competitive League Club",
-      leagueId: "strong-league",
-      prestige: 2,
-      leagueTier: 1,
-      leaguePrestige: 5,
-      confederation: "UEFA",
-      leagueSize: 20,
-    },
-    {
-      id: "weak-league-club",
-      name: "Weak League Club",
-      leagueId: "weak-league",
-      prestige: 3,
-      leagueTier: 2,
-      leaguePrestige: 2,
-      confederation: "AFC",
-      leagueSize: 20,
-    },
-  ],
+  clubs,
 });
 
 assert.equal(market.valuation.positionWeightedRating, specialistValue.positionWeightedRating);
@@ -101,6 +122,32 @@ assert.equal(
   market.shortlist[0]?.clubId,
   "competitive-low-prestige",
   "League competitiveness must influence shortlist ranking without club hardcoding",
+);
+
+const coveredFinalSeasonMarket = generateTransferMarketService({
+  currentClubId: "current",
+  currentClubPrestige: 3,
+  currentClubLeagueTier: 1,
+  currentOvr: 70,
+  currentStats: specialistStats,
+  currentAge: 32,
+  retireAge: 33,
+  matchRating: 7.2,
+  goals: 12,
+  assists: 4,
+  cleanSheets: 0,
+  position: "ST",
+  contractYearsRemaining: 1,
+  contractYearsTotal: 3,
+  currentWageAnnual: 800,
+  willingToMove: true,
+  clubs,
+});
+
+assert.equal(
+  coveredFinalSeasonMarket.renewal,
+  null,
+  "A current contract covering the final career season must not produce a renewal offer",
 );
 
 console.log("transfer-economy-check: passed");
