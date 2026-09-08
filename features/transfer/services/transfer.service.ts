@@ -3,10 +3,11 @@
  * Inbound ≤ 3, renewal, mandatoryBuyout (not player-discountable).
  */
 
-import { resolveRandom } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 import { estimateAppsRatio } from "@/lib/club-fit";
 import {
   MAX_INBOUND_OFFERS,
+  clampWageAnnual,
   clubCanAffordBuyout,
   computeApproachAcceptChance,
   computeEffectivePositionOvr,
@@ -15,11 +16,13 @@ import {
   computePositionValueSnapshot,
   computeProactiveRenewalChance,
   computeScoutInterestScore,
+  contractCoversRemainingCareer,
   expectedAppsAtClub,
   isDistressSale,
   leagueCompetitivenessScore,
   proposeContractYears,
   proposeWageAnnual,
+  randomizeWageAnnual,
   seasonsLeftInCareer,
   wantsRenewal,
 } from "@/lib/transfer-economy";
@@ -120,6 +123,10 @@ export interface GenerateTransferMarketParams {
   clubs: ClubMarketInfo[];
   /** Player Influence Score (docs/core-currency-shop-design.md §5) — optional small top-up on scout/approach. */
   influenceScore?: number;
+  /** Server may inject a cryptographically secure source; legacy callers keep resolveRandom. */
+  randomSource?: RandomSource;
+  /** Stable server-owned quote source; keeps one club's wage unchanged across search/replay. */
+  wageRandomSource?: (clubId: string) => number;
 }
 
 function reasonForMove(params: {
@@ -154,8 +161,9 @@ function scoreClubInterest(params: {
   distress: boolean;
   willingToMove: boolean;
   mandatoryBuyout: number;
-  influenceScore?: number;
-  randomize?: boolean;
+ influenceScore?: number;
+ randomize?: boolean;
+  randomSource?: RandomSource;
 }): number {
   const {
     club,
@@ -218,13 +226,14 @@ function scoreClubInterest(params: {
   if (remaining >= 3 && !distress && matchRating < 7.2) score *= 0.5;
   if (willingToMove) score += 12;
 
-  if (params.randomize !== false) score += resolveRandom() * 6;
-  return score;
+  if (params.randomize !== false) score += (params.randomSource ?? resolveRandom)() * 6;
+ return score;
 }
 
 function pickInboundClubs(
   scored: Array<{ club: ClubMarketInfo; score: number }>,
   count: number,
+  randomSource: RandomSource = resolveRandom,
 ): ClubMarketInfo[] {
   const selected: ClubMarketInfo[] = [];
   const remaining = scored.slice(0, Math.min(14, scored.length));
@@ -242,7 +251,7 @@ function pickInboundClubs(
       return Math.max(1, score) * leagueFactor * confederationFactor;
     });
     const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-    let roll = resolveRandom() * totalWeight;
+    let roll = randomSource() * totalWeight;
     let pickedIndex = 0;
     for (let index = 0; index < weights.length; index += 1) {
       roll -= weights[index];
@@ -299,6 +308,7 @@ export type TransferOfferResult = {
 export function generateTransferMarketService(
   params: GenerateTransferMarketParams,
 ): TransferMarketResult {
+  const randomSource = params.randomSource ?? resolveRandom;
   const {
     currentClubId,
     currentClubPrestige,
@@ -316,6 +326,17 @@ export function generateTransferMarketService(
     clubs,
     influenceScore,
   } = params;
+
+  function quoteWage(club: ClubMarketInfo, proposedWage: number): number {
+    return randomizeWageAnnual({
+      proposedWage,
+      prestige: club.prestige,
+      leagueTier: club.leagueTier,
+      randomSource: params.wageRandomSource
+        ? () => params.wageRandomSource?.(club.id) ?? randomSource()
+        : randomSource,
+    });
+  }
 
   // SoT §7.10 — club evaluates by position-specific ability (effPositionOvr §12.1)
   const effPositionOvr = computeEffectivePositionOvr(params.position, params.currentStats, currentOvr);
@@ -385,14 +406,18 @@ export function generateTransferMarketService(
         }
       : null;
 
-  if (!unemployed && currentClub) {
+  if (
+    !unemployed &&
+    currentClub &&
+    !contractCoversRemainingCareer(currentAge, retireAge, contractYearsRemaining)
+  ) {
     const renewYears = proposeContractYears({
       currentAge,
       retireAge,
       matchRating,
       isRenewal: true,
     });
-    const renewWage = proposeWageAnnual({
+    const renewWage = quoteWage(currentClub, proposeWageAnnual({
       ovr: effPositionOvr,
       age: currentAge,
       currentWage: currentWageAnnual,
@@ -400,7 +425,7 @@ export function generateTransferMarketService(
       leagueTier: currentClubLeagueTier,
       matchRating,
       stepUpPrestige: 0,
-    });
+    }));
 
     if (
       renewYears > 0 &&
@@ -451,6 +476,7 @@ export function generateTransferMarketService(
         willingToMove: willingToMove || unemployed,
         mandatoryBuyout,
         influenceScore,
+        randomSource,
       }),
     }))
     .filter((x) => x.score >= 0)
@@ -467,16 +493,16 @@ export function generateTransferMarketService(
   windowChance = Math.min(0.55, Math.max(0.08, windowChance));
 
   const inbound: ContractOfferCard[] = [];
-  const rollInbound = resolveRandom() < windowChance || distress || unemployed;
+  const rollInbound = randomSource() < windowChance || distress || unemployed;
   if (rollInbound && scored.length > 0) {
     const take = Math.min(MAX_INBOUND_OFFERS, scored.length);
-    const picked = pickInboundClubs(scored, take);
+    const picked = pickInboundClubs(scored, take, randomSource);
 
     for (const club of picked) {
       const years = proposeContractYears({ currentAge, retireAge, matchRating });
       if (years <= 0) continue;
       const fee = mandatoryBuyout;
-      const wage = proposeWageAnnual({
+      const wage = quoteWage(club, proposeWageAnnual({
         ovr: effPositionOvr,
         age: currentAge,
         currentWage: currentWageAnnual,
@@ -485,7 +511,7 @@ export function generateTransferMarketService(
         matchRating,
         stepUpPrestige: club.prestige - effectivePrestige,
         acceptLowerWage: willingToMove || unemployed,
-      });
+      }));
       const kind = contractYearsRemaining <= 0 || unemployed ? "free_agent" : "transfer";
       inbound.push(
         buildOfferCard({
@@ -517,7 +543,7 @@ export function generateTransferMarketService(
       const canAfford = clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout);
       const canApproachGate = contractYearsRemaining <= 1 || unemployed;
       const years = proposeContractYears({ currentAge, retireAge, matchRating });
-      const wage = proposeWageAnnual({
+      const wage = quoteWage(club, proposeWageAnnual({
         ovr: effPositionOvr,
         age: currentAge,
         currentWage: currentWageAnnual,
@@ -526,7 +552,7 @@ export function generateTransferMarketService(
         matchRating,
         stepUpPrestige: club.prestige - effectivePrestige,
         acceptLowerWage: true,
-      });
+      }));
       const acceptChance =
         canApproachGate && canAfford && years > 0
           ? computeApproachAcceptChance({
@@ -629,6 +655,7 @@ export interface ResolveApproachParams {
   isUnemployed?: boolean;
   /** Must match whatever value produced `clientAcceptChance` in the shortlist step, or the drift-check below will spuriously reject. */
   influenceScore?: number;
+  randomSource?: RandomSource;
 }
 
 export type ResolveApproachResult =
@@ -687,7 +714,7 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
     };
   }
 
-  const accepted = resolveRandom() < acceptChance;
+  const accepted = (params.randomSource ?? resolveRandom)() < acceptChance;
   if (!accepted) {
     return {
       accepted: false,
@@ -698,7 +725,11 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
 
   const kind = remaining <= 0 || unemployed ? "free_agent" : "transfer";
   const wageMul = params.wageOption === "lower" ? 0.8 : params.wageOption === "higher" ? 1.15 : 1.0;
-  const finalWage = Math.max(10, Math.round(params.previewWage * wageMul));
+  const finalWage = clampWageAnnual(
+    Math.max(10, Math.round(params.previewWage * wageMul)),
+    params.prestige,
+    params.leagueTier,
+  );
 
   const club: ClubMarketInfo = {
     id: params.clubId,
@@ -752,6 +783,9 @@ export interface ResolveProactiveRenewalParams {
   contractYearsRemaining: number;
   currentWageAnnual: number;
   wageOption?: WageDealOption;
+  randomSource?: RandomSource;
+  /** Stable quote source matching the renewal shown in the market snapshot. */
+  wageRandomSource?: RandomSource;
 }
 
 export type ResolveProactiveRenewalResult =
@@ -775,7 +809,7 @@ export function resolveProactiveRenewalService(
   });
 
   const finalChance = applyWageDealChance(baseChance, params.wageOption ?? "standard");
-  const accepted = resolveRandom() < finalChance;
+  const accepted = (params.randomSource ?? resolveRandom)() < finalChance;
 
   if (!accepted) {
     return {
@@ -792,18 +826,24 @@ export function resolveProactiveRenewalService(
     isRenewal: true,
   });
 
-  let wage = proposeWageAnnual({
-    ovr: effPositionOvr,
-    age: params.currentAge,
-    currentWage: params.currentWageAnnual,
+  let wage = randomizeWageAnnual({
+    proposedWage: proposeWageAnnual({
+      ovr: effPositionOvr,
+      age: params.currentAge,
+      currentWage: params.currentWageAnnual,
+      prestige: params.currentClubPrestige,
+      leagueTier: params.currentClubLeagueTier,
+      matchRating: params.matchRating,
+      stepUpPrestige: 0,
+    }),
     prestige: params.currentClubPrestige,
     leagueTier: params.currentClubLeagueTier,
-    matchRating: params.matchRating,
-    stepUpPrestige: 0,
+    randomSource: params.wageRandomSource ?? params.randomSource,
   });
 
   if (params.wageOption === "lower") wage = Math.round(wage * 0.82);
   else if (params.wageOption === "higher") wage = Math.round(wage * 1.15);
+  wage = clampWageAnnual(wage, params.currentClubPrestige, params.currentClubLeagueTier);
 
   const club: ClubMarketInfo = {
     id: params.currentClubId,

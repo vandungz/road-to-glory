@@ -75,3 +75,38 @@ export function buildWalletLedgerEntries(
 
   return entries;
 }
+
+/**
+ * Add only the income entries that are not already present for a season.
+ *
+ * A season can reach the off-season through more than one request (module
+ * navigation, a retry after a timeout, or the final season transition). The
+ * ledger is therefore the idempotency boundary for money, not the caller's
+ * local state or the number of HTTP requests received.
+ */
+export function appendMissingSeasonIncomeEntries(params: {
+  age: number;
+  currentWageAnnual: number;
+  transferFeeThisSeason?: number;
+  ledger: WalletLedgerEntry[];
+}): {
+  entries: WalletLedgerEntry[];
+  ledger: WalletLedgerEntry[];
+  creditedIncome: number;
+} {
+  const income = computeSeasonWalletIncome({
+    currentWageAnnual: params.currentWageAnnual,
+    transferFeeThisSeason: params.transferFeeThisSeason,
+  });
+  const entries = buildWalletLedgerEntries(params.age, income).filter(
+    (entry) => !params.ledger.some(
+      (existing) => existing.age === entry.age && existing.type === entry.type,
+    ),
+  );
+
+  return {
+    entries,
+    ledger: [...params.ledger, ...entries],
+    creditedIncome: entries.reduce((total, entry) => total + entry.amount, 0),
+  };
+}

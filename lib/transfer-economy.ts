@@ -7,6 +7,7 @@
 import { estimateAppsRatio, getClubThreshold } from "@/lib/club-fit";
 import { influenceTopUp } from "@/lib/influence-score";
 import { computePositionValueSnapshot } from "@/lib/positional-value";
+import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 
 export {
   computePositionValueSnapshot,
@@ -58,6 +59,16 @@ export function getBuyingPowerBand(prestige: number, leagueTier: number): Buying
 
 export function seasonsLeftInCareer(currentAge: number, retireAge: number): number {
   return Math.max(0, retireAge - currentAge);
+}
+
+/** True when the existing contract already covers every remaining career season. */
+export function contractCoversRemainingCareer(
+  currentAge: number,
+  retireAge: number,
+  contractYearsRemaining: number,
+): boolean {
+  const seasonsLeft = seasonsLeftInCareer(currentAge, retireAge);
+  return seasonsLeft > 0 && contractYearsRemaining >= seasonsLeft;
 }
 
 export function clampContractYears(proposed: number, currentAge: number, retireAge: number): number {
@@ -184,6 +195,31 @@ export function proposeWageAnnual(params: {
   }
 
   return Math.max(band.minWage, Math.min(band.maxWage, target));
+}
+
+/**
+ * Adds a small club-specific market spread while staying inside the club's
+ * buying-power band. The player/fit formula still supplies the centre point;
+ * this function only makes otherwise identical clubs quote different wages.
+ */
+export function randomizeWageAnnual(params: {
+  proposedWage: number;
+  prestige: number;
+  leagueTier: number;
+  randomSource?: RandomSource;
+}): number {
+  const band = getBuyingPowerBand(params.prestige, params.leagueTier);
+  const centre = clampWageAnnual(params.proposedWage, params.prestige, params.leagueTier);
+  const spread = Math.max(1, Math.round((band.maxWage - band.minWage) * 0.15));
+  const min = Math.max(band.minWage, centre - spread);
+  const max = Math.min(band.maxWage, centre + spread);
+  const roll = Math.max(0, Math.min(0.999999, (params.randomSource ?? resolveRandom)()));
+  return Math.max(min, Math.min(max, Math.round(min + roll * (max - min))));
+}
+
+export function clampWageAnnual(wage: number, prestige: number, leagueTier: number): number {
+  const band = getBuyingPowerBand(prestige, leagueTier);
+  return Math.max(band.minWage, Math.min(band.maxWage, Math.round(wage)));
 }
 
 export function wantsRenewal(params: {
