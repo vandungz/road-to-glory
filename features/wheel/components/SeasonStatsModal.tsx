@@ -2,12 +2,15 @@
 
 import type { CompetitionStats, SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import { isDeprecatedAwardKey } from "@/types/awards";
 import { getContinentalCupLabel, getDomesticCupName } from "../lib/simulation-helpers";
 import { getCompetitionResultLabel } from "../lib/competition-result-labels";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
+import { AwardRankingList } from "./AwardRankingList";
+import { AwardBestXiPitch } from "./AwardBestXiPitch";
 
 interface Props {
   record: SeasonRecord;
@@ -36,9 +39,21 @@ function cupResult(result: string | null | undefined): string {
   return getCompetitionResultLabel(result, "");
 }
 
+function isRemovedAwardLabel(label: string): boolean {
+  const normalized = label.toLowerCase();
+  return normalized.includes("cầu thủ xuất sắc nhất") || normalized.includes("hậu vệ xuất sắc nhất");
+}
+
 export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup, onClose }: Props) {
-  const awards = yearSimResult.events.filter((event) => event.type === "individual_award");
+  const awards = yearSimResult.events.filter((event) => (
+    event.type === "individual_award" && !isRemovedAwardLabel(event.label)
+  ));
   const hasAwards = awards.length > 0 || yearSimResult.ballonDor.eligible;
+  const rankingSnapshots = (yearSimResult.awardSimulation?.snapshots ?? []).filter((snapshot) => (
+    snapshot.awardKey !== "ballon_dor" &&
+    !isDeprecatedAwardKey(snapshot.awardKey) &&
+    snapshot.revealStage !== "ballon_dor_result"
+  ));
 
   return (
     <Modal open title="Thống kê mùa giải" onClose={onClose} size="sm">
@@ -100,6 +115,15 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
               )}
             </section>
           )}
+          {rankingSnapshots.length > 0 ? (
+            <section className="rtg-awards-section" aria-labelledby="award-ranking-title">
+              <h3 id="award-ranking-title" className="rtg-modal-section-label">Bảng xếp hạng ứng viên</h3>
+              {rankingSnapshots.map((snapshot) => snapshot.awardKey === "league_best_xi"
+                ? <AwardBestXiPitch key={snapshot.snapshotKey} snapshot={snapshot} />
+                : null)}
+              <AwardRankingList snapshots={rankingSnapshots.filter((snapshot) => snapshot.awardKey !== "league_best_xi")} compact />
+            </section>
+          ) : null}
         </div>
       </ModalBody>
 

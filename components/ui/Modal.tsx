@@ -1,6 +1,6 @@
 "use client";
 
-import { createContext, useContext, useEffect, useId, useRef, type ReactNode } from "react";
+import { createContext, useContext, useEffect, useId, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -52,7 +52,12 @@ export function Modal({
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
+  const [isMounted, setIsMounted] = useState(false);
   const titleId = `rtg-modal-title-${useId().replace(/:/g, "")}`;
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   useEffect(() => {
     onCloseRef.current = onClose;
@@ -112,7 +117,7 @@ export function Modal({
     };
   }, [open]);
 
-  if (!open || typeof document === "undefined") return null;
+  if (!isMounted || !open || typeof document === "undefined") return null;
 
   return createPortal(
     <div
@@ -170,8 +175,8 @@ export function ModalHeader({ children, onClose, closeLabel = "Đóng", classNam
   );
 }
 
-export function ModalBody({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("rtg-modal-body", className)}>{children}</div>;
+export function ModalBody({ children, className, ...props }: { children: ReactNode; className?: string } & HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} className={cn("rtg-modal-body", className)}>{children}</div>;
 }
 
 export function ModalFooter({ children, className }: { children: ReactNode; className?: string }) {

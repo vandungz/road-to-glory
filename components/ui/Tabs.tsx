@@ -8,7 +8,7 @@ export function TabsList({ children, className }: { children: ReactNode; classNa
   return <div className={cn("rtg-tabs", className)} role="tablist">{children}</div>;
 }
 
-export function TabsTrigger({ value, active, onSelect, children, className }: { value: string; active: boolean; onSelect: (value: string) => void; children: ReactNode; className?: string }) {
+export function TabsTrigger({ value, active, onSelect, children, className, disabled = false }: { value: string; active: boolean; onSelect: (value: string) => void; children: ReactNode; className?: string; disabled?: boolean }) {
   const ref = useRef<HTMLButtonElement>(null);
   const handleKeyDown = (event: KeyboardEvent<HTMLButtonElement>) => {
     if (!["ArrowLeft", "ArrowRight", "Home", "End"].includes(event.key)) return;
@@ -19,7 +19,7 @@ export function TabsTrigger({ value, active, onSelect, children, className }: { 
     tabs[next]?.focus();
     if (tabs[next]) onSelect(tabs[next].dataset.value ?? value);
   };
-  return <button ref={ref} type="button" role="tab" data-value={value} aria-selected={active} tabIndex={active ? 0 : -1} className={cn("rtg-tab", active && "is-active", className)} onClick={() => onSelect(value)} onKeyDown={handleKeyDown}>{children}</button>;
+  return <button ref={ref} type="button" role="tab" data-value={value} aria-selected={active} tabIndex={disabled ? -1 : active ? 0 : -1} className={cn("rtg-tab", active && "is-active", className)} onClick={() => onSelect(value)} onKeyDown={handleKeyDown} disabled={disabled}>{children}</button>;
 }
 
 export function TabsContent({ active, children, className }: { active: boolean; children: ReactNode; className?: string }) {

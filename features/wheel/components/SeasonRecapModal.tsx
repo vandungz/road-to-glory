@@ -1,18 +1,22 @@
 "use client";
 
+import { useState, type ReactNode } from "react";
 import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
-import { getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
+import { AWARD_LABELS, isDeprecatedAwardKey, type AwardRankingSnapshotInput } from "@/types/awards";
+import { getContinentalCupLabel, getDomesticCupName, getSeasonYearString } from "../lib/simulation-helpers";
 import { getCompetitionResultLabel } from "../lib/competition-result-labels";
 import { Button } from "@/components/ui/Button";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
+import { Expandable } from "@/components/ui/Expandable";
+import { AwardRankingList } from "./AwardRankingList";
+import { AwardBestXiPitch } from "./AwardBestXiPitch";
 
 interface Props {
   record: SeasonRecord;
   yearSimResult: SimulatedSeasonResult;
   currentContinentalCup: string;
   playerDebutAge: number;
-  hasBallonDorWinner?: boolean;
   onClose: () => void;
 }
 
@@ -55,7 +59,49 @@ function AwardItem({ title, detail, accent = false }: { title: string; detail: s
   );
 }
 
-export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup, playerDebutAge, hasBallonDorWinner = false, onClose }: Props) {
+function AccordionSection({ id, eyebrow, title, open, onToggle, children }: {
+  id: string;
+  eyebrow: string;
+  title: string;
+  open: boolean;
+  onToggle: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <section className="rtg-season-close__accordion-item">
+      <h3>
+        <button
+          type="button"
+          className="rtg-season-close__accordion-trigger"
+          aria-expanded={open}
+          aria-controls={`${id}-panel`}
+          onClick={onToggle}
+        >
+          <span><small>{eyebrow}</small><strong>{title}</strong></span>
+          <i aria-hidden="true">{open ? "−" : "+"}</i>
+        </button>
+      </h3>
+      <Expandable open={open} id={`${id}-panel`} className="rtg-season-close__accordion-panel">
+        {children}
+      </Expandable>
+    </section>
+  );
+}
+
+function isVisibleSeasonAward(snapshot: AwardRankingSnapshotInput): boolean {
+  return snapshot.awardKey !== "ballon_dor" &&
+    !isDeprecatedAwardKey(snapshot.awardKey) &&
+    snapshot.revealStage !== "ballon_dor_result" &&
+    snapshot.entries.length > 0;
+}
+
+function isRemovedAwardLabel(label: string): boolean {
+  const normalized = label.toLowerCase();
+  return normalized.includes("cầu thủ xuất sắc nhất") || normalized.includes("hậu vệ xuất sắc nhất");
+}
+
+export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup, playerDebutAge, onClose }: Props) {
+  const [openSections, setOpenSections] = useState<Record<string, boolean>>({ stats: true, honours: true });
   const season = getSeasonYearString(record.age, playerDebutAge);
   const continentalName = record.continentalCup?.type
     ? getContinentalCupLabel(record.continentalCup.type)
@@ -78,12 +124,20 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
         }]
       : []),
   ];
-  const individualAwards = yearSimResult.events?.filter((event) => event.type === "individual_award") ?? [];
+  const individualAwards = yearSimResult.events?.filter((event) => (
+    event.type === "individual_award" && !isRemovedAwardLabel(event.label)
+  )) ?? [];
   const awards = [
+    ...(record.standing === 1 ? [{ title: `Vô địch ${record.leagueName || "giải quốc gia"}`, detail: record.clubName, accent: true }] : []),
+    ...(record.domesticCup === "Winner" ? [{ title: getDomesticCupName(record.leagueName, record.leagueId), detail: `Vô địch · ${record.clubName}` }] : []),
     ...(record.continentalCup?.result === "Winner" ? [{ title: continentalName, detail: `Vô địch · ${record.clubName}` }] : []),
+    ...(nationalResult === "Winner" ? [{ title: record.nationalTeam?.type || "Giải đấu quốc tế", detail: "Vô địch cùng đội tuyển", accent: true }] : []),
     ...individualAwards.map((award) => ({ title: award.label, detail: `Mùa ${record.age}` })),
-    ...(hasBallonDorWinner ? [{ title: "Quả bóng vàng", detail: "Chiến thắng danh giá", accent: true }] : []),
   ];
+  const seasonAwardSnapshots = (yearSimResult.awardSimulation?.snapshots ?? []).filter(isVisibleSeasonAward);
+  const rankingSnapshots = seasonAwardSnapshots.filter((snapshot) => snapshot.awardKey !== "league_best_xi");
+  const bestXiSnapshot = seasonAwardSnapshots.find((snapshot) => snapshot.awardKey === "league_best_xi");
+  const toggleSection = (key: string) => setOpenSections((current) => ({ ...current, [key]: !current[key] }));
 
   return (
     <Modal open title={`Mùa giải khép lại · ${season}`} onClose={onClose} size="md" className="rtg-season-close-modal">
@@ -96,9 +150,8 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
           {summaryMetrics.map((metric) => <SummaryMetric key={metric.label} {...metric} />)}
         </section>
 
-        <div className="rtg-season-close__columns">
-          <section className="rtg-season-close__section" aria-labelledby="season-close-stats">
-            <h3 id="season-close-stats">Số liệu mùa giải</h3>
+        <div className="rtg-season-close__accordion">
+          <AccordionSection id="season-stats" eyebrow="Hiệu suất" title="Số liệu mùa giải" open={Boolean(openSections.stats)} onToggle={() => toggleSection("stats")}>
             <div className="rtg-season-close__stats">
               <SeasonStat label="Ra sân" value={yearSimResult.apps} />
               <SeasonStat label="Bàn thắng" value={yearSimResult.goals} />
@@ -106,14 +159,32 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
               <SeasonStat label="Clean Sheet" value={yearSimResult.cleanSheets} />
               <SeasonStat label="Điểm phong độ" value={yearSimResult.matchRating.toFixed(2)} accent />
             </div>
-          </section>
+          </AccordionSection>
 
-          <section className="rtg-season-close__section" aria-labelledby="season-close-awards">
-            <h3 id="season-close-awards">Danh hiệu nhận được</h3>
+          <AccordionSection id="season-honours" eyebrow="Thành tích" title="Danh hiệu nhận được" open={Boolean(openSections.honours)} onToggle={() => toggleSection("honours")}>
             <div className="rtg-season-close__awards">
               {awards.length > 0 ? awards.map((award, index) => <AwardItem key={`${award.title}-${index}`} {...award} />) : <p className="rtg-modal-note">Chưa có danh hiệu mùa này.</p>}
             </div>
-          </section>
+          </AccordionSection>
+
+          {rankingSnapshots.map((snapshot) => (
+            <AccordionSection
+              key={snapshot.snapshotKey}
+              id={`season-award-${snapshot.awardKey}`}
+              eyebrow="Cuộc đua trong giải vô địch quốc gia"
+              title={AWARD_LABELS[snapshot.awardKey]}
+              open={Boolean(openSections[snapshot.awardKey])}
+              onToggle={() => toggleSection(snapshot.awardKey)}
+            >
+              <AwardRankingList snapshots={[snapshot]} showHeading={false} />
+            </AccordionSection>
+          ))}
+
+          {bestXiSnapshot && (
+            <AccordionSection id="season-best-xi" eyebrow="Cuộc đua trong giải vô địch quốc gia" title="Đội hình tiêu biểu" open={Boolean(openSections.league_best_xi)} onToggle={() => toggleSection("league_best_xi")}>
+              <AwardBestXiPitch snapshot={bestXiSnapshot} />
+            </AccordionSection>
+          )}
         </div>
       </ModalBody>
 

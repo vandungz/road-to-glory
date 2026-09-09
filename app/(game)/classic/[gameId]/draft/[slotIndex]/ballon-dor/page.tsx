@@ -26,6 +26,16 @@ function readResult(runtimeState: unknown): BallonResult | null {
   return null;
 }
 
+function readSnapshotResult(value: unknown): BallonResult | null {
+  if (!isRecord(value) || !isRecord(value.resolution)) return null;
+  const rank = value.resolution.selectedRank;
+  return typeof rank === "number" && rank >= 1 && rank <= 10 ? { phase: "ranking", rank } : null;
+}
+
+function snapshotEntries(value: unknown): Array<Record<string, unknown>> {
+  return Array.isArray(value) ? value.slice(0, 10).filter(isRecord) : [];
+}
+
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { gameId, slotIndex } = await params;
   const player = await prisma.careerPlayer.findUnique({
@@ -59,9 +69,15 @@ export default async function BallonDorResultPage({ params }: Props) {
 
   const season = await prisma.careerSeason.findFirst({
     where: { careerPlayerId: player.id, age: player.currentAge, status: "in_progress" },
-    select: { runtimeState: true },
+    select: { id: true, runtimeState: true },
   });
-  const result = season ? readResult(season.runtimeState) : null;
+  const snapshot = season
+    ? await prisma.careerAwardRankingSnapshot.findFirst({
+        where: { careerPlayerId: player.id, seasonId: season.id, awardKey: "ballon_dor" },
+        select: { entries: true, resolution: true, status: true },
+      })
+    : null;
+  const result = (snapshot ? readSnapshotResult(snapshot) : null) ?? (season ? readResult(season.runtimeState) : null);
   if (!result) notFound();
 
   const isWinner = result.phase === "ranking" && result.rank === 1;
@@ -89,6 +105,19 @@ export default async function BallonDorResultPage({ params }: Props) {
 
         <article className={`rtg-ballon-dor-page__result${isWinner ? " is-winner" : ""}`}>
           <ResultBanner tone={tone} className="rtg-ballon-dor-page__banner">{message}</ResultBanner>
+          {snapshot && snapshotEntries(snapshot.entries).length > 0 && (
+            <section className="rtg-ballon-dor-page__ranking" aria-labelledby="ballon-ranking-title">
+              <h2 id="ballon-ranking-title">Danh sách ứng viên</h2>
+              <ol>
+                {snapshotEntries(snapshot.entries).map((entry) => (
+                  <li key={`${String(entry.candidateKey)}-${String(entry.rank)}`} className={entry.isCareerPlayer === true ? "is-player" : undefined}>
+                    <strong>{String(entry.rank ?? "—")}</strong>
+                    <span><b>{String(entry.name ?? "Ứng viên")}</b><small>{String(entry.clubName ?? "—")} · {String(entry.position ?? "—")}</small></span>
+                  </li>
+                ))}
+              </ol>
+            </section>
+          )}
           <Link className="rtg-button rtg-button--primary rtg-button--lg" href={`/classic/${gameId}/draft/${slotIndex}`}>
             Tiếp tục hành trình <ArrowRight aria-hidden="true" size={17} />
           </Link>

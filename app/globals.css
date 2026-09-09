@@ -329,6 +329,8 @@ body {
 }
 
 .modal-panel {
+  display: flex;
+  flex-direction: column;
   background-color: var(--rtg-surface);
   border: 1px solid var(--rtg-rule);
   box-shadow: var(--rtg-shadow-overlay);
@@ -336,7 +338,7 @@ body {
   width: 100%;
   max-width: 560px;
   max-height: min(90dvh, 760px);
-  overflow-y: auto;
+  overflow: hidden;
   outline: none;
 }
 
@@ -347,6 +349,7 @@ body {
 
 .rtg-modal-header {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
@@ -363,12 +366,16 @@ body {
   line-height: 1.15;
 }
 .rtg-modal-body {
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
   padding: 24px;
 }
 .rtg-modal-footer {
   display: flex;
+  flex: 0 0 auto;
   align-items: center;
   justify-content: flex-end;
   gap: 12px;
@@ -452,6 +459,30 @@ body {
   .rtg-transfer-success__facts span + span, .rtg-transfer-negotiation__offer div + div { border-top: 1px solid var(--rtg-rule); border-left: 0; }
   .rtg-transfer-success .rtg-button { width: 100%; min-width: 0; }
 }
+
+/* Canonical award ranking list shared by season recap and Ballon d'Or views. */
+.rtg-award-ranking-list { display: grid; gap: 18px; }
+.rtg-award-ranking { min-width: 0; border-top: 1px solid var(--rtg-rule); }
+.rtg-award-ranking__heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding: 10px 0 7px; }
+.rtg-award-ranking__heading h4 { margin: 2px 0 0; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 15px; font-weight: 600; text-transform: capitalize; }
+.rtg-award-ranking__heading > span { color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.rtg-award-ranking ol { display: grid; margin: 0; padding: 0; list-style: none; }
+.rtg-award-ranking li { display: grid; grid-template-columns: 28px minmax(0, 1fr); gap: 8px; align-items: center; min-height: 42px; border-bottom: 1px solid var(--rtg-rule); padding: 5px 8px; }
+.rtg-award-ranking li.is-player { border-left: 3px solid var(--rtg-honour); background: color-mix(in srgb, var(--rtg-honour) 9%, transparent); }
+.rtg-award-ranking li > strong { color: var(--rtg-ink-3); font-family: var(--font-headline); font-size: 14px; font-variant-numeric: tabular-nums; text-align: center; }
+.rtg-award-ranking li > span { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
+.rtg-award-ranking li b { overflow: hidden; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 13px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.rtg-award-ranking li small { overflow: hidden; color: var(--rtg-ink-3); font-family: var(--font-body); font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.rtg-award-ranking-list.is-compact { gap: 12px; }
+.rtg-ballon-dor-page__ranking { margin: 26px 0 0; border-top: 1px solid var(--rtg-rule); padding-top: 16px; }
+.rtg-ballon-dor-page__ranking h2 { margin: 0 0 9px; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 14px; font-weight: 600; text-transform: uppercase; }
+.rtg-ballon-dor-page__ranking ol { display: grid; margin: 0; padding: 0; list-style: none; }
+.rtg-ballon-dor-page__ranking li { display: grid; grid-template-columns: 32px minmax(0, 1fr); gap: 10px; align-items: center; border-bottom: 1px solid var(--rtg-rule); padding: 8px 10px; }
+.rtg-ballon-dor-page__ranking li.is-player { border-left: 3px solid var(--rtg-honour); background: color-mix(in srgb, var(--rtg-honour) 9%, transparent); }
+.rtg-ballon-dor-page__ranking li strong { color: var(--rtg-ink-2); font-family: var(--font-headline); font-size: 16px; text-align: center; }
+.rtg-ballon-dor-page__ranking li span { display: flex; flex-direction: column; gap: 2px; }
+.rtg-ballon-dor-page__ranking li b { color: var(--rtg-ink); font-family: var(--font-headline); font-size: 14px; }
+.rtg-ballon-dor-page__ranking li small { color: var(--rtg-ink-3); font-family: var(--font-body); font-size: 11px; }
 
 /* Transfer window: page-first surface reused by the in-game modal. */
 .rtg-transfer-modal { width: min(980px, calc(100vw - 32px)); max-width: 980px; max-height: min(92dvh, 760px); overflow: hidden; padding: 0; }
@@ -571,7 +602,8 @@ body {
 .rtg-wheel-shell .rtg-action-panel__body { justify-content: flex-start; padding-top: 0; }
 .rtg-wheel-shell .rtg-wheel-stage { gap: 22px; }
 .rtg-wheel-shell .rtg-wheel-stage { flex: 1; justify-content: space-between; }
-.rtg-wheel-shell .rtg-wheel-stage > .rtg-result-banner { width: auto; border: 0; padding: 0; background: transparent; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 44px; font-weight: 700; line-height: 1; }
+.rtg-wheel-shell .rtg-action-panel .rtg-spinner-wheel__label { width: min(100%, 520px); min-height: 58px; padding: 8px 16px; }
+.rtg-wheel-shell .rtg-action-panel .rtg-spinner-wheel__label-text { font-size: clamp(22px, 2.4vw, 34px); line-height: 1.08; letter-spacing: .04em; }
 .rtg-wheel-shell .rtg-action-panel__description { max-width: 380px; margin: 2px 0 0; color: var(--rtg-ink-2); font-family: var(--font-body); font-size: 14px; line-height: 1.5; }
 .rtg-wheel-shell .rtg-action-panel__primary { min-height: 56px; font-size: 16px; }
 .rtg-wheel-shell .rtg-spinner-wheel__stage { width: min(100%, 396px); }
@@ -666,6 +698,7 @@ body {
 .rtg-wheel-header__back { gap: 7px; color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
 .rtg-wheel-header__back:hover { color: var(--rtg-accent-ink); }
 .rtg-wheel-header__wordmark { gap: 13px; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; white-space: nowrap; }
+.rtg-wheel-header__back:disabled, .rtg-wheel-header__wordmark:disabled { border: 0; padding: 0; background: transparent; color: var(--rtg-disabled); cursor: not-allowed; opacity: .7; }
 .rtg-wheel-header__wordmark i { width: 26px; height: 1px; background: var(--rtg-rule-strong); }
 .rtg-wheel-header__wordmark small, .rtg-wheel-header__mode, .rtg-wheel-header__context small { color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 9px; font-weight: 400; letter-spacing: .12em; text-transform: uppercase; }
 .rtg-wheel-header__mode { color: var(--rtg-ink-2); }
@@ -1185,6 +1218,7 @@ button.rtg-squad-table__row:hover:not(:disabled) { background: var(--rtg-sunken)
 .rtg-action-panel__body { display: flex; min-height: 0; flex: 1; flex-direction: column; align-items: center; justify-content: center; }
 .rtg-action-panel__primary { width: min(100%, 360px); }
 .rtg-wheel-stage { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 18px; }
+.rtg-wheel-stage__processing { display: inline-flex; min-height: 24px; align-items: center; justify-content: center; gap: 8px; color: var(--rtg-ink-2); font-family: var(--font-body); font-size: 13px; text-align: center; }
 .rtg-season-report { display: flex; width: min(100%, 560px); flex-direction: column; gap: 20px; border-top: 1px solid var(--rtg-rule); padding-top: 18px; }
 .rtg-season-report__heading h3 { margin: 5px 0 0; font-family: var(--font-headline); font-size: 24px; font-weight: 600; text-transform: uppercase; }
 .rtg-season-report__stats { border-top: 1px solid var(--rtg-rule); }
@@ -1193,7 +1227,7 @@ button.rtg-squad-table__row:hover:not(:disabled) { background: var(--rtg-sunken)
 .rtg-spinner-wheel__label-text { overflow: hidden; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 14px; font-weight: 600; letter-spacing: 0.07em; text-align: center; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .rtg-spinner-wheel--high .rtg-spinner-wheel__label-text { color: var(--rtg-honour); }
 .rtg-spinner-wheel__stage { position: relative; display: flex; width: min(100%, 380px); aspect-ratio: 1; align-items: center; justify-content: center; margin: 0 auto; }
-.rtg-spinner-wheel__disc { width: min(84vw, 328px); height: min(84vw, 328px); overflow: hidden; border: 1px solid var(--rtg-ink); border-radius: 50%; background: var(--rtg-surface); }
+.rtg-spinner-wheel__disc { width: min(84vw, 328px); height: min(84vw, 328px); overflow: hidden; border: 1px solid var(--rtg-ink); border-radius: 50%; background: var(--rtg-surface); transform-origin: center; will-change: transform; }
 .rtg-spinner-wheel__pointer { position: absolute; top: 50%; right: 0; z-index: 2; transform: translateY(-50%); pointer-events: none; }
 .rtg-action-panel .rtg-shop-content { width: 100%; }
 .rtg-shop-content { display: flex; width: 100%; height: 100%; min-height: 0; flex-direction: column; overflow: hidden; background: transparent; color: var(--rtg-ink); }
@@ -1296,6 +1330,11 @@ button.rtg-squad-table__row:hover:not(:disabled) { background: var(--rtg-sunken)
 .rtg-competition-row__toggle strong { overflow: hidden; font-family: var(--font-headline); font-size: 15px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
 .rtg-competition-row__toggle small { color: var(--rtg-accent-ink); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
 .rtg-trophy-modal { max-width: 640px; }
+.rtg-trophy-tabs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-bottom: 1px solid rgba(244,241,234,0.18); }
+.rtg-trophy-tabs button { display: flex; min-height: 54px; align-items: center; justify-content: space-between; gap: 10px; border: 0; border-bottom: 2px solid transparent; padding: 10px 24px 9px; background: transparent; color: rgba(244,241,234,0.58); cursor: pointer; font-family: var(--font-stamp); font-size: 10px; letter-spacing: .08em; text-align: left; text-transform: uppercase; }
+.rtg-trophy-tabs button:hover, .rtg-trophy-tabs button.is-active { color: var(--rtg-honour-lit); }
+.rtg-trophy-tabs button.is-active { border-bottom-color: var(--rtg-honour-lit); }
+.rtg-trophy-tabs strong { color: inherit; font-family: var(--font-headline); font-size: 17px; font-weight: 500; }
 .rtg-trophy-modal__body { display: flex; flex-direction: column; gap: 0; }
 .rtg-trophy-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; border-bottom: 1px solid rgba(201,162,77,0.35); padding: 14px 0; }
 .rtg-trophy-row__mark { display: grid; width: 30px; height: 30px; place-items: center; color: var(--rtg-honour-lit); }
@@ -1303,6 +1342,9 @@ button.rtg-squad-table__row:hover:not(:disabled) { background: var(--rtg-sunken)
 .rtg-trophy-row__copy span, .rtg-trophy-row__copy small, .rtg-trophy-row time { color: rgba(244,241,234,0.62); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
 .rtg-trophy-row__copy strong { overflow: hidden; color: var(--rtg-surface); font-family: var(--font-headline); font-size: 16px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .rtg-trophy-row time { color: var(--rtg-honour-lit); white-space: nowrap; }
+@media (max-width: 639px) {
+  .rtg-trophy-tabs button { padding-inline: 16px; font-size: 9px; }
+}
 .rtg-empty-state--inverse { color: rgba(244,241,234,0.7); }
 .rtg-empty-state--inverse p { color: var(--rtg-surface); }
 .rtg-empty-state--inverse span { color: rgba(244,241,234,0.62); font-size: 13px; }
@@ -2272,12 +2314,9 @@ button.rtg-season-profile__row:hover:not(:disabled) { color: var(--rtg-accent-in
 .rtg-season-close__metrics[data-count="3"] { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 .rtg-season-close__metric { display: flex; min-width: 0; flex-direction: column; gap: 2px; padding: 12px 18px 14px; }
 .rtg-season-close__metric + .rtg-season-close__metric { border-left: 1px solid var(--rtg-rule); }
-.rtg-season-close__metric span, .rtg-season-close__section h3, .rtg-season-close__award span { color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.rtg-season-close__metric span, .rtg-season-close__award span { color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
 .rtg-season-close__metric strong { overflow: hidden; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 20px; font-weight: 600; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
 .rtg-season-close__metric strong.is-accent { color: var(--rtg-honour); }
-.rtg-season-close__columns { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 28px; padding: 20px 24px 16px; }
-.rtg-season-close__section { min-width: 0; }
-.rtg-season-close__section h3 { margin: 0 0 8px; border-bottom: 1px solid var(--rtg-rule); padding-bottom: 8px; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 11px; font-weight: 600; letter-spacing: .1em; }
 .rtg-season-close__stats { border-top: 0; }
 .rtg-season-close__stat { display: flex; min-height: 34px; align-items: center; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--rtg-rule); }
 .rtg-season-close__stat span { color: var(--rtg-ink-2); font-family: var(--font-body); font-size: 13px; }
@@ -2290,6 +2329,40 @@ button.rtg-season-profile__row:hover:not(:disabled) { color: var(--rtg-accent-in
 .rtg-season-close__award strong { overflow: hidden; color: var(--rtg-ink); font-family: var(--font-headline); font-size: 14px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .rtg-season-close__award span { font-size: 8px; letter-spacing: .08em; }
 .rtg-season-close__award.is-accent strong { color: var(--rtg-honour); }
+.rtg-season-close__accordion { border-top: 1px solid var(--rtg-rule); }
+.rtg-season-close__accordion-item { border-bottom: 1px solid var(--rtg-rule); }
+.rtg-season-close__accordion-item h3 { margin: 0; }
+.rtg-season-close__accordion-trigger { display: flex; width: 100%; min-height: 64px; align-items: center; justify-content: space-between; gap: 16px; border: 0; padding: 12px 24px; background: transparent; color: var(--rtg-ink); cursor: pointer; text-align: left; }
+.rtg-season-close__accordion-trigger:hover { background: color-mix(in srgb, var(--rtg-surface) 72%, transparent); }
+.rtg-season-close__accordion-trigger > span { display: flex; min-width: 0; flex-direction: column; gap: 3px; }
+.rtg-season-close__accordion-trigger small { color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.rtg-season-close__accordion-trigger strong { color: var(--rtg-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; line-height: 1.15; }
+.rtg-season-close__accordion-trigger i { display: grid; width: 26px; height: 26px; flex: 0 0 auto; place-items: center; border: 1px solid var(--rtg-rule-strong); border-radius: 50%; color: var(--rtg-ink-2); font-family: var(--font-body); font-size: 17px; font-style: normal; line-height: 1; }
+.rtg-season-close__accordion-panel { padding: 0 24px 20px; }
+.rtg-season-close__accordion-panel .rtg-season-close__stats,
+.rtg-season-close__accordion-panel .rtg-season-close__awards { border-top: 1px solid var(--rtg-rule); }
+.rtg-season-close__accordion-panel .rtg-award-ranking-list { gap: 0; }
+.rtg-season-close__accordion-panel .rtg-award-ranking.is-inline { border-top: 0; }
+.rtg-season-close__accordion-panel .rtg-award-ranking.is-inline li { min-height: 44px; padding-inline: 0; }
+.rtg-season-close__accordion-panel .rtg-award-ranking.is-inline li.is-player { padding-left: 8px; }
+.rtg-season-close__accordion-panel .rtg-award-ranking.is-inline li > strong.is-leader { color: var(--rtg-honour); }
+.rtg-award-ranking__more { display: block; padding: 8px 0 0; color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 8px; letter-spacing: .06em; text-transform: uppercase; }
+
+.rtg-award-xi-pitch { position: relative; width: 100%; max-width: 520px; aspect-ratio: 4 / 3; margin: 0 auto; overflow: hidden; border-radius: var(--rtg-radius); background: linear-gradient(135deg, #3e7559 0%, #2b6049 48%, #1f4939 100%); box-shadow: inset 0 0 0 1px rgba(13,43,32,.18), 0 8px 18px rgba(20,42,32,.12); }
+.rtg-award-xi-pitch::after { position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(255,255,255,.055) 0 13%, transparent 13% 26%); content: ""; pointer-events: none; }
+.rtg-award-xi-pitch__outline, .rtg-award-xi-pitch__halfway, .rtg-award-xi-pitch__circle, .rtg-award-xi-pitch__box { position: absolute; z-index: 1; pointer-events: none; }
+.rtg-award-xi-pitch__outline { inset: 12px; border: 1px solid rgba(244,241,234,.46); }
+.rtg-award-xi-pitch__halfway { top: 50%; right: 12px; left: 12px; border-top: 1px solid rgba(244,241,234,.38); }
+.rtg-award-xi-pitch__circle { top: 50%; left: 50%; width: 82px; aspect-ratio: 1; transform: translate(-50%, -50%); border: 1px solid rgba(244,241,234,.38); border-radius: 50%; }
+.rtg-award-xi-pitch__box { left: 50%; width: 27%; height: 22%; transform: translateX(-50%); border: 1px solid rgba(244,241,234,.38); }
+.rtg-award-xi-pitch__box--top { top: 12px; }
+.rtg-award-xi-pitch__box--bottom { bottom: 12px; }
+.rtg-award-xi-pitch__formation { position: absolute; z-index: 2; top: 18px; right: 22px; color: rgba(244,241,234,.56); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .12em; text-transform: uppercase; }
+.rtg-award-xi-pitch__slot { position: absolute; z-index: 3; display: flex; width: 88px; min-height: 48px; transform: translate(-50%, -50%); flex-direction: column; align-items: center; justify-content: center; gap: 1px; border: 1px solid rgba(244,241,234,.28); border-radius: var(--rtg-radius); padding: 5px 6px; background: rgba(247,245,239,.96); color: var(--rtg-ink); text-align: center; }
+.rtg-award-xi-pitch__slot.is-player { border-color: var(--rtg-honour-lit); box-shadow: 0 0 0 2px rgba(226,169,62,.28); }
+.rtg-award-xi-pitch__slot span { color: var(--rtg-ink-3); font-family: var(--font-stamp); font-size: 8px; letter-spacing: .08em; }
+.rtg-award-xi-pitch__slot strong { max-width: 100%; overflow: hidden; font-family: var(--font-headline); font-size: 11px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.rtg-award-xi-pitch__slot small { color: var(--rtg-ink-3); font-family: var(--font-body); font-size: 9px; }
 .rtg-season-close__footer { justify-content: flex-end; min-height: 72px; padding: 14px 24px 18px; }
 .rtg-season-close__footer .rtg-button { flex: 0 0 auto; }
 
@@ -2301,7 +2374,12 @@ button.rtg-season-profile__row:hover:not(:disabled) { color: var(--rtg-accent-in
   .rtg-season-close__metrics[data-count="3"] { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .rtg-season-close__metric:nth-child(3) { border-left: 0; border-top: 1px solid var(--rtg-rule); }
   .rtg-season-close__metric:nth-child(4) { border-top: 1px solid var(--rtg-rule); }
-  .rtg-season-close__columns { grid-template-columns: 1fr; gap: 22px; padding: 18px 20px 14px; }
+  .rtg-season-close__accordion-trigger { min-height: 60px; padding-inline: 20px; }
+  .rtg-season-close__accordion-panel { padding: 0 20px 18px; }
+  .rtg-award-xi-pitch { aspect-ratio: 1 / 1.05; }
+  .rtg-award-xi-pitch__slot { width: 68px; min-height: 40px; padding: 3px 4px; }
+  .rtg-award-xi-pitch__slot strong { font-size: 9px; }
+  .rtg-award-xi-pitch__slot small { font-size: 8px; }
   .rtg-season-close__footer { align-items: stretch; flex-direction: column; gap: 10px; padding: 14px 20px 20px; }
   .rtg-season-close__footer .rtg-button { width: 100%; order: 1; }
 }

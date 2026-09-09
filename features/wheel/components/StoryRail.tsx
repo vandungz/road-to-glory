@@ -11,8 +11,22 @@ export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, pla
   let totalTrophies = 0;
   let ballonDorCount = 0;
   Object.values(seasonRecords).forEach((record) => {
-    totalTrophies += Number(record.standing === 1) + Number(record.domesticCup === "Winner") + Number(record.continentalCup?.result === "Winner") + Number(record.nationalTeam?.result === "Winner");
-    ballonDorCount += Number(record.ballonDorResult === 1 || record.achievements?.ballonDor);
+    if (record.honours && record.honours.length > 0) {
+      const seen = new Set<string>();
+      for (const honour of record.honours) {
+        if (honour.result !== "winner" && honour.result !== "selected") continue;
+        const identity = `${honour.awardKey}:${honour.slotKey ?? "winner"}`;
+        if (seen.has(identity)) continue;
+        seen.add(identity);
+        totalTrophies += 1;
+        if (honour.awardKey === "ballon_dor" && honour.rank === 1) ballonDorCount += 1;
+      }
+    } else {
+      totalTrophies += Number(record.standing === 1) + Number(record.domesticCup === "Winner") + Number(record.continentalCup?.result === "Winner") + Number(record.nationalTeam?.result === "Winner");
+      // `achievements.ballonDor` is a career-level cumulative counter, so it
+      // cannot identify a Ballon d'Or won in this season.
+      ballonDorCount += Number(record.ballonDorResult === 1);
+    }
   });
   const totalSeasons = Math.max(1, currentAge - playerDebutAge + 1);
   return <aside className={`rtg-story-rail ${className}`.trim()} style={style}>
