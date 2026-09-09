@@ -22,6 +22,7 @@ export interface CareerCheckpointSyncState {
   currentAge: number | null;
   currentStep: string | null;
   currentWheel: string | null;
+  seasonContinentalCup: string | null;
 }
 
 const INITIAL_STATE: CareerCheckpointSyncState = {
@@ -32,7 +33,16 @@ const INITIAL_STATE: CareerCheckpointSyncState = {
   currentAge: null,
   currentStep: null,
   currentWheel: null,
+  seasonContinentalCup: null,
 };
+
+function readSeasonContinentalCup(runtimeState: unknown): string | null {
+  if (runtimeState !== null && typeof runtimeState === "object" && !Array.isArray(runtimeState)) {
+    const value = (runtimeState as Record<string, unknown>).continentalCupType;
+    if (typeof value === "string" && value.length > 0) return value;
+  }
+  return null;
+}
 
 function newIdempotencyKey(): string {
   return globalThis.crypto.randomUUID();
@@ -70,6 +80,7 @@ export function useCareerCheckpointSync() {
       currentAge: checkpoint.currentAge,
       currentStep: checkpoint.currentStep,
       currentWheel: checkpoint.currentWheel,
+      seasonContinentalCup: checkpoint.seasonContinentalCup,
     });
   }, [applyState]);
 
@@ -83,6 +94,9 @@ export function useCareerCheckpointSync() {
       currentAge: progress.player.currentAge,
       currentStep: progress.player.currentStep,
       currentWheel: progress.player.currentWheel,
+      seasonContinentalCup: currentSeason
+        ? readSeasonContinentalCup(currentSeason.runtimeState) ?? progress.player.currentContinentalCup
+        : null,
     });
   }, [applyState]);
 
@@ -123,6 +137,7 @@ export function useCareerCheckpointSync() {
     currentStep: string | null;
     currentWheel: string | null;
     seasonId?: string | null;
+    seasonContinentalCup?: string | null;
   }) => {
     applyState({
       playerId: params.playerId,
@@ -132,6 +147,7 @@ export function useCareerCheckpointSync() {
       currentAge: params.currentAge,
       currentStep: params.currentStep,
       currentWheel: params.currentWheel,
+      seasonContinentalCup: params.seasonContinentalCup ?? null,
     });
   }, [applyState]);
 
@@ -149,6 +165,7 @@ export function useCareerCheckpointSync() {
       currentAge: started.age,
       currentStep: started.currentStep,
       currentWheel: "career",
+      seasonContinentalCup: started.seasonContinentalCup,
     });
     return started;
   }, [applyState]);
@@ -271,6 +288,7 @@ export function useCareerCheckpointSync() {
         currentStep: response.nextStep,
         currentWheel: response.isRetired ? null : "career",
         seasonId: response.isRetired ? current.seasonId : null,
+        seasonContinentalCup: null,
       });
       return response;
     } catch (error) {

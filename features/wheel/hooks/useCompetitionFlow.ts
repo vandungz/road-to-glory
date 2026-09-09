@@ -12,6 +12,7 @@ import type { ModalType } from "./useDraftDrum";
 import type { CareerSubStep, CurrentClub, HiddenStats } from "@/types/domain";
 import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import { resolveCompetitionNextStep, type CompetitionNextStep } from "../lib/competition-transition";
 
 interface CompetitionFlowProps {
   playerId: string | null;
@@ -38,6 +39,7 @@ interface CompetitionFlowProps {
   setIsProcessing: (v: boolean) => void;
   setActiveModal: (v: ModalType) => void;
   setYearSimResult: (v: SimulatedSeasonResult | null) => void;
+  setApproachBanner?: (v: string | null) => void;
   setBallonDorNominationWeight: (v: number) => void;
   setBallonDorRankWeights: (v: number[]) => void;
   applySimResultToRecords: (age: number, result: SimulatedSeasonResult) => void;
@@ -60,6 +62,10 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
 
   function showCompetitionResultModal(type: "league" | "cup" | "continental", continueAfterClose?: () => void) {
     pendingAfterCompetitionModalRef.current = continueAfterClose ?? null;
+    // The result modal is part of the transition. Keep the old wheel locked
+    // until the user closes it and the continuation has committed the next
+    // local step.
+    p.setIsProcessing(true);
     p.setActiveModal(type);
   }
 
@@ -70,6 +76,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     callup: string | null,
     tournament: string | null
   ) {
+    p.setIsProcessing(true);
     const luck = p.hiddenStats?.luckRating ?? 10;
     const nationalTournamentType = callup === "called_up"
       ? getNationalTournamentName(
@@ -130,10 +137,45 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     const continueAfterClose = pendingAfterCompetitionModalRef.current;
     pendingAfterCompetitionModalRef.current = null;
     p.setActiveModal(null);
-    continueAfterClose?.();
+    if (continueAfterClose) continueAfterClose();
+    else p.setIsProcessing(false);
   }
 
-  function handleSpinComplete(subStep: string, result: string | number) {
+  function continueAfterCompetition(
+    type: "cup" | "continental",
+    completedStep: "domestic_cup" | "continental_cup",
+    authoritativeNextStep: CareerSubStep | undefined,
+    legacyNextStep: CompetitionNextStep,
+    continuation: (nextStep: CompetitionNextStep) => void,
+  ) {
+    const nextStep = resolveCompetitionNextStep({
+      completedStep,
+      authoritativeNextStep,
+      legacyNextStep,
+      serverAuthoritative: Boolean(p.commitSeasonStats),
+    });
+
+    if (!nextStep) {
+      // Fail closed: never guess that a continental wheel exists when the V2
+      // server did not authorize it. The next user action will resync through
+      // the checkpoint conflict path instead of issuing a wrong wheel command.
+      console.error("Invalid authoritative competition transition", {
+        completedStep,
+        authoritativeNextStep,
+      });
+      p.setApproachBanner?.("Không thể xác nhận bước thi đấu tiếp theo. Career sẽ được đồng bộ lại khi thử lại.");
+      p.setIsProcessing(false);
+      return;
+    }
+
+    showCompetitionResultModal(type, () => continuation(nextStep));
+  }
+
+  function handleSpinComplete(
+    subStep: string,
+    result: string | number,
+    authoritativeNextStep?: CareerSubStep,
+  ) {
     pendingAfterCompetitionModalRef.current = null;
     if (subStep === "standing") {
       const standingVal = result as number;
@@ -145,15 +187,17 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         playerStanding: standingVal,
       }).then((mockTable) => {
         updateCurrentSeasonRecord((record) => ({ ...record, standing: standingVal, leagueTable: mockTable }));
-        p.setCareerSubStep("domestic_cup");
-        p.setIsProcessing(false);
-        showCompetitionResultModal("league");
+        showCompetitionResultModal("league", () => {
+          p.setCareerSubStep("domestic_cup");
+          p.setIsProcessing(false);
+        });
       }).catch((err) => {
         console.error("Error generating league table:", err);
         updateCurrentSeasonRecord((record) => ({ ...record, standing: standingVal }));
-        p.setCareerSubStep("domestic_cup");
-        p.setIsProcessing(false);
-        showCompetitionResultModal("league");
+        showCompetitionResultModal("league", () => {
+          p.setCareerSubStep("domestic_cup");
+          p.setIsProcessing(false);
+        });
       });
     }
     else if (subStep === "domestic_cup") {
@@ -161,25 +205,25 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       p.setDomesticCupResult(cupVal);
 
       const advanceFromDomesticCup = () => {
-        if (p.currentContinentalCup !== "none") {
-          p.setCareerSubStep("continental_cup");
-          p.setIsProcessing(false);
-          showCompetitionResultModal("cup");
-          return;
-        }
-
-        const next = p.checkNationalCallupTransition();
-        if (next === "national_callup") {
-          p.setCareerSubStep("national_callup");
-          p.setIsProcessing(false);
-          showCompetitionResultModal("cup");
-          return;
-        }
-
-        p.setIsProcessing(false);
-        showCompetitionResultModal("cup", () => {
-          void triggerSeasonStats(p.standingResult, cupVal, p.continentalCupResult, null, null);
-        });
+        const legacyNextStep: CompetitionNextStep = p.currentContinentalCup !== "none"
+          ? "continental_cup"
+          : p.checkNationalCallupTransition() === "national_callup"
+            ? "national_callup"
+            : "season_stats";
+        continueAfterCompetition(
+          "cup",
+          "domestic_cup",
+          authoritativeNextStep,
+          legacyNextStep,
+          (nextStep) => {
+            if (nextStep === "season_stats") {
+              void triggerSeasonStats(p.standingResult, cupVal, p.continentalCupResult, null, null);
+            } else {
+              p.setCareerSubStep(nextStep);
+              p.setIsProcessing(false);
+            }
+          },
+        );
       };
 
       generateCupJourneyAction({
@@ -202,18 +246,23 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       const cupLabel = getContinentalCupLabel(p.currentContinentalCup);
 
       const advanceFromContinentalCup = () => {
-        const next = p.checkNationalCallupTransition();
-        if (next === "national_callup") {
-          p.setCareerSubStep("national_callup");
-          p.setIsProcessing(false);
-          showCompetitionResultModal("continental");
-          return;
-        }
-
-        p.setIsProcessing(false);
-        showCompetitionResultModal("continental", () => {
-          void triggerSeasonStats(p.standingResult, p.domesticCupResult, contVal, null, null);
-        });
+        const legacyNextStep: CompetitionNextStep = p.checkNationalCallupTransition() === "national_callup"
+          ? "national_callup"
+          : "season_stats";
+        continueAfterCompetition(
+          "continental",
+          "continental_cup",
+          authoritativeNextStep,
+          legacyNextStep,
+          (nextStep) => {
+            if (nextStep === "season_stats") {
+              void triggerSeasonStats(p.standingResult, p.domesticCupResult, contVal, null, null);
+            } else {
+              p.setCareerSubStep(nextStep);
+              p.setIsProcessing(false);
+            }
+          },
+        );
       };
 
       generateCupJourneyAction({

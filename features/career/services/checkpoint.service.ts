@@ -1,5 +1,6 @@
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { finalizeBallonDorRanking, syncAchievementCache } from "./award-persistence.service";
 import type {
   ResolveWheelCommand,
   WheelCheckpointDto,
@@ -31,6 +32,7 @@ export class CheckpointCommandError extends Error {
 
 interface PlayerCheckpointState {
   id: string;
+  name?: string;
   gameSessionId: string;
   revision: number;
   peakOvr: number;
@@ -119,10 +121,13 @@ export interface CareerSeasonStartDto {
   age: number;
   revision: number;
   currentStep: string;
+  /** Ticket assigned to this exact season, not the player's next-season projection. */
+  seasonContinentalCup: string;
 }
 
 const playerCheckpointSelect = {
   id: true,
+  name: true,
   gameSessionId: true,
   revision: true,
   peakOvr: true,
@@ -175,6 +180,7 @@ function toCheckpointDto(
     publicResult: unknown;
   },
   player: PlayerCheckpointState,
+  seasonRuntimeState: unknown,
   replayed: boolean,
 ): WheelCheckpointDto {
   const latest = Array.isArray(player.statsTimeline)
@@ -192,6 +198,10 @@ function toCheckpointDto(
     currentAge: player.currentAge,
     currentStep: player.currentStep,
     currentWheel: player.currentWheel,
+    // Legacy in-progress rows may predate the runtime ticket. Once a season
+    // is missing that field, the projection is the only compatible fallback;
+    // startCareerSeasonCommand repairs the row for subsequent requests.
+    seasonContinentalCup: readSeasonContinentalCup(seasonRuntimeState) ?? player.currentContinentalCup,
     outcome: checkpoint.outcome,
     publicResult: checkpoint.publicResult,
     currentOvr: typeof latestRecord.ovr === "number" ? latestRecord.ovr : player.peakOvr,
@@ -200,6 +210,14 @@ function toCheckpointDto(
     ),
     replayed,
   };
+}
+
+function readSeasonContinentalCup(runtimeState: unknown): string | null {
+  if (runtimeState !== null && typeof runtimeState === "object" && !Array.isArray(runtimeState)) {
+    const value = (runtimeState as Record<string, unknown>).continentalCupType;
+    if (typeof value === "string" && value.length > 0) return value;
+  }
+  return null;
 }
 
 /** Starts exactly one in-progress season for the current career projection. */
@@ -229,15 +247,36 @@ export async function startCareerSeasonCommand(params: {
         age: player.currentAge,
         status: "in_progress",
       },
-      select: { id: true, seasonNumber: true, age: true },
+      select: { id: true, seasonNumber: true, age: true, runtimeState: true },
     });
     if (existingSeason) {
+      const existingRuntime = existingSeason.runtimeState !== null &&
+        typeof existingSeason.runtimeState === "object" &&
+        !Array.isArray(existingSeason.runtimeState)
+        ? existingSeason.runtimeState as Record<string, unknown>
+        : {};
+      const seasonContinentalCup = readSeasonContinentalCup(existingRuntime) ?? player.currentContinentalCup;
+      // Rows created before the immutable season ticket was introduced may not
+      // contain it. Repair that row once, then every client receives the same
+      // source of truth instead of falling back to a stale UI projection.
+      if (readSeasonContinentalCup(existingRuntime) === null) {
+        await tx.careerSeason.update({
+          where: { id: existingSeason.id },
+          data: {
+            runtimeState: {
+              ...existingRuntime,
+              continentalCupType: seasonContinentalCup,
+            } as Prisma.InputJsonValue,
+          },
+        });
+      }
       return {
         seasonId: existingSeason.id,
         seasonNumber: existingSeason.seasonNumber,
         age: existingSeason.age,
         revision: player.revision,
         currentStep: player.currentStep,
+        seasonContinentalCup,
       };
     }
     if (player.currentStep !== "idle") {
@@ -302,6 +341,7 @@ export async function startCareerSeasonCommand(params: {
       age: player.currentAge,
       revision: params.expectedRevision + 1,
       currentStep: player.isUnemployed ? "dir_increase" : "standing",
+      seasonContinentalCup: player.currentContinentalCup,
     };
   });
 }
@@ -354,11 +394,32 @@ export async function resolveWheelCheckpointCommand(params: {
           "Idempotency key đã được dùng cho command khác",
         );
       }
-      return toCheckpointDto(replay, player, true);
+      return toCheckpointDto(replay, player, season.runtimeState, true);
     }
 
     if (season.status !== "in_progress") {
       throw new CheckpointCommandError("SEASON_NOT_ACTIVE", "Mùa giải đã đóng");
+    }
+
+    const existingRuntime = season.runtimeState !== null &&
+      typeof season.runtimeState === "object" &&
+      !Array.isArray(season.runtimeState)
+      ? season.runtimeState as Record<string, unknown>
+      : {};
+    const seasonRuntimeTicket = readSeasonContinentalCup(existingRuntime);
+    const authoritativeSeasonRuntimeState = seasonRuntimeTicket !== null
+      ? season.runtimeState
+      : {
+          ...existingRuntime,
+          // Backfill legacy in-progress rows before resolving their next
+          // wheel, so resolver and client receive the same season ticket.
+          continentalCupType: player.currentContinentalCup,
+        };
+    if (seasonRuntimeTicket === null) {
+      await tx.careerSeason.update({
+        where: { id: season.id },
+        data: { runtimeState: authoritativeSeasonRuntimeState as Prisma.InputJsonValue },
+      });
     }
     if (player.checkpointVersion < 2 || player.currentStep === null) {
       throw new CheckpointCommandError(
@@ -412,7 +473,7 @@ export async function resolveWheelCheckpointCommand(params: {
           where: { id: player.id },
           select: playerCheckpointSelect,
         });
-        if (latestPlayer) return toCheckpointDto(concurrentCheckpoint, latestPlayer, true);
+        if (latestPlayer) return toCheckpointDto(concurrentCheckpoint, latestPlayer, season.runtimeState, true);
       }
       throw new CheckpointCommandError("STALE_REVISION", "Career đã có thay đổi đồng thời");
     }
@@ -439,7 +500,7 @@ export async function resolveWheelCheckpointCommand(params: {
 
     const resolution = await resolve({
       player,
-      season,
+      season: { ...season, runtimeState: authoritativeSeasonRuntimeState },
       choice: input.choice,
       currentClub: clubRow
         ? {
@@ -477,6 +538,20 @@ export async function resolveWheelCheckpointCommand(params: {
       },
     });
 
+    let achievementCache: Awaited<ReturnType<typeof syncAchievementCache>> | null = null;
+    if (input.stepKey === "ballon_dor_ranking" && typeof resolution.outcome === "number") {
+      await finalizeBallonDorRanking({
+        tx,
+        playerId: player.id,
+        seasonId: season.id,
+        age: season.age,
+        rank: resolution.outcome,
+        player: { name: player.name ?? "Career Player", position: player.position },
+        club: clubRow ? { id: clubRow.id, name: clubRow.name, leagueId: clubRow.leagueId } : {},
+      });
+      achievementCache = await syncAchievementCache(tx, player.id);
+    }
+
     const nextAge = resolution.nextAge ?? player.currentAge;
     const updated = await tx.careerPlayer.updateMany({
       where: { id: player.id, revision: input.expectedRevision + 1 },
@@ -488,6 +563,7 @@ export async function resolveWheelCheckpointCommand(params: {
           ? { statsTimeline: resolution.statsTimeline as Prisma.InputJsonValue }
           : {}),
         ...(resolution.peakOvr !== undefined ? { peakOvr: resolution.peakOvr } : {}),
+        ...(achievementCache ? { achievements: achievementCache as unknown as Prisma.InputJsonValue } : {}),
         lastCheckpointId: checkpoint.id,
         lastCheckpointAt: checkpoint.createdAt,
       },
@@ -534,6 +610,7 @@ export async function resolveWheelCheckpointCommand(params: {
         ...(resolution.statsTimeline !== undefined ? { statsTimeline: resolution.statsTimeline } : {}),
         ...(resolution.peakOvr !== undefined ? { peakOvr: resolution.peakOvr } : {}),
       },
+      resolution.seasonRuntimeState ?? authoritativeSeasonRuntimeState,
       false,
     );
   });

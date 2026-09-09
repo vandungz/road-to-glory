@@ -25,6 +25,8 @@ export interface WheelCheckpointDto {
   currentAge: number | null;
   currentStep: string | null;
   currentWheel: string | null;
+  /** Ticket assigned to this exact season, not the player's next-season projection. */
+  seasonContinentalCup: string;
   outcome: unknown;
   publicResult: unknown;
   currentOvr: number;

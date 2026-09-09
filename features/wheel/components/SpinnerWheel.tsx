@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, useMotionValue, animate } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
 
 // ============================================================
@@ -62,12 +62,47 @@ function getLabelAtAngle(
   return items.length > 0 ? items[items.length - 1].label : "";
 }
 
+// Preserve the original wheel's gameplay beat while making the braking phase
+// deliberately visible. The wheel cruises first, then uses a cubic ease-out
+// whose initial velocity matches the cruise velocity and reaches exactly zero
+// at the authoritative target. `finishNotBefore` is a hard lifecycle guard:
+// the result callback can never fire before the wheel has had time to complete
+// the gameplay animation, even if a parent re-renders around the target update.
+const WHEEL_MIN_SPIN_MS = 4000;
+const WHEEL_CRUISE_SPEED = 900;
+const WHEEL_ACCELERATION = WHEEL_CRUISE_SPEED * 4;
+
+interface SpinController {
+  frameId: number | null;
+  startedAt: number;
+  finishNotBefore: number;
+  lastTimestamp: number;
+  velocity: number;
+  targetRotation: number | null;
+  completed: boolean;
+  snapshot: SpinSnapshot;
+  deceleration: {
+    startRotation: number;
+    startTimestamp: number;
+    durationMs: number;
+    distance: number;
+  } | null;
+}
+
+interface SpinSnapshot {
+  items: SpinnerItem[];
+  arcSizes: number[];
+  startAngles: number[];
+}
+
 // ============================================================
 // COMPONENT
 // ============================================================
 
 export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low" }: Props) {
   const rotateValue = useMotionValue(0);
+  const spinControllerRef = useRef<SpinController | null>(null);
+  const [spinSnapshot, setSpinSnapshot] = useState<SpinSnapshot | null>(null);
   const itemSignature = useMemo(
     () => items.map((item) => `${item.label}\u0000${item.weight ?? 1}`).join("\u0001"),
     [items],
@@ -82,7 +117,11 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
   const [activeLabel, setActiveLabel] = useState<string>(() => stableItems[0]?.label ?? "");
   const activeLabelRef = useRef(activeLabel);
 
-  const { arcSizes, startAngles } = useMemo(() => computeArcs(stableItems), [stableItems]);
+  const { arcSizes: stableArcSizes, startAngles: stableStartAngles } = useMemo(() => computeArcs(stableItems), [stableItems]);
+  const displayItems = spinSnapshot?.items ?? stableItems;
+  const { arcSizes, startAngles } = spinSnapshot
+    ? { arcSizes: spinSnapshot.arcSizes, startAngles: spinSnapshot.startAngles }
+    : { arcSizes: stableArcSizes, startAngles: stableStartAngles };
   const setLiveLabel = useCallback((nextLabel: string) => {
     if (activeLabelRef.current === nextLabel) return;
     activeLabelRef.current = nextLabel;
@@ -92,41 +131,171 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
   const onSpinCompleteRef = useRef(onSpinComplete);
   useEffect(() => { onSpinCompleteRef.current = onSpinComplete; });
 
-  // Sync active label on items change (substep changed)
+  // Sync active label on items change (substep changed). While a spin is in
+  // progress, keep reading the immutable session snapshot so a parent
+  // re-render cannot switch the labels/pool underneath the animation.
   useEffect(() => {
-    if (stableItems.length === 0) return;
+    if (displayItems.length === 0) return;
     const r = rotateValue.get();
     const pointerAngle = ((90 - (r % 360)) % 360 + 360) % 360;
-    setLiveLabel(getLabelAtAngle(pointerAngle, stableItems, startAngles, arcSizes));
-  }, [stableItems, startAngles, arcSizes, rotateValue, setLiveLabel]);
+    setLiveLabel(getLabelAtAngle(pointerAngle, displayItems, startAngles, arcSizes));
+  }, [displayItems, startAngles, arcSizes, rotateValue, setLiveLabel]);
 
   // Subscribe to rotation → update live label
   useEffect(() => {
     const unsubscribe = rotateValue.on("change", (r) => {
       const pointerAngle = ((90 - (r % 360)) % 360 + 360) % 360;
-      setLiveLabel(getLabelAtAngle(pointerAngle, stableItems, startAngles, arcSizes));
+      setLiveLabel(getLabelAtAngle(pointerAngle, displayItems, startAngles, arcSizes));
     });
     return () => unsubscribe();
-  }, [rotateValue, stableItems, startAngles, arcSizes, setLiveLabel]);
+  }, [rotateValue, displayItems, startAngles, arcSizes, setLiveLabel]);
 
-  // Trigger animation
+  // One motion profile is used for every wheel spin. The authoritative target
+  // may arrive after the click, but it must not introduce a second animation
+  // with a different speed/easing profile.
   useEffect(() => {
-    if (!isSpinning || targetIndex < 0 || targetIndex >= stableItems.length) return;
+    if (!isSpinning) {
+      const controller = spinControllerRef.current;
+      if (controller?.frameId !== null && controller?.frameId !== undefined) {
+        cancelAnimationFrame(controller.frameId);
+      }
+      spinControllerRef.current = null;
+      setSpinSnapshot(null);
+      return;
+    }
 
-    const targetMidAngle = startAngles[targetIndex] + arcSizes[targetIndex] / 2;
+    if (spinControllerRef.current) return;
+
+    const snapshot: SpinSnapshot = {
+      items: stableItems,
+      arcSizes: stableArcSizes,
+      startAngles: stableStartAngles,
+    };
+
+    const startedAt = performance.now();
+    const controller: SpinController = {
+      frameId: null,
+      startedAt,
+      finishNotBefore: startedAt + WHEEL_MIN_SPIN_MS,
+      lastTimestamp: startedAt,
+      velocity: 0,
+      targetRotation: null,
+      deceleration: null,
+      completed: false,
+      snapshot,
+    };
+    spinControllerRef.current = controller;
+    setSpinSnapshot(snapshot);
+
+    const tick = (timestamp: number) => {
+      if (spinControllerRef.current !== controller) return;
+
+      const elapsed = Math.min(Math.max((timestamp - controller.lastTimestamp) / 1000, 0), 0.05);
+      controller.lastTimestamp = timestamp;
+      const currentRotation = rotateValue.get();
+
+      if (controller.deceleration) {
+        const { startRotation, startTimestamp, durationMs, distance } = controller.deceleration;
+        const progress = Math.min((timestamp - startTimestamp) / durationMs, 1);
+        // Ease-out cubic. Its derivative at progress 0 is 3, so the duration
+        // is chosen as 3 * distance / velocity below to make the hand-off
+        // from cruise to braking continuous instead of visibly snapping.
+        const remaining = 1 - progress;
+        const travelled = distance * (1 - remaining * remaining * remaining);
+        rotateValue.set(startRotation + travelled);
+        if (progress >= 1 && !controller.completed) {
+          const finishDelayMs = controller.finishNotBefore - timestamp;
+          if (finishDelayMs > 0) {
+            // The target is already visually stopped. Keep the completion
+            // callback behind the minimum gameplay duration instead of
+            // revealing the next step early.
+            controller.frameId = requestAnimationFrame(tick);
+            return;
+          }
+
+          controller.completed = true;
+          // The motion value is updated in this frame, but React must not
+          // reveal the result in the same callback. Give the browser two paint
+          // opportunities: one for the exact stopped wheel, one for the
+          // result hand-off. This prevents the result panel from appearing
+          // while the disc is still visually finishing its last frame.
+          controller.frameId = requestAnimationFrame(() => {
+            controller.frameId = requestAnimationFrame(() => {
+              if (spinControllerRef.current !== controller) return;
+              controller.frameId = null;
+              spinControllerRef.current = null;
+              onSpinCompleteRef.current();
+            });
+          });
+          return;
+        }
+      } else {
+        controller.velocity = Math.min(
+          WHEEL_CRUISE_SPEED,
+          controller.velocity + WHEEL_ACCELERATION * elapsed,
+        );
+        const nextRotation = currentRotation + controller.velocity * elapsed;
+        rotateValue.set(nextRotation);
+
+        if (controller.targetRotation !== null && controller.velocity >= WHEEL_CRUISE_SPEED) {
+          const distanceToTarget = controller.targetRotation - nextRotation;
+          const elapsedSinceStart = timestamp - controller.startedAt;
+          const remainingMinimumMs = Math.max(0, WHEEL_MIN_SPIN_MS - elapsedSinceStart);
+          // Keep the result hand-off at or after the original 3.5s beat. Any
+          // added distance is a full 360° turn, so the pointer still lands on
+          // the exact authoritative item.
+          const minimumDistance = (remainingMinimumMs / 1000) * controller.velocity / 3;
+          const additionalTurns = Math.max(
+            0,
+            Math.ceil((minimumDistance - distanceToTarget) / 360),
+          );
+          controller.targetRotation += additionalTurns * 360;
+          const distance = controller.targetRotation - nextRotation;
+          // `timestamp` is in milliseconds, so keep the controller's duration
+          // in the same unit. Mixing seconds and milliseconds makes the
+          // cubic brake finish in a few milliseconds and leaves the UI waiting
+          // while the wheel is already visually stopped.
+          const durationMs = (3 * distance / controller.velocity) * 1000;
+          controller.deceleration = {
+            startRotation: nextRotation,
+            startTimestamp: timestamp,
+            durationMs,
+            distance,
+          };
+        }
+      }
+
+      controller.frameId = requestAnimationFrame(tick);
+    };
+
+    controller.frameId = requestAnimationFrame(tick);
+    return () => {
+      if (controller.frameId !== null) cancelAnimationFrame(controller.frameId);
+      if (spinControllerRef.current === controller) spinControllerRef.current = null;
+    };
+    // This effect intentionally starts/stops only at the isSpinning boundary.
+    // Do not make it depend on the rendered item pool: unrelated parent
+    // updates must never cancel a live gameplay animation.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isSpinning]);
+
+  useEffect(() => {
+    const controller = spinControllerRef.current;
+    if (!controller || !isSpinning || controller.targetRotation !== null) return;
+    const sessionItems = controller.snapshot.items;
+    const sessionArcSizes = controller.snapshot.arcSizes;
+    const sessionStartAngles = controller.snapshot.startAngles;
+    if (targetIndex < 0 || targetIndex >= sessionItems.length) return;
+
+    const targetMidAngle = sessionStartAngles[targetIndex] + sessionArcSizes[targetIndex] / 2;
     const rotationToTarget = ((90 - targetMidAngle) % 360 + 360) % 360;
-    const finalRotation = 2160 + rotationToTarget;
-
-    rotateValue.set(0);
-
-    const anim = animate(rotateValue, finalRotation, {
-      duration: 3.5,
-      ease: [0.12, 0, 0.39, 1],
-      onComplete: () => onSpinCompleteRef.current(),
-    });
-
-    return () => anim.stop();
-  }, [isSpinning, targetIndex, startAngles, arcSizes, stableItems.length, rotateValue]);
+    const currentRotation = rotateValue.get();
+    const currentAngle = ((currentRotation % 360) + 360) % 360;
+    const extraTurnToTarget = ((rotationToTarget - currentAngle) % 360 + 360) % 360;
+    // Keep at least two full turns after the authoritative target arrives.
+    // The deceleration controller will preserve the current cruise velocity.
+    controller.targetRotation = currentRotation + 720 + extraTurnToTarget;
+  }, [isSpinning, targetIndex, rotateValue]);
 
   return (
     <div className={`rtg-spinner-wheel rtg-spinner-wheel--${stakes}`}>
@@ -154,7 +323,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
         >
           <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%" }}>
             <g>
-              {stableItems.map((item, idx) => {
+              {displayItems.map((item, idx) => {
                 const startAngle = startAngles[idx];
                 const arcSize = arcSizes[idx];
                 const endAngle = startAngle + arcSize;
@@ -174,7 +343,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
 
                 // Text: center of arc, radial orientation
                 const textAngle = startAngle + arcSize / 2;
-                const showText  = stableItems.length <= 10 || arcSize >= 10;
+                const showText  = displayItems.length <= 10 || arcSize >= 10;
                 const fontSize  = arcSize >= 50 ? "0.72rem" : arcSize >= 30 ? "0.58rem" : arcSize >= 16 ? "0.45rem" : "0.32rem";
                 const isFullCircle = arcSize >= 359.999;
 

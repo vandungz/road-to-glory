@@ -4,6 +4,7 @@ import { evolvePlayerStatsService } from "@/features/player/services/stats-evolu
 import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
 import type { CurrentClub, HiddenStats, StatSnapshot } from "@/types/domain";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
+import { AWARD_MODEL_VERSION, AWARD_RESOLUTION_VERSION } from "@/types/awards";
 import { getWheelTypeForStep } from "@/features/career/contracts/wheel-step.contract";
 
 // Backwards-compatible server import for contract smoke checks and callers that
@@ -53,6 +54,14 @@ function emptyUnemployedSeasonResult(): SimulatedSeasonResult {
     leagueStats: zeroCompetition,
     domesticCupStats: zeroCompetition,
     ballonDor: { eligible: false, nominationWeight: 0, rankWeights: [] },
+    awardSimulation: {
+      modelVersion: AWARD_MODEL_VERSION,
+      resolutionVersion: AWARD_RESOLUTION_VERSION,
+      candidateUniverseSize: 0,
+      snapshots: [],
+      honours: [],
+      ballonDor: { eligible: false, nominationWeight: 0, rankWeights: [], snapshotKey: "" },
+    },
   };
 }
 
@@ -100,6 +109,17 @@ function asRuntimeState(value: unknown): RuntimeState {
       : [],
     evolutionCount: typeof state.evolutionCount === "number" ? state.evolutionCount : null,
   };
+}
+
+function getSeasonContinentalCup(context: WheelCheckpointResolverContext): string {
+  const seasonRuntime = asRecord(context.season.runtimeState);
+  return typeof seasonRuntime.continentalCupType === "string"
+    ? seasonRuntime.continentalCupType
+    : context.player.currentContinentalCup;
+}
+
+function seasonHasContinentalCup(context: WheelCheckpointResolverContext): boolean {
+  return getSeasonContinentalCup(context) !== "none";
 }
 
 function getCurrentStats(value: unknown, position: string): Record<string, number> {
@@ -150,7 +170,7 @@ function getNextStep(
   const nextAfterGrowth = isFinalSeason ? "resolved" : "transfer";
   if (stepKey === "standing") return "domestic_cup";
   if (stepKey === "domestic_cup") {
-    if (context.player.currentContinentalCup !== "none") return "continental_cup";
+    if (seasonHasContinentalCup(context)) return "continental_cup";
     return context.season.age % 2 === 0 ? "national_callup" : "season_stats";
   }
   if (stepKey === "continental_cup") {
@@ -244,7 +264,9 @@ export function resolveServerCareerWheel(
       leagueSize: context.leagueSize,
       lastYearStanding: getLastStanding(context.player.seasonHistory, currentAge),
       standingResult: runtime.standingResult ?? null,
-      currentContinentalCup: context.player.currentContinentalCup,
+      // The active season owns the ticket. The player projection may already
+      // represent next season after a transfer/season transition.
+      currentContinentalCup: getSeasonContinentalCup(context),
       playerNationality: context.player.nationality,
       selectedStatsList: runtime.selectedStatsList ?? [],
       selectorIndex: runtime.selectorIndex ?? 0,

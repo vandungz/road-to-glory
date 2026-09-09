@@ -13,6 +13,7 @@ interface WheelGameHeaderProps {
   overall?: number | null;
   shopHref?: string;
   onOpenTrophyCabinet?: () => void;
+  isBusy?: boolean;
 }
 
 export function WheelGameHeader({
@@ -27,18 +28,32 @@ export function WheelGameHeader({
   overall,
   shopHref,
   onOpenTrophyCabinet,
+  isBusy = false,
 }: WheelGameHeaderProps) {
   return (
     <header className="rtg-wheel-header">
       <div className="rtg-wheel-header__identity">
-        <Link className="rtg-wheel-header__back" href={backHref}>
-          <ArrowLeft aria-hidden="true" size={14} />
-          <span>Bản đồ đội hình</span>
-        </Link>
+        {isBusy ? (
+          <button className="rtg-wheel-header__back" type="button" disabled aria-label="Bản đồ đội hình (đang quay)">
+            <ArrowLeft aria-hidden="true" size={14} />
+            <span>Bản đồ đội hình</span>
+          </button>
+        ) : (
+          <Link className="rtg-wheel-header__back" href={backHref}>
+            <ArrowLeft aria-hidden="true" size={14} />
+            <span>Bản đồ đội hình</span>
+          </Link>
+        )}
         <i className="rtg-wheel-header__separator" aria-hidden="true" />
-        <Link className="rtg-wheel-header__wordmark" href="/">
-          <span>Road to Glory</span>
-        </Link>
+        {isBusy ? (
+          <button className="rtg-wheel-header__wordmark" type="button" disabled aria-label="Road to Glory (đang quay)">
+            <span>Road to Glory</span>
+          </button>
+        ) : (
+          <Link className="rtg-wheel-header__wordmark" href="/">
+            <span>Road to Glory</span>
+          </Link>
+        )}
       </div>
 
       <div className="rtg-wheel-header__right">
@@ -62,7 +77,7 @@ export function WheelGameHeader({
           <>
             <i className="rtg-wheel-header__separator" aria-hidden="true" />
             <div className="rtg-wheel-header__actions">
-              {shopHref ? (
+              {shopHref && !isBusy ? (
                 <Link className="rtg-wheel-header__icon-button" href={shopHref} aria-label="Cửa hàng">
                   <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.6} />
                 </Link>
@@ -71,7 +86,7 @@ export function WheelGameHeader({
                   <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.6} />
                 </button>
               )}
-              <button className="rtg-wheel-header__icon-button" type="button" onClick={onOpenTrophyCabinet} aria-label="Tủ danh hiệu">
+              <button className="rtg-wheel-header__icon-button" type="button" onClick={isBusy ? undefined : onOpenTrophyCabinet} disabled={isBusy} aria-label={isBusy ? "Tủ danh hiệu (đang quay)" : "Tủ danh hiệu"}>
                 <Trophy aria-hidden="true" size={19} strokeWidth={1.6} />
               </button>
             </div>

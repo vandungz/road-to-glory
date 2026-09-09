@@ -215,6 +215,8 @@ export function useCareerWheelItems({
         break;
       }
       case "continental_cup": {
+        // Fail closed while an invalid/stale transition is being recovered.
+        if (currentContinentalCup === "none") break;
         const nameLabel = getContinentalCupLabel(currentContinentalCup);
         const pool = buildContinentalCupPool(teamCtx);
         items = pool.map((p) => ({

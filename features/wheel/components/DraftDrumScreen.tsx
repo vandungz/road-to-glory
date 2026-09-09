@@ -91,11 +91,11 @@ export function DraftDrumScreen({
     careerSubStep,
     isProcessing,
     isBallonDorTransitioning,
+    seasonTicketResolved,
     startCareerError,
     careerSpinning,
     careerWheelItems,
     careerTargetIndex,
-    careerTempValue,
     yearEvolution,
     evolvedStatsThisYear,
     standingResult,
@@ -200,8 +200,10 @@ export function DraftDrumScreen({
     ? undefined
     : `/classic/${gameId}/shop/${slotIndex}?season=${shopTargetSeason}&return=${careerSubStep === "resolved" ? "advance" : "start"}`;
   const transferHref = `/classic/${gameId}/transfer/${slotIndex}?return=${careerSubStep === "transfer" ? "advance" : "start"}`;
+  const wheelInteractionLocked = isSpinning || careerSpinning || isProcessing;
 
   async function openModule(href: string, shouldPersist: boolean) {
+    if (wheelInteractionLocked) return;
     if (shouldPersist && !(await persistCurrentProgress())) return;
     router.push(href);
   }
@@ -209,6 +211,19 @@ export function DraftDrumScreen({
   return (
     <div
       className={`game-dashboard-wrapper rtg-wheel-shell${mode === "retired" ? " rtg-retired-shell" : ""}`}
+      onClickCapture={(event) => {
+        // A wheel spin is a single gameplay transaction. Ignore stray clicks
+        // on the dashboard while its server result is being animated; this
+        // prevents a tab/profile/navigation handler from interrupting the
+        // wheel session or exposing the result before its completion callback.
+        if (!wheelInteractionLocked) return;
+        // Modal content is rendered through a React portal. Portal events
+        // still bubble through this component tree even though the modal is
+        // outside the dashboard DOM; never swallow its action buttons.
+        if (event.target instanceof Element && event.target.closest(".modal-overlay, [role=\"dialog\"]")) return;
+        event.preventDefault();
+        event.stopPropagation();
+      }}
       style={{
         backgroundColor: "var(--cream)",
         backgroundImage: "none",
@@ -225,7 +240,10 @@ export function DraftDrumScreen({
         currentClubName={mode === "setup" ? undefined : currentClub?.name}
         overall={mode === "setup" ? undefined : currentOvr}
         shopHref={shopHref}
-        onOpenTrophyCabinet={() => setIsTrophyCabinetOpen(true)}
+        isBusy={wheelInteractionLocked}
+        onOpenTrophyCabinet={() => {
+          if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
+        }}
       />
 
       {/* ── MODE 1: SETUP WHEELS ── */}
@@ -259,9 +277,9 @@ export function DraftDrumScreen({
           <main className="game-dashboard-main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
             <TabsList className="game-mobile-switcher">
-              <TabsTrigger value="action" active={mobileSection === "action"} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thao tác</TabsTrigger>
-              <TabsTrigger value="story" active={mobileSection === "story"} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Nhật ký</TabsTrigger>
-              <TabsTrigger value="panini" active={mobileSection === "panini"} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thẻ</TabsTrigger>
+              <TabsTrigger value="action" active={mobileSection === "action"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thao tác</TabsTrigger>
+              <TabsTrigger value="story" active={mobileSection === "story"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Nhật ký</TabsTrigger>
+              <TabsTrigger value="panini" active={mobileSection === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thẻ</TabsTrigger>
             </TabsList>
 
             <MobileCareerContext
@@ -286,7 +304,9 @@ export function DraftDrumScreen({
                   playerDebutAge={playerDebutAge}
                   currentOvr={currentOvr}
                   peakOvrValue={peakOvrValue}
-                  onOpenTrophyCabinet={() => setIsTrophyCabinetOpen(true)}
+                  onOpenTrophyCabinet={() => {
+                    if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
+                  }}
                   className=""
                   style={{ width: "100%", height: "100%" }}
                 />
@@ -301,12 +321,12 @@ export function DraftDrumScreen({
                   playerCareerLength={playerCareerLength}
                   currentClub={currentClub}
                   currentContinentalCup={currentContinentalCup}
+                  seasonTicketResolved={seasonTicketResolved}
                   careerSpinning={careerSpinning}
                   isProcessing={isProcessing}
                   careerWheelItems={careerWheelItems}
                   careerTargetIndex={careerTargetIndex}
                   handleCareerSpinComplete={handleCareerSpinComplete}
-                  careerTempValue={careerTempValue}
                   handleCareerSpin={handleCareerSpin}
                   isUnemployed={isUnemployed}
                   yearSimResult={yearSimResult}
@@ -329,9 +349,9 @@ export function DraftDrumScreen({
                 
                 {/* TAB SWITCH HEADER */}
                 <TabsList className="rtg-tab-list">
-                  <TabsTrigger value="panini" active={rightTab === "panini"} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Thẻ cầu thủ</TabsTrigger>
-                  <TabsTrigger value="profile" active={rightTab === "profile"} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Mùa giải</TabsTrigger>
-                  <TabsTrigger value="transfer" active={rightTab === "transfer"} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Hợp đồng</TabsTrigger>
+                  <TabsTrigger value="panini" active={rightTab === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Thẻ cầu thủ</TabsTrigger>
+                  <TabsTrigger value="profile" active={rightTab === "profile"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Mùa giải</TabsTrigger>
+                  <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Hợp đồng</TabsTrigger>
                 </TabsList>
 
                 <div className="rtg-dossier-body">
@@ -368,7 +388,9 @@ export function DraftDrumScreen({
                       selectedAgeForStats={selectedAgeForStats}
                       setSelectedAgeForStats={setSelectedAgeForStats}
                       position={position}
-                      onOpenModal={setActiveModal}
+                      onOpenModal={(type) => {
+                        if (!wheelInteractionLocked) setActiveModal(type);
+                      }}
                     />
                   ) : (
                     <section className="rtg-contract-summary">
@@ -383,7 +405,7 @@ export function DraftDrumScreen({
                       <DataRow label="Giá trị thị trường" value={formatEuroThousands(marketValue)} className="rtg-data-row__value--accent" />
                     </div>
                     <p className="rtg-contract-summary__note">Mở cửa sổ để xem đề nghị chuyển nhượng, gia hạn hoặc tìm kiếm CLB mới.</p>
-                    <Button fullWidth disabled={careerSubStep !== "transfer"} onClick={() => router.push(transferHref)}>
+                    <Button fullWidth disabled={careerSubStep !== "transfer" || wheelInteractionLocked} onClick={() => router.push(transferHref)}>
                       {careerSubStep === "transfer" ? "Mở cửa sổ chuyển nhượng & hợp đồng" : "Cửa sổ mở ở cuối mùa"}
                     </Button>
                     </section>
@@ -484,7 +506,6 @@ export function DraftDrumScreen({
           yearSimResult={yearSimResult}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
-          hasBallonDorWinner={hasBallonDorWinner}
           onClose={handleSeasonStatsModalClose}
         />
       )}

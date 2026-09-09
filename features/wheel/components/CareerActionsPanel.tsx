@@ -17,12 +17,12 @@ interface CareerActionsPanelProps {
   playerCareerLength?: number;
   currentClub: CurrentClub | null;
   currentContinentalCup: string;
+  seasonTicketResolved: boolean;
   careerSpinning: boolean;
   isProcessing: boolean;
   careerWheelItems: SpinnerItem[];
   careerTargetIndex: number;
   handleCareerSpinComplete: () => void;
-  careerTempValue: string | null;
   handleCareerSpin: () => void;
   yearSimResult: SimulatedSeasonResult | null;
   standingResult: number | null;
@@ -83,8 +83,9 @@ function cupResultLabel(result: string | null) {
 
 export function CareerActionsPanel({
   careerSubStep, currentAge, playerDebutAge, playerCareerLength, currentClub, currentContinentalCup,
+  seasonTicketResolved,
   careerSpinning, isProcessing, careerWheelItems, careerTargetIndex, handleCareerSpinComplete,
-  careerTempValue, handleCareerSpin, yearSimResult, standingResult, domesticCupResult, hasBallonDorWinner,
+  handleCareerSpin, yearSimResult, standingResult, domesticCupResult, hasBallonDorWinner,
   handleNextSeason, selectorIndex, yearEvolutionCount, yearEvolutionDirection, tempSelectedStat,
   isUnemployed, onOpenTransferModal, onOpenShop,
 }: CareerActionsPanelProps) {
@@ -125,12 +126,17 @@ export function CareerActionsPanel({
           </div>
         )}
 
-        {isWheelStep && (
-          <div className="rtg-wheel-stage">
+        {careerSubStep === "continental_cup" && careerWheelItems.length === 0 && (
+          <div className="rtg-wheel-stage__processing" role="status" aria-live="polite" aria-busy={isProcessing || !seasonTicketResolved}>
+            <span>{!seasonTicketResolved ? "Đang đồng bộ vé tham dự…" : isProcessing ? "Đang xác nhận vé tham dự…" : "Mùa này không có vé tham dự cúp châu lục."}</span>
+          </div>
+        )}
+
+        {isWheelStep && careerWheelItems.length > 0 && (
+          <div className="rtg-wheel-stage" aria-busy={isProcessing}>
             <SpinnerWheel isSpinning={careerSpinning} items={careerWheelItems} targetIndex={careerTargetIndex} onSpinComplete={handleCareerSpinComplete} stakes={isHighStakes ? "high" : ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep) ? "mid" : "low"} />
-            {careerTempValue !== null && !careerSpinning && <ResultBanner>{careerTempValue}</ResultBanner>}
             <Button size="lg" onClick={handleCareerSpin} disabled={careerSpinning || isProcessing} className="rtg-action-panel__primary">
-              {isProcessing && !careerSpinning ? "Đang xử lý..." : isHighStakes ? "Quay vòng danh hiệu" : "Quay bánh xe"}
+              {careerSpinning ? "Đang quay..." : isProcessing ? "Đã nhận kết quả" : isHighStakes ? "Quay vòng danh hiệu" : "Quay bánh xe"}
             </Button>
           </div>
         )}

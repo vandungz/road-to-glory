@@ -46,7 +46,7 @@ function publicCurrentClub(value: unknown, isUnemployed: boolean) {
 }
 
 const PUBLIC_RUNTIME_KEYS = [
-  "yearSimResult", "standingResult", "domesticCupResult", "continentalCupResult",
+  "yearSimResult", "continentalCupType", "standingResult", "domesticCupResult", "continentalCupResult",
   "nationalCallupResult", "nationalTournamentResult", "selectedStatsList", "selectorIndex",
   "yearEvolutionDirection", "ballonDorNominationWeight", "ballonDorRankWeights",
   "ballonDorRank", "evolvedStatsThisYear", "evolutionCount", "lastWheel",
@@ -54,11 +54,22 @@ const PUBLIC_RUNTIME_KEYS = [
 
 function publicRuntimeState(value: unknown): Record<string, unknown> {
   const runtime = asRecord(value);
-  return Object.fromEntries(
-    PUBLIC_RUNTIME_KEYS
-      .filter((key) => runtime[key] !== undefined)
-      .map((key) => [key, runtime[key]]),
+  const publicRuntime = Object.fromEntries(
+    PUBLIC_RUNTIME_KEYS.filter((key) => runtime[key] !== undefined).map((key) => [key, runtime[key]]),
   );
+  const result = asRecord(publicRuntime.yearSimResult);
+  const ballonDor = asRecord(result.ballonDor);
+  const evaluation = asRecord(ballonDor.evaluation);
+  if (Object.keys(evaluation).length > 0) {
+    const publicEvaluation = Object.fromEntries(
+      Object.entries(evaluation).filter(([key]) => key !== "hiddenStatsScore"),
+    );
+    publicRuntime.yearSimResult = {
+      ...result,
+      ballonDor: { ...ballonDor, evaluation: publicEvaluation },
+    };
+  }
+  return publicRuntime;
 }
 
 type SeasonRow = {
