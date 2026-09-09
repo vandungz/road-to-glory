@@ -9,6 +9,7 @@ import {
   getWheelTypeForStep,
   resolveServerCareerWheel,
 } from "@/features/career/services/server-wheel-resolver.service";
+import { resolveCompetitionNextStep } from "@/features/wheel/lib/competition-transition";
 import { resolveWeightedOutcome } from "@/lib/wheel-engine/spin-resolver";
 
 const validCommand = {
@@ -109,6 +110,79 @@ const resolution = resolveServerCareerWheel(resolverContext, "standing");
 
 assert.equal(typeof resolution.outcome, "number");
 assert.equal(resolution.nextStep, "domestic_cup");
+
+const continentalSeasonResolution = resolveServerCareerWheel(
+  {
+    ...resolverContext,
+    player: { ...resolverContext.player, currentStep: "domestic_cup", currentContinentalCup: "none" },
+    season: { ...resolverContext.season, runtimeState: { continentalCupType: "UCL" } },
+  },
+  "domestic_cup",
+);
+assert.equal(
+  continentalSeasonResolution.nextStep,
+  "continental_cup",
+  "domestic cup must advance to the season's assigned continental cup, not a stale player projection",
+);
+
+const continentalWheelResolution = resolveServerCareerWheel(
+  {
+    ...resolverContext,
+    player: { ...resolverContext.player, currentStep: "continental_cup", currentContinentalCup: "none" },
+    season: { ...resolverContext.season, runtimeState: { continentalCupType: "UCL" } },
+  },
+  "continental_cup",
+);
+assert.match(
+  String(continentalWheelResolution.publicResult),
+  /UEFA Champions League/,
+  "continental wheel output must use the active season ticket, not the player projection",
+);
+
+const noContinentalSeasonResolution = resolveServerCareerWheel(
+  {
+    ...resolverContext,
+    player: { ...resolverContext.player, currentStep: "domestic_cup", currentContinentalCup: "UCL" },
+    season: { ...resolverContext.season, age: 21, runtimeState: { continentalCupType: "none" } },
+  },
+  "domestic_cup",
+);
+assert.equal(
+  noContinentalSeasonResolution.nextStep,
+  "season_stats",
+  "a season without a continental ticket must not open a stale continental wheel",
+);
+
+assert.equal(
+  resolveCompetitionNextStep({
+    completedStep: "domestic_cup",
+    authoritativeNextStep: "season_stats",
+    legacyNextStep: "continental_cup",
+    serverAuthoritative: true,
+  }),
+  "season_stats",
+  "V2 must not fall back to a stale local continental ticket",
+);
+assert.equal(
+  resolveCompetitionNextStep({
+    completedStep: "domestic_cup",
+    authoritativeNextStep: "transfer",
+    legacyNextStep: "continental_cup",
+    serverAuthoritative: true,
+  }),
+  null,
+  "an invalid V2 competition transition must fail closed",
+);
+assert.equal(
+  resolveCompetitionNextStep({
+    completedStep: "continental_cup",
+    authoritativeNextStep: "continental_cup",
+    legacyNextStep: "season_stats",
+    serverAuthoritative: true,
+  }),
+  null,
+  "continental completion cannot loop back into a continental wheel",
+);
 
 const finalResolution = resolveServerCareerWheel(
   {

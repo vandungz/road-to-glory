@@ -33,11 +33,25 @@ const merged = hydrateCurrentSeasonRecord({
   continentalType: "none",
   nationality: "England",
   debutAge: 17,
-  runtimeState: { standingResult: 13 },
+  runtimeState: { standingResult: 13, continentalCupType: "UCL" },
 });
 
 assert.equal(merged.standing, 13);
 assert.equal(merged.domesticCup, "Winner");
 assert.equal(merged.continentalCup?.type, "UCL");
+assert.equal(merged.continentalCup?.result, "Chờ quay", "stale record must not pre-fill an unplayed continental cup result");
+
+const noTicket = hydrateCurrentSeasonRecord({
+  existing: hydrated,
+  age: 17,
+  clubName: "Newcastle United",
+  leagueName: "Premier League",
+  leagueId: "ENG1",
+  continentalType: "none",
+  nationality: "England",
+  debutAge: 17,
+  runtimeState: { continentalCupType: "none" },
+});
+assert.equal(noTicket.continentalCup, null, "a season without a continental ticket must not inherit a previous cup result");
 
 console.log("season-record-hydration-check: passed");
