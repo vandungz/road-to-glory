@@ -95,6 +95,15 @@ export interface SeasonRecord {
   nationalStats?: CompetitionStats;
   ballonDorResult?: number | null;
   achievements?: AchievementRecord;
+  honours?: Array<{
+    awardKey: string;
+    label: string;
+    rank: number | null;
+    slotKey?: string | null;
+    result: string;
+    metrics?: Record<string, unknown>;
+  }>;
+  awardModelVersion?: string | null;
 }
 
 const BASE_STEP_PREFIX = ["Quốc Tịch", "Tuổi Ra Mắt", "Chiều Cao", "Cân Nặng"];

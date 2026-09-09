@@ -1,5 +1,6 @@
 import type { Formation } from "./game";
 import type { AchievementRecord, ClubStint, SeasonHistory, StatSnapshot } from "./domain";
+import type { CareerHonourView } from "@/features/career/contracts/career-honours.contract";
 
 // ============================================================
 // SLOT CONFIGURATION — Formation pitch positions
@@ -82,6 +83,7 @@ export interface ClientSafePlayer {
   seasonHistory?: SeasonHistory;
   archiveOvrByAge?: Record<number, number>;
   achievements?: AchievementRecord;
+  honours?: CareerHonourView[];
 }
 
 // ============================================================

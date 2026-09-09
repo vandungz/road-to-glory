@@ -86,6 +86,8 @@ model CareerPlayer {
   wheelCheckpoints   WheelCheckpoint[]
   careerEvents       CareerEvent[]
   commands           CareerCommand[]
+  honours            CareerHonour[]
+  awardRankings      CareerAwardRankingSnapshot[]
 
   @@unique([gameSessionId, slotIndex])
   @@map("career_players")
@@ -111,6 +113,8 @@ model CareerSeason {
   wheelCheckpoints WheelCheckpoint[]
   events          CareerEvent[]
   commands        CareerCommand[]
+  honours         CareerHonour[]
+  awardRankings   CareerAwardRankingSnapshot[]
 
   @@unique([careerPlayerId, seasonNumber])
   @@index([careerPlayerId, status])
@@ -177,6 +181,66 @@ model CareerCommand {
   @@unique([careerPlayerId, idempotencyKey])
   @@index([careerPlayerId, commandType, createdAt])
   @@map("career_commands")
+}
+
+model CareerHonour {
+  id                 String        @id @default(uuid()) @db.Uuid
+  careerPlayerId     String        @db.Uuid
+  careerPlayer       CareerPlayer  @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId           String        @db.Uuid
+  season             CareerSeason  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  age                Int
+  seasonLabel        String?
+  category           String
+  awardKey           String
+  scope              String
+  scopeKey           String?
+  awardInstanceKey   String
+  slotKey            String?
+  rank               Int?
+  result             String
+  label              String
+  clubId             String?
+  clubName           String?
+  leagueId           String?
+  metrics            Json
+  modelVersion       String
+  resolutionVersion  String
+  source             String
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@unique([careerPlayerId, awardInstanceKey])
+  @@index([careerPlayerId, seasonId])
+  @@index([careerPlayerId, awardKey, scope, seasonId])
+  @@index([seasonId, awardKey, scope])
+  @@map("career_honours")
+}
+
+model CareerAwardRankingSnapshot {
+  id                 String        @id @default(uuid()) @db.Uuid
+  careerPlayerId     String        @db.Uuid
+  careerPlayer       CareerPlayer  @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId           String        @db.Uuid
+  season             CareerSeason  @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  age                Int
+  seasonLabel        String?
+  snapshotKey        String        @unique
+  awardKey           String
+  scope              String
+  scopeKey           String?
+  modelVersion       String
+  resolutionVersion  String
+  status             String        @default("generated")
+  entries            Json
+  resolution         Json?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+
+  @@index([careerPlayerId, seasonId])
+  @@index([careerPlayerId, awardKey, scope])
+  @@index([seasonId, awardKey, scope])
+  @@map("career_award_ranking_snapshots")
 }
 
 model League {
