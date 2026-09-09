@@ -1,19 +1,21 @@
 # SoT — Danh hiệu, thành tích và Ballon d'Or
 
-> Trạng thái: Audit source hiện tại + contract định hướng cho lần update kế tiếp  
+> Trạng thái: SoT đang áp dụng — canonical award batch và synthetic candidate realism revision v5 đã triển khai trong worktree
 > Ngày audit: 2026-09-08  
-> Commit tham chiếu: `db117cc3e7681f9cdaf5ffa1ea1c50869d51c965`  
+> Commit tham chiếu audit baseline: `1b01f63`
 > Phạm vi: career Classic, season simulation, career V2 checkpoint, legacy save, archive UI.
+
+> Revision 2026-09-08: canonical records/migration và synthetic candidate realism đã triển khai. `CareerHonour` và `CareerAwardRankingSnapshot` là DB authority; simulator version `awards-v5`, resolution version `weighted-random-v5`; candidate giả được sinh từ league context độc lập với OVR của player user và chỉ được gán vào tập CLB thật thuộc league hiện tại của player. Phần audit source cũ bên dưới được giữ để giải thích lỗi đã sửa, không còn mô tả implementation runtime hiện tại.
 
 ## 1. Kết luận điều hành
 
-Feature hiện chưa có một nguồn sự thật duy nhất cho danh hiệu/thành tích. Có ba representation cùng tồn tại:
+Audit baseline trước batch cho thấy feature chưa có một nguồn sự thật duy nhất cho danh hiệu/thành tích. Khi đó có ba representation cùng tồn tại:
 
 1. `seasonHistory[age]`: kết quả thi đấu của từng mùa và `ballonDorResult`.
 2. `CareerPlayer.achievements`: object JSON tích lũy gồm `ballonDor`, `trophies[]`, `seasonAwards[]`.
 3. React state/UI: tự derive lại một phần danh hiệu từ `seasonRecords`, một phần từ `achievements`.
 
-Điểm nghiêm trọng nhất là đường Career V2. State local có gọi `setAchievements`, nhưng server transition V2 chỉ ghi `seasonHistory`, timeline và projection; không ghi `achievements`. Vì vậy refresh giữa các mùa hoặc rehydrate lúc retire có thể làm mất giải cá nhân và số lần Ballon d'Or trong archive. Đây là lỗi persistence, không chỉ là vấn đề hiển thị.
+Điểm nghiêm trọng nhất của baseline là đường Career V2. State local có gọi `setAchievements`, nhưng server transition V2 chỉ ghi `seasonHistory`, timeline và projection; không ghi `achievements`. Vì vậy refresh giữa các mùa hoặc rehydrate lúc retire có thể làm mất giải cá nhân và số lần Ballon d'Or trong archive. Đây là lỗi persistence, không chỉ là vấn đề hiển thị; batch hiện tại đã chuyển authority sang record/snapshot canonical.
 
 Ballon d'Or đã được triển khai theo mini-flow 2 wheel và logic hiện tại đã có test smoke pass. Tuy nhiên logic thực tế khác tài liệu plan cũ: gate hiện là score `58` + OVR `85` + rating `7.0` + availability, không phải gate `75`/OVR `88`/rating `7.8`; goals/assists/clean sheets cũng đang tham gia eligibility score. Tài liệu plan cũ không thể dùng làm SoT.
 
@@ -23,24 +25,55 @@ Các xác nhận sản phẩm đã chốt cho bản update kế tiếp:
 - `docs/ballon-dor-wheel-plan.md` là tài liệu historical/outdated, không phải authority. File này là SoT cập nhật cho domain danh hiệu/thành tích.
 - Golden Boot là giải theo phạm vi league, không phải danh hiệu riêng của club và không được cộng bàn từ domestic cup, continental cup hoặc national team.
 - Cần bổ sung Vua kiến tạo theo cùng nguyên tắc phạm vi league; không dùng tổng assists mọi đấu trường.
-- Best XI và Best Player là hai giải độc lập. Best XI cần chọn theo vị trí/slot và tập ứng viên; Best Player cần một ranking tổng thể riêng, không thể suy ra từ một ngưỡng rating đơn giản.
+- Best XI là selection theo vị trí/slot và được hiển thị bằng pitch board; không phát hành thêm award "Cầu thủ xuất sắc nhất" trong season recap để tránh trùng nghĩa với các cuộc đua role-specific và Ballon d'Or.
+- Best XI mặc định dùng formation 4-3-3; resolver ưu tiên đúng position của slot và cho phép fallback sang vị trí liền kề hợp lý (ví dụ LM → LW, CM → CDM/CAM) khi candidate exact không có.
+- Snapshot Ballon d'Or được simulator tạo sẵn để phục vụ wheel/result page nhưng chỉ được reveal sau khi season recap đóng và Ballon d'Or wheel hoàn tất.
+- OVR, stats, apps và club strength của candidate giả không được phụ thuộc vào `player.ovr`, `player.currentStats` hoặc OVR của career user. User player chỉ được inject vào universe sau khi synthetic league đã được sinh.
+- Với mọi award có scope `league`, `clubName` của candidate giả phải thuộc tập CLB của `player.club.leagueId`; không được dùng danh sách CLB fictional/global ngoài league. Runtime phải load `id/name/prestige` của toàn bộ CLB cùng league từ DB trước khi sinh candidate.
+- Với cùng seed/context, đổi OVR user phải giữ nguyên synthetic universe; chỉ output và thứ hạng của user player được phép thay đổi.
+- Candidate giả phải có availability/role distribution, không mặc định gần như đá đủ toàn bộ league. Competition stats (league/cup/continental) được sinh riêng; Golden Boot/Top Assist chỉ đọc league stats.
+- `CareerSeason.runtimeState.continentalCupType` là ticket continental authoritative của mùa hiện tại. Sau domestic cup, server chỉ mở `continental_cup` khi ticket này khác `none`; không được dùng `player.currentContinentalCup`, `savedContinentalCup` hoặc record lịch sử cũ để tự mở/skip wheel.
+- Resume/hydration phải dựng kết quả continental từ runtime của đúng `CareerSeason`; record cũ chỉ là fallback cho dữ liệu legacy và không được làm kết quả của mùa hiện tại xuất hiện trước khi wheel được resolve.
+- Callback hoàn tất animation phải route theo step đã bắt đầu spin, không đọc lại step UI mutable; mọi checkpoint command vẫn phải được server kiểm tra bằng `player.currentStep` và revision hiện tại.
+- Sau khi người chơi bấm quay, UI phải bắt đầu animation ngay; request authoritative chạy song song phía sau. Khi server trả outcome, wheel giảm tốc vào đúng ô đã resolve rồi mới reveal kết quả. Trong lúc continuation/journey hoặc modal kết quả đang mở, wheel hiện tại bị khóa; chỉ khi modal đóng và continuation hoàn tất mới đổi `careerSubStep`. Không render hoặc cho click wheel kế tiếp trong khoảng chuyển tiếp, và không hiển thị trạng thái “đang xác minh kết quả” trước animation.
+- Checkpoint DTO phải trả ticket của đúng season (`seasonContinentalCup`) để label/pool FE không giữ projection của mùa hoặc CLB cũ; nếu ticket là `none`, continental pool phải fail-closed.
+- Career Trophy Cabinet phải có hai nhóm/tab độc lập: `Danh hiệu CLB` cho team trophy (bao gồm thành tích đội tuyển trong nhóm tập thể) và `Danh hiệu cá nhân` cho award/Ballon d'Or. Profile archive phải hiển thị riêng hai nhóm này.
+- Team trophy label phải được resolve từ context của đúng season: league title dùng `leagueName`, domestic cup dùng `leagueId/leagueName`, continental title dùng `continentalCupType`; không render generic `Vô địch cúp quốc gia` khi đã biết tên giải.
+- Một surface không được ghép lại cùng một award từ canonical honour và fallback projection. Identity display tối thiểu là `season + awardKey + slotKey`; cumulative `achievements.ballonDor` không được dùng làm award của từng season.
 
 ## 2. Luồng hiện tại đã xác minh
 
 ```text
 Competition wheels
   -> commit season stats / simulatePlayerSeasonService
-  -> yearSimResult.events + yearSimResult.ballonDor
+  -> season recap (team honours + league award rankings + Best XI pitch)
   -> Ballon d'Or nomination wheel
   -> Ballon d'Or ranking wheel (#1..#10)
+  -> Ballon d'Or result page reveal snapshot
   -> runtimeState.ballonDorRank
   -> season transition ghi seasonHistory[age].ballonDorResult
   -> UI/archive derive lại từ nhiều nguồn khác nhau
 ```
 
+### 2.0 Invariant chuyển bước và resume
+
+Flow checkpoint V2 có hai nguồn dữ liệu dễ bị lệch nếu không khóa rõ:
+
+1. `CareerSeason.runtimeState` giữ ticket/kết quả của mùa đang chạy.
+2. `CareerPlayer` projection, props resume và `seasonHistory` là projection/cache hoặc dữ liệu mùa cũ.
+
+Vì vậy server resolver phải dùng runtime ticket của season trước khi fallback về projection legacy. FE chỉ hydrate từ public runtime của season hiện tại; không dùng `savedContinentalCup` hoặc `existing.continentalCup.result` để quyết định bước kế tiếp. Mỗi lệnh resolve chỉ hợp lệ khi step gửi lên trùng `player.currentStep`; kết quả callback của wheel phải giữ step lúc bắt đầu spin để tránh race khi state UI đã chuyển.
+
 ### 2.1 Mô phỏng mùa giải và giải cá nhân
 
-`simulatePlayerSeasonService` hiện tạo bốn loại `individual_award` bằng threshold cố định:
+Phần threshold bên dưới là characterization của implementation cũ. Runtime target không được dùng threshold tuyệt đối để phát award. Candidate universe phải được sinh theo league context → synthetic clubs → player role/quality/availability → competition stats, sau đó mới chạy award-specific ranking.
+
+Runtime award simulator sau revision v5 gồm hai boundary rõ ràng:
+
+- `features/season/services/synthetic-league.service.ts` tạo 41 candidate giả từ context giải độc lập với OVR/performance của user, phân bố qua tập CLB thật của league hiện tại (tối thiểu 8 CLB khi league có đủ dữ liệu), nhiều position và squad role; mỗi candidate có OVR, apps, league stats, cup/continental output và team context riêng. Generator chỉ mô phỏng strength/standing/stats quanh CLB được cấp, không phát minh tên CLB ngoài league.
+- `features/season/services/award-simulator.service.ts` chỉ inject user candidate, resolve Golden Boot/Top Assist/Golden Glove/Best XI/Ballon d'Or trên cùng universe rồi persist snapshot. Fake candidate không đọc `player.ovr` hoặc dùng `player.leaguePrestige` làm prestige chung cho các CLB giả.
+
+`simulatePlayerSeasonService` của baseline cũ từng tạo bốn loại `individual_award` bằng threshold cố định:
 
 - ST/LW/RW đạt từ 20 bàn tổng hợp: "chiếc giày vàng CLB".
 - GK đạt từ 15 clean sheets: "Găng tay vàng".
@@ -49,7 +82,7 @@ Competition wheels
 
 Code lấy `lgGoals`, `cpGoals`, `ctGoals` và `ntGoals`, sau đó cộng thành `totalGoals`; vì vậy mốc 20 bàn đang gộp league, domestic cup, continental cup và national team. Label cũng gọi sai bản chất là giải của club. Đây không phải Golden Boot thực tế.
 
-Tương tự, code có `totalAssists` nhưng không có award resolver cho Vua kiến tạo. Best XI hiện chỉ là `matchRating >= 7.60`, không có slot vị trí, ranking ứng viên, minimum appearances hoặc scope competition. Best Player chưa tồn tại như một award riêng.
+Tương tự, baseline có `totalAssists` nhưng không có award resolver cho Vua kiến tạo. Baseline Best XI chỉ là `matchRating >= 7.60`, không có slot vị trí, ranking ứng viên, minimum appearances hoặc scope competition. Best Player không thuộc scope runtime hiện tại.
 
 Các event này được trả về trong `yearSimResult.events`, sau đó legacy client chuyển chúng thành `achievements.seasonAwards[]`. Không có bảng so sánh với cầu thủ khác, không có top scorer/top assist resolver thực tế, không có competition key hoặc season key ổn định.
 
@@ -62,7 +95,6 @@ Evidence: `features/season/services/season-simulator.service.ts:334-362`, `featu
 | Golden Boot | League | `league_golden_boot` | league goals, eligible appearances, rank/tie |
 | Vua kiến tạo | League | `league_top_assist` | league assists, eligible appearances, rank/tie |
 | Best XI | League hoặc competition cụ thể | `league_best_xi` + `slotKey` | position slot, candidate ranking, appearances |
-| Best Player | League hoặc competition cụ thể | `league_player_of_season` | candidate ranking tổng thể, role output, rating, team context |
 
 Mỗi competition khác (continental, national team, domestic cup) phải có `scopeKey` và `awardKey` riêng. Không dùng một award “Golden Boot” chung cho toàn bộ mùa.
 
@@ -171,15 +203,15 @@ Quy tắc bắt buộc cho implementation:
 
 Position cũng không nên là hard gate của Golden Boot. Code hiện chỉ xét `ST/LW/RW`, nên một `CAM`, `CM` hoặc vị trí khác có thể dẫn đầu ghi bàn nhưng không bao giờ được xét. Position nên ảnh hưởng candidate strength/eligibility theo policy, không loại khỏi một giải xếp hạng toàn league chỉ vì vị trí.
 
-### P1 — Best XI và Best Player đang thiếu hoặc bị giản lược sai
+### P1 — Best XI đang thiếu hoặc bị giản lược sai (historical finding)
 
 Best XI hiện được suy ra từ một threshold rating chung. Cách này có thể trao Best XI cho nhiều người cùng lúc, không đảm bảo đủ slot vị trí, không phân biệt hậu vệ/tiền vệ/tiền đạo và không thể giải thích candidate nào bị loại.
 
-Best Player chưa được phát hành như một award độc lập. Không được tái sử dụng Best XI threshold để tạo Best Player: Best XI là selection theo đội hình/vị trí, còn Best Player là một winner tổng thể trong scope đã định. Hai record có thể cùng xuất hiện trong một mùa nhưng phải có `awardKey`, evidence và tie policy riêng.
+Best Player đã được xác định là ngoài scope của season recap hiện tại. Không tạo lại award này bằng cách đổi tên Best XI hoặc dùng một threshold rating tổng thể; nếu product mở lại trong tương lai, phải bổ sung contract riêng trong SoT trước khi code.
 
-### P1 — Ballon d'Or chưa có award universe và ranking snapshot theo mùa
+### P1 — Ballon d'Or chưa có award universe và ranking snapshot theo mùa (historical baseline)
 
-Ranking hiện là random wheel dựa chủ yếu trên score của chính cầu thủ; chưa có một danh sách ứng viên được simulator dựng riêng cho season/career hiện tại. League được phản ánh gián tiếp qua `leagueSize`, `clubPrestige` và kết quả; không có league coefficient/competition strength rõ ràng.
+Ở baseline cũ, ranking là random wheel dựa chủ yếu trên score của chính cầu thủ; chưa có một danh sách ứng viên được simulator dựng riêng cho season/career hiện tại. League được phản ánh gián tiếp qua `leagueSize`, `clubPrestige` và kết quả; không có league coefficient/competition strength rõ ràng. Revision v4 đã tách synthetic league generator để xử lý boundary này; các invariant realism được ghi ở mục 5.4.
 
 Đây là giới hạn của mô hình mô phỏng, không phải lỗi random resolver. Mục tiêu không phải truy vấn dữ liệu từ các career khác. Mỗi career cần có một award universe riêng do simulator tạo cho mùa đó, gồm cầu thủ của người chơi và các ứng viên mô phỏng đủ hợp lý để tạo bảng xếp hạng phục vụ gameplay.
 
@@ -228,7 +260,7 @@ Evidence: `features/wheel/hooks/useCareerStats.ts:367-371`, `lib/influence-score
 
 ### P2 — Test hiện tại chưa khóa các invariant award quan trọng
 
-`scripts/ballon-dor-logic-check.ts` chỉ kiểm tra pure evaluator, gate, weight distribution và resume helper; chưa test `simulatePlayerSeasonService` theo từng competition, không test Golden Boot/Vua kiến tạo/Best XI/Best Player, không test award event được promote qua season close và không test candidate ranking snapshot. Integration persistence check hiện không chạy nếu thiếu `CAREER_TEST_DATABASE_URL`.
+Baseline `scripts/ballon-dor-logic-check.ts` chỉ kiểm tra pure evaluator, gate, weight distribution và resume helper. Batch hiện tại bổ sung simulator/persistence checks cho Golden Boot, Vua kiến tạo, Best XI, candidate snapshot và idempotency; integration persistence check vẫn phụ thuộc `CAREER_TEST_DATABASE_URL`.
 
 Vì vậy các test đang pass chỉ chứng minh flow Ballon d'Or hiện tại không crash và rank weights cộng đúng, chưa chứng minh feature award đúng domain hoặc không mất dữ liệu khi refresh/retry/retire.
 
@@ -236,9 +268,9 @@ Vì vậy các test đang pass chỉ chứng minh flow Ballon d'Or hiện tại 
 
 Các event legacy chỉ giữ `label`, `age` và một phần season context; label cũ “chiếc giày vàng CLB” không chứng minh cầu thủ đứng đầu league. Khi backfill không có candidate ranking hoặc stats league đủ để xác minh, record phải giữ `source = "legacy_backfill"`, `scope = "unknown"`/legacy và không được tự động nâng thành `league_golden_boot`. Chỉ những mùa có evidence tách riêng và policy tie rõ ràng mới được backfill vào award canonical.
 
-## 4. Current contract được chấp nhận tạm thời
+## 4. Historical compatibility contract trước batch
 
-Cho đến khi có implementation update, các invariant sau là mô tả đúng source hiện tại:
+Các invariant sau ghi lại contract legacy đã được dùng làm baseline khi triển khai; chúng không thay thế authority canonical hiện tại:
 
 1. Team trophy theo mùa là kết quả winner trong `SeasonRecord`.
 2. Individual award theo mùa là event `type = "individual_award"` từ season simulator.
@@ -248,7 +280,7 @@ Cho đến khi có implementation update, các invariant sau là mô tả đúng
 6. `evaluateBallonDor` là server-side pure evaluation; wheel outcome là bước random cuối cùng.
 7. Mọi thay đổi sau này phải giữ cùng rank/award khi replay idempotency và refresh/resume.
 
-## 5. Target SoT cho lần update kế tiếp
+## 5. Applied SoT contract
 
 ### 5.1 Một record award chuẩn
 
@@ -331,7 +363,7 @@ Snapshot này là bảng/dataset của riêng career-season, không lấy candid
 - Team trophy: league title, domestic cup, continental cup, national tournament; mỗi winner là một entry.
 - Individual league: Golden Boot chỉ dùng league goals; Vua kiến tạo chỉ dùng league assists. Cả hai cần candidate ranking, eligible appearances và tie-resolution policy. Nếu chưa có ranking đối thủ thì chỉ được gọi là milestone, không được gọi là Golden Boot/Vua kiến tạo.
 - Best XI phải có scope, formation/slot schema, position eligibility, minimum appearances và candidate ranking cho từng slot. Nên lưu một record mỗi slot với `slotKey` ổn định.
-- Best Player phải có scope và một ranking tổng thể riêng; score cần kết hợp role-appropriate output, rating, availability và team context. Không suy ra từ Best XI threshold hoặc chỉ một mốc rating.
+- Formation mặc định là 4-3-3; fallback position chỉ dùng để lấp slot gần vai trò, không đổi slot/pitch layout và không chọn trùng candidate.
 - Ballon d'Or: lưu nomination attempt, rank và winner history; không chỉ lưu count.
 - `HonourCategory` và `awardKey` phải nằm trong shared type/Zod schema để server, archive và UI cùng contract.
 
@@ -361,8 +393,6 @@ Minimum target cho từng resolver:
 - Golden Boot: xếp hạng `leagueGoals` trong candidate field của league; không đọc `totalGoals`.
 - Vua kiến tạo: xếp hạng `leagueAssists` trong cùng scope; không đọc `totalAssists`.
 - Best XI: tính score theo role/position, xếp hạng trong từng slot và chỉ emit đúng số slot của formation.
-- Best Player: tính composite score theo role output, rating, availability và team context; chọn một winner trong scope, độc lập với Best XI.
-
 Award config có thể chứa minimum appearances, feature weights, scope và tie-resolution weights, nhưng phải có tên/version và được test. Những giá trị này là model/config có thể điều chỉnh, không phải logic hardcode rải trong simulator. Khi config thay đổi, record phải lưu model/config version để giải thích kết quả lịch sử. Random result phải được commit cùng award instance để retry không quay lại một kết quả khác.
 
 ### 5.4 Ballon d'Or target — simulator tạo ranking để phục vụ gameplay
@@ -371,12 +401,22 @@ Mục 5.4 không yêu cầu hệ thống có dữ liệu từ các career khác.
 
 Phần khó và quan trọng nhất là realism của simulator, không phải việc render danh sách. Target flow:
 
-1. **Generate candidate universe:** từ season context của career hiện tại, simulator tạo các candidate hợp lý theo league/club/position/age/reputation, gồm player của người chơi và các candidate mô phỏng. Candidate phải có stats/evidence đủ để giải thích vì sao họ xuất hiện trong ranking.
-2. **Evaluate award-specific strength:** mỗi award có scoring model riêng. Ballon d'Or dùng role output, availability, match rating, team success, league strength, club context, hidden stats và các award/team achievement hợp lệ; Golden Boot/Vua kiến tạo/Best XI/Best Player dùng đúng scope và metric đã định.
-3. **Resolve gameplay randomness:** sau khi có candidate strength và eligibility, wheel/random resolver tạo nomination, rank hoặc winner theo weight. Với nhóm bằng điểm, random resolution chọn một winner duy nhất. Không dùng random để bù cho candidate/evidence không hợp lệ.
-4. **Persist the ranking snapshot:** lưu danh sách xếp hạng cuối cùng, metrics/evidence, model version và kết quả random. UI có thể hiển thị top list ngay cả khi player không thắng; refresh/resume/retry phải giữ cùng snapshot.
+1. **Load and generate league context:** server load `id/name/prestige` của toàn bộ CLB thuộc `player.club.leagueId`, sau đó simulator tạo strength distribution, attack/defence và thứ hạng tương quan quanh chính tập CLB đó. Context này không được lấy từ OVR của player user và không được trộn CLB từ league khác.
+2. **Generate candidate universe:** từ league context, simulator tạo nhiều candidate theo club, position, age band, quality/reputation và squad role; sau đó mới inject player của người chơi vào cùng universe. Candidate giả phải có stats/evidence đủ để giải thích vì sao họ xuất hiện trong ranking.
+3. **Generate competition output:** apps được sinh từ starter/rotation/backup role và availability; goals/assists/clean sheets sinh từ position + quality + club attack/creation/defence + competition schedule, không phải `apps * rate` với một nhiễu chung. League/cup/continental/national là các scope riêng.
+4. **Evaluate award-specific strength:** mỗi award có scoring model riêng. Ballon d'Or dùng role output, availability, match rating, team success, league strength, club context, hidden stats và các award/team achievement hợp lệ; Golden Boot/Vua kiến tạo/Best XI dùng đúng scope và metric đã định.
+5. **Resolve gameplay randomness:** sau khi có candidate strength và eligibility, wheel/random resolver tạo nomination, rank hoặc winner theo weight. Với nhóm bằng điểm, random resolution chọn một winner duy nhất. Không dùng random để bù cho candidate/evidence không hợp lệ.
+6. **Persist the ranking snapshot:** lưu danh sách xếp hạng cuối cùng, metrics/evidence, model version và kết quả random. UI có thể hiển thị top list ngay cả khi player không thắng; refresh/resume/retry phải giữ cùng snapshot.
 
-Để đạt realism, update tiếp theo phải giải quyết:
+Để đạt realism, implementation phải giữ các invariant sau:
+
+- Với cùng `seed + season context`, fake candidate metrics/OVR/apps/clubs không đổi khi chỉ thay `player.ovr` hoặc player performance.
+- Không có đường code nào dùng `player.ovr` để làm mean/baseline của fake OVR; không dùng `player.leaguePrestige` để gán prestige cho toàn bộ fake clubs.
+- Synthetic universe có nhiều club và squad role, có candidate không đủ appearances; không tạo top list bằng roster 21 người đá gần đủ mùa.
+- Mọi entry non-user trong snapshot `scope = league` phải có `clubName` nằm trong `currentLeague.clubNames`; thiếu league-club context là lỗi input và không được fallback sang danh sách CLB fictional/global.
+- Golden Boot/Top Assist lấy raw league goals/assists của cùng universe; không để cup/continental/national output đi ngược vào hai bảng này.
+
+Để đạt realism, calibration phải giải quyết:
 
 - phân phối candidate theo vai trò, league strength, club context, playing time và team success để không sinh ra ranking vô lý;
 - tương quan hợp lý giữa stats, rating, awards và khả năng lọt ranking, thay vì một ngưỡng global;
@@ -386,7 +426,7 @@ Phần khó và quan trọng nhất là realism của simulator, không phải v
 
 Không được để `docs/ballon-dor-wheel-plan.md` và service cùng được xem là authority.
 
-## 6. Acceptance criteria cho bản update sau
+## 6. Acceptance criteria và trạng thái sau batch
 
 ### Persistence
 
@@ -410,9 +450,10 @@ Không được để `docs/ballon-dor-wheel-plan.md` và service cùng được
 - Vua kiến tạo chỉ dùng league assists; có fixture phân biệt league assists với assists ở cup/continental/national team.
 - Hai người cùng đứng đầu league goals/assists được chuyển qua random resolution có weight/evidence được lưu, chọn đúng một winner và không lưu đồng thắng giải.
 - Best XI không còn là boolean `rating >= 7.60`; phải có slot vị trí, candidate ranking và giới hạn số slot.
-- Best Player và Best XI tạo hai award record khác nhau, có thể cùng thắng trong một scope nhưng không được alias cùng `awardKey`.
+- Không phát hành hoặc render award "Cầu thủ xuất sắc nhất" trong season recap; Best XI là selection theo slot riêng.
 - Simulator không chứa các nhánh hardcode kiểu `goals >= 20`/`rating >= 7.60` để phát award; kết quả phải xuất phát từ scope stats, candidate field và resolver có evidence.
-- Găng tay vàng/Hậu vệ xuất sắc không đọc `totalCS` gộp mọi đấu trường; scope của metric phải khớp scope của award.
+- Găng tay vàng không đọc `totalCS` gộp mọi đấu trường; scope của metric phải khớp scope của award.
+- Không phát hành award position-specific kiểu "Hậu vệ xuất sắc nhất"; các khác biệt theo vị trí chỉ dùng bên trong scoring/slot selection của Best XI.
 - Golden Boot không loại candidate chỉ vì position không nằm trong danh sách `ST/LW/RW`.
 
 ### Ballon d'Or
@@ -437,28 +478,41 @@ Không được để `docs/ballon-dor-wheel-plan.md` và service cùng được
 - Mỗi row có season/club/scope; không dùng label narrative làm identity.
 - Season recap không bỏ sót league/domestic/national winner trong phần danh hiệu.
 
-## 7. Test evidence của audit này
+## 7. Test evidence sau batch triển khai
 
 Đã chạy và pass:
 
+- `npx prisma migrate deploy`
+- `npx prisma migrate status` — database schema up to date
+- `npx tsc --noEmit`
+- `npm run lint`
+- `npm run build`
+- `npm run check:awards` — league scope, 41-candidate synthetic universe, OVR-independence regression, replay seed và 100-seed Best XI no-empty-slot stress
+- `npm run check:awards-persistence` — transaction rollback sentinel xác nhận không để lại fixture
+- `npm run check:checkpoint-contract`
+- `npm run check:season-record-hydration`
 - `npm run check:ballon-dor`
 - `npm run check:career-summary`
 - `npm run check:season-projection`
-- `npm run audit:career-persistence` (read-only)
+- `npm run check:transfer-authority`
+- `npm run check:transfer-economy`
+- `npm run audit:career-persistence` — `5` players, `70` seasons, `593` checkpoints, `1030` events, `0` anomalies
+- `npm run backfill:awards -- --dry-run`
+- `npm run backfill:awards` — `28` legacy team-honour records, `0` ambiguous legacy awards
 
-`npm run check:career-persistence-integration` đã được gọi nhưng skip vì môi trường chưa có `CAREER_TEST_DATABASE_URL` cho database cô lập. Audit read-only hiện ghi nhận `5` player, `70` season rows, `593` checkpoints, `1030` event rows và `0` anomalies; con số này không thay thế integration test cho award persistence.
+Calibration run 200 seeded Tier 1 seasons cho top scorer trung bình `21.04` bàn, top assist `11.56`, synthetic OVR range `64..94`; đây là distribution sanity check, không phải hardcoded winner rule. Sau revision v5 cần recalibrate lại các distribution này trên tập CLB thật của từng league tier.
 
-Các test trên xác nhận logic hiện tại không crash và rank weights hợp lệ, nhưng chưa bao phủ P0 persistence của achievements V2. Bản update bắt buộc bổ sung integration test cho refresh/resume/retire và duplicate prevention.
+Browser smoke bằng Playwright đã xác nhận `/classic` redirect đúng về `/login`, trang login render được và không có console error runtime; chỉ còn warning autocomplete hiện hữu. Authenticated end-to-end qua toàn bộ career chưa chạy vì cần owner session/career để kiểm tra gameplay thực tế.
 
-## 8. Known drift cần giải quyết khi implementation bắt đầu
+`npm run check:career-persistence-integration` vẫn phụ thuộc `CAREER_TEST_DATABASE_URL` cho database cô lập và chưa chạy trong môi trường này.
 
-1. `docs/ballon-dor-wheel-plan.md` không được tham chiếu như plan hiện hành; nếu giữ file để làm historical context, phải duy trì banner `OUTDATED — see docs/achievements-honours/achievements-honours-sot.md`.
-2. `season-simulator.service.ts` vẫn đang phát event Golden Boot theo `totalGoals`, chưa có Vua kiến tạo, Best XI slot resolver hoặc Best Player resolver.
-3. Prisma chưa có `CareerHonour` table; JSON `achievements` và `seasonHistory` chưa đáp ứng canonical audit history.
-4. Simulator chưa tạo award universe riêng cho từng career-season và chưa lưu ranking snapshot cho Ballon d'Or/các award cá nhân. Đây là dependency cần thiết để chuyển từ threshold/milestone sang ranking gameplay có realism.
-5. V2 season transition chưa promote `yearSimResult.events`/evaluation evidence, còn legacy actions vẫn nhận award payload từ client.
-6. Các consumer downstream (`computeLegacyScore`, retirement/archive UI) chưa đọc nomination/ranking từ canonical award projection.
-7. Chưa có test contract cho competition scope, candidate ranking, random tie resolution và snapshot persistence của award.
+## 8. Known drift còn lại
+
+1. `docs/ballon-dor-wheel-plan.md` chỉ còn là historical/outdated; mọi thay đổi award phải cập nhật SoT này.
+2. Candidate universe hiện là simulator local theo career-season, chưa phải dataset cầu thủ thực tế toàn cầu; tên CLB và league boundary lấy từ DB hiện tại, còn candidate/player output vẫn synthetic và cần tiếp tục calibration qua manual gameplay và fixtures mở rộng.
+3. Ranking snapshots của dữ liệu legacy không được tự bịa khi runtime cũ không chứa evidence; backfill chỉ canonicalize team trophies có evidence rõ.
+4. Audit persistence nền hiện vẫn báo `5` player thiếu một số projection current-age/current-step legacy; không có anomaly mới và đây không phải regression do award migration.
+5. Owner vẫn cần manual test authenticated cho refresh/resume, Ballon rank #1 và #2–#10, Best XI, Top Assist, Trophy Cabinet và cảm nhận ranking list.
 
 ## 9. Quy tắc cập nhật file SoT này
 
