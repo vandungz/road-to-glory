@@ -123,6 +123,17 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       rec.domesticCupStats = result.domesticCupStats;
       if (result.continentalStats) rec.continentalStats = result.continentalStats;
       if (result.nationalStats) rec.nationalStats = result.nationalStats;
+      if (result.awardSimulation) {
+        rec.honours = result.awardSimulation.honours.map((honour) => ({
+          awardKey: honour.awardKey,
+          label: honour.label,
+          rank: honour.rank ?? null,
+          slotKey: honour.slotKey,
+          result: honour.result,
+          metrics: honour.metrics,
+        }));
+        rec.awardModelVersion = result.awardSimulation.modelVersion;
+      }
       return { ...prev, [age]: rec };
     });
   }
@@ -260,6 +271,15 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         finalized.domesticCupStats = yearSimResult.domesticCupStats;
         if (yearSimResult.continentalStats) finalized.continentalStats = yearSimResult.continentalStats;
         if (yearSimResult.nationalStats) finalized.nationalStats = yearSimResult.nationalStats;
+        finalized.honours = yearSimResult.awardSimulation.honours.map((honour) => ({
+          awardKey: honour.awardKey,
+          label: honour.label,
+          rank: honour.rank ?? null,
+          slotKey: honour.slotKey,
+          result: honour.result,
+          metrics: honour.metrics,
+        }));
+        finalized.awardModelVersion = yearSimResult.awardSimulation.modelVersion;
       }
       if (ballonDorRank !== null) finalized.ballonDorResult = ballonDorRank;
 

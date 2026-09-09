@@ -8,6 +8,7 @@ import {
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { getNationalTournamentName } from "@/features/wheel/lib/simulation-helpers";
 import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
+import { persistAwardSimulation, syncAchievementCache } from "./award-persistence.service";
 import type { StatSnapshot } from "@/types/domain";
 import type {
   CommitSeasonStatsCommand,
@@ -33,6 +34,7 @@ type PublicSeasonStatsResult = Omit<SeasonStatsCommitDto, "replayed">;
 
 const playerSeasonStatsSelect = {
   id: true,
+  name: true,
   revision: true,
   checkpointVersion: true,
   currentAge: true,
@@ -48,7 +50,7 @@ const playerSeasonStatsSelect = {
   shopInventory: true,
   peakOvr: true,
   isUnemployed: true,
-  gameSession: { select: { userId: true } },
+  gameSession: { select: { userId: true, formation: true } },
 } satisfies Prisma.CareerPlayerSelect;
 
 const seasonStatsSelect = {
@@ -231,7 +233,8 @@ export async function commitSeasonStatsCommand(params: {
     const continentalCup = asString(runtime.continentalCupResult);
     const callup = asString(runtime.nationalCallupResult);
     const tournament = asString(runtime.nationalTournamentResult);
-    const hasContinentalCup = player.currentContinentalCup !== "none";
+    const seasonContinentalCup = asString(runtime.continentalCupType) ?? player.currentContinentalCup;
+    const hasContinentalCup = seasonContinentalCup !== "none";
     const hasNationalWheel = season.age % 2 === 0;
 
     if (typeof standing !== "number" || typeof domesticCup !== "string") {
@@ -257,18 +260,26 @@ export async function commitSeasonStatsCommand(params: {
             name: true,
             leagueId: true,
             prestige: true,
-            league: { select: { name: true } },
+            league: { select: { name: true, tier: true } },
           },
         })
       : null;
     if (!clubRow) {
       throw new SeasonStatsCommandError("INVALID_TRANSITION", "Không xác định được CLB mùa giải");
     }
-    const leagueClubsCount = await tx.club.count({ where: { leagueId: clubRow.leagueId } });
+    const leagueClubs = await tx.club.findMany({
+      where: { leagueId: clubRow.leagueId },
+      select: { id: true, name: true, prestige: true },
+      orderBy: { name: "asc" },
+    });
     const inventory = Array.isArray(player.shopInventory)
       ? player.shopInventory as unknown as ShopInventoryEntry[]
       : [];
     const simulated = simulatePlayerSeasonService({
+      seasonId: season.id,
+      playerId: player.id,
+      playerName: player.name,
+      formation: player.gameSession.formation,
       age: season.age,
       ovr: currentOvr(player.statsTimeline),
       position: player.position,
@@ -277,14 +288,16 @@ export async function commitSeasonStatsCommand(params: {
       clubPrestige: clubRow.prestige,
       clubName: clubRow.name,
       leagueName: clubRow.league.name,
-      leagueClubsCount: leagueClubsCount || 10,
+      leagueTier: clubRow.league.tier,
+      leagueClubsCount: leagueClubs.length,
+      leagueClubs,
       hasContinentalCup,
       playerNationality: player.nationality,
       currentStats: currentStats(player.statsTimeline, player.position),
       standingResult: standing,
       domesticCupResult: domesticCup,
       continentalCupResult: continentalCup,
-      continentalCupType: hasContinentalCup ? player.currentContinentalCup : null,
+      continentalCupType: hasContinentalCup ? seasonContinentalCup : null,
       nationalCallupResult: callup,
       nationalTournamentResult: tournament,
       nationalTournamentType: callup === "called_up"
@@ -294,6 +307,15 @@ export async function commitSeasonStatsCommand(params: {
       appearancePackActive: isShopItemActiveForSeason(inventory, "appearance_pack", season.age),
       randomSource: secureRandom,
     });
+    await persistAwardSimulation({
+      tx,
+      playerId: player.id,
+      seasonId: season.id,
+      age: season.age,
+      club: { id: clubRow.id, name: clubRow.name, leagueId: clubRow.leagueId },
+      simulation: simulated.awardSimulation,
+    });
+    const achievementCache = await syncAchievementCache(tx, player.id);
     const nextStep = simulated.ballonDor.eligible
       ? "ballon_dor_nomination"
       : "dir_increase";
@@ -303,6 +325,7 @@ export async function commitSeasonStatsCommand(params: {
       yearSimResult: simulated,
       ballonDorNominationWeight: simulated.ballonDor.nominationWeight,
       ballonDorRankWeights: simulated.ballonDor.rankWeights,
+      awardSimulationVersion: simulated.awardSimulation.modelVersion,
       lastWheel: { stepKey: "season_stats", result: "committed" },
     };
     const nextTimeline = seasonTimelineWithStats(player.statsTimeline, season.age, simulated);
@@ -318,6 +341,7 @@ export async function commitSeasonStatsCommand(params: {
         currentStep: nextStep,
         currentWheel: "career",
         statsTimeline: nextTimeline as unknown as Prisma.InputJsonValue,
+        achievements: achievementCache as unknown as Prisma.InputJsonValue,
       },
     });
     if (reserved.count !== 1) {

@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
+import { persistTeamTrophies, seasonHonoursToProjection, syncAchievementCache } from "./award-persistence.service";
 import type {
   AdvanceCareerSeasonCommand,
   CareerSeasonAdvanceDto,
@@ -423,6 +424,35 @@ export async function advanceCareerSeasonCommand(params: {
       player.currentContinentalCup,
       currentTimelineOvr(player.statsTimeline, player.peakOvr),
     );
+    const runtime = asRecord(season.runtimeState);
+    const simulated = asRecord(runtime.yearSimResult);
+    const continentalRecord = typeof runtime.continentalCupType === "string" && runtime.continentalCupType !== "none"
+      ? { type: runtime.continentalCupType, result: typeof runtime.continentalCupResult === "string" ? runtime.continentalCupResult : null }
+      : null;
+    const nationalRecord = season.age % 2 === 0
+      ? { type: typeof runtime.nationalTournamentType === "string" ? runtime.nationalTournamentType : null, result: typeof runtime.nationalTournamentResult === "string" ? runtime.nationalTournamentResult : null }
+      : null;
+    await persistTeamTrophies({
+      tx,
+      playerId: player.id,
+      seasonId: season.id,
+      age: season.age,
+      club: { id: season.clubId, name: season.clubName, leagueId: season.leagueId, leagueName: season.leagueName },
+      standing: typeof runtime.standingResult === "number" ? runtime.standingResult : null,
+      domesticCup: typeof runtime.domesticCupResult === "string" ? runtime.domesticCupResult : null,
+      continentalCup: continentalRecord,
+      nationalTeam: nationalRecord,
+    });
+    const seasonHonours = await tx.careerHonour.findMany({
+      where: { careerPlayerId: player.id, seasonId: season.id },
+      orderBy: [{ rank: "asc" }, { createdAt: "asc" }],
+      select: { awardKey: true, label: true, rank: true, slotKey: true, result: true, metrics: true },
+    });
+    const achievementCache = await syncAchievementCache(tx, player.id);
+    (seasonRecord as Record<string, unknown>).honours = seasonHonoursToProjection(seasonHonours);
+    (seasonRecord as Record<string, unknown>).awardModelVersion = typeof simulated.awardSimulation === "object"
+      ? asRecord(simulated.awardSimulation).modelVersion
+      : null;
     const nextCup = nextContinentalCup({
       currentContinentalCup: player.currentContinentalCup,
       clubStints: player.clubStints,
@@ -495,6 +525,7 @@ export async function advanceCareerSeasonCommand(params: {
         seasonHistory: nextSeasonHistory as Prisma.InputJsonValue,
         statsTimeline: nextStatsTimeline as Prisma.InputJsonValue,
         clubStints: nextClubStints as Prisma.InputJsonValue,
+        achievements: achievementCache as unknown as Prisma.InputJsonValue,
       },
     });
     if (reserved.count !== 1) {

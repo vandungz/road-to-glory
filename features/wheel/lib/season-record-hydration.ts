@@ -1,4 +1,5 @@
 import type { SeasonRecord } from "@/types/game";
+import { isDeprecatedAwardKey } from "@/types/awards";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { getNationalTournamentName } from "./simulation-helpers";
 
@@ -51,11 +52,15 @@ export function hydrateCurrentSeasonRecord(params: {
         }
       : null
   );
-  const continentalCup = existingContinental ?? (
-    params.continentalType !== "none"
-      ? { type: params.continentalType, result: "Chờ quay" }
-      : null
-  );
+  const authoritativeContinentalType = asString(runtime.continentalCupType) ?? params.continentalType;
+  const authoritativeContinentalResult = asString(runtime.continentalCupResult);
+  const continentalCup = authoritativeContinentalType !== "none"
+    ? {
+        ...(existingContinental ?? {}),
+        type: authoritativeContinentalType,
+        result: authoritativeContinentalResult ?? "Chờ quay",
+      }
+    : null;
 
   const record: SeasonRecord = {
     ...(existing ?? {}),
@@ -83,13 +88,24 @@ export function hydrateCurrentSeasonRecord(params: {
   if (simulated.domesticCupStats) record.domesticCupStats = simulated.domesticCupStats as SeasonRecord["domesticCupStats"];
   if (simulated.continentalStats) record.continentalStats = simulated.continentalStats as SeasonRecord["continentalStats"];
   if (simulated.nationalStats) record.nationalStats = simulated.nationalStats as SeasonRecord["nationalStats"];
-
-  if (record.continentalCup && asString(runtime.continentalCupResult)) {
-    record.continentalCup = {
-      ...record.continentalCup,
-      result: asString(runtime.continentalCupResult) ?? record.continentalCup.result,
-    };
+  const awardSimulation = asRecord(simulated.awardSimulation);
+  if (Array.isArray(awardSimulation.honours)) {
+    record.honours = awardSimulation.honours.filter((honour) => {
+      const item = asRecord(honour);
+      return !isDeprecatedAwardKey(asString(item.awardKey) ?? "");
+    }).map((honour) => {
+      const item = asRecord(honour);
+      return {
+        awardKey: asString(item.awardKey) ?? "unknown",
+        label: asString(item.label) ?? "Danh hiệu cá nhân",
+        rank: asNumber(item.rank),
+        slotKey: asString(item.slotKey),
+        result: asString(item.result) ?? "winner",
+        metrics: asRecord(item.metrics),
+      };
+    });
   }
+
   if (record.nationalTeam) {
     const callup = asString(runtime.nationalCallupResult);
     const result = asString(runtime.nationalTournamentResult);

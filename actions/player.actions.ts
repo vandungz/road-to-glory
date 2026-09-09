@@ -268,7 +268,6 @@ export async function saveCareerPlayer(input: unknown) {
     statsTimeline,
     clubStints,
     hiddenStats,
-    achievements,
     contractYearsTotal,
     contractYearsRemaining,
     currentWageAnnual,
@@ -301,6 +300,7 @@ export async function saveCareerPlayer(input: unknown) {
     select: {
       hiddenStats: true,
       walletLedger: true,
+      achievements: true,
       checkpointVersion: true,
       isRetired: true,
       currentStep: true,
@@ -316,6 +316,11 @@ export async function saveCareerPlayer(input: unknown) {
     revalidatePath(`/${gameId}`);
     redirect(`/${gameId}`);
   }
+  const serverAchievements = (existing.achievements as unknown as import("@/types/domain").AchievementRecord | null) ?? {
+    ballonDor: 0,
+    trophies: [],
+    seasonAwards: [],
+  };
   let resolvedHiddenStats = hiddenStats ?? null;
   if (!resolvedHiddenStats) {
     resolvedHiddenStats = (existing?.hiddenStats as z.infer<typeof hiddenStatsSchema> | null) ?? {
@@ -337,9 +342,9 @@ export async function saveCareerPlayer(input: unknown) {
 
   // Influence Score — final derive at retirement.
   const legacyScore = computeLegacyScore({
-    trophies: achievements?.trophies,
+    trophies: serverAchievements.trophies,
     seasonHistory,
-    ballonDorWins: achievements?.ballonDor,
+    ballonDorWins: serverAchievements.ballonDor,
     statsTimeline,
   });
   const currentFormIndex = computeCurrentFormIndex({
@@ -378,7 +383,7 @@ export async function saveCareerPlayer(input: unknown) {
       clubStints,
       events: [],
       hiddenStats: resolvedHiddenStats,
-      achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
+      achievements: serverAchievements as unknown as Prisma.InputJsonValue,
       seasonHistory: seasonHistory ?? {},
       isRetired: true,
       contractYearsTotal: contractYearsTotal ?? 1,
@@ -410,7 +415,7 @@ export async function saveCareerPlayer(input: unknown) {
       statsTimeline,
       clubStints,
       ...(hiddenStats ? { hiddenStats } : {}),
-      achievements: achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] },
+      achievements: serverAchievements as unknown as Prisma.InputJsonValue,
       ...(seasonHistory !== undefined ? { seasonHistory } : {}),
       isRetired: true,
       currentAge: retireAge,
