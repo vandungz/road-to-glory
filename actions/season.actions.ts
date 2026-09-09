@@ -434,7 +434,6 @@ export async function updateSeasonProgressAction(
     playerId,
     statsTimeline,
     clubStints,
-    achievements,
     currentContinentalCup,
     seasonHistory,
     contractYearsTotal,
@@ -460,6 +459,7 @@ export async function updateSeasonProgressAction(
       gameSession: { select: { userId: true } },
       statsTimeline: true,
       clubStints: true,
+      achievements: true,
       seasonHistory: true,
       walletBalance: true,
       walletLedger: true,
@@ -474,6 +474,11 @@ export async function updateSeasonProgressAction(
   if (player.checkpointVersion >= 2) {
     throw new Error("Legacy season save không được phép ghi Career V2.");
   }
+  const serverAchievements = (player.achievements as unknown as AchievementRecord | null) ?? {
+    ballonDor: 0,
+    trophies: [],
+    seasonAwards: [],
+  };
 
   // A refresh can leave a previous background request in flight while the new
   // page hydrates. Never allow that older request to overwrite a newer career
@@ -550,9 +555,9 @@ export async function updateSeasonProgressAction(
 
   // Influence Score — derived cache, recomputed each checkpoint from data already on the player.
   const legacyScore = computeLegacyScore({
-    trophies: achievements?.trophies,
+    trophies: serverAchievements.trophies,
     seasonHistory: mergedSeasonHistory,
-    ballonDorWins: achievements?.ballonDor,
+    ballonDorWins: serverAchievements.ballonDor,
     statsTimeline: mergedStatsTimeline,
   });
   const currentFormIndex = computeCurrentFormIndex({
@@ -583,7 +588,9 @@ export async function updateSeasonProgressAction(
     data: {
       statsTimeline: mergedStatsTimeline,
       clubStints: mergedClubStints as unknown as Prisma.InputJsonValue,
-      achievements: achievements as unknown as Prisma.InputJsonValue,
+      // The legacy client field remains accepted for compatibility but is not
+      // an authority. Awards stay whatever the server already persisted.
+      achievements: serverAchievements as unknown as Prisma.InputJsonValue,
       currentContinentalCup,
       seasonHistory: mergedSeasonHistory as unknown as Prisma.InputJsonValue,
       ...(contractYearsTotal !== undefined ? { contractYearsTotal } : {}),
@@ -732,9 +739,14 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
   await requireAuth();
   const validated = simulatePlayerSeasonSchema.parse(input);
 
-  const clubsCount = await prisma.club.count({
-    where: { leagueId: validated.leagueId },
-  });
+  const [leagueClubs, leagueRow] = await Promise.all([
+    prisma.club.findMany({
+      where: { leagueId: validated.leagueId },
+      select: { id: true, name: true, prestige: true },
+      orderBy: { name: "asc" },
+    }),
+    prisma.league.findUnique({ where: { id: validated.leagueId }, select: { tier: true } }),
+  ]);
 
   return simulatePlayerSeasonService({
     age: validated.age,
@@ -744,7 +756,9 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     clubPrestige: validated.clubPrestige,
     clubName: validated.clubName,
     leagueName: validated.leagueName,
-    leagueClubsCount: clubsCount || 10,
+    leagueTier: leagueRow?.tier,
+    leagueClubsCount: leagueClubs.length,
+    leagueClubs,
     hasContinentalCup: validated.hasContinentalCup,
     playerNationality: validated.playerNationality,
     currentStats: validated.currentStats,

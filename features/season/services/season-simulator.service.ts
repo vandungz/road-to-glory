@@ -11,7 +11,10 @@ import {
   EXTRA_APPEARANCES_BONUS,
   TRAINING_CAMP_RATING_BONUS,
 } from "@/lib/shop-catalog";
-import { evaluateBallonDor, type BallonDorEligibility } from "./ballon-dor.service";
+import type { BallonDorEligibility } from "./ballon-dor.service";
+import { simulateAwardSeason } from "./award-simulator.service";
+import type { SyntheticLeagueClubInput } from "./synthetic-league.service";
+import type { AwardSimulationResult } from "@/types/awards";
 
 export type { BallonDorEligibility } from "./ballon-dor.service";
 
@@ -25,6 +28,10 @@ export interface CompetitionStats {
 }
 
 export interface PlayerSeasonInput {
+  seasonId?: string;
+  playerId?: string;
+  playerName?: string;
+  formation?: string;
   age: number;
   ovr: number;
   position: string;
@@ -33,7 +40,9 @@ export interface PlayerSeasonInput {
   clubPrestige: number;
   clubName: string;
   leagueName: string;
+  leagueTier?: number;
   leagueClubsCount: number;
+  leagueClubs: SyntheticLeagueClubInput[];
   hasContinentalCup: boolean;
   playerNationality: string;
   currentStats?: Record<string, number>;
@@ -68,6 +77,7 @@ export interface SimulatedSeasonResult {
   nationalStats?: CompetitionStats;
   // Ballon d'Or eligibility — thay thế random boolean cũ
   ballonDor: BallonDorEligibility;
+  awardSimulation: AwardSimulationResult;
 }
 
 // ── Match counts deterministic từ outcomes ──────────────────────────────────
@@ -234,6 +244,8 @@ function calcRating(
 
 export function simulatePlayerSeasonService(input: PlayerSeasonInput): SimulatedSeasonResult {
   const {
+    seasonId,
+    formation,
     ovr, position, luckRating, professionalism, clubPrestige, leagueClubsCount,
     hasContinentalCup, currentStats,
     standingResult, domesticCupResult, continentalCupResult, continentalCupType,
@@ -348,42 +360,45 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     : 6.0;
   const matchRating = Math.min(9.0, Math.max(5.5, Math.round(weightedRating * 100) / 100));
 
-  // 7. Individual awards
-  if (totalGoals >= 20 && ["ST", "LW", "RW"].includes(position)) {
-    events.push({ type: "individual_award", label: `Đoạt chiếc giày vàng CLB với ${totalGoals} bàn thắng` });
-  }
-  if (totalCS >= 15 && position === "GK") {
-    events.push({ type: "individual_award", label: `Đoạt Găng tay vàng với ${totalCS} trận giữ sạch lưới` });
-  }
-  if (totalCS >= 12 && ["CB", "LB", "RB", "CDM"].includes(position)) {
-    events.push({ type: "individual_award", label: `Đoạt danh hiệu Hậu vệ xuất sắc nhất mùa giải với ${totalCS} trận sạch lưới` });
-  }
-  if (matchRating >= 7.60) {
-    events.push({ type: "individual_award", label: `Lọt vào Đội hình tiêu biểu mùa giải với Rating ${matchRating}` });
-  }
-
-  // 8. Ballon d'Or eligibility — không còn random boolean, client sẽ spin wheels
-  const ballonDor = evaluateBallonDor({
-    ovr,
-    position,
-    currentStats,
-    apps: totalApps,
-    expectedMatches,
-    goals: totalGoals,
-    assists: totalAssists,
-    cleanSheets: totalCS,
-    matchRating,
-    luckRating,
-    professionalism,
-    standing: standingResult,
-    leagueSize: leagueClubsCount,
-    clubPrestige,
-    domesticCup: domesticCupResult,
-    continentalResult: continentalCupResult,
-    continentalType: continentalCupType,
-    nationalResult: nationalTournamentResult,
-    nationalType: nationalTournamentType,
+  const awardSimulation = simulateAwardSeason({
+    seasonId,
+    age: input.age,
+    formation,
+    leagueTier: input.leagueTier,
+    randomSource,
+    player: {
+      name: input.playerName ?? "Career Player",
+      id: input.playerId,
+      position,
+      ovr,
+      currentStats,
+      luckRating,
+      professionalism,
+      clubName: input.clubName,
+      leagueName: input.leagueName,
+      leaguePrestige: clubPrestige,
+      leagueClubsCount,
+      leagueClubs: input.leagueClubs,
+      standing: standingResult,
+      domesticCupResult,
+      continentalResult: continentalCupResult,
+      continentalType: continentalCupType,
+      nationalResult: nationalTournamentResult,
+      nationalType: nationalTournamentType,
+      expectedMatches,
+      leagueStats: { apps: leagueApps, goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS, rating: leagueRating },
+      domesticCupStats: { apps: cupApps, goals: cpGoals, assists: cpAssists, cleanSheets: cupCS, rating: cupRating },
+      ...(continentalApps > 0 ? { continentalStats: { apps: continentalApps, goals: ctGoals, assists: ctAssists, cleanSheets: contCS, rating: contRating } } : {}),
+      ...(nationalApps > 0 ? { nationalStats: { apps: nationalApps, goals: ntGoals, assists: ntAssists, cleanSheets: natCS, rating: natRating } } : {}),
+    },
   });
+  const ballonDor: BallonDorEligibility = {
+    eligible: awardSimulation.ballonDor.eligible,
+    nominationWeight: awardSimulation.ballonDor.nominationWeight,
+    rankWeights: awardSimulation.ballonDor.rankWeights,
+    evaluation: awardSimulation.ballonDor.evaluation as BallonDorEligibility["evaluation"],
+  };
+  events.push(...awardSimulation.honours.map((honour) => ({ type: "individual_award", label: honour.label })));
 
   return {
     apps: totalApps,
@@ -401,5 +416,6 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
     ...(nationalApps > 0 && {
       nationalStats: { apps: nationalApps, goals: ntGoals, assists: ntAssists, cleanSheets: natCS, rating: natRating },
     }),
+    awardSimulation,
   };
 }

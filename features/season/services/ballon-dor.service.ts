@@ -221,9 +221,12 @@ function getRoleOutputScore(input: BallonDorEvaluationInput, profile: BallonPosi
 }
 
 function getHiddenStatsScore(input: BallonDorEvaluationInput): number {
-  const luck = finite(input.luckRating, 10);
   const professionalism = finite(input.professionalism, 10);
-  return scoreRange(professionalism, 1, 20, 2.5) + scoreRange(luck, 1, 20, 1.5);
+  // Luck belongs to nomination/resolution variance, not sporting merit. A
+  // player's Ballon d'Or case is therefore influenced only by the hidden
+  // professionalism signal, while the wheel/simulator random source still
+  // provides gameplay drama.
+  return scoreRange(professionalism, 1, 20, 2.5);
 }
 
 function distributeWeights(values: number[]): number[] {

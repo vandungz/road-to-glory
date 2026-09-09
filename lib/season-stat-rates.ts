@@ -123,33 +123,33 @@ export function getPerAppRates(
     aLow = 0; aHigh = 0.02;
     csLow = 0.28; csHigh = 0.4;
   } else if (pos === "CB") {
-    gLow = 0.02; gHigh = 0.06;
+    gLow = 0.01; gHigh = 0.04;
     aLow = 0.01; aHigh = 0.04;
     csLow = 0.25; csHigh = 0.38;
   } else if (pos === "LB" || pos === "RB") {
-    gLow = 0.02; gHigh = 0.07;
-    aLow = 0.05; aHigh = 0.12;
+    gLow = 0.02; gHigh = 0.08;
+    aLow = 0.06; aHigh = 0.16;
     csLow = 0.22; csHigh = 0.35;
   } else if (pos === "CDM") {
-    gLow = 0.02; gHigh = 0.06;
-    aLow = 0.04; aHigh = 0.1;
+    gLow = 0.02; gHigh = 0.08;
+    aLow = 0.07; aHigh = 0.16;
     csLow = 0.18; csHigh = 0.3;
   } else if (pos === "CM") {
-    gLow = 0.05; gHigh = 0.12;
-    aLow = 0.08; aHigh = 0.16;
+    gLow = 0.04; gHigh = 0.14;
+    aLow = 0.1; aHigh = 0.22;
     csLow = 0.15; csHigh = 0.28;
   } else if (pos === "CAM") {
-    gLow = 0.1; gHigh = 0.22;
-    aLow = 0.12; aHigh = 0.24;
+    gLow = 0.08; gHigh = 0.24;
+    aLow = 0.15; aHigh = 0.32;
   } else if (pos === "LW" || pos === "RW") {
-    gLow = 0.12; gHigh = 0.28;
-    aLow = 0.08; aHigh = 0.2;
+    gLow = 0.1; gHigh = 0.3;
+    aLow = 0.1; aHigh = 0.25;
   } else if (pos === "LM" || pos === "RM") {
-    gLow = 0.08; gHigh = 0.18;
-    aLow = 0.1; aHigh = 0.2;
+    gLow = 0.06; gHigh = 0.18;
+    aLow = 0.12; aHigh = 0.25;
   } else if (pos === "ST") {
-    gLow = 0.35; gHigh = 0.65;
-    aLow = 0.05; aHigh = 0.15;
+    gLow = 0.25; gHigh = 0.6;
+    aLow = 0.07; aHigh = 0.18;
   } else {
     gLow = 0.05; gHigh = 0.12;
     aLow = 0.05; aHigh = 0.12;
