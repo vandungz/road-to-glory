@@ -255,19 +255,22 @@ export function getStandingWheelPool(
   ovr: number,
   leagueSize: number,
   appsOrNull: number | null | undefined = null,
-  lastYearStanding?: number | null,
+  priorClubStanding?: number | null,
 ) {
   const targetOvr = getClubThreshold(clubPrestige);
   const diff = ovr - targetOvr;
   const influenceFactor = getInfluenceProxy(ovr, clubPrestige, leagueSize, appsOrNull);
 
   const prestigeExpectedPos = Math.max(1, Math.min(leagueSize, Math.round(leagueSize - clubPrestige * (leagueSize / 5) + 1)));
-  // Kéo nhẹ theo thành tích mùa trước (nếu có) để tạo quán tính giữa các mùa —
-  // tránh nhảy cóc cực đoan kiểu Á quân mùa này, cầm đèn đỏ mùa sau, dù prestige
-  // CLB không đổi. Chỉ áp dụng khi có dữ liệu mùa trước thật (không phải mùa debut).
-  const expectedPos = lastYearStanding
-    ? Math.max(1, Math.min(leagueSize, Math.round(prestigeExpectedPos * 0.7 + lastYearStanding * 0.3)))
+  // Club continuity is deliberately a light signal: prestige remains the
+  // primary baseline, while the immediately preceding same-club season adds
+  // context without letting an old career history dominate after a transfer.
+  const expectedPos = priorClubStanding
+    ? Math.max(1, Math.min(leagueSize, Math.round(prestigeExpectedPos * 0.8 + priorClubStanding * 0.2)))
     : prestigeExpectedPos;
+  const prestigeTier = Math.max(1, Math.min(5, Math.round(clubPrestige)));
+  const prestigeTopModifier = (prestigeTier - 3) * 4;
+  const prestigeBottomModifier = -(prestigeTier - 3) * 3;
 
   const pool = Array.from({ length: leagueSize }, (_, i) => {
     const pos = i + 1;
@@ -275,6 +278,9 @@ export function getStandingWheelPool(
     const baseWeight = Math.max(1, 40 - dist * (35 / leagueSize));
 
     let ovrModifier = 0;
+    let prestigeModifier = 0;
+    if (pos <= Math.round(leagueSize * 0.25)) prestigeModifier = prestigeTopModifier;
+    if (pos >= Math.round(leagueSize * 0.7)) prestigeModifier = prestigeBottomModifier;
     if (diff > 0) {
       if (pos <= Math.round(leagueSize * 0.25)) ovrModifier = diff * 1.5 * influenceFactor;
       if (pos >= Math.round(leagueSize * 0.7)) ovrModifier = -diff * 1.2 * influenceFactor;
@@ -283,7 +289,7 @@ export function getStandingWheelPool(
       if (pos >= Math.round(leagueSize * 0.7)) ovrModifier = -diff * 1.5 * influenceFactor;
     }
 
-    const finalWeight = Math.max(1, Math.round(baseWeight + ovrModifier));
+    const finalWeight = Math.max(1, Math.round(baseWeight + prestigeModifier + ovrModifier));
     return {
       value: pos,
       weight: finalWeight,
@@ -509,4 +515,3 @@ export function getMagnitudePoolBoosted(tier: GrowthTier, growthBoost: number): 
   if (boostedTier === tier) return base;
   return blendPools(base, getMagnitudePool(boostedTier, true), growthBoost);
 }
-
