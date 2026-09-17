@@ -38,7 +38,7 @@ interface UseCareerWheelItemsProps {
   currentClub: CurrentClub | null;
   currentOvr: number;
   leagueSize: number;
-  lastYearStanding: number;
+  priorClubStanding: number | null;
   standingResult?: number | null;
   selectedStatsList: string[];
   position: string;
@@ -67,7 +67,7 @@ export function useCareerWheelItems({
   currentClub,
   currentOvr,
   leagueSize,
-  lastYearStanding,
+  priorClubStanding,
   standingResult = null,
   selectedStatsList,
   position,
@@ -95,7 +95,7 @@ export function useCareerWheelItems({
       prestige,
       leagueSize,
       apps: yearSimResult?.apps ?? null,
-      priorStanding: currentAge > playerDebutAge ? lastYearStanding : null,
+      priorStanding: priorClubStanding,
       luckRating,
       playerNationality,
       standingResult,
@@ -285,7 +285,7 @@ export function useCareerWheelItems({
   }, [
     careerSubStep, isMounted, mode, currentContinentalCup, currentAge, playerDebutAge,
     playerCareerLength, playerNationality, currentClub, currentOvr, leagueSize,
-    lastYearStanding, standingResult, selectedStatsList, position, yearSimResult,
+    priorClubStanding, standingResult, selectedStatsList, position, yearSimResult,
     selectorIndex, yearEvolutionDirection, currentStats, ballonDorNominationWeight,
     ballonDorRankWeights, luckRating, fitnessCoachActive, nationalCallupBoostActive, eliteDevelopmentActive,
   ]);

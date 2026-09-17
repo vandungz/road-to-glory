@@ -1,5 +1,6 @@
 import { randomInt } from "node:crypto";
 import { getCareerWheelPoolAndValue } from "@/features/wheel/lib/career-wheel-resolver";
+import { getPriorClubStanding } from "@/features/wheel/lib/previous-season-standing";
 import { evolvePlayerStatsService } from "@/features/player/services/stats-evolution.service";
 import { isShopItemActiveForSeason, type ShopInventoryEntry } from "@/lib/shop-catalog";
 import type { CurrentClub, HiddenStats, StatSnapshot } from "@/types/domain";
@@ -134,11 +135,6 @@ function getCurrentOvr(value: unknown): number {
   return asNumber(asRecord(asArray(value).at(-1)).ovr, 60);
 }
 
-function getLastStanding(value: unknown, age: number): number {
-  const previous = asRecord(asRecord(value)[String(age - 1)]);
-  return asNumber(previous.standing, 10);
-}
-
 function getHiddenStats(value: unknown): HiddenStats {
   const stats = asRecord(value);
   return {
@@ -262,7 +258,13 @@ export function resolveServerCareerWheel(
       hiddenStats: getHiddenStats(context.player.hiddenStats),
       currentClub,
       leagueSize: context.leagueSize,
-      lastYearStanding: getLastStanding(context.player.seasonHistory, currentAge),
+      priorClubStanding: getPriorClubStanding(
+        context.player.seasonHistory,
+        currentAge,
+        context.player.debutAge,
+        currentClub?.id,
+        currentClub?.leagueId,
+      ),
       standingResult: runtime.standingResult ?? null,
       // The active season owns the ticket. The player projection may already
       // represent next season after a transfer/season transition.

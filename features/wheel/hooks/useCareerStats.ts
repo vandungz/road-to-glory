@@ -55,7 +55,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
 
   const [playerId, setPlayerId] = useState<string | null>(null);
   const [currentContinentalCup, setCurrentContinentalCup] = useState<string>("none");
-  const [lastYearStanding, setLastYearStanding] = useState<number>(10);
 
   // Contract economy (€ nghìn)
   const [contractYearsTotal, setContractYearsTotal] = useState(3);
@@ -227,8 +226,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setCurrentWageAnnual(initPayload.currentWageAnnual ?? 0);
     setMarketValue(initPayload.marketValue ?? 0);
 
-    setLastYearStanding(10);
-
     setSeasonRecords({});
     setSelectedAgeForStats(draftData.debutAge!);
   }
@@ -351,7 +348,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
       if (hasTransferredAway) {
         // Giữ nguyên currentContinentalCup (đã đúng theo CLB mới) — không ghi đè
         // bằng vé kiếm được ở CLB cũ.
-        setLastYearStanding(standingResult);
       } else {
         nextContinentalCup = calculateContinentalQualification(
           actualStintLeagueId,
@@ -360,7 +356,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
           currentContinentalCup,
         );
         setCurrentContinentalCup(nextContinentalCup);
-        setLastYearStanding(standingResult);
       }
     }
 
@@ -581,8 +576,6 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
     setCurrentClub,
     currentContinentalCup,
     setCurrentContinentalCup,
-    lastYearStanding,
-    setLastYearStanding,
     seasonRecords,
     setSeasonRecords,
     selectedAgeForStats,

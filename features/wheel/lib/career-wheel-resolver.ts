@@ -38,7 +38,7 @@ interface CareerWheelContext {
   hiddenStats: HiddenStats | null;
   currentClub: CurrentClub | null;
   leagueSize: number;
-  lastYearStanding: number;
+  priorClubStanding: number | null;
   standingResult?: number | null;
   currentContinentalCup: string;
   playerNationality: string;
@@ -74,7 +74,7 @@ export function getCareerWheelPoolAndValue(
     prestige,
     leagueSize: ctx.leagueSize,
     apps: ctx.yearSimResult?.apps ?? null,
-    priorStanding: ctx.currentAge > ctx.playerDebutAge ? ctx.lastYearStanding : null,
+    priorStanding: ctx.priorClubStanding,
     luckRating: ctx.hiddenStats?.luckRating ?? 10,
     playerNationality: ctx.playerNationality,
     standingResult: ctx.standingResult ?? null,

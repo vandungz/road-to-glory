@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { getNationalTournamentName } from "../lib/simulation-helpers";
 import { hydrateCurrentSeasonRecord } from "../lib/season-record-hydration";
@@ -42,6 +42,7 @@ import type { ContractOfferCard, TransferMarketResult } from "@/features/transfe
 import type { AchievementRecord, CareerSubStep, ClubStint, ClubSummary, LeagueSummary, SeasonHistory, StatSnapshot } from "@/types/domain";
 import { getWheelTypeForStep } from "@/features/career/contracts/wheel-step.contract";
 import { shouldResumeSeasonStatsModal } from "../lib/career-resume-state";
+import { getPriorClubStanding } from "../lib/previous-season-standing";
 
 interface ResumeCareerPlayer {
   name: string;
@@ -122,10 +123,20 @@ export function useDraftDrum(
     playerId, playerName, hiddenStats, statsTimeline, clubStints, achievements,
     playerNationality, playerDebutAge, playerCareerLength,
     currentAge, currentOvr, currentStats, currentClub,
-    currentContinentalCup, lastYearStanding, seasonRecords,
+    currentContinentalCup, seasonRecords,
     selectedAgeForStats, setSelectedAgeForStats, shopInventory,
   } = statsProps;
   const checkpointSync = useCareerCheckpointSync();
+  const priorClubStanding = useMemo(
+    () => getPriorClubStanding(
+      seasonRecords,
+      currentAge,
+      playerDebutAge,
+      currentClub?.id,
+      currentClub?.leagueId,
+    ),
+    [seasonRecords, currentAge, playerDebutAge, currentClub?.id, currentClub?.leagueId],
+  );
 
   const fitnessCoachActive = isShopItemActiveForSeason(shopInventory, "fitness_coach", currentAge);
   const nationalCallupBoostActive = isShopItemActiveForSeason(
@@ -195,7 +206,7 @@ export function useDraftDrum(
     playerDebutAge, playerCareerLength,
     playerNationality, currentClub, currentOvr,
     leagueSize: currentClub ? (clubs.filter((c) => c.leagueId === currentClub.leagueId).length || 10) : 10,
-    lastYearStanding, standingResult,
+    priorClubStanding, standingResult,
     selectedStatsList, position, yearSimResult, selectorIndex,
     yearEvolutionDirection: yearEvolution.direction, currentStats,
     ballonDorNominationWeight, ballonDorRankWeights,
@@ -352,6 +363,7 @@ export function useDraftDrum(
             restoredSeasonRecords[currentSeason.age] = hydrateCurrentSeasonRecord({
               existing: restoredSeasonRecords[currentSeason.age],
               age: currentSeason.age,
+              clubId: currentSeason.clubId ?? lastStint.clubId,
               clubName: currentSeason.clubName ?? lastStint.clubName,
               leagueName: currentSeason.leagueName ?? lastStint.leagueName,
               leagueId: currentSeason.leagueId ?? lastStint.leagueId,
@@ -668,7 +680,7 @@ export function useDraftDrum(
         return {
           ...prev,
           [currentAge]: {
-            age: currentAge, clubName: currentClub.name, leagueName: currentClub.leagueName,
+            age: currentAge, clubId: currentClub.id, clubName: currentClub.name, leagueName: currentClub.leagueName,
             leagueId: currentClub.leagueId,
             standing: null, domesticCup: "Chờ quay",
             continentalCup: currentContinentalCup !== "none" ? { type: currentContinentalCup, result: "Chờ quay" } : null,
@@ -960,7 +972,7 @@ export function useDraftDrum(
     const ctx = {
       currentAge, playerDebutAge, playerCareerLength, currentOvr, position, yearSimResult, hiddenStats, currentClub,
     leagueSize: currentClub ? (clubs.filter((c) => c.leagueId === currentClub.leagueId).length || 10) : 10,
-      lastYearStanding, standingResult,
+      priorClubStanding, standingResult,
       currentContinentalCup, playerNationality, selectedStatsList, selectorIndex,
       yearEvolutionDirection: yearEvolution.direction, currentStats,
       ballonDorNominationWeight, ballonDorRankWeights,
@@ -1475,7 +1487,7 @@ export function useDraftDrum(
     playerName, hiddenStats, statsTimeline, clubStints,
     playerNationality, playerDebutAge, playerCareerLength,
     currentAge, currentOvr, currentStats, currentClub, currentContinentalCup,
-    lastYearStanding, seasonRecords, selectedAgeForStats, setSelectedAgeForStats,
+    priorClubStanding, seasonRecords, selectedAgeForStats, setSelectedAgeForStats,
     activeModal, setActiveModal, careerSubStep, setCareerSubStep,
     isProcessing, isBallonDorTransitioning,
     seasonTicketResolved: !checkpointSync.isEnabled || checkpointSync.state.seasonContinentalCup !== null,
