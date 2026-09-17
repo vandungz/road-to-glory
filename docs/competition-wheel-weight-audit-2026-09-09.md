@@ -4,6 +4,10 @@ Ngày audit: 2026-09-09
 Phạm vi: source code hiện tại của wheel kết quả giải VĐQG, Cúp Quốc gia và Cúp châu lục/continental trophy.  
 Ngoài phạm vi chính: national team wheels và individual awards. Các phần đó chỉ được nhắc khi ảnh hưởng trực tiếp tới cùng season simulator.
 
+> Cập nhật quyết định và implementation: 2026-09-10. Phần cập nhật này ghi lại
+> contract mới cho league standing wheel và đã được triển khai ở FE preview,
+> server resolver và season-history persistence.
+
 ## 1. Kết luận ngắn
 
 Weight hiện tại là một mô hình weighted categorical outcome, chưa phải một simulator thi đấu theo từng trận.
@@ -24,7 +28,7 @@ Tuy nhiên, về realism, model hiện tại còn đơn giản ở mức đáng 
 2. Continental UCL/UEL/UECL và các continental competition khác dùng cùng một công thức; `continentalType` chỉ quyết định có wheel và label nào, không làm thay đổi difficulty/weight.
 3. Cup outcome được chọn trước, còn cup journey chỉ sinh narrative theo outcome. Journey không phải match simulation và không có khả năng làm kết quả đã quay trở nên nhất quán hơn.
 4. League wheel và league-table simulator là hai mô hình độc lập: wheel chọn slot, table simulator sau đó ép player vào slot rồi sinh điểm theo thứ tự slot.
-5. `lastYearStanding` được đọc từ mùa trước mà không kiểm tra player còn ở cùng league hay đã transfer sang league khác. Vì vậy quán tính bảng xếp hạng có thể bị áp nhầm sau transfer.
+5. Contract cũ của `lastYearStanding` đã không kiểm tra player còn ở cùng club/league hay đã transfer. Contract mới chỉ dùng đúng record của mùa liền trước khi `clubId + leagueId` khớp; record legacy thiếu identity hoặc record của club/league khác bị bỏ qua.
 
 Đánh giá tổng thể: hệ thống hiện tại là deterministic weights + random final draw, chạy đúng theo code, nhưng chưa đủ dữ liệu/độ liên kết để gọi là simulator realism cho kết quả team competitions.
 
@@ -133,11 +137,37 @@ influenceFactor = getInfluenceProxy(...)
 
 prestigeExpectedPos = round(leagueSize - prestige × (leagueSize / 5) + 1)
 expectedPos =
-    không có mùa trước: prestigeExpectedPos
-    có mùa trước:       round(70% × prestigeExpectedPos + 30% × lastYearStanding)
+    không có prior club standing hợp lệ: prestigeExpectedPos
+    có prior club standing hợp lệ:       round(80% × prestigeExpectedPos + 20% × priorClubStanding)
 
 baseWeight(pos) = max(1, 40 - abs(pos - expectedPos) × (35 / leagueSize))
 ```
+
+Sau đó standing wheel cộng thêm modifier nền của club prestige, độc lập với
+player modifier hiện tại:
+
+```text
+prestigeTier = clamp(round(clubPrestige), 1, 5)
+top-25% modifier    = (prestigeTier - 3) × 4
+bottom-30% modifier = -(prestigeTier - 3) × 3
+finalWeight = max(1, round(baseWeight + prestigeModifier + existingPlayerModifier))
+```
+
+Mapping cụ thể là:
+
+| Club prestige | Top 25% | Bottom 30% |
+|---:|---:|---:|
+| 1 | -8 | +6 |
+| 2 | -4 | +3 |
+| 3 | 0 | 0 |
+| 4 | +4 | -3 |
+| 5 | +8 | -6 |
+
+`priorClubStanding` chỉ là input của mùa liền trước và chỉ hợp lệ khi record
+có cùng `clubId` và `leagueId` với season đang resolve. Không có snapshot/table
+mới và không truy hồi hạng của league cũ khi player quay lại sau nhiều mùa.
+Player impact hiện tại (`diff`, `influenceFactor`, các hệ số OVR ở vùng top/bottom)
+được giữ nguyên; prestige modifier là lớp bổ sung riêng.
 
 `diff` chỉ chỉnh trọng số ở hai vùng:
 
@@ -191,17 +221,17 @@ Các bảng dưới được chạy trực tiếp bằng `npx tsx` trên helper 
 
 | Club prestige | eff OVR | Influence | Domestic winner | Domestic early exit | Continental winner | Continental group stage | League champion | League top 4 | League bottom 6 |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 1 | 55 | 0.527 | 6.90% | 25.86% | 5.66% | 37.74% | 2.17% | 10.65% | 40.61% |
-| 2 | 62 | 0.509 | 8.47% | 21.19% | 7.34% | 31.19% | 3.08% | 14.10% | 31.44% |
+| 1 | 55 | 0.527 | 6.90% | 25.86% | 5.66% | 37.74% | 0.72% | 4.86% | 46.94% |
+| 2 | 62 | 0.509 | 8.47% | 21.19% | 7.34% | 31.19% | 2.43% | 11.49% | 34.30% |
 | 3 | 69 | 0.491 | 10.00% | 16.67% | 8.93% | 25.00% | 4.17% | 18.43% | 24.36% |
-| 4 | 76 | 0.473 | 11.48% | 12.30% | 10.43% | 19.13% | 5.74% | 24.87% | 19.13% |
-| 5 | 83 | 0.455 | 12.90% | 8.06% | 11.86% | 13.56% | 8.51% | 31.91% | 14.47% |
+| 4 | 76 | 0.473 | 11.48% | 12.30% | 10.43% | 19.13% | 6.45% | 27.70% | 16.03% |
+| 5 | 83 | 0.455 | 12.90% | 8.06% | 11.86% | 13.56% | 10.26% | 38.89% | 6.84% |
 
 Đọc đúng bảng này:
 
 - Club prestige tác động khá mạnh vào baseline cup và expected league position.
-- Nhưng ngay cả prestige 5 tại threshold, champion chỉ có 8.51% và top 4 chỉ 31.91%.
-- Đây không tự động là “sai” nếu chủ đích là drama/luck, nhưng nó cho thấy model hiện tại không mô phỏng một đội mạnh có xác suất vô địch tương ứng với sức mạnh đội hình; nó chỉ dùng một đường cong weight khá phẳng.
+- Sau khi tăng prestige modifier, prestige 5 tại threshold có champion 10.26% và top 4 38.89%, trong khi prestige 1 chỉ có champion 0.72% và top 4 4.86%.
+- Đây vẫn là weighted wheel có drama/luck, chưa phải match simulator; nhưng baseline đã phân biệt rõ club mạnh và club yếu hơn mà không thay đổi player impact.
 
 ### 4.2. Player effect tại cùng club prestige 5
 
@@ -209,13 +239,30 @@ Với luck = 10, league size 20:
 
 | eff OVR | Influence | Domestic winner | Domestic early exit | Continental winner | Continental group stage | League champion | League top 4 | League bottom 6 |
 |---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| 70 | 0.350 (floor) | 12.70% | 10.32% | 11.86% | 15.25% | 7.14% | 26.12% | 22.04% |
-| 83 | 0.455 | 12.90% | 8.06% | 11.86% | 13.56% | 8.51% | 31.91% | 14.47% |
-| 90 | 0.545 | 14.62% | 7.69% | 12.71% | 11.86% | 9.89% | 36.99% | 8.39% |
+| 70 | 0.350 (floor) | 12.70% | 10.32% | 11.86% | 15.25% | 8.81% | 32.79% | 14.75% |
+| 83 | 0.455 | 12.90% | 8.06% | 11.86% | 13.56% | 10.26% | 38.89% | 6.84% |
+| 90 | 0.545 | 14.62% | 7.69% | 12.71% | 11.86% | 11.44% | 43.22% | 2.54% |
 
-Kết luận từ mẫu này: player effect có tồn tại, nhưng domestic/continental cup winner chỉ dịch vài điểm phần trăm vì `pull` bị clamp nhỏ và chỉ một phần outcome nhận pull. League effect lớn hơn ở top/bottom vì `diff` được áp trực tiếp vào vùng đầu/cuối pool.
+Kết luận từ mẫu này: player effect vẫn tồn tại đúng chủ đích; domestic/continental cup winner không đổi. League effect của player tiếp tục dịch top/bottom qua `diff`, còn club prestige tạo baseline phân hóa độc lập.
 
-### 4.3. Luck effect
+### 4.3. Tác động của prior season cùng club/league
+
+Với prestige 5, eff OVR 83, league size 20, luck không tham gia standing
+pool, chỉ prior standing thay đổi:
+
+| Prior standing mùa liền trước | League champion | League top 4 | League bottom 6 |
+|---:|---:|---:|---:|
+| 1 | 10.26% | 38.89% | 6.84% |
+| 5 | 9.22% | 37.07% | 8.42% |
+| 10 | 8.54% | 35.10% | 9.87% |
+| 15 | 7.79% | 32.97% | 11.41% |
+| 20 | 7.16% | 30.54% | 12.91% |
+
+Đây là quán tính có chủ đích nhưng bị giới hạn ở 20% của expected position.
+Một career chuyển sang club/league khác không dùng bảng này; quay lại league cũ
+sau nhiều mùa cũng không dùng record cũ vì chỉ đọc tuổi `currentAge - 1`.
+
+### 4.4. Luck effect
 
 Ở prestige 4, eff OVR 76, league size 20:
 
@@ -276,11 +323,11 @@ Vì vậy hai career player cùng ở một club có thể làm xác suất trop
 
 ### P1 — lỗi logic/độ nhất quán cụ thể
 
-#### E. Quán tính `lastYearStanding` không kiểm tra cùng league sau transfer
+#### E. Quán tính `lastYearStanding` không kiểm tra cùng league sau transfer — đã xử lý
 
-Server `getLastStanding` chỉ đọc `seasonHistory[String(age - 1)].standing` và fallback về 10. Nó không so sánh leagueId/club của mùa trước với league hiện tại: [`features/career/services/server-wheel-resolver.service.ts`](../features/career/services/server-wheel-resolver.service.ts#L137-L140). Sau khi player chuyển league, hạng mùa trước của league cũ vẫn có thể kéo `expectedPos` của league mới.
+Trước update, server đọc thẳng `seasonHistory[String(age - 1)].standing` và fallback về 10 mà không so sánh identity. Sau update, FE và server cùng gọi `getPriorClubStanding`: chỉ trả về standing khi `clubId` và `leagueId` của record tuổi trước khớp context hiện tại. Record completed season hiện persist `clubId`; record legacy thiếu field này fail closed.
 
-Đây là bug logic thực tế, không phải tuning preference. Cần reset/bỏ prior standing khi competition context đổi league; không nên lấy hạng 20 đội ở league cũ làm prior cho league 18 đội mới.
+Đây là bug logic đã được xử lý, không phải tuning preference. Không thêm snapshot/table mới.
 
 #### F. `knownApps` có semantics không đúng với tên “expected league apps”
 
@@ -324,13 +371,13 @@ Domestic luôn có path Vòng 1/32 → 1/16 → 1/8 → QF → SF → Final. Con
 
 ## 7. Ưu tiên cải thiện nếu mục tiêu là simulator realism
 
-Đây là thứ tự kỹ thuật rút ra từ source, chưa phải implementation trong audit này:
+Đây là backlog sau khi đã xử lý contract prior standing và prestige baseline; không thuộc implementation lần này:
 
 1. **Tách competition outcome thành match/round simulator dùng chung.** Wheel chỉ nên là animation/commit UI của kết quả đã được server simulator resolve; hoặc nếu vẫn giữ categorical wheel, weight phải được sinh từ xác suất pass từng round.
 2. **Tạo team-season strength snapshot** cho mỗi mùa: club baseline + roster/squad depth + player contribution + form/injury/transfer adjustment + league competitiveness.
 3. **Tạo competition context riêng:** số đội/round, entry round, group format, opponent strength distribution, home/away hoặc aggregate rule nếu game cần đơn giản hóa.
 4. **Phân biệt continental type trong model:** UCL/UEL/UECL và các confederation khác phải có difficulty/reference profile riêng; label không được là khác biệt duy nhất.
-5. **Sửa prior standing contract:** chỉ dùng last standing nếu `previousLeagueId === currentLeagueId` và league size/context tương thích; nếu không, dùng prior team strength hoặc neutral prior.
+5. **Mở rộng continuity nếu cần:** hiện tại chỉ dùng một prior standing cùng club/league; nếu sau này cần team-strength history thì phải thiết kế riêng, không tự động hồi cứu career history cũ.
 6. **Tách `leagueApps` khỏi total apps:** không truyền `SimulatedSeasonResult.apps` vào influence proxy nếu hàm đang mô hình hóa độ ổn định ở league.
 7. **Dùng cùng một simulation output cho table/journey/season stats/awards.** Không để table và journey chỉ “vẽ lại” sau khi wheel đã chốt một outcome độc lập.
 8. **Thêm distribution tests, không chỉ contract smoke tests:** kiểm tra monotonicity (team mạnh hơn không làm champion/top-four giảm), competition-type separation, transfer reset, preview/server context parity, và calibration qua batch simulation.
@@ -343,7 +390,7 @@ Các tiêu chí này giúp tránh sửa theo cảm giác:
 - Tăng player contribution chỉ ảnh hưởng trong biên độ đã định, không thể thay thế team strength.
 - UCL/UEL/UECL có distribution khác nhau theo profile difficulty.
 - Cùng một team-strength snapshot và cùng seed cho ra cùng round path ở server, không phải một categorical result rồi tạo narrative độc lập.
-- Chuyển league làm prior standing cũ mất hiệu lực; cùng league mới thì mới được dùng continuity.
+- Chuyển club hoặc league làm prior standing cũ mất hiệu lực; cùng club + league ở mùa liền trước mới được dùng continuity.
 - `leagueApps` và total apps không thể bị tráo vì type/context.
 - Preview FE và server nhận cùng snapshot context; nếu snapshot khác phải fail closed hoặc refetch, không âm thầm hiển thị weight giả.
 - Mỗi result tier có frequency report trên batch lớn, không đánh giá bằng một playthrough đơn lẻ.
@@ -353,6 +400,8 @@ Các tiêu chí này giúp tránh sửa theo cảm giác:
 - Weight formulas và shared pool: [`features/wheel/lib/simulation-helpers.ts`](../features/wheel/lib/simulation-helpers.ts), [`features/wheel/lib/wheel-team-params.ts`](../features/wheel/lib/wheel-team-params.ts), [`features/wheel/lib/career-wheel-resolver.ts`](../features/wheel/lib/career-wheel-resolver.ts).
 - Server authority/context: [`features/career/services/server-wheel-resolver.service.ts`](../features/career/services/server-wheel-resolver.service.ts), [`features/career/services/checkpoint.service.ts`](../features/career/services/checkpoint.service.ts).
 - FE preview context: [`features/wheel/hooks/useCareerWheelItems.ts`](../features/wheel/hooks/useCareerWheelItems.ts), [`features/wheel/hooks/useDraftDrum.ts`](../features/wheel/hooks/useDraftDrum.ts).
+- Prior-standing identity guard: [`features/wheel/lib/previous-season-standing.ts`](../features/wheel/lib/previous-season-standing.ts), [`features/wheel/lib/season-record-hydration.ts`](../features/wheel/lib/season-record-hydration.ts), [`features/career/services/season-transition.service.ts`](../features/career/services/season-transition.service.ts).
+- Regression check: [`scripts/competition-wheel-weight-check.ts`](../scripts/competition-wheel-weight-check.ts).
 - Club fit / effective position OVR: [`lib/club-fit.ts`](../lib/club-fit.ts), [`lib/positional-value.ts`](../lib/positional-value.ts), [`lib/transfer-economy.ts`](../lib/transfer-economy.ts).
 - Downstream league/cup simulation: [`features/season/services/table-simulator.service.ts`](../features/season/services/table-simulator.service.ts), [`features/season/services/cup-journey.service.ts`](../features/season/services/cup-journey.service.ts), [`features/season/services/season-simulator.service.ts`](../features/season/services/season-simulator.service.ts), [`actions/season.actions.ts`](../actions/season.actions.ts).
 - Data model: [`prisma/schema.prisma`](../prisma/schema.prisma), [`prisma/data/leagues.ts`](../prisma/data/leagues.ts), [`prisma/data/clubs.ts`](../prisma/data/clubs.ts).
@@ -360,6 +409,8 @@ Các tiêu chí này giúp tránh sửa theo cảm giác:
 
 ## 10. Final verdict
 
-Weight hiện tại có source rõ ràng, deterministic và server-authoritative; không có dấu hiệu “random không kiểm soát” trong chính các helper này. Nhưng kết quả team competition hiện vẫn là một categorical wheel dựa trên vài proxy đơn giản, sau đó được dựng lại thành bảng/journey. Vì vậy các hiện tượng như player OVR kéo team quá mạnh, continental trophy khác label nhưng cùng odds, hoặc một kết quả cup có vẻ không ăn khớp với đối thủ/format là hệ quả trực tiếp của model hiện tại, không phải lỗi animation/loading.
+Weight hiện tại có source rõ ràng, deterministic và server-authoritative; không có dấu hiệu “random không kiểm soát” trong chính các helper này. League standing hiện dùng club prestige làm baseline chính, prior standing mùa liền trước ở cùng club/league làm continuity 20%, và giữ nguyên player impact. FE preview/server resolver dùng cùng contract; transfer hoặc career history cũ không làm rò prior standing sang context mới.
+
+Kết quả team competition vẫn là categorical wheel dựa trên vài proxy đơn giản, sau đó được dựng lại thành bảng/journey. Vì vậy các hiện tượng như continental trophy khác label nhưng cùng odds, hoặc cup có vẻ không ăn khớp với đối thủ/format vẫn là backlog simulator realism, không phải lỗi của thay đổi weight lần này.
 
 Nếu mục tiêu của phase tiếp theo là realism, cần thay đổi nguồn sinh weight: từ `prestige + player OVR + luck` sang một team/competition simulator có snapshot và opponent/bracket context. Chỉ tuning các hằng số `4 + prestige × 2`, `0.75`, `0.55`, `45 - prestige × 6` sẽ làm số đẹp hơn nhưng không giải quyết nguyên nhân.
