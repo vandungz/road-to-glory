@@ -3,6 +3,7 @@ import { hydrateCurrentSeasonRecord } from "@/features/wheel/lib/season-record-h
 
 const hydrated = hydrateCurrentSeasonRecord({
   age: 17,
+  clubId: "club-newcastle",
   clubName: "Newcastle United",
   leagueName: "Premier League",
   leagueId: "ENG1",
@@ -16,6 +17,7 @@ const hydrated = hydrateCurrentSeasonRecord({
 });
 
 assert.equal(hydrated.standing, 13);
+assert.equal(hydrated.clubId, "club-newcastle");
 assert.equal(hydrated.domesticCup, "Round of 16");
 assert.deepEqual(hydrated.continentalCup, { type: "UCL", result: "Chờ quay" });
 assert.equal(hydrated.nationalTeam, null);

@@ -25,6 +25,7 @@ function asNumber(value: unknown): number | null {
 export function hydrateCurrentSeasonRecord(params: {
   existing?: SeasonRecord;
   age: number;
+  clubId?: string;
   clubName: string;
   leagueName: string;
   leagueId: string;
@@ -65,6 +66,7 @@ export function hydrateCurrentSeasonRecord(params: {
   const record: SeasonRecord = {
     ...(existing ?? {}),
     age: params.age,
+    ...(params.clubId ? { clubId: params.clubId } : {}),
     clubName: params.clubName,
     leagueName: params.leagueName,
     leagueId: params.leagueId,

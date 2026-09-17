@@ -211,6 +211,7 @@ function completedSeasonRecord(
   runtimeState: unknown,
   season: {
     age: number;
+    clubId: string | null;
     clubName: string | null;
     leagueId: string | null;
     leagueName: string | null;
@@ -226,6 +227,7 @@ function completedSeasonRecord(
   const record: Record<string, unknown> = {
     ...existing,
     age: season.age,
+    ...(season.clubId ? { clubId: season.clubId } : {}),
     clubName: season.clubName ?? existing.clubName ?? "Không CLB",
     leagueName: season.leagueName ?? existing.leagueName ?? "Thất nghiệp",
     ...(season.leagueId ? { leagueId: season.leagueId } : {}),

@@ -69,6 +69,8 @@ export interface LeagueTableRow {
 
 export interface SeasonRecord {
   age: number;
+  /** Identity of the club that produced this season's competition result. */
+  clubId?: string;
   clubName: string;
   leagueName: string;
   leagueId?: string;
