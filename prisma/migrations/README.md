@@ -5,6 +5,8 @@ update started. `00000000000000_baseline` is a schema baseline captured from
 the current database structure; `20260902000100_career_persistence_foundation`
 is the additive V2 migration, `20260902000200_career_command_idempotency`
 adds idempotency storage for non-wheel career commands,
+`20260918000100_transfer_workflow_state` stores compact resumable transfer
+state separately from the season JSON runtime aggregate,
 `20260903000100_repeatable_wheel_checkpoints` allows repeated growth wheel
 steps, `20260904000100_ballon_dor_test_fixture` records the first (now removed)
 fixture-registry attempt, and `20260904000200_ballon_dor_nugu_checkpoint_case`

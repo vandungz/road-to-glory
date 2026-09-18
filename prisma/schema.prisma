@@ -88,6 +88,8 @@ model CareerPlayer {
   commands           CareerCommand[]
   honours            CareerHonour[]
   awardRankings      CareerAwardRankingSnapshot[]
+  transferWorkflows  CareerTransferWorkflow[]
+  transferNegotiations CareerTransferNegotiation[]
 
   @@unique([gameSessionId, slotIndex])
   @@map("career_players")
@@ -115,6 +117,8 @@ model CareerSeason {
   commands        CareerCommand[]
   honours         CareerHonour[]
   awardRankings   CareerAwardRankingSnapshot[]
+  transferWorkflow   CareerTransferWorkflow?
+  transferNegotiations CareerTransferNegotiation[]
 
   @@unique([careerPlayerId, seasonNumber])
   @@index([careerPlayerId, status])
@@ -177,10 +181,53 @@ model CareerCommand {
   revisionBefore  Int
   revisionAfter   Int
   createdAt       DateTime      @default(now())
+  transferNegotiations CareerTransferNegotiation[] @relation("TransferMarketNegotiations")
 
   @@unique([careerPlayerId, idempotencyKey])
   @@index([careerPlayerId, commandType, createdAt])
+  @@index([careerPlayerId, seasonId, commandType, revisionBefore, createdAt])
   @@map("career_commands")
+}
+
+model CareerTransferWorkflow {
+  id                 String                      @id @default(uuid()) @db.Uuid
+  careerPlayerId     String                      @db.Uuid
+  careerPlayer       CareerPlayer                @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId           String                      @unique @db.Uuid
+  season             CareerSeason                @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  status             String                      @default("idle") // idle | selected | completed
+  selectedClubId     String?
+  selectedOfferKind  String?
+  version            Int                         @default(0)
+  createdAt          DateTime                    @default(now())
+  updatedAt          DateTime                    @updatedAt
+  negotiations       CareerTransferNegotiation[]
+
+  @@index([careerPlayerId, status])
+  @@map("career_transfer_workflows")
+}
+
+model CareerTransferNegotiation {
+  id              String                 @id @default(uuid()) @db.Uuid
+  careerPlayerId  String                 @db.Uuid
+  careerPlayer    CareerPlayer           @relation(fields: [careerPlayerId], references: [id], onDelete: Cascade)
+  seasonId        String                 @db.Uuid
+  season          CareerSeason            @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  workflowId      String                 @db.Uuid
+  workflow        CareerTransferWorkflow @relation(fields: [workflowId], references: [id], onDelete: Cascade)
+  clubId          String
+  offerKind       String
+  status          String                 @default("active") // active | cancelled | completed
+  failedWageMask  Int                    @default(0)
+  marketCommandId String?                @db.Uuid
+  marketCommand   CareerCommand?         @relation("TransferMarketNegotiations", fields: [marketCommandId], references: [id], onDelete: SetNull)
+  createdAt       DateTime               @default(now())
+  updatedAt       DateTime               @updatedAt
+
+  @@unique([careerPlayerId, seasonId, clubId, offerKind])
+  @@index([careerPlayerId, seasonId, status])
+  @@index([workflowId, status])
+  @@map("career_transfer_negotiations")
 }
 
 model CareerHonour {
