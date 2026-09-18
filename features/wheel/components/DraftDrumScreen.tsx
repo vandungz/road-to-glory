@@ -106,6 +106,7 @@ export function DraftDrumScreen({
     careerTotalStats,
     peakOvrValue,
     yearSimResult,
+    transferOffer,
     transferMarket,
     willingToMove,
     approachRejects,
@@ -127,6 +128,7 @@ export function DraftDrumScreen({
     handleCareerSpin,
     handleCareerSpinComplete,
     handleAcceptMarketOffer,
+    clearPendingTransferOffer,
     handleRejectTransferWindow,
     handleApproachShortlist,
     handleProactiveRenewal,
@@ -468,26 +470,20 @@ export function DraftDrumScreen({
           willingToMove={willingToMove}
           setWillingToMove={handleSetWillingToMove}
           isProcessing={isProcessing}
-                  onAcceptOffer={(offer) => {
-            void handleAcceptMarketOffer(offer).then((accepted) => {
-              if (accepted) setActiveModal(null);
-            });
+          onAcceptOffer={async (offer, wageOption) => {
+            const resolution = await handleAcceptMarketOffer(offer, wageOption);
+            if (resolution === "accepted") setActiveModal(null);
+            return resolution;
           }}
           onRejectAll={() => {
             void handleRejectTransferWindow().then(() => setActiveModal(null));
           }}
           onApproachShortlist={async (club, wageOption) => {
             const accepted = await handleApproachShortlist(club, wageOption);
-            if (accepted) {
-              setActiveModal(null);
-            }
             return accepted;
           }}
           onProactiveRenewal={async (wageOption) => {
             const accepted = await handleProactiveRenewal(wageOption);
-            if (accepted) {
-              setActiveModal(null);
-            }
             return accepted;
           }}
           onSearchClubs={handleSearchClubs}
@@ -495,6 +491,8 @@ export function DraftDrumScreen({
           proactiveRenewalRejected={proactiveRenewalRejected}
           approachRejects={approachRejects}
           approachBanner={approachBanner}
+          acceptedOffer={transferOffer}
+          onClearAcceptedOffer={clearPendingTransferOffer}
           onClose={() => setActiveModal(null)}
         />
       )}

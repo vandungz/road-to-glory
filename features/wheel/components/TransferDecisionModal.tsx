@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { X, FileText, CheckCircle2, XCircle, Building2, ChevronDown, ChevronUp } from "lucide-react";
-import { formatEuroThousands } from "@/lib/transfer-economy";
+import { formatEuroThousands, formatTransferFee } from "@/lib/transfer-economy";
 import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { ApproachRejectState } from "./TransferWindowPanel";
 import { Modal, ModalHeader } from "@/components/ui/Modal";
@@ -217,7 +217,7 @@ export function TransferDecisionModal({
 
                 <div style={{ backgroundColor: "var(--cream)", padding: "10px", borderRadius: "3px" }}>
                   <div style={{ color: "var(--ink-gray)", fontSize: "0.55rem" }}>PHÍ CHUYỂN NHƯỢNG</div>
-                  <strong>{activeOffer.transferFee <= 0 ? "MIỄN PHÍ" : formatEuroThousands(activeOffer.transferFee)}</strong>
+                  <strong>{activeOffer.transferFee <= 0 ? "MIỄN PHÍ" : formatTransferFee(activeOffer.transferFee)}</strong>
                 </div>
 
                 <div style={{ backgroundColor: "var(--cream)", padding: "10px", borderRadius: "3px" }}>

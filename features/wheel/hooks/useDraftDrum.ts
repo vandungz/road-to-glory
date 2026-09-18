@@ -30,15 +30,15 @@ import {
 import { type SeasonRecord, getStepLabels } from "@/types/game";
 import { AWARD_MODEL_VERSION, AWARD_RESOLUTION_VERSION } from "@/types/awards";
 import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
-import { approachChancePercent, computeEffectivePositionOvr } from "@/lib/transfer-economy";
-import { applyWageDealChance, type WageDealOption } from "@/lib/salary-negotiation";
+import { applyTransferFeeDealChance, approachChancePercent, computeEffectivePositionOvr, type TransferFeeDealOption } from "@/lib/transfer-economy";
+import type { WageDealOption } from "@/lib/salary-negotiation";
 import {
   isShopItemActiveForSeason,
   type ShopInventoryEntry,
 } from "@/lib/shop-catalog";
 import type { ApproachRejectState } from "../components/TransferWindowPanel";
 import type { ShortlistClubCard } from "@/features/transfer/services/transfer.service";
-import type { ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { ContractOfferCard, TransferDealResolution, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { AchievementRecord, CareerSubStep, ClubStint, ClubSummary, LeagueSummary, SeasonHistory, StatSnapshot } from "@/types/domain";
 import { getWheelTypeForStep } from "@/features/career/contracts/wheel-step.contract";
 import { shouldResumeSeasonStatsModal } from "../lib/career-resume-state";
@@ -1043,12 +1043,12 @@ export function useDraftDrum(
   async function commitTransferSelection(
     offer: ContractOfferCard,
     wageOption: WageDealOption = "standard",
-  ): Promise<ContractOfferCard | null> {
-    if (!checkpointSync.isEnabled) return offer;
+  ): Promise<{ resolution: TransferDealResolution; offer?: ContractOfferCard }> {
+    if (!checkpointSync.isEnabled) return { resolution: "accepted", offer };
     const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
     if (!syncPlayerId || !seasonId || revision === null) {
       setApproachBanner("Không thể xác nhận chuyển nhượng — thiếu checkpoint mùa hiện tại.");
-      return null;
+      return { resolution: "error" };
     }
     try {
       const result = await completeTransferCommandAction({
@@ -1063,31 +1063,38 @@ export function useDraftDrum(
         wageOption,
       });
       checkpointSync.applyTransferCompletion(result);
+      statsProps.setWalletBalance(result.walletBalance);
       return {
-        ...offer,
-        clubId: result.clubId ?? offer.clubId,
-        clubName: result.clubName,
-        leagueName: result.leagueName,
-        transferFee: result.fee,
-        contractYears: result.contractYears,
-        wageAnnual: result.wageAnnual,
+        resolution: "accepted",
+        offer: {
+          ...offer,
+          clubId: result.clubId ?? offer.clubId,
+          clubName: result.clubName,
+          leagueName: result.leagueName,
+          transferFee: result.fee,
+          contractYears: result.contractYears,
+          wageAnnual: result.wageAnnual,
+        },
       };
     } catch (error) {
       console.error("Transfer completion command failed:", error);
       if (checkpointSync.isEnabled) await checkpointSync.resync();
-      setApproachBanner("Không thể chốt chuyển nhượng — hãy thử lại.");
-      return null;
+      const message = error instanceof Error ? error.message : "";
+      const cancelled = message.includes("thương vụ") || message.includes("đã bị hủy");
+      const rejected = message.includes("mức lương") || message.includes("lương");
+      setApproachBanner(message || "Không thể chốt chuyển nhượng — hãy thử lại.");
+      return { resolution: cancelled ? "cancelled" : rejected ? "rejected" : "error" };
     }
   }
 
   async function handleAcceptTransfer(accept: boolean, offerOverride?: ContractOfferCard | null) {
     const selectedOffer = offerOverride ?? transferOffer;
     if (isProcessing || !accept || !selectedOffer) return;
-    const authoritativeOffer = await commitTransferSelection(selectedOffer);
-    if (!authoritativeOffer) return;
+    const committed = await commitTransferSelection(selectedOffer);
+    if (committed.resolution !== "accepted" || !committed.offer) return;
     statsProps.handleAcceptTransfer(
       true,
-      authoritativeOffer,
+      committed.offer,
       clubs,
       setTransferOffer,
       setCareerSubStep,
@@ -1103,17 +1110,27 @@ export function useDraftDrum(
   async function handleAcceptMarketOffer(
     offer: ContractOfferCard,
     wageOption: WageDealOption = "standard",
-  ): Promise<boolean> {
+  ): Promise<TransferDealResolution> {
     console.log("[Transfer Flow] User accepted offer:", offer.clubName, offer);
     const ownsProcessing = !isProcessing;
     if (ownsProcessing) setIsProcessing(true);
     try {
-      const authoritativeOffer = await commitTransferSelection(offer, wageOption);
-      if (!authoritativeOffer) return false;
-      setTransferOffer(authoritativeOffer);
+      const committed = await commitTransferSelection(offer, wageOption);
+      if (committed.resolution !== "accepted" || !committed.offer) return committed.resolution;
+      const authoritativeOffer = committed.offer;
+      const finalizedOffer = checkpointSync.isEnabled
+        ? authoritativeOffer
+        : {
+            ...authoritativeOffer,
+            wageAnnual: Math.round(
+              authoritativeOffer.wageAnnual *
+                (wageOption === "lower" ? 0.8 : wageOption === "higher" ? 1.15 : 1),
+            ),
+          };
+      setTransferOffer(finalizedOffer);
       statsProps.handleAcceptTransfer(
         true,
-        authoritativeOffer,
+        finalizedOffer,
         clubs,
         setTransferOffer,
         setCareerSubStep,
@@ -1125,7 +1142,10 @@ export function useDraftDrum(
           setApproachBanner(null);
         },
       );
-      return true;
+      return "accepted";
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "";
+      return message.includes("thương vụ") || message.includes("đã bị hủy") ? "cancelled" : message.includes("mức lương") || message.includes("lương") ? "rejected" : "error";
     } finally {
       if (ownsProcessing) setIsProcessing(false);
     }
@@ -1174,13 +1194,13 @@ export function useDraftDrum(
     setIsProcessing(false);
   }
 
-  async function handleApproachShortlist(club: ShortlistClubCard, wageOption?: WageDealOption): Promise<boolean> {
+  async function handleApproachShortlist(club: ShortlistClubCard, feeOption?: TransferFeeDealOption): Promise<boolean> {
     if (isProcessing || !transferMarket || !club.canApproach || club.acceptChance == null) return false;
     if (approachRejects[club.clubId]) return false;
     setIsProcessing(true);
     setApproachBanner(null);
     try {
-      const selectedOption = wageOption ?? "standard";
+      const selectedOption = feeOption ?? "standard";
       const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
       let res;
       if (checkpointSync.isEnabled) {
@@ -1193,10 +1213,10 @@ export function useDraftDrum(
           expectedRevision: revision,
           kind: "approach",
           clubId: club.clubId,
-          wageOption: selectedOption,
+          feeOption: selectedOption,
         });
       } else {
-        const adjustedChance = applyWageDealChance(club.acceptChance, selectedOption);
+        const adjustedChance = applyTransferFeeDealChance(club.acceptChance, selectedOption);
         const effPosOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
         res = await resolveShortlistApproachAction({
           clubId: club.clubId,
@@ -1208,7 +1228,8 @@ export function useDraftDrum(
           previewFee: club.previewFee,
           previewWage: club.previewWage,
           previewYears: club.previewYears,
-          wageOption: selectedOption,
+          mandatoryBuyout: transferMarket.mandatoryBuyout,
+          feeOption: selectedOption,
           clientAcceptChance: adjustedChance,
           currentOvr,
           effPositionOvr: effPosOvr,
@@ -1223,7 +1244,11 @@ export function useDraftDrum(
       if (res.accepted) {
         console.log(`[Transfer Flow] Approach to ${club.clubName} ACCEPTED!`);
         setApproachBanner(`${club.clubName} đồng ý ký (${approachChancePercent(res.acceptChance)}%)`);
-        return await handleAcceptMarketOffer(res.offer, selectedOption);
+        // The approach only issues an offer. The user must still negotiate the
+        // salary on the next screen; completing here made that step falsely
+        // look like a guaranteed confirmation.
+        setTransferOffer(res.offer);
+        return true;
       } else {
         console.log(`[Transfer Flow] Approach to ${club.clubName} REJECTED.`);
         setApproachRejects((prev) => ({
@@ -1296,7 +1321,8 @@ export function useDraftDrum(
       if (res.accepted) {
         console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} ACCEPTED!`);
         setApproachBanner(`Gia hạn thành công với ${currentClub.name}!`);
-        return await handleAcceptMarketOffer(res.offer, wageOption);
+        setTransferOffer(res.offer);
+        return true;
       } else {
         console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} REJECTED.`);
         setProactiveRenewalRejectedAge(currentAge);
@@ -1312,6 +1338,10 @@ export function useDraftDrum(
       proactiveRenewalInFlightRef.current = false;
       setIsProcessing(false);
     }
+  }
+
+  function clearPendingTransferOffer() {
+    setTransferOffer(null);
   }
 
   async function handleSearchClubs(params: {
@@ -1517,7 +1547,7 @@ export function useDraftDrum(
     handleSetupSpin: setupProps.handleSetupSpin,
     handleSetupSpinComplete: setupProps.handleSetupSpinComplete,
     handleStartCareer, handleStartSeason, handleCareerSpin,
-    handleCareerSpinComplete, handleAcceptTransfer, handleAcceptMarketOffer,
+    handleCareerSpinComplete, handleAcceptTransfer, handleAcceptMarketOffer, clearPendingTransferOffer,
     handleRejectTransferWindow, handleApproachShortlist, handleProactiveRenewal, handleSearchClubs, handleSetWillingToMove,
     setShowShortlist, handleNextSeason, handleContinueFromShop, handleShopReturn, handleTransferReturn,
     persistCurrentProgress,

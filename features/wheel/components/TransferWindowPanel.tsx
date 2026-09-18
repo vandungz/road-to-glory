@@ -1,6 +1,6 @@
 "use client";
 
-import { approachChancePercent, formatEuroThousands } from "@/lib/transfer-economy";
+import { approachChancePercent, formatEuroThousands, formatTransferFee } from "@/lib/transfer-economy";
 import type { ContractOfferCard, ShortlistClubCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 
 export type ApproachRejectState = Record<string, { chance: number; reason: string }>;
@@ -65,7 +65,7 @@ function OfferCard({
           fontFamily: "var(--font-stamp)",
         }}
       >
-        <span>Phí: <strong>{offer.transferFee <= 0 ? "—" : formatEuroThousands(offer.transferFee)}</strong></span>
+        <span>Phí: <strong>{offer.transferFee <= 0 ? "—" : formatTransferFee(offer.transferFee)}</strong></span>
         <span>Lương/năm: <strong>{formatEuroThousands(offer.wageAnnual)}</strong></span>
         <span>HĐ: <strong>{offer.contractYears} năm</strong></span>
         <span>Trận dự kiến: <strong>~{offer.expectedLeagueApps} trận</strong></span>
@@ -263,7 +263,7 @@ export function TransferWindowPanel({
                   </strong>
                   <span style={{ fontSize: "0.75rem" }}>
                     {club.leagueName} · ~{club.expectedLeagueApps} trận · Phí{" "}
-                    {club.previewFee <= 0 ? "—" : formatEuroThousands(club.previewFee)} · Lương{" "}
+                    {club.previewFee <= 0 ? "—" : formatTransferFee(club.previewFee)} · Lương{" "}
                     {formatEuroThousands(club.previewWage)} · {club.previewYears} năm
                   </span>
                   {club.blockReason && !rejected && (
