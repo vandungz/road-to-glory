@@ -20,10 +20,12 @@
     "check:career-persistence-integration": "tsx scripts/career-persistence-integration-check.ts",
     "check:awards-persistence": "tsx scripts/awards-persistence-integration-check.ts",
     "check:transfer-authority": "tsx scripts/transfer-authority-check.ts",
+    "check:transfer-workflow": "tsx scripts/transfer-workflow-state-check.ts",
     "audit:career-persistence": "tsx scripts/career-persistence-audit.ts",
     "backfill:career-projection": "tsx scripts/backfill-career-projection.ts",
     "backfill:awards": "tsx scripts/backfill-awards.ts",
     "check:transfer-economy": "tsx scripts/transfer-economy-check.ts",
+    "check:transfer-finance": "tsx scripts/transfer-finance-check.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
