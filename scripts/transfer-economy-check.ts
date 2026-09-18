@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import {
   computeMarketValue,
+  computeClubTransferFee,
   computePositionValueSnapshot,
   getBuyingPowerBand,
   getPositionAttributeWeights,
@@ -118,6 +119,29 @@ const market = generateTransferMarketService({
 
 assert.equal(market.valuation.positionWeightedRating, specialistValue.positionWeightedRating);
 assert.ok(market.marketValue > 0, "The transfer checkpoint must produce a market value");
+const feeQuotes = clubs
+  .filter((club) => club.id !== "current")
+  .map((club) => computeClubTransferFee({
+    marketValue: market.marketValue,
+    mandatoryBuyout: market.mandatoryBuyout,
+    prestige: club.prestige,
+    leagueTier: club.leagueTier,
+    leaguePrestige: club.leaguePrestige,
+    expectedAppsRatio: 0.55,
+    clubIdentity: club.id,
+  }));
+assert.notEqual(feeQuotes[0], feeQuotes[1], "Different destination clubs must not share one hardcoded transfer fee");
+
+const sameBandQuotes = ["club-alpha", "club-beta", "club-gamma"].map((clubIdentity) => computeClubTransferFee({
+  marketValue: 3_000,
+  mandatoryBuyout: 3_400,
+  prestige: 2,
+  leagueTier: 1,
+  leaguePrestige: 5,
+  expectedAppsRatio: 0.55,
+  clubIdentity,
+}));
+assert.equal(new Set(sameBandQuotes).size, 3, "Same-band clubs must still receive distinct identity-based fee quotes");
 assert.equal(
   market.shortlist[0]?.clubId,
   "competitive-low-prestige",

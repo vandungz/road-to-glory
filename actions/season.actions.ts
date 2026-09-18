@@ -72,6 +72,7 @@ import {
 } from "@/features/transfer/services/transfer.service";
 import {
   clubCanAffordBuyout,
+  computeClubTransferFee,
   computeApproachAcceptChance,
   computeEffectivePositionOvr,
   computeMandatoryBuyout,
@@ -82,6 +83,7 @@ import {
   randomizeWageAnnual,
 } from "@/lib/transfer-economy";
 import { secureRandom } from "@/lib/secure-random";
+import { computeWageAgreementChance } from "@/lib/salary-negotiation";
 import { estimateAppsRatio } from "@/lib/club-fit";
 import { 
   generateDomesticCupJourneyService, 
@@ -325,7 +327,8 @@ const resolveShortlistApproachSchema = z.object({
   previewFee: z.number().int().min(0),
   previewWage: z.number().int().min(0),
   previewYears: z.number().int().min(0).max(10),
-  wageOption: z.enum(["lower", "standard", "higher"]).optional().default("standard"),
+  mandatoryBuyout: z.number().int().min(0).optional().default(0),
+  feeOption: z.enum(["discount", "standard", "premium"]).optional().default("standard"),
   clientAcceptChance: z.number().min(0).max(1),
   currentOvr: z.number().int().min(10).max(99),
   effPositionOvr: z.number().optional(),
@@ -345,6 +348,7 @@ const completeTransferSchema = z.object({
   wageAnnual: z.number().int().min(0),
   contractYears: z.number().int().min(0).max(10),
   transferFee: z.number().int().min(0),
+  wageOption: z.enum(["lower", "standard", "higher"]).default("standard"),
 });
 
 const generateCupJourneySchema = z.object({
@@ -1000,7 +1004,16 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
   const clubs: ShortlistClubCard[] = dbClubs.map((club) => {
     const apps = expectedAppsAtClub(effPositionOvr, club.prestige, 20);
     const fit = estimateAppsRatio(effPositionOvr, club.prestige);
-    const canAfford = clubCanAffordBuyout(club.prestige, club.league?.tier ?? 1, mandatoryBuyout);
+    const transferFee = computeClubTransferFee({
+      marketValue: marketVal,
+      mandatoryBuyout,
+      prestige: club.prestige,
+      leagueTier: club.league?.tier ?? 1,
+      leaguePrestige: club.league?.prestige,
+      expectedAppsRatio: fit,
+      clubIdentity: club.id,
+    });
+    const canAfford = clubCanAffordBuyout(club.prestige, club.league?.tier ?? 1, transferFee);
     const years = proposeContractYears({
       currentAge: validated.currentAge,
       retireAge: validated.retireAge,
@@ -1055,7 +1068,8 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
       expectedLeagueApps: apps,
       canApproach: Boolean(canApproachGate && canAfford && years > 0),
       canAffordBuyout: canAfford,
-      previewFee: validated.contractYearsRemaining <= 0 || validated.isUnemployed ? 0 : mandatoryBuyout,
+      previewFee: validated.contractYearsRemaining <= 0 || validated.isUnemployed ? 0 : transferFee,
+      mandatoryBuyout,
       previewWage: wage,
       previewYears: years,
       blockReason,
@@ -1095,7 +1109,7 @@ export async function completeTransferAction(input: unknown): Promise<{
 
   const destination = await prisma.club.findUnique({
     where: { id: validated.clubId },
-    select: { id: true, name: true, leagueId: true, prestige: true, continentalType: true, league: { select: { name: true } } },
+    select: { id: true, name: true, leagueId: true, prestige: true, continentalType: true, league: { select: { name: true, tier: true } } },
   });
   if (!destination) throw new Error("CLB đích không tồn tại");
 
@@ -1103,6 +1117,20 @@ export async function completeTransferAction(input: unknown): Promise<{
   const snapshot = timeline.at(-1);
   if (!snapshot || typeof snapshot.age !== "number") throw new Error("Thiếu mốc mùa giải hiện tại");
   const currentAge = snapshot.age;
+
+  const wageMultiplier = validated.wageOption === "lower"
+    ? 0.8
+    : validated.wageOption === "higher" ? 1.15 : 1;
+  const wageChance = computeWageAgreementChance({
+    option: validated.wageOption,
+    baseWage: Math.max(1, Math.round(validated.wageAnnual / wageMultiplier)),
+    clubPrestige: destination.prestige,
+    leagueTier: destination.league.tier,
+    expectedLeagueApps: 20,
+  });
+  if (secureRandom() >= wageChance) {
+    throw new Error("CLB không chấp nhận mức lương này — hãy chọn một phương án khác.");
+  }
 
   const stints = [...((player.clubStints as unknown as ClubStint[]) ?? [])];
   const lastStint = stints.at(-1);

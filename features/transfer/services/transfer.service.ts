@@ -10,6 +10,9 @@ import {
   clampWageAnnual,
   clubCanAffordBuyout,
   computeApproachAcceptChance,
+  computeClubTransferFee,
+  applyTransferFeeDealChance,
+  applyTransferFeeDealOption,
   computeEffectivePositionOvr,
   computeMandatoryBuyout,
   computeMarketValue,
@@ -18,6 +21,7 @@ import {
   computeScoutInterestScore,
   contractCoversRemainingCareer,
   expectedAppsAtClub,
+  getBuyingPowerBand,
   isDistressSale,
   leagueCompetitivenessScore,
   proposeContractYears,
@@ -26,7 +30,8 @@ import {
   seasonsLeftInCareer,
   wantsRenewal,
 } from "@/lib/transfer-economy";
-import { applyWageDealChance, WageDealOption } from "@/lib/salary-negotiation";
+import { applyWageDealChance, type WageDealOption } from "@/lib/salary-negotiation";
+import type { TransferFeeDealOption } from "@/lib/transfer-economy";
 
 export interface ClubMarketInfo {
   id: string;
@@ -43,6 +48,13 @@ export interface ClubMarketInfo {
 }
 
 export type ContractOfferKind = "transfer" | "free_agent" | "renewal";
+
+export type TransferDealResolution = "accepted" | "rejected" | "cancelled" | "error";
+
+export type PendingTransferNegotiation = {
+  offer: ContractOfferCard;
+  failedWageOptions: WageDealOption[];
+};
 
 export interface ContractOfferCard {
   kind: ContractOfferKind;
@@ -71,6 +83,7 @@ export interface ShortlistClubCard {
   canApproach: boolean;
   canAffordBuyout: boolean;
   previewFee: number;
+  mandatoryBuyout?: number;
   previewWage: number;
   previewYears: number;
   blockReason: string | null;
@@ -97,6 +110,7 @@ export interface TransferMarketResult {
   renewal: ContractOfferCard | null;
   inbound: ContractOfferCard[];
   shortlist: ShortlistClubCard[];
+  pendingNegotiation?: PendingTransferNegotiation | null;
 }
 
 export interface GenerateTransferMarketParams {
@@ -160,8 +174,8 @@ function scoreClubInterest(params: {
   remaining: number;
   distress: boolean;
   willingToMove: boolean;
-  mandatoryBuyout: number;
- influenceScore?: number;
+  transferFee: number;
+  influenceScore?: number;
  randomize?: boolean;
   randomSource?: RandomSource;
 }): number {
@@ -181,11 +195,11 @@ function scoreClubInterest(params: {
     remaining,
     distress,
     willingToMove,
-    mandatoryBuyout,
+    transferFee,
     influenceScore,
   } = params;
 
-  if (!clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout)) {
+  if (!clubCanAffordBuyout(club.prestige, club.leagueTier, transferFee)) {
     return -1;
   }
 
@@ -456,9 +470,20 @@ export function generateTransferMarketService(
   // --- Inbound ---
   const eligible = clubs.filter((c) => (currentClubId ? c.id !== currentClubId : true));
   const scored = eligible
-    .map((club) => ({
-      club,
-      score: scoreClubInterest({
+    .map((club) => {
+      const transferFee = computeClubTransferFee({
+        marketValue,
+        mandatoryBuyout,
+        prestige: club.prestige,
+        leagueTier: club.leagueTier,
+        leaguePrestige: club.leaguePrestige,
+        expectedAppsRatio: estimateAppsRatio(effPositionOvr, club.prestige),
+        clubIdentity: club.id,
+      });
+      return {
+        club,
+        transferFee,
+        score: scoreClubInterest({
         club,
         currentOvr,
         position: params.position,
@@ -474,11 +499,12 @@ export function generateTransferMarketService(
         remaining: contractYearsRemaining,
         distress,
         willingToMove: willingToMove || unemployed,
-        mandatoryBuyout,
+        transferFee,
         influenceScore,
         randomSource,
-      }),
-    }))
+        }),
+      };
+    })
     .filter((x) => x.score >= 0)
     .sort((a, b) => b.score - a.score);
 
@@ -501,7 +527,15 @@ export function generateTransferMarketService(
     for (const club of picked) {
       const years = proposeContractYears({ currentAge, retireAge, matchRating });
       if (years <= 0) continue;
-      const fee = mandatoryBuyout;
+      const fee = computeClubTransferFee({
+        marketValue,
+        mandatoryBuyout,
+        prestige: club.prestige,
+        leagueTier: club.leagueTier,
+        leaguePrestige: club.leaguePrestige,
+        expectedAppsRatio: estimateAppsRatio(effPositionOvr, club.prestige),
+        clubIdentity: club.id,
+      });
       const wage = quoteWage(club, proposeWageAnnual({
         ovr: effPositionOvr,
         age: currentAge,
@@ -540,7 +574,16 @@ export function generateTransferMarketService(
     .map((club) => {
       const apps = expectedAppsAtClub(effPositionOvr, club.prestige, club.leagueSize ?? 20);
       const fit = estimateAppsRatio(effPositionOvr, club.prestige);
-      const canAfford = clubCanAffordBuyout(club.prestige, club.leagueTier, mandatoryBuyout);
+      const transferFee = computeClubTransferFee({
+        marketValue,
+        mandatoryBuyout,
+        prestige: club.prestige,
+        leagueTier: club.leagueTier,
+        leaguePrestige: club.leaguePrestige,
+        expectedAppsRatio: fit,
+        clubIdentity: club.id,
+      });
+      const canAfford = clubCanAffordBuyout(club.prestige, club.leagueTier, transferFee);
       const canApproachGate = contractYearsRemaining <= 1 || unemployed;
       const years = proposeContractYears({ currentAge, retireAge, matchRating });
       const wage = quoteWage(club, proposeWageAnnual({
@@ -590,7 +633,7 @@ export function generateTransferMarketService(
         remaining: contractYearsRemaining,
         distress,
         willingToMove: willingToMove || unemployed,
-        mandatoryBuyout,
+        transferFee,
         influenceScore,
         randomize: false,
       });
@@ -609,7 +652,8 @@ export function generateTransferMarketService(
           expectedLeagueApps: apps,
           canApproach: canApproachGate && canAfford && years > 0,
           canAffordBuyout: canAfford,
-          previewFee: contractYearsRemaining <= 0 || unemployed ? 0 : mandatoryBuyout,
+          previewFee: contractYearsRemaining <= 0 || unemployed ? 0 : transferFee,
+          mandatoryBuyout,
           previewWage: wage,
           previewYears: years,
           blockReason,
@@ -643,9 +687,10 @@ export interface ResolveApproachParams {
   leagueTier: number;
   leagueSize?: number;
   previewFee: number;
+  mandatoryBuyout?: number;
   previewWage: number;
   previewYears: number;
-  wageOption?: WageDealOption; // SoT §13 — wage deal adjustment ("lower", "standard", "higher")
+  feeOption?: TransferFeeDealOption;
   clientAcceptChance: number;
   currentOvr: number;
   effPositionOvr?: number; // SoT §7.10 — pass for accurate fit evaluation
@@ -674,8 +719,15 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
     };
   }
 
+  const feeOption = params.feeOption ?? "standard";
   const feeAsk = remaining <= 0 || unemployed ? 0 : params.previewFee;
-  if (feeAsk > 0 && !clubCanAffordBuyout(params.prestige, params.leagueTier, feeAsk)) {
+  const negotiatedFee = remaining <= 0 || unemployed
+    ? 0
+    : Math.min(
+        getBuyingPowerBand(params.prestige, params.leagueTier).maxFee,
+        applyTransferFeeDealOption(feeAsk, params.mandatoryBuyout ?? 0, feeOption),
+      );
+  if (negotiatedFee > 0 && !clubCanAffordBuyout(params.prestige, params.leagueTier, negotiatedFee)) {
     return {
       accepted: false,
       acceptChance: 0,
@@ -703,8 +755,9 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
     influenceScore: params.influenceScore,
   });
 
-  // Apply wage deal modifier (+0.14 for lower, -0.14 for higher)
-  const acceptChance = applyWageDealChance(baseChance, params.wageOption ?? "standard");
+  // The approach decision is about the transfer fee. Salary is negotiated only
+  // after this succeeds, in the final contract step.
+  const acceptChance = applyTransferFeeDealChance(baseChance, feeOption);
 
   if (Math.abs(acceptChance - params.clientAcceptChance) > 0.02) {
     return {
@@ -724,9 +777,8 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
   }
 
   const kind = remaining <= 0 || unemployed ? "free_agent" : "transfer";
-  const wageMul = params.wageOption === "lower" ? 0.8 : params.wageOption === "higher" ? 1.15 : 1.0;
   const finalWage = clampWageAnnual(
-    Math.max(10, Math.round(params.previewWage * wageMul)),
+    Math.max(10, Math.round(params.previewWage)),
     params.prestige,
     params.leagueTier,
   );
@@ -747,7 +799,7 @@ export function resolveApproachService(params: ResolveApproachParams): ResolveAp
     offer: buildOfferCard({
       kind,
       club,
-      fee: kind === "free_agent" ? 0 : feeAsk,
+      fee: kind === "free_agent" ? 0 : negotiatedFee,
       wage: finalWage,
       years: params.previewYears,
       ovr: params.effPositionOvr ?? params.currentOvr,

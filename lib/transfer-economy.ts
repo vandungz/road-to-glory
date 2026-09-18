@@ -18,6 +18,15 @@ export {
 export const CONTRACT_YEARS_HARD_CAP = 5;
 export const MAX_INBOUND_OFFERS = 3;
 
+export type TransferFeeDealOption = "discount" | "standard" | "premium";
+
+export interface TransferFeeOptionDetail {
+  option: TransferFeeDealOption;
+  label: string;
+  fee: number;
+  acceptChanceModifier: number;
+}
+
 export type TransferBandId =
   | "lower"
   | "lower_plus"
@@ -140,6 +149,95 @@ export function computeMandatoryBuyout(marketValue: number, contractYearsRemaini
   const f = buyoutFactor(contractYearsRemaining);
   if (f <= 0) return 0;
   return Math.round(marketValue * f);
+}
+
+/**
+ * The player's market value is a valuation, not a universal transfer quote.
+ * A destination club prices the same player differently according to buying
+ * power, league level and expected role. The buyout remains the legal floor
+ * while the club-specific premium creates a realistic spread between quotes.
+ */
+export function computeClubTransferFee(params: {
+  marketValue: number;
+  mandatoryBuyout: number;
+  prestige: number;
+  leagueTier: number;
+  leaguePrestige?: number;
+  expectedAppsRatio: number;
+  /** Stable club identity used to model club-specific budget/negotiation behavior. */
+  clubIdentity?: string;
+}): number {
+  const fit = Math.min(1, Math.max(0, params.expectedAppsRatio));
+  const prestigePremium = (Math.min(5, Math.max(1, params.prestige)) - 1) * 0.025;
+  const leaguePremium = (Math.min(5, Math.max(1, params.leaguePrestige ?? params.leagueTier)) - 1) * 0.018;
+  const tierPremium = params.leagueTier <= 1 ? 0.04 : 0;
+  const fitPremium = (fit - 0.5) * 0.1;
+  const identitySignal = params.clubIdentity ? stableClubPriceSignal(params.clubIdentity) : 0;
+  const clubBudgetPremium = 0.06 + identitySignal * 0.12;
+  const multiplier = Math.min(
+    1.42,
+    Math.max(1.04, 1 + prestigePremium + leaguePremium + tierPremium + fitPremium + clubBudgetPremium),
+  );
+  const valuationBase = Math.max(params.marketValue, params.mandatoryBuyout);
+  const desired = Math.round(valuationBase * multiplier);
+  return desired;
+}
+
+function stableClubPriceSignal(identity: string): number {
+  let hash = 2166136261;
+  for (let index = 0; index < identity.length; index += 1) {
+    hash ^= identity.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return ((hash >>> 0) % 10_000) / 10_000;
+}
+
+export function applyTransferFeeDealOption(
+  baseFee: number,
+  mandatoryBuyout: number,
+  option: TransferFeeDealOption,
+): number {
+  if (baseFee <= 0) return 0;
+  const multiplier = option === "discount" ? 0.88 : option === "premium" ? 1.12 : 1;
+  return Math.max(mandatoryBuyout, Math.round(baseFee * multiplier));
+}
+
+export function computeTransferFeeOptions(params: {
+  baseFee: number;
+  mandatoryBuyout: number;
+  maxFee: number;
+}): Record<TransferFeeDealOption, TransferFeeOptionDetail> {
+  return {
+    discount: {
+      option: "discount",
+      label: "Giá mềm · tăng cơ hội",
+      fee: applyTransferFeeDealOption(params.baseFee, params.mandatoryBuyout, "discount"),
+      acceptChanceModifier: 0.12,
+    },
+    standard: {
+      option: "standard",
+      label: "Giá thị trường",
+      fee: applyTransferFeeDealOption(params.baseFee, params.mandatoryBuyout, "standard"),
+      acceptChanceModifier: 0,
+    },
+    premium: {
+      option: "premium",
+      label: "Giá cao · giảm cơ hội",
+      fee: Math.min(
+        params.maxFee,
+        applyTransferFeeDealOption(params.baseFee, params.mandatoryBuyout, "premium"),
+      ),
+      acceptChanceModifier: -0.12,
+    },
+  };
+}
+
+export function applyTransferFeeDealChance(
+  baseChance: number,
+  option: TransferFeeDealOption,
+): number {
+  const modifier = option === "discount" ? 0.12 : option === "premium" ? -0.12 : 0;
+  return Math.min(0.92, Math.max(0.05, baseChance + modifier));
 }
 
 export function clubCanAffordBuyout(
@@ -278,6 +376,16 @@ export function formatEuroThousands(k: number): string {
     return `€${Math.round(euros / 1000)}k`;
   }
   return `€${euros}`;
+}
+
+/** Transfer quotes keep two decimals below €10M so club-specific differences remain visible. */
+export function formatTransferFee(k: number): string {
+  const euros = k * 1000;
+  if (euros >= 1_000_000) {
+    const millions = euros / 1_000_000;
+    return `€${millions >= 10 ? millions.toFixed(1) : millions.toFixed(2)}M`;
+  }
+  return formatEuroThousands(k);
 }
 
 export function expectedAppsAtClub(ovr: number, prestige: number, leagueSize = 20): number {

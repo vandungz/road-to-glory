@@ -54,3 +54,23 @@ export function applyWageDealChance(baseChance: number, option: WageDealOption):
 
   return Math.min(0.92, Math.max(0.05, baseChance + modifier));
 }
+
+/**
+ * Final wage agreement is a real negotiation, separate from the approach
+ * roll. It intentionally never reaches 100%: even a good offer can be
+ * rejected by the club, while role and club level make the base chance vary.
+ */
+export function computeWageAgreementChance(params: {
+  option: WageDealOption;
+  baseWage: number;
+  clubPrestige: number;
+  leagueTier: number;
+  expectedLeagueApps: number;
+}): number {
+  let chance = 0.62;
+  if (params.expectedLeagueApps >= 25) chance += 0.08;
+  else if (params.expectedLeagueApps < 15) chance -= 0.08;
+  if (params.clubPrestige >= 4) chance += 0.04;
+  if (params.leagueTier >= 2) chance += 0.03;
+  return applyWageDealChance(chance, params.option);
+}
