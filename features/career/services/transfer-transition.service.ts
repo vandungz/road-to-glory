@@ -10,6 +10,8 @@ import {
   proposeWageAnnual,
 } from "@/lib/transfer-economy";
 import type { WageDealOption } from "@/lib/salary-negotiation";
+import { computeWageAgreementChance } from "@/lib/salary-negotiation";
+import { secureRandom } from "@/lib/secure-random";
 import type { ContractOfferCard, ContractOfferKind } from "@/features/transfer/services/transfer.service";
 import {
   appendMissingSeasonIncomeEntries,
@@ -19,6 +21,17 @@ import type {
   CompleteTransferCommand,
   TransferCompletionDto,
 } from "@/features/career/contracts/transfer-transition.contract";
+import {
+  cancelledTransferClubIds,
+  commandKey,
+  failedWageOptionsForClub,
+} from "@/features/career/services/transfer-market-authority.shared";
+import {
+  completeTransferWorkflow,
+  lockTransferWorkflow,
+  recordTransferWageFailure,
+  type TransferWorkflowState,
+} from "@/features/career/services/transfer-workflow-state.service";
 
 export type TransferTransitionErrorCode =
   | "FORBIDDEN"
@@ -29,7 +42,10 @@ export type TransferTransitionErrorCode =
   | "COMMAND_EXISTS"
   | "CLUB_NOT_FOUND"
   | "INVALID_TERMS"
-  | "OFFER_NOT_FOUND";
+  | "OFFER_NOT_FOUND"
+  | "WAGE_NEGOTIATION_FAILED"
+  | "WAGE_OPTION_UNAVAILABLE"
+  | "TRANSFER_DEAL_CANCELLED";
 
 export class TransferTransitionError extends Error {
   constructor(public readonly code: TransferTransitionErrorCode, message: string) {
@@ -74,6 +90,10 @@ const seasonSelect = {
 type Player = Prisma.CareerPlayerGetPayload<{ select: typeof playerSelect }>;
 type Season = Prisma.CareerSeasonGetPayload<{ select: typeof seasonSelect }>;
 
+type TransferCommandOutcome =
+  | { kind: "success"; result: TransferCompletionDto }
+  | { kind: "failure"; code: TransferTransitionErrorCode; message: string };
+
 function asRecord(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)
     ? value as Record<string, unknown>
@@ -104,6 +124,31 @@ function seasonMatchRating(season: Season): number {
   return asNumber(asRecord(asRecord(season.runtimeState).yearSimResult).matchRating, 6);
 }
 
+function wageAttemptState(
+  runtimeState: unknown,
+  clubId: string,
+  workflow?: TransferWorkflowState,
+): {
+  failedWageOptions: WageDealOption[];
+  cancelled: boolean;
+} {
+  const transferNegotiation = asRecord(asRecord(runtimeState).transferNegotiation);
+  const state = asRecord(transferNegotiation[clubId]);
+  const legacyFailed = Array.isArray(state.failedWageOptions)
+    ? state.failedWageOptions.filter((value): value is WageDealOption =>
+        value === "lower" || value === "standard" || value === "higher",
+      )
+    : [];
+  const failed = [...new Set([
+    ...legacyFailed,
+    ...failedWageOptionsForClub(runtimeState, clubId, workflow),
+  ])];
+  return {
+    failedWageOptions: failed,
+    cancelled: state.cancelled === true || cancelledTransferClubIds(runtimeState, workflow).has(clubId),
+  };
+}
+
 function wageMultiplier(option: WageDealOption): number {
   if (option === "lower") return 0.8;
   if (option === "higher") return 1.15;
@@ -120,8 +165,14 @@ function issuedWageMultiplier(kind: CompleteTransferCommand["kind"], option: Wag
   return kind === "renewal" ? renewalWageMultiplier(option) : wageMultiplier(option);
 }
 
-function parseReplayResult(value: unknown): TransferCompletionDto {
-  const result = value as PublicTransferResult;
+function parseReplayResult(value: unknown, fallbackWalletBalance?: number): TransferCompletionDto {
+  const raw = value as Partial<PublicTransferResult>;
+  const result = {
+    ...raw,
+    walletBalance: typeof raw.walletBalance === "number"
+      ? raw.walletBalance
+      : fallbackWalletBalance ?? 0,
+  } as PublicTransferResult;
   if (
     !result ||
     typeof result !== "object" ||
@@ -136,6 +187,7 @@ function parseReplayResult(value: unknown): TransferCompletionDto {
     typeof result.fee !== "number" ||
     typeof result.contractYears !== "number" ||
     typeof result.wageAnnual !== "number" ||
+    typeof result.walletBalance !== "number" ||
     typeof result.nextAge !== "number"
   ) {
     throw new TransferTransitionError("COMMAND_EXISTS", "Idempotency record không hợp lệ");
@@ -154,6 +206,7 @@ function transferResult(params: {
   fee: number;
   contractYears: number;
   wageAnnual: number;
+  walletBalance: number;
 }): PublicTransferResult {
   return {
     commandId: params.commandId,
@@ -167,6 +220,7 @@ function transferResult(params: {
     fee: params.fee,
     contractYears: params.contractYears,
     wageAnnual: params.wageAnnual,
+    walletBalance: params.walletBalance,
     nextAge: params.age + 1,
   };
 }
@@ -257,25 +311,25 @@ async function assertServerIssuedOffer(params: {
     throw new TransferTransitionError("OFFER_NOT_FOUND", "Chưa có offer gia hạn được server chấp thuận");
   }
 
-  const marketCommands = await params.tx.careerCommand.findMany({
+  const marketCommand = await params.tx.careerCommand.findUnique({
     where: {
-      careerPlayerId: params.playerId,
-      seasonId: params.seasonId,
-      commandType: "transfer_market",
-      revisionBefore: params.revision,
+      careerPlayerId_idempotencyKey: {
+        careerPlayerId: params.playerId,
+        idempotencyKey: commandKey(params.playerId, params.seasonId, "market:yes"),
+      },
     },
-    select: { result: true },
+    select: { commandType: true, result: true },
   });
+  if (!marketCommand || marketCommand.commandType !== "transfer_market") {
+    throw new TransferTransitionError("OFFER_NOT_FOUND", "Offer chuyển nhượng chưa được server cấp");
+  }
   const expectedKind = params.kind;
   let issuedMarketOffer: IssuedTransferOffer | null = null;
-  const inboundExists = marketCommands.some((command) => {
-    const inbound = asArray(asRecord(command.result).inbound);
-    return inbound.some((value) => {
-      const offer = parseIssuedOffer(value);
-      if (!offer || offer.clubId !== clubId || offer.kind !== expectedKind) return false;
-      issuedMarketOffer = { offer, wageOption: "standard" };
-      return true;
-    });
+  const inboundExists = asArray(asRecord(marketCommand.result).inbound).some((value) => {
+    const offer = parseIssuedOffer(value);
+    if (!offer || offer.clubId !== clubId || offer.kind !== expectedKind) return false;
+    issuedMarketOffer = { offer, wageOption: "standard" };
+    return true;
   });
   if (!inboundExists) {
     throw new TransferTransitionError("OFFER_NOT_FOUND", "Offer chuyển nhượng không còn hợp lệ");
@@ -289,7 +343,7 @@ export async function completeTransferCommand(params: {
 }): Promise<TransferCompletionDto> {
   const { input, userId } = params;
 
-  return prisma.$transaction(async (tx) => {
+  const outcome: TransferCommandOutcome = await prisma.$transaction(async (tx): Promise<TransferCommandOutcome> => {
     const player = await tx.careerPlayer.findUnique({
       where: { id: input.playerId },
       select: playerSelect,
@@ -317,7 +371,7 @@ export async function completeTransferCommand(params: {
       ) {
         throw new TransferTransitionError("COMMAND_EXISTS", "Idempotency key đã được dùng cho command khác");
       }
-      return parseReplayResult(replay.result);
+      return { kind: "success", result: parseReplayResult(replay.result, player.walletBalance) };
     }
 
     if (
@@ -354,6 +408,7 @@ export async function completeTransferCommand(params: {
     if (season.status !== "in_progress") {
       throw new TransferTransitionError("INVALID_TRANSITION", "Mùa giải này đã được chốt");
     }
+    const transferWorkflow = await lockTransferWorkflow(tx, player.id, season.id);
 
     const stints = asArray(player.clubStints).filter((value): value is Record<string, unknown> =>
       value !== null && typeof value === "object" && !Array.isArray(value),
@@ -366,6 +421,16 @@ export async function completeTransferCommand(params: {
           select: { id: true, name: true, prestige: true, leagueId: true, league: { select: { name: true, tier: true } } },
         })
       : null;
+    const negotiationClubId = input.clubId ?? currentClubId;
+    if (input.kind !== "stay" && negotiationClubId) {
+      const attempts = wageAttemptState(season.runtimeState, negotiationClubId, transferWorkflow);
+      if (attempts.cancelled) {
+        throw new TransferTransitionError("TRANSFER_DEAL_CANCELLED", "Thương vụ với CLB này đã bị hủy");
+      }
+      if (attempts.failedWageOptions.includes(input.wageOption)) {
+        throw new TransferTransitionError("WAGE_OPTION_UNAVAILABLE", "Mức lương này đã bị CLB từ chối");
+      }
+    }
     const destination = input.clubId
       ? await tx.club.findUnique({
           where: { id: input.clubId },
@@ -446,6 +511,38 @@ export async function completeTransferCommand(params: {
           destination?.prestige ?? currentClub?.prestige ?? 2,
           destination?.league.tier ?? currentClub?.league.tier ?? 1,
         );
+    if (input.kind !== "stay" && issuedOffer) {
+      const wageChance = computeWageAgreementChance({
+        option: input.wageOption,
+        baseWage: issuedOffer.offer.wageAnnual,
+        clubPrestige: destination?.prestige ?? currentClub?.prestige ?? 2,
+        leagueTier: destination?.league.tier ?? currentClub?.league.tier ?? 1,
+        expectedLeagueApps: issuedOffer.offer.expectedLeagueApps,
+      });
+      if (secureRandom() >= wageChance) {
+        const negotiationClubId = input.clubId ?? currentClubId;
+        if (negotiationClubId) {
+          const workflowResult = await recordTransferWageFailure(tx, {
+            playerId: player.id,
+            seasonId: season.id,
+            clubId: negotiationClubId,
+            offerKind: input.kind === "renewal" ? "renewal" : input.kind === "free_agent" ? "free_agent" : "transfer",
+            wageOption: input.wageOption,
+          });
+          return {
+            kind: "failure",
+            code: workflowResult.cancelled ? "TRANSFER_DEAL_CANCELLED" : "WAGE_NEGOTIATION_FAILED",
+            message: workflowResult.cancelled
+              ? "CLB đã mất kiên nhẫn — thương vụ chuyển nhượng bị hủy."
+              : "CLB không chấp nhận mức lương này — hãy chọn một phương án khác.",
+          };
+        }
+        throw new TransferTransitionError(
+          "WAGE_NEGOTIATION_FAILED",
+          "CLB không chấp nhận mức lương này — hãy chọn một phương án khác.",
+        );
+      }
+    }
     if (input.kind !== "stay" && (contractYears <= 0 || wageAnnual <= 0)) {
       throw new TransferTransitionError("INVALID_TERMS", "Điều khoản hợp đồng không hợp lệ");
     }
@@ -479,19 +576,6 @@ export async function completeTransferCommand(params: {
     const nextRevision = input.expectedRevision + 1;
     const destinationName = destination?.name ?? currentClub?.name ?? "Cầu thủ tự do";
     const destinationLeague = destination?.league.name ?? currentClub?.league.name ?? "Không có giải đấu";
-    const result = transferResult({
-      commandId,
-      revision: nextRevision,
-      age: player.currentAge,
-      kind: input.kind,
-      clubId: destination?.id ?? currentClubId,
-      clubName: destinationName,
-      leagueName: destinationLeague,
-      fee: transferFee,
-      contractYears,
-      wageAnnual,
-    });
-
     // The transfer/stay decision opens the off-season Shop for `currentAge + 1`.
     // Credit the new season's salary (and a real transfer fee, if applicable)
     // before the Shop page is rendered so its server header has the correct
@@ -503,6 +587,20 @@ export async function completeTransferCommand(params: {
       ledger: Array.isArray(player.walletLedger)
         ? player.walletLedger as unknown as WalletLedgerEntry[]
         : [],
+    });
+
+    const result = transferResult({
+      commandId,
+      revision: nextRevision,
+      age: player.currentAge,
+      kind: input.kind,
+      clubId: destination?.id ?? currentClubId,
+      clubName: destinationName,
+      leagueName: destinationLeague,
+      fee: transferFee,
+      contractYears,
+      wageAnnual,
+      walletBalance: player.walletBalance + wallet.creditedIncome,
     });
 
     const updated = await tx.careerPlayer.updateMany({
@@ -546,6 +644,13 @@ export async function completeTransferCommand(params: {
     if (updated.count !== 1) {
       throw new TransferTransitionError("STALE_REVISION", "Không thể commit chuyển nhượng đồng thời");
     }
+
+    await completeTransferWorkflow(tx, {
+      playerId: player.id,
+      seasonId: season.id,
+      clubId: input.clubId ?? currentClubId,
+      offerKind: input.kind === "stay" ? "renewal" : input.kind,
+    });
 
     const runtime = asRecord(season.runtimeState);
     await tx.careerSeason.update({
@@ -602,6 +707,11 @@ export async function completeTransferCommand(params: {
       },
     });
 
-    return { ...result, replayed: false };
+    return { kind: "success", result: { ...result, replayed: false } };
   });
+
+  if (outcome.kind === "failure") {
+    throw new TransferTransitionError(outcome.code, outcome.message);
+  }
+  return outcome.result;
 }

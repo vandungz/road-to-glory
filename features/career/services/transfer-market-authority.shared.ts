@@ -4,6 +4,8 @@ import { estimateAppsRatio } from "@/lib/club-fit";
 import {
   computeEffectivePositionOvr,
   computeMandatoryBuyout,
+  computeClubTransferFee,
+  applyTransferFeeDealChance,
   computeMarketValue,
   expectedAppsAtClub,
   clubCanAffordBuyout,
@@ -14,13 +16,20 @@ import {
   randomizeWageAnnual,
 } from "@/lib/transfer-economy";
 import { secureRandom } from "@/lib/secure-random";
-import { applyWageDealChance } from "@/lib/salary-negotiation";
+import type { WageDealOption } from "@/lib/salary-negotiation";
+import {
+  cancelledClubIdsFromWorkflow,
+  failedWageOptionsFromWorkflow,
+  loadTransferWorkflowState,
+  type TransferWorkflowState,
+} from "@/features/career/services/transfer-workflow-state.service";
 import {
   resolveApproachService,
   resolveProactiveRenewalService,
   type ClubMarketInfo,
   type ContractOfferCard,
   type GenerateTransferMarketParams,
+  type PendingTransferNegotiation,
   type ShortlistClubCard,
   type TransferMarketResult,
 } from "@/features/transfer/services/transfer.service";
@@ -28,6 +37,7 @@ import type {
   GetTransferMarketInput,
   ResolveTransferNegotiationInput,
   SearchTransferClubsInput,
+  SetTransferOfferSelectionInput,
 } from "@/features/career/contracts/transfer-market.contract";
 
 export type TransferAuthorityErrorCode =
@@ -37,7 +47,8 @@ export type TransferAuthorityErrorCode =
   | "INVALID_TRANSITION"
   | "STALE_REVISION"
   | "COMMAND_EXISTS"
-  | "CLUB_NOT_FOUND";
+  | "CLUB_NOT_FOUND"
+  | "OFFER_NOT_FOUND";
 
 export class TransferAuthorityError extends Error {
   constructor(public readonly code: TransferAuthorityErrorCode, message: string) {
@@ -83,6 +94,7 @@ type Tx = Prisma.TransactionClient;
 export type AuthorityContext = {
   player: AuthorityPlayer;
   season: AuthoritySeason;
+  transferWorkflow: TransferWorkflowState;
   currentClubId: string | null;
   currentClub: ClubMarketInfo | null;
   params: GenerateTransferMarketParams;
@@ -166,8 +178,9 @@ function clubInfo(row: {
 
 export async function loadAuthorityContext(
   tx: Tx,
-  input: GetTransferMarketInput | SearchTransferClubsInput | ResolveTransferNegotiationInput,
+  input: GetTransferMarketInput | SearchTransferClubsInput | SetTransferOfferSelectionInput | ResolveTransferNegotiationInput,
   userId: string,
+  options: { includeClubPool?: boolean } = {},
 ): Promise<AuthorityContext> {
   const player = await tx.careerPlayer.findUnique({
     where: { id: input.playerId },
@@ -211,23 +224,27 @@ export async function loadAuthorityContext(
     throw new TransferAuthorityError("INVALID_TRANSITION", "Mùa giải này đã được chốt");
   }
 
-  const rows = await tx.club.findMany({
-    select: {
-      id: true,
-      name: true,
-      leagueId: true,
-      prestige: true,
-      league: {
+  const transferWorkflow = await loadTransferWorkflowState(tx, player.id, season.id);
+
+  const rows = options.includeClubPool === false
+    ? []
+    : await tx.club.findMany({
         select: {
+          id: true,
           name: true,
-          tier: true,
+          leagueId: true,
           prestige: true,
-          country: true,
-          confederation: true,
+          league: {
+            select: {
+              name: true,
+              tier: true,
+              prestige: true,
+              country: true,
+              confederation: true,
+            },
+          },
         },
-      },
-    },
-  });
+      });
   const leagueIds = [...new Set(rows.map((row) => row.leagueId))];
   const leagueSizes = leagueIds.length
     ? await tx.club.groupBy({
@@ -251,7 +268,7 @@ export async function loadAuthorityContext(
   const currentClub = currentClubId
     ? clubs.find((club) => club.id === currentClubId) ?? null
     : null;
-  if (currentClubId && !currentClub) {
+  if (options.includeClubPool !== false && currentClubId && !currentClub) {
     throw new TransferAuthorityError("CLUB_NOT_FOUND", "CLB hiện tại không tồn tại");
   }
 
@@ -290,7 +307,7 @@ export async function loadAuthorityContext(
     wageRandomSource: stableWageRandomSource(player.id, input.seasonId),
   };
 
-  return { player, season, currentClubId, currentClub, params };
+  return { player, season, transferWorkflow, currentClubId, currentClub, params };
 }
 
 export function parseMarketResult(value: unknown): TransferMarketResult {
@@ -305,6 +322,113 @@ export function parseMarketResult(value: unknown): TransferMarketResult {
     throw new TransferAuthorityError("COMMAND_EXISTS", "Market snapshot không hợp lệ");
   }
   return result;
+}
+
+export function cancelledTransferClubIds(
+  runtimeState: unknown,
+  workflow?: TransferWorkflowState,
+): Set<string> {
+  const transferNegotiation = asRecord(asRecord(runtimeState).transferNegotiation);
+  const legacy = new Set(
+    Object.entries(transferNegotiation)
+      .filter(([, value]) => asRecord(value).cancelled === true)
+      .map(([clubId]) => clubId),
+  );
+  if (workflow) {
+    for (const clubId of cancelledClubIdsFromWorkflow(workflow)) legacy.add(clubId);
+  }
+  return legacy;
+}
+
+export function failedWageOptionsForClub(
+  runtimeState: unknown,
+  clubId: string,
+  workflow?: TransferWorkflowState,
+): WageDealOption[] {
+  const transferNegotiation = asRecord(asRecord(runtimeState).transferNegotiation);
+  const state = asRecord(transferNegotiation[clubId]);
+  const failed = Array.isArray(state.failedWageOptions)
+    ? state.failedWageOptions.filter((value): value is WageDealOption =>
+        value === "lower" || value === "standard" || value === "higher",
+      )
+    : [];
+  return [...new Set([
+    ...failed,
+    ...(workflow ? failedWageOptionsFromWorkflow(workflow, clubId) : []),
+  ])];
+}
+
+function parseStoredOffer(value: unknown): ContractOfferCard | null {
+  const offer = asRecord(value);
+  if (
+    typeof offer.clubId !== "string" ||
+    typeof offer.clubName !== "string" ||
+    (offer.kind !== "transfer" && offer.kind !== "free_agent" && offer.kind !== "renewal") ||
+    typeof offer.transferFee !== "number" ||
+    typeof offer.wageAnnual !== "number" ||
+    typeof offer.contractYears !== "number"
+  ) return null;
+  return offer as unknown as ContractOfferCard;
+}
+
+/** Rehydrates an accepted offer after the user leaves and re-enters transfer. */
+export function findPendingTransferNegotiation(
+  commands: ReadonlyArray<{ input: unknown; result: unknown }>,
+  runtimeState: unknown,
+  workflow?: TransferWorkflowState,
+  market?: TransferMarketResult,
+): PendingTransferNegotiation | null {
+  const runtime = asRecord(runtimeState);
+  const cancelled = cancelledTransferClubIds(runtimeState, workflow);
+  const hasPersistedMarketSelection = workflow?.negotiations.some((row) => row.marketCommandId !== null) ?? false;
+  if (workflow?.selectedClubId && workflow.selectedOfferKind && market) {
+    const selectedOffer = market.inbound.find((offer) =>
+      offer.clubId === workflow.selectedClubId && offer.kind === workflow.selectedOfferKind,
+    );
+    if (selectedOffer && !cancelled.has(selectedOffer.clubId)) {
+      return {
+        offer: selectedOffer,
+        failedWageOptions: failedWageOptionsForClub(runtimeState, selectedOffer.clubId, workflow),
+      };
+    }
+  }
+  if (hasPersistedMarketSelection) return null;
+  if (workflow?.workflowId && workflow.status === "idle" && !workflow.selectedClubId) return null;
+  if (Object.prototype.hasOwnProperty.call(runtime, "transferPendingOffer") && runtime.transferPendingOffer === null) return null;
+  const selectedOffer = parseStoredOffer(asRecord(runtime.transferPendingOffer).offer);
+  if (selectedOffer && !cancelled.has(selectedOffer.clubId)) {
+    return {
+      offer: selectedOffer,
+      failedWageOptions: failedWageOptionsForClub(runtimeState, selectedOffer.clubId, workflow),
+    };
+  }
+  for (const command of commands) {
+    const input = asRecord(command.input);
+    if (input.kind !== "approach" && input.kind !== "renewal") continue;
+    const result = parseNegotiationResult(command.result);
+    if (!result.accepted || !result.offer) continue;
+    if (cancelled.has(result.offer.clubId)) continue;
+    return {
+      offer: result.offer,
+      failedWageOptions: failedWageOptionsForClub(runtimeState, result.offer.clubId, workflow),
+    };
+  }
+  return null;
+}
+
+export function filterCancelledTransferMarket(
+  market: TransferMarketResult,
+  runtimeState: unknown,
+  workflow?: TransferWorkflowState,
+): TransferMarketResult {
+  const cancelled = cancelledTransferClubIds(runtimeState, workflow);
+  if (cancelled.size === 0) return market;
+  return {
+    ...market,
+    renewal: market.renewal && !cancelled.has(market.renewal.clubId) ? market.renewal : null,
+    inbound: market.inbound.filter((offer) => !cancelled.has(offer.clubId)),
+    shortlist: market.shortlist.filter((club) => !cancelled.has(club.clubId)),
+  };
 }
 
 export function parseNegotiationResult(value: unknown): NegotiationResult {
@@ -368,10 +492,20 @@ export function buildShortlist(params: GenerateTransferMarketParams): ShortlistC
 
   return eligible.map((club) => {
     const expectedApps = expectedAppsAtClub(effectiveOvr, club.prestige, club.leagueSize ?? 20);
+    const fitRatio = estimateAppsRatio(effectiveOvr, club.prestige);
+    const transferFee = computeClubTransferFee({
+      marketValue,
+      mandatoryBuyout,
+      prestige: club.prestige,
+      leagueTier: club.leagueTier,
+      leaguePrestige: club.leaguePrestige,
+      expectedAppsRatio: fitRatio,
+      clubIdentity: club.id,
+    });
     const canAfford = clubCanAffordBuyout(
       club.prestige,
       club.leagueTier,
-      mandatoryBuyout,
+      transferFee,
     );
     const years = proposeContractYears({
       currentAge: params.currentAge,
@@ -388,7 +522,6 @@ export function buildShortlist(params: GenerateTransferMarketParams): ShortlistC
       stepUpPrestige: club.prestige - currentPrestige,
       acceptLowerWage: true,
     }));
-    const fitRatio = estimateAppsRatio(effectiveOvr, club.prestige);
     const acceptChance =
       canApproachGate && canAfford && years > 0
         ? computeApproachAcceptChance({
@@ -421,7 +554,8 @@ export function buildShortlist(params: GenerateTransferMarketParams): ShortlistC
       expectedLeagueApps: expectedApps,
       canApproach: Boolean(canApproachGate && canAfford && years > 0),
       canAffordBuyout: canAfford,
-      previewFee: params.contractYearsRemaining <= 0 || unemployed ? 0 : mandatoryBuyout,
+      previewFee: params.contractYearsRemaining <= 0 || unemployed ? 0 : transferFee,
+      mandatoryBuyout,
       previewWage: wage,
       previewYears: years,
       blockReason,
@@ -457,8 +591,19 @@ export function resolveNegotiation(
       previewFee: target.previewFee,
       previewWage: target.previewWage,
       previewYears: target.previewYears,
-      wageOption: input.wageOption,
-      clientAcceptChance: applyWageDealChance(target.acceptChance, input.wageOption),
+      mandatoryBuyout: computeMandatoryBuyout(
+        computeMarketValue({
+          ovr: params.currentOvr,
+          age: params.currentAge,
+          matchRating: params.matchRating,
+          contractYearsRemaining: params.contractYearsRemaining,
+          position: params.position,
+          currentStats: params.currentStats,
+        }),
+        params.contractYearsRemaining,
+      ),
+      feeOption: input.feeOption,
+      clientAcceptChance: applyTransferFeeDealChance(target.acceptChance, input.feeOption),
       currentOvr: params.currentOvr,
       effPositionOvr: computeEffectivePositionOvr(params.position, params.currentStats, params.currentOvr),
       currentAge: params.currentAge,
@@ -505,7 +650,9 @@ export function resolveNegotiation(
     cleanSheets: params.cleanSheets,
     contractYearsRemaining: params.contractYearsRemaining,
     currentWageAnnual: params.currentWageAnnual,
-    wageOption: input.wageOption,
+    // Renewal is also a two-stage flow: first the club decides whether to
+    // renew, then the selected salary is negotiated during completion.
+    wageOption: "standard",
     randomSource: secureRandom,
     wageRandomSource: currentClubId
       ? () => params.wageRandomSource?.(currentClubId) ?? secureRandom()

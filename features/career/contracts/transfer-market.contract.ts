@@ -21,13 +21,20 @@ export const searchTransferClubsSchema = z.object({
   pageSize: z.number().int().min(1).max(24).default(8),
 }).strict();
 
+export const setTransferOfferSelectionSchema = z.object({
+  ...transferContextSchema,
+  clubId: z.string().min(1).max(80).nullable(),
+}).strict();
+
 export const resolveTransferNegotiationSchema = z.object({
   ...transferContextSchema,
   kind: z.enum(["approach", "renewal"]),
   clubId: z.string().min(1).max(80).nullable().optional(),
+  feeOption: z.enum(["discount", "standard", "premium"]).default("standard"),
   wageOption: z.enum(["lower", "standard", "higher"]).default("standard"),
 }).strict();
 
 export type GetTransferMarketInput = z.infer<typeof getTransferMarketSchema>;
 export type SearchTransferClubsInput = z.infer<typeof searchTransferClubsSchema>;
+export type SetTransferOfferSelectionInput = z.infer<typeof setTransferOfferSelectionSchema>;
 export type ResolveTransferNegotiationInput = z.infer<typeof resolveTransferNegotiationSchema>;

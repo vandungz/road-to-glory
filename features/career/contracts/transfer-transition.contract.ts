@@ -24,6 +24,7 @@ export interface TransferCompletionDto {
   fee: number;
   contractYears: number;
   wageAnnual: number;
+  walletBalance: number;
   nextAge: number;
   replayed: boolean;
 }

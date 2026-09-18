@@ -10,15 +10,17 @@ import {
   getTransferMarketSchema,
   resolveTransferNegotiationSchema,
   searchTransferClubsSchema,
+  setTransferOfferSelectionSchema,
 } from "@/features/career/contracts/transfer-market.contract";
 import { completeTransferCommand } from "@/features/career/services/transfer-transition.service";
 import {
   getAuthoritativeTransferMarket,
   resolveAuthoritativeTransferNegotiation,
   searchAuthoritativeTransferClubs,
+  setAuthoritativeTransferOfferSelection,
   type TransferNegotiationDto,
 } from "@/features/career/services/transfer-market-authority.service";
-import type { TransferMarketResult, ShortlistClubCard } from "@/features/transfer/services/transfer.service";
+import type { PendingTransferNegotiation, TransferMarketResult, ShortlistClubCard } from "@/features/transfer/services/transfer.service";
 import { withCareerCommandLogging } from "@/lib/observability/career-command-log";
 
 /** V2 transfer completion; the server derives destination terms and mutates the projection atomically. */
@@ -70,6 +72,22 @@ export async function searchTransferClubsCommandAction(input: unknown): Promise<
       seasonId: parsed.seasonId,
     },
     () => searchAuthoritativeTransferClubs({ input: parsed, userId }),
+  );
+}
+
+/** Persists the server-issued inbound offer selected for the salary step. */
+export async function setTransferOfferSelectionCommandAction(input: unknown): Promise<PendingTransferNegotiation | null> {
+  const parsed = setTransferOfferSelectionSchema.parse(input);
+  const { id: userId } = await requireAuthenticatedUser();
+  await checkRateLimit(userId);
+  return withCareerCommandLogging(
+    {
+      command: "transfer.offer_selection",
+      actorId: userId,
+      careerId: parsed.playerId,
+      seasonId: parsed.seasonId,
+    },
+    () => setAuthoritativeTransferOfferSelection({ input: parsed, userId }),
   );
 }
 

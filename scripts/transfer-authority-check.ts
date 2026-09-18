@@ -4,11 +4,10 @@ import {
   resolveTransferNegotiationSchema,
   searchTransferClubsSchema,
 } from "@/features/career/contracts/transfer-market.contract";
-import {
-  resolveApproachService,
-} from "@/features/transfer/services/transfer.service";
-import { applyWageDealChance, computeWageOptions } from "@/lib/salary-negotiation";
-import { computeApproachAcceptChance } from "@/lib/transfer-economy";
+import { resolveApproachService } from "@/features/transfer/services/transfer.service";
+import { findPendingTransferNegotiation } from "@/features/career/services/transfer-market-authority.shared";
+import { computeWageAgreementChance, computeWageOptions } from "@/lib/salary-negotiation";
+import { applyTransferFeeDealChance, computeApproachAcceptChance, type TransferFeeDealOption } from "@/lib/transfer-economy";
 import { estimateAppsRatio } from "@/lib/club-fit";
 
 const context = {
@@ -33,7 +32,7 @@ assert.equal(
     ...context,
     kind: "approach",
     clubId: "club-a",
-    wageOption: "standard",
+    feeOption: "standard",
   }).success,
   true,
 );
@@ -47,6 +46,41 @@ assert.equal(
   false,
 );
 
+const persistedOffer = {
+  kind: "transfer" as const,
+  clubId: "sunderland",
+  clubName: "Sunderland",
+  leagueId: "league-a",
+  leagueName: "Test League",
+  prestige: 3,
+  leagueTier: 1,
+  transferFee: 3_660,
+  wageAnnual: 883,
+  contractYears: 3,
+  expectedLeagueApps: 31,
+  reason: "Tìm môi trường đá chính",
+  canAffordBuyout: true,
+};
+const rehydrated = findPendingTransferNegotiation(
+  [{ input: { kind: "approach", clubId: "sunderland" }, result: { accepted: true, acceptChance: 0.72, offer: persistedOffer } }],
+  { transferNegotiation: { sunderland: { failedWageOptions: ["higher"] } } },
+);
+assert.deepEqual(rehydrated, { offer: persistedOffer, failedWageOptions: ["higher"] });
+assert.deepEqual(
+  findPendingTransferNegotiation(
+    [],
+    { transferPendingOffer: { offer: persistedOffer }, transferNegotiation: { sunderland: { failedWageOptions: ["higher"] } } },
+  ),
+  { offer: persistedOffer, failedWageOptions: ["higher"] },
+);
+assert.equal(
+  findPendingTransferNegotiation(
+    [{ input: { kind: "approach", clubId: "sunderland" }, result: { accepted: true, acceptChance: 0.72, offer: persistedOffer } }],
+    { transferNegotiation: { sunderland: { failedWageOptions: ["higher"], cancelled: true } } },
+  ),
+  null,
+);
+
 const baseChance = computeApproachAcceptChance({
   ovr: 70,
   effPositionOvr: 70,
@@ -56,12 +90,12 @@ const baseChance = computeApproachAcceptChance({
   destLeagueTier: 1,
   expectedAppsRatio: estimateAppsRatio(70, 3),
 });
-const chance = applyWageDealChance(baseChance, "standard");
+const chance = applyTransferFeeDealChance(baseChance, "standard");
 const wageOptions = computeWageOptions({ baseWage: 1_000, minWage: 800, maxWage: 4_000 });
 assert.ok(wageOptions.lower.wageAnnual < wageOptions.standard.wageAnnual);
 assert.ok(wageOptions.higher.wageAnnual > wageOptions.standard.wageAnnual);
-assert.ok(applyWageDealChance(baseChance, "lower") > chance);
-assert.ok(applyWageDealChance(baseChance, "higher") < chance);
+assert.ok(applyTransferFeeDealChance(baseChance, "discount") > chance);
+assert.ok(applyTransferFeeDealChance(baseChance, "premium") < chance);
 const approach = {
   clubId: "club-a",
   clubName: "Test Club",
@@ -72,7 +106,7 @@ const approach = {
   previewFee: 0,
   previewWage: 1_000,
   previewYears: 3,
-  wageOption: "standard" as const,
+  feeOption: "standard" as TransferFeeDealOption,
   clientAcceptChance: chance,
   currentOvr: 70,
   effPositionOvr: 70,
@@ -87,18 +121,25 @@ assert.equal(resolveApproachService({ ...approach, randomSource: () => 0 }).acce
 assert.equal(resolveApproachService({ ...approach, randomSource: () => 0.999999 }).accepted, false);
 const lowerApproach = resolveApproachService({
   ...approach,
-  wageOption: "lower",
-  clientAcceptChance: applyWageDealChance(baseChance, "lower"),
+  feeOption: "discount",
+  clientAcceptChance: applyTransferFeeDealChance(baseChance, "discount"),
   randomSource: () => 0,
 });
 assert.equal(lowerApproach.accepted, true);
-if (lowerApproach.accepted) assert.equal(lowerApproach.offer.wageAnnual, wageOptions.lower.wageAnnual);
+if (lowerApproach.accepted) assert.equal(lowerApproach.offer.wageAnnual, approach.previewWage);
 const higherApproach = resolveApproachService({
   ...approach,
-  wageOption: "higher",
-  clientAcceptChance: applyWageDealChance(baseChance, "higher"),
+  feeOption: "premium",
+  clientAcceptChance: applyTransferFeeDealChance(baseChance, "premium"),
   randomSource: () => 0,
 });
 assert.equal(higherApproach.accepted, true);
-if (higherApproach.accepted) assert.equal(higherApproach.offer.wageAnnual, wageOptions.higher.wageAnnual);
+if (higherApproach.accepted) assert.equal(higherApproach.offer.wageAnnual, approach.previewWage);
+assert.ok(computeWageAgreementChance({
+  option: "standard",
+  baseWage: 1_000,
+  clubPrestige: 3,
+  leagueTier: 1,
+  expectedLeagueApps: 20,
+}) < 1, "Final wage negotiation must not be guaranteed");
 console.log("transfer-authority-check: passed");
