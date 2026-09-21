@@ -15,12 +15,12 @@ export function TimelineItem({
   className?: string;
 }) {
   return (
-    <article className={cn("rtg-timeline-item", active && "is-active", className)}>
-      <span className="rtg-timeline-item__marker" aria-hidden="true" />
+    <article className={cn("football-timeline-item", active && "is-active", className)}>
+      <span className="football-timeline-item__marker" aria-hidden="true" />
       <div>
-        {eyebrow && <span className="rtg-timeline-item__eyebrow">{eyebrow}</span>}
-        <h3 className="rtg-timeline-item__title">{title}</h3>
-        {children && <div className="rtg-timeline-item__body">{children}</div>}
+        {eyebrow && <span className="football-timeline-item__eyebrow">{eyebrow}</span>}
+        <h3 className="football-timeline-item__title">{title}</h3>
+        {children && <div className="football-timeline-item__body">{children}</div>}
       </div>
     </article>
   );

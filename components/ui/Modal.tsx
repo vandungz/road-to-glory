@@ -53,7 +53,7 @@ export function Modal({
   const restoreFocusRef = useRef<HTMLElement | null>(null);
   const onCloseRef = useRef(onClose);
   const [isMounted, setIsMounted] = useState(false);
-  const titleId = `rtg-modal-title-${useId().replace(/:/g, "")}`;
+  const titleId = `football-modal-title-${useId().replace(/:/g, "")}`;
 
   useEffect(() => {
     setIsMounted(true);
@@ -121,7 +121,7 @@ export function Modal({
 
   return createPortal(
     <div
-      className="modal-overlay"
+      className="football-modal-overlay"
       onMouseDown={(event) => {
         if (closeOnBackdrop && event.target === event.currentTarget) onClose();
       }}
@@ -129,10 +129,10 @@ export function Modal({
       <div
         ref={panelRef}
         className={cn(
-          "modal-panel",
-          `modal-panel--${size}`,
-          variant === "inverse" && "modal-panel--inverse",
-          mobileSheet && "modal-panel--sheet",
+          "football-modal-panel",
+          `football-modal-panel--${size}`,
+          variant === "inverse" && "football-modal-panel--inverse",
+          mobileSheet && "football-modal-panel--sheet",
           className,
         )}
         style={style}
@@ -161,13 +161,13 @@ interface ModalHeaderProps {
 export function ModalHeader({ children, onClose, closeLabel = "Đóng", className, eyebrow }: ModalHeaderProps) {
   const titleId = useContext(ModalTitleContext);
   return (
-    <header className={cn("rtg-modal-header", className)}>
-      <div className="rtg-modal-header__copy">
-        {eyebrow && <span className="rtg-modal-header__eyebrow">{eyebrow}</span>}
-        <h2 id={titleId ?? undefined} className="rtg-modal-header__title">{children}</h2>
+    <header className={cn("football-modal-header", className)}>
+      <div className="football-modal-header__copy">
+        {eyebrow && <span className="football-modal-header__eyebrow">{eyebrow}</span>}
+        <h2 id={titleId ?? undefined} className="football-modal-header__title">{children}</h2>
       </div>
       {onClose && (
-        <button type="button" className="rtg-icon-button" onClick={onClose} aria-label={closeLabel}>
+        <button type="button" className="football-icon-button" onClick={onClose} aria-label={closeLabel}>
           <X aria-hidden="true" size={19} strokeWidth={1.6} />
         </button>
       )}
@@ -176,9 +176,9 @@ export function ModalHeader({ children, onClose, closeLabel = "Đóng", classNam
 }
 
 export function ModalBody({ children, className, ...props }: { children: ReactNode; className?: string } & HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} className={cn("rtg-modal-body", className)}>{children}</div>;
+  return <div {...props} className={cn("football-modal-body", className)}>{children}</div>;
 }
 
 export function ModalFooter({ children, className }: { children: ReactNode; className?: string }) {
-  return <footer className={cn("rtg-modal-footer", className)}>{children}</footer>;
+  return <footer className={cn("football-modal-footer", className)}>{children}</footer>;
 }

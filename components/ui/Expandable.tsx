@@ -21,7 +21,7 @@ export function Expandable({ open, children, className, id }: ExpandableProps) {
         <motion.div
           key={id ?? "expandable-content"}
           id={id}
-          className={cn("rtg-expandable", className)}
+          className={cn("football-expandable", className)}
           initial={prefersReducedMotion ? { opacity: 1 } : { height: 0, opacity: 0 }}
           animate={{ height: "auto", opacity: 1 }}
           exit={prefersReducedMotion ? { opacity: 0 } : { height: 0, opacity: 0 }}

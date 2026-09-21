@@ -9,10 +9,9 @@ interface DataRowProps {
 
 export function DataRow({ label, value, className }: DataRowProps) {
   return (
-    <div className={cn("rtg-data-row", className)}>
-      <span className="rtg-data-row__label">{label}</span>
-      <span className="rtg-data-row__value">{value}</span>
+    <div className={cn("football-data-row", className)}>
+      <span className="football-data-row__label">{label}</span>
+      <span className="football-data-row__value">{value}</span>
     </div>
   );
 }
-

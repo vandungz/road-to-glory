@@ -10,9 +10,8 @@ export const IconButton = forwardRef<HTMLButtonElement, IconButtonProps>(functio
   ref,
 ) {
   return (
-    <button ref={ref} type={type} className={cn("rtg-icon-button", className)} {...props}>
+    <button ref={ref} type={type} className={cn("football-icon-button", className)} {...props}>
       {children}
     </button>
   );
 });
-

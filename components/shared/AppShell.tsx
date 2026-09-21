@@ -25,35 +25,35 @@ export function AppShell({
   className,
 }: AppShellProps) {
   return (
-    <div className={cn("rtg-app-shell", className)}>
-      <header className="rtg-app-shell__header">
-        <div className="rtg-app-shell__identity">
+    <div className={cn("football-app-shell", className)}>
+      <header className="football-app-shell__header">
+        <div className="football-app-shell__identity">
           {backHref && (
-            <Link className="rtg-app-shell__back" href={backHref} aria-label={backLabel}>
+            <Link className="football-app-shell__back" href={backHref} aria-label={backLabel}>
               <ArrowLeft aria-hidden="true" size={16} />
               <span>{backLabel}</span>
             </Link>
           )}
-          <Link className="rtg-app-shell__wordmark" href="/">
+          <Link className="football-app-shell__wordmark" href="/">
             <span>Road to Glory</span>
             <i aria-hidden="true" />
             <small>Football Life</small>
           </Link>
           {headerIdentityMeta && (
-            <span className="rtg-app-shell__identity-meta">{headerIdentityMeta}</span>
+            <span className="football-app-shell__identity-meta">{headerIdentityMeta}</span>
           )}
         </div>
 
-        <div className="rtg-app-shell__context">
+        <div className="football-app-shell__context">
           {headerMeta}
-          {userEmail && <span className="rtg-app-shell__email">{userEmail}</span>}
+          {userEmail && <span className="football-app-shell__email">{userEmail}</span>}
           {userEmail && <LogoutButton />}
         </div>
       </header>
 
-      <main className="rtg-app-shell__main">{children}</main>
+      <main className="football-app-shell__main">{children}</main>
 
-      <footer className="rtg-app-shell__footer">
+      <footer className="football-app-shell__footer">
         <span>Football Life © Road to Glory — mùa 2025/26</span>
         {footerAction ?? <span aria-hidden="true" />}
       </footer>

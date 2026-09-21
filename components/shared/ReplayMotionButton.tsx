@@ -6,7 +6,7 @@ export function ReplayMotionButton() {
   }
 
   return (
-    <button type="button" className="rtg-app-shell__replay" onClick={replay}>
+    <button type="button" className="football-app-shell__replay" onClick={replay}>
       ↻ Chạy lại chuyển động
     </button>
   );

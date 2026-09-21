@@ -11,9 +11,9 @@ export function PrimaryActionArea({
   className?: string;
 }) {
   return (
-    <div className={cn("rtg-primary-action-area", className)}>
-      {note && <p className="rtg-primary-action-area__note">{note}</p>}
-      <div className="rtg-primary-action-area__actions">{children}</div>
+    <div className={cn("football-primary-action-area", className)}>
+      {note && <p className="football-primary-action-area__note">{note}</p>}
+      <div className="football-primary-action-area__actions">{children}</div>
     </div>
   );
 }

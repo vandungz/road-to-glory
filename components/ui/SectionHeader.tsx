@@ -10,13 +10,12 @@ interface SectionHeaderProps {
 
 export function SectionHeader({ title, label, action, className }: SectionHeaderProps) {
   return (
-    <div className={cn("rtg-section-header", className)}>
+    <div className={cn("football-section-header", className)}>
       <div>
-        {label && <div className="rtg-section-header__label">{label}</div>}
-        <h2 className="rtg-section-header__title">{title}</h2>
+        {label && <div className="football-section-header__label">{label}</div>}
+        <h2 className="football-section-header__title">{title}</h2>
       </div>
       {action}
     </div>
   );
 }
-

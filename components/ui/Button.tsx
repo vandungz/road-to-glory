@@ -29,10 +29,10 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     <button
       ref={ref}
       className={cn(
-        "rtg-button",
-        `rtg-button--${variant}`,
-        size !== "md" && `rtg-button--${size}`,
-        fullWidth && "rtg-button--full",
+        "football-button",
+        `football-button--${variant}`,
+        size !== "md" && `football-button--${size}`,
+        fullWidth && "football-button--full",
         className,
       )}
       disabled={disabled || loading}
@@ -43,4 +43,3 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     </button>
   );
 });
-

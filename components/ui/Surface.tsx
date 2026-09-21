@@ -17,14 +17,13 @@ export function Surface({
   return (
     <div
       className={cn(
-        "rtg-surface",
-        `rtg-surface--${level}`,
-        padding === "compact" && "rtg-surface--compact",
-        padding === "default" && "rtg-surface--padded",
+        "football-surface",
+        `football-surface--${level}`,
+        padding === "compact" && "football-surface--compact",
+        padding === "default" && "football-surface--padded",
         className,
       )}
       {...props}
     />
   );
 }
-
