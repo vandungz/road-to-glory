@@ -16,16 +16,16 @@ export function DraftProgressRail({ currentStep, total = 13 }: DraftProgressRail
   const chapterIndex = activeChapter === -1 ? CHAPTERS.length - 1 : activeChapter;
 
   return (
-    <section className="rtg-draft-progress" aria-label={`Tiến trình draft ${completed} trên ${total}`}>
-      <div className="rtg-draft-progress__chapters">
+    <section className="football-draft-progress" aria-label={`Tiến trình draft ${completed} trên ${total}`}>
+      <div className="football-draft-progress__chapters">
         {CHAPTERS.map((chapter, index) => (
           <span key={chapter.label} className={index === chapterIndex ? "is-active" : index < chapterIndex ? "is-complete" : ""}>
             {chapter.label}
           </span>
         ))}
       </div>
-      <div className="rtg-draft-progress__footer">
-        <div className="rtg-draft-progress__ticks" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={completed}>
+      <div className="football-draft-progress__footer">
+        <div className="football-draft-progress__ticks" role="progressbar" aria-valuemin={0} aria-valuemax={total} aria-valuenow={completed}>
           {Array.from({ length: total }, (_, index) => (
             <i key={index} className={index < completed ? "is-complete" : index === completed ? "is-active" : ""} />
           ))}

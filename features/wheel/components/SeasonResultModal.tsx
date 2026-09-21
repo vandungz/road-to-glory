@@ -26,7 +26,7 @@ function StatsList({ stats }: { stats: CompetitionStats }) {
     ...(stats.cleanSheets > 0 ? [["Sạch lưới", stats.cleanSheets]] : []),
     ["Match rating", stats.rating.toFixed(2)],
   ] as Array<[string, string | number]>;
-  return <div className="rtg-modal-data-list">{rows.map(([label, value]) => <DataRow key={label} label={label} value={value} />)}</div>;
+  return <div className="football-modal-data-list">{rows.map(([label, value]) => <DataRow key={label} label={label} value={value} />)}</div>;
 }
 
 export function SeasonResultModal({ type, record, currentContinentalCup, onClose }: Props) {
@@ -49,15 +49,15 @@ export function SeasonResultModal({ type, record, currentContinentalCup, onClose
   }
 
   return (
-    <Modal open title={`Kết quả ${title}`} onClose={onClose} size="sm" className="rtg-season-result-modal">
+    <Modal open title={`Kết quả ${title}`} onClose={onClose} size="sm" className="football-season-result-modal">
       <ModalHeader onClose={onClose} closeLabel="Đóng kết quả">{title}</ModalHeader>
       <ModalBody>
         <ResultBanner tone={champion ? "honour" : "default"}>{result}</ResultBanner>
-        {stats ? <section className="rtg-modal-section"><span className="rtg-eyebrow">Thống kê giải đấu</span><StatsList stats={stats} /></section> : <p className="rtg-modal-note">Thống kê chi tiết sẽ có sau khi kết thúc mùa giải.</p>}
+        {stats ? <section className="football-modal-section"><span className="football-eyebrow">Thống kê giải đấu</span><StatsList stats={stats} /></section> : <p className="football-modal-note">Thống kê chi tiết sẽ có sau khi kết thúc mùa giải.</p>}
         {type === "league" && record.leagueTable && record.leagueTable.length > 0 && (
-          <section className="rtg-modal-section"><span className="rtg-eyebrow">Bảng xếp hạng</span><div className="rtg-mini-table">{record.leagueTable.map((row, index) => { const isPlayer = String(row.name).toLowerCase() === record.clubName.toLowerCase(); return <div key={`${row.name}-${index}`} className={`rtg-mini-table__row${isPlayer ? " is-player" : ""}`}><span>{index + 1}</span><strong>{row.name}</strong><span>{row.points} điểm</span></div>; })}</div></section>
+          <section className="football-modal-section"><span className="football-eyebrow">Bảng xếp hạng</span><div className="football-mini-table">{record.leagueTable.map((row, index) => { const isPlayer = String(row.name).toLowerCase() === record.clubName.toLowerCase(); return <div key={`${row.name}-${index}`} className={`football-mini-table__row${isPlayer ? " is-player" : ""}`}><span>{index + 1}</span><strong>{row.name}</strong><span>{row.points} điểm</span></div>; })}</div></section>
         )}
-        {journey.length > 0 && <section className="rtg-modal-section"><span className="rtg-eyebrow">Hành trình</span><div className="rtg-journey-list">{journey.map((item, index) => <p key={`${item}-${index}`}>{cleanNarrative(item)}</p>)}</div></section>}
+        {journey.length > 0 && <section className="football-modal-section"><span className="football-eyebrow">Hành trình</span><div className="football-journey-list">{journey.map((item, index) => <p key={`${item}-${index}`}>{cleanNarrative(item)}</p>)}</div></section>}
       </ModalBody>
       <ModalFooter><Button fullWidth onClick={onClose}>Tiếp tục hành trình</Button></ModalFooter>
     </Modal>

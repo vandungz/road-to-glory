@@ -22,7 +22,7 @@ interface Props {
 function CompetitionRow({ label, stats, result }: { label: string; stats?: CompetitionStats; result?: string }) {
   if (!stats || stats.apps === 0) return null;
   return (
-    <div className="rtg-competition-row">
+    <div className="football-competition-row">
       <div>
         <strong>{label}</strong>
         {result && <span>{result}</span>}
@@ -62,16 +62,16 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
       </ModalHeader>
 
       <ModalBody>
-        <div className="rtg-season-stats">
-          <div className="rtg-season-stats__heading">
+        <div className="football-season-stats">
+          <div className="football-season-stats__heading">
             <span>Hồ sơ mùa giải</span>
             <strong>{record.clubName}</strong>
             <small>{record.leagueName}</small>
           </div>
 
           <section>
-            <h3 className="rtg-modal-section-label">Tổng mùa giải</h3>
-            <div className="rtg-data-list">
+            <h3 className="football-modal-section-label">Tổng mùa giải</h3>
+            <div className="football-data-list">
               <DataRow label="Số trận ra sân" value={yearSimResult.apps} />
               <DataRow label="Bàn thắng" value={yearSimResult.goals} />
               <DataRow label="Kiến tạo" value={yearSimResult.assists} />
@@ -81,8 +81,8 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
           </section>
 
           <section>
-            <h3 className="rtg-modal-section-label">Theo từng giải</h3>
-            <div className="rtg-competition-list">
+            <h3 className="football-modal-section-label">Theo từng giải</h3>
+            <div className="football-competition-list">
               <CompetitionRow
                 label={record.leagueName || "Giải VĐQG"}
                 stats={yearSimResult.leagueStats}
@@ -107,17 +107,17 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
           </section>
 
           {hasAwards && (
-            <section className="rtg-awards-section">
-              <h3 className="rtg-modal-section-label">Danh hiệu cá nhân</h3>
+            <section className="football-awards-section">
+              <h3 className="football-modal-section-label">Danh hiệu cá nhân</h3>
               {awards.map((award, index) => <Badge key={index} tone="accent">{award.label}</Badge>)}
               {yearSimResult.ballonDor.eligible && (
-                <div className="rtg-honour-note">Đủ điều kiện dự tranh Quả Bóng Vàng — quay để xem kết quả.</div>
+                <div className="football-honour-note">Đủ điều kiện dự tranh Quả Bóng Vàng — quay để xem kết quả.</div>
               )}
             </section>
           )}
           {rankingSnapshots.length > 0 ? (
-            <section className="rtg-awards-section" aria-labelledby="award-ranking-title">
-              <h3 id="award-ranking-title" className="rtg-modal-section-label">Bảng xếp hạng ứng viên</h3>
+            <section className="football-awards-section" aria-labelledby="award-ranking-title">
+              <h3 id="award-ranking-title" className="football-modal-section-label">Bảng xếp hạng ứng viên</h3>
               {rankingSnapshots.map((snapshot) => snapshot.awardKey === "league_best_xi"
                 ? <AwardBestXiPitch key={snapshot.snapshotKey} snapshot={snapshot} />
                 : null)}

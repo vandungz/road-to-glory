@@ -31,20 +31,20 @@ export function AwardBestXiPitch({ snapshot }: Props) {
   const slots = FORMATION_SLOTS[formation];
 
   return (
-    <div className="rtg-award-xi-pitch" role="img" aria-label={`Đội hình tiêu biểu ${formation}`}>
-      <span className="rtg-award-xi-pitch__outline" aria-hidden="true" />
-      <span className="rtg-award-xi-pitch__halfway" aria-hidden="true" />
-      <span className="rtg-award-xi-pitch__circle" aria-hidden="true" />
-      <span className="rtg-award-xi-pitch__box rtg-award-xi-pitch__box--top" aria-hidden="true" />
-      <span className="rtg-award-xi-pitch__box rtg-award-xi-pitch__box--bottom" aria-hidden="true" />
-      <span className="rtg-award-xi-pitch__formation">{formation}</span>
+    <div className="football-award-xi-pitch" role="img" aria-label={`Đội hình tiêu biểu ${formation}`}>
+      <span className="football-award-xi-pitch__outline" aria-hidden="true" />
+      <span className="football-award-xi-pitch__halfway" aria-hidden="true" />
+      <span className="football-award-xi-pitch__circle" aria-hidden="true" />
+      <span className="football-award-xi-pitch__box football-award-xi-pitch__box--top" aria-hidden="true" />
+      <span className="football-award-xi-pitch__box football-award-xi-pitch__box--bottom" aria-hidden="true" />
+      <span className="football-award-xi-pitch__formation">{formation}</span>
       {slots.map((slot) => {
         const entry = entries.get(`${slot.position}:${slot.index}`);
         const rating = typeof entry?.metrics.rating === "number" ? entry.metrics.rating.toFixed(2) : "—";
         return (
           <div
             key={slot.index}
-            className={`rtg-award-xi-pitch__slot${entry?.isCareerPlayer ? " is-player" : ""}`}
+            className={`football-award-xi-pitch__slot${entry?.isCareerPlayer ? " is-player" : ""}`}
             style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
           >
             <span>{slot.position}</span>

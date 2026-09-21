@@ -8,7 +8,7 @@ interface DraftPlayerDossierProps {
 
 function DetailRow({ label, value }: { label: string; value: string | number | null | undefined }) {
   return (
-    <div className="rtg-draft-dossier__row">
+    <div className="football-draft-dossier__row">
       <span>{label}</span>
       <strong>{value || "—"}</strong>
     </div>
@@ -29,18 +29,18 @@ export function DraftPlayerDossier({ draftData, position, playerNumber }: DraftP
   const stats = position === "GK" ? GK_STATS : FIELD_STATS;
 
   return (
-    <aside className="rtg-draft-dossier" aria-label="Hồ sơ cầu thủ đang draft">
-      <div className="rtg-draft-dossier__heading">
+    <aside className="football-draft-dossier" aria-label="Hồ sơ cầu thủ đang draft">
+      <div className="football-draft-dossier__heading">
         <span>Hồ sơ sau draft</span>
         <h2>Cầu thủ số {playerNumber}</h2>
       </div>
 
-      <div className="rtg-draft-dossier__meta">
+      <div className="football-draft-dossier__meta">
         <span>Vị trí</span>
         <strong>{position}</strong>
       </div>
 
-      <div className="rtg-draft-dossier__rows">
+      <div className="football-draft-dossier__rows">
         <DetailRow label="Quốc tịch" value={draftData.nationality} />
         <DetailRow label="Chiều cao" value={draftData.height ? `${draftData.height} cm` : null} />
         <DetailRow label="Cân nặng" value={draftData.weight ? `${draftData.weight} kg` : null} />
@@ -50,7 +50,7 @@ export function DraftPlayerDossier({ draftData, position, playerNumber }: DraftP
         <DetailRow label="CLB đầu tiên" value={draftData.clubName} />
       </div>
 
-      <div className="rtg-draft-dossier__stats">
+      <div className="football-draft-dossier__stats">
         <span>Chỉ số debut</span>
         <div>
           {stats.map(([label, key]) => (

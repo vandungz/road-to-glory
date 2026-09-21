@@ -106,9 +106,9 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
   const individualCount = trophyList.filter((trophy) => trophy.category === "individual").length;
 
   return (
-    <Modal open title={`Tủ danh hiệu của ${playerName}`} onClose={onClose} size="md" variant="inverse" className="rtg-trophy-modal">
+    <Modal open title={`Tủ danh hiệu của ${playerName}`} onClose={onClose} size="md" variant="inverse" className="football-trophy-modal">
       <ModalHeader onClose={onClose} closeLabel="Đóng tủ danh hiệu">Tổng danh hiệu ({trophyList.length})</ModalHeader>
-      <div className="rtg-trophy-tabs" role="tablist" aria-label="Phân loại danh hiệu">
+      <div className="football-trophy-tabs" role="tablist" aria-label="Phân loại danh hiệu">
         {(["club", "individual"] as const).map((tab) => {
           const isActive = activeTab === tab;
           const count = tab === "club" ? clubCount : individualCount;
@@ -129,14 +129,14 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
           );
         })}
       </div>
-      <ModalBody id="trophy-panel" role="tabpanel" aria-labelledby={`trophy-tab-${activeTab}`} className="rtg-trophy-modal__body">
+      <ModalBody id="trophy-panel" role="tabpanel" aria-labelledby={`trophy-tab-${activeTab}`} className="football-trophy-modal__body">
         {visibleTrophies.length === 0 ? (
-          <div className="rtg-empty-state rtg-empty-state--inverse"><Trophy size={28} aria-hidden="true" /><p>Chưa mở khóa danh hiệu nào.</p><span>Hãy tiếp tục các mùa giải để xây dựng di sản.</span></div>
+          <div className="football-empty-state football-empty-state--inverse"><Trophy size={28} aria-hidden="true" /><p>Chưa mở khóa danh hiệu nào.</p><span>Hãy tiếp tục các mùa giải để xây dựng di sản.</span></div>
         ) : (
           visibleTrophies.map((trophy) => (
-            <div className="rtg-trophy-row" key={trophy.id}>
-              <div className="rtg-trophy-row__mark"><Trophy size={18} aria-hidden="true" /></div>
-              <div className="rtg-trophy-row__copy"><span>{TYPE_LABELS[trophy.type]}</span><strong>{trophy.title}</strong><small>{trophy.clubName}</small></div>
+            <div className="football-trophy-row" key={trophy.id}>
+              <div className="football-trophy-row__mark"><Trophy size={18} aria-hidden="true" /></div>
+              <div className="football-trophy-row__copy"><span>{TYPE_LABELS[trophy.type]}</span><strong>{trophy.title}</strong><small>{trophy.clubName}</small></div>
               <time>{trophy.season}</time>
             </div>
           ))

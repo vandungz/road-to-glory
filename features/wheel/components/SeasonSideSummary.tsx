@@ -8,8 +8,8 @@ interface SeasonSideSummaryProps {
 
 export function SeasonSideSummary({ result, playerDebutAge, playerCareerLength }: SeasonSideSummaryProps) {
   return (
-    <section className="rtg-season-side-summary">
-      <span className="rtg-eyebrow">Mùa này</span>
+    <section className="football-season-side-summary">
+      <span className="football-eyebrow">Mùa này</span>
       <dl>
         <div><dt>Ra sân</dt><dd>{result?.apps ?? "—"}</dd></div>
         <div><dt>Bàn · kiến tạo</dt><dd>{result ? `${result.goals} · ${result.assists}` : "—"}</dd></div>

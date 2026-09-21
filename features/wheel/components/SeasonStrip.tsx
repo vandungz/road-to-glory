@@ -68,8 +68,8 @@ export function SeasonStrip({ careerSubStep, isUnemployed, hasBallonDorEligibili
   const activeStageIndex = getActiveStageIndex(careerSubStep, hasBallonDorEligibility);
 
   return (
-    <div className="rtg-season-strip" data-unemployed={isUnemployed ? "true" : "false"}>
-      <div className="rtg-season-strip__inner">
+    <div className="football-season-strip" data-unemployed={isUnemployed ? "true" : "false"}>
+      <div className="football-season-strip__inner">
         {STAGES.map((stage, idx) => {
           const isCompleted = idx < activeStageIndex;
           const isActive = idx === activeStageIndex;
@@ -77,18 +77,18 @@ export function SeasonStrip({ careerSubStep, isUnemployed, hasBallonDorEligibili
 
           return (
             <React.Fragment key={stage.id}>
-              <div className={`rtg-season-strip__stage ${isActive ? "is-active" : ""} ${isCompleted ? "is-complete" : ""} ${isUpcoming ? "is-upcoming" : ""}`}>
-                <span className="rtg-season-strip__stage-number">
+              <div className={`football-season-strip__stage ${isActive ? "is-active" : ""} ${isCompleted ? "is-complete" : ""} ${isUpcoming ? "is-upcoming" : ""}`}>
+                <span className="football-season-strip__stage-number">
                   {isCompleted ? <Check aria-hidden="true" size={13} strokeWidth={2.5} /> : String(idx + 1).padStart(2, "0")}
                 </span>
-                <span className="rtg-season-strip__label">
+                <span className="football-season-strip__label">
                   <span className="hidden sm:inline">{stage.label}</span>
                   <span className="inline sm:hidden">{stage.shortLabel}</span>
                 </span>
               </div>
 
               {idx < STAGES.length - 1 && (
-                <div className={`rtg-season-strip__connector ${idx < activeStageIndex ? "is-complete" : ""}`} aria-hidden="true" />
+                <div className={`football-season-strip__connector ${idx < activeStageIndex ? "is-complete" : ""}`} aria-hidden="true" />
               )}
             </React.Fragment>
           );

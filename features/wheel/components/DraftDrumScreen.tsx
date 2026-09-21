@@ -3,26 +3,16 @@
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDraftDrum } from "../hooks/useDraftDrum";
-import { SeasonStrip } from "./SeasonStrip";
-import { StoryRail } from "./StoryRail";
 import { SetupStage } from "./SetupStage";
-import { CareerActionsPanel } from "./CareerActionsPanel";
-import { SeasonProfile } from "./SeasonProfile";
-import { PaniniSticker } from "./PaniniSticker";
+import { DraftDrumCareerStage } from "./DraftDrumCareerStage";
 import { RetiredStage } from "./RetiredStage";
 import { SeasonResultModal } from "./SeasonResultModal";
 import { BallonDorNominationModal } from "./BallonDorNominationModal";
 import { SeasonRecapModal } from "./SeasonRecapModal";
 import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
-import { MobileCareerContext } from "./MobileCareerContext";
-import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { Button } from "@/components/ui/Button";
-import { DataRow } from "@/components/ui/DataRow";
 import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
-import { formatEuroThousands } from "@/lib/transfer-economy";
 import { WheelGameHeader } from "./WheelGameHeader";
-import { SeasonSideSummary } from "./SeasonSideSummary";
 import { getSeasonYearString } from "../lib/simulation-helpers";
 
 function consumeReturnQuery(param: "shopReturn" | "transferReturn") {
@@ -212,7 +202,7 @@ export function DraftDrumScreen({
 
   return (
     <div
-      className={`game-dashboard-wrapper rtg-wheel-shell${mode === "retired" ? " rtg-retired-shell" : ""}`}
+      className={`football-dashboard football-wheel-shell${mode === "retired" ? " football-retired-shell" : ""}`}
       onClickCapture={(event) => {
         // A wheel spin is a single gameplay transaction. Ignore stray clicks
         // on the dashboard while its server result is being animated; this
@@ -222,7 +212,7 @@ export function DraftDrumScreen({
         // Modal content is rendered through a React portal. Portal events
         // still bubble through this component tree even though the modal is
         // outside the dashboard DOM; never swallow its action buttons.
-        if (event.target instanceof Element && event.target.closest(".modal-overlay, [role=\"dialog\"]")) return;
+        if (event.target instanceof Element && event.target.closest(".football-modal-overlay, [role=\"dialog\"]")) return;
         event.preventDefault();
         event.stopPropagation();
       }}
@@ -269,156 +259,61 @@ export function DraftDrumScreen({
       )}
 
       {/* ── MODE 2: CAREER PLAYING LOOP ── */}
-      {mode === "career" && (
-        <>
-          <SeasonStrip
-            careerSubStep={careerSubStep}
-            isUnemployed={isUnemployed}
-            hasBallonDorEligibility={yearSimResult?.ballonDor.eligible}
-          />
-          <main className="game-dashboard-main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
-            {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
-            <TabsList className="game-mobile-switcher">
-              <TabsTrigger value="action" active={mobileSection === "action"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thao tác</TabsTrigger>
-              <TabsTrigger value="story" active={mobileSection === "story"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Nhật ký</TabsTrigger>
-              <TabsTrigger value="panini" active={mobileSection === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thẻ</TabsTrigger>
-            </TabsList>
-
-            <MobileCareerContext
-              currentAge={currentAge}
-              currentOvr={currentOvr}
-              currentClub={currentClub}
-              isUnemployed={isUnemployed}
-              careerSubStep={careerSubStep}
-              isProcessing={isProcessing}
-              seasonApps={yearSimResult?.apps}
-              seasonRating={yearSimResult?.matchRating}
-            />
-
-            <div className="game-dashboard-grid">
-              
-              {/* CỘT 1 (TRÁI): STORY RAIL */}
-              <div className={`game-column-left ${mobileSection === "story" ? "" : "max-lg:hidden"}`}>
-                <StoryRail
-                  clubStints={clubStints}
-                  seasonRecords={seasonRecords}
-                  currentAge={currentAge}
-                  playerDebutAge={playerDebutAge}
-                  currentOvr={currentOvr}
-                  peakOvrValue={peakOvrValue}
-                  onOpenTrophyCabinet={() => {
-                    if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
-                  }}
-                  className=""
-                  style={{ width: "100%", height: "100%" }}
-                />
-              </div>
-
-              {/* CỘT 2 (GIỮA): CAREER ACTIONS PANEL */}
-              <div className={`game-column-center ${mobileSection === "action" ? "" : "max-lg:hidden"}`}>
-                <CareerActionsPanel
-                  careerSubStep={careerSubStep}
-                  currentAge={currentAge}
-                  playerDebutAge={playerDebutAge}
-                  playerCareerLength={playerCareerLength}
-                  currentClub={currentClub}
-                  currentContinentalCup={currentContinentalCup}
-                  seasonTicketResolved={seasonTicketResolved}
-                  careerSpinning={careerSpinning}
-                  isProcessing={isProcessing}
-                  careerWheelItems={careerWheelItems}
-                  careerTargetIndex={careerTargetIndex}
-                  handleCareerSpinComplete={handleCareerSpinComplete}
-                  handleCareerSpin={handleCareerSpin}
-                  isUnemployed={isUnemployed}
-                  yearSimResult={yearSimResult}
-                  standingResult={standingResult}
-                  domesticCupResult={domesticCupResult}
-                  continentalCupResult={continentalCupResult}
-                  hasBallonDorWinner={hasBallonDorWinner}
-                  handleNextSeason={handleNextSeason}
-                  selectorIndex={selectorIndex}
-                  yearEvolutionCount={yearEvolution.count}
-                  yearEvolutionDirection={yearEvolution.direction}
-                  tempSelectedStat={tempSelectedStat}
-                  onOpenTransferModal={() => void openModule(transferHref, true)}
-                  onOpenShop={shopHref ? () => void openModule(shopHref, careerSubStep === "resolved") : undefined}
-                />
-              </div>
-
-              {/* CỘT 3 (PHẢI): TAB SWITCH (PANINI STICKER & SEASON PROFILE) */}
-              <div className={`game-column-right ${mobileSection === "panini" ? "" : "max-lg:hidden"}`}>
-                
-                {/* TAB SWITCH HEADER */}
-                <TabsList className="rtg-tab-list">
-                  <TabsTrigger value="panini" active={rightTab === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Thẻ cầu thủ</TabsTrigger>
-                  <TabsTrigger value="profile" active={rightTab === "profile"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Mùa giải</TabsTrigger>
-                  <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Hợp đồng</TabsTrigger>
-                </TabsList>
-
-                <div className="rtg-dossier-body">
-                  {rightTab === "panini" ? (
-                    <>
-                    <PaniniSticker
-                      playerName={playerName}
-                      position={position}
-                      playerNationality={playerNationality}
-                      currentOvr={currentOvr}
-                      currentAge={currentAge}
-                      playerDebutAge={playerDebutAge}
-                      currentContinentalCup={currentContinentalCup}
-                      standingResult={standingResult}
-                      domesticCupResult={domesticCupResult}
-                      continentalCupResult={continentalCupResult}
-                      nationalCallupResult={nationalCallupResult}
-                      nationalTournamentResult={nationalTournamentResult}
-                      hasBallonDorWinner={hasBallonDorWinner}
-                      currentStats={currentStats}
-                      evolvedStatsThisYear={evolvedStatsThisYear}
-                    />
-                    <SeasonSideSummary
-                      result={yearSimResult}
-                      playerDebutAge={playerDebutAge}
-                      playerCareerLength={playerCareerLength}
-                    />
-                    </>
-                  ) : rightTab === "profile" ? (
-                    <SeasonProfile
-                      seasonRecords={seasonRecords}
-                      currentAge={currentAge}
-                      playerDebutAge={playerDebutAge}
-                      selectedAgeForStats={selectedAgeForStats}
-                      setSelectedAgeForStats={setSelectedAgeForStats}
-                      position={position}
-                      onOpenModal={(type) => {
-                        if (!wheelInteractionLocked) setActiveModal(type);
-                      }}
-                    />
-                  ) : (
-                    <section className="rtg-contract-summary">
-                    <div className="rtg-contract-summary__heading">
-                      <span className="rtg-eyebrow">Tổng quan chuyển nhượng</span>
-                      <h2>Thông tin hợp đồng & thị trường</h2>
-                    </div>
-                    <div className="rtg-contract-summary__rows">
-                      <DataRow label="CLB hiện tại" value={currentClub?.name || "Tự do (Thất nghiệp)"} />
-                      <DataRow label="Thời hạn hợp đồng" value={isUnemployed ? "Tự do" : `${contractYearsRemaining}/${contractYearsTotal} năm còn lại`} />
-                      <DataRow label="Lương hàng năm" value={`${formatEuroThousands(currentWageAnnual)} / năm`} />
-                      <DataRow label="Giá trị thị trường" value={formatEuroThousands(marketValue)} className="rtg-data-row__value--accent" />
-                    </div>
-                    <p className="rtg-contract-summary__note">Mở cửa sổ để xem đề nghị chuyển nhượng, gia hạn hoặc tìm kiếm CLB mới.</p>
-                    <Button fullWidth disabled={careerSubStep !== "transfer" || wheelInteractionLocked} onClick={() => router.push(transferHref)}>
-                      {careerSubStep === "transfer" ? "Mở cửa sổ chuyển nhượng & hợp đồng" : "Cửa sổ mở ở cuối mùa"}
-                    </Button>
-                    </section>
-                  )}
-                </div>
-              </div>
-
-            </div>
-          </main>
-        </>
-      )}
+      <DraftDrumCareerStage
+        mobileSection={mobileSection}
+        setMobileSection={setMobileSection}
+        rightTab={rightTab}
+        setRightTab={setRightTab}
+        wheelInteractionLocked={wheelInteractionLocked}
+        careerSubStep={careerSubStep}
+        isUnemployed={isUnemployed}
+        currentAge={currentAge}
+        currentOvr={currentOvr}
+        currentClub={currentClub}
+        currentContinentalCup={currentContinentalCup}
+        currentStats={currentStats}
+        position={position}
+        playerName={playerName}
+        playerNationality={playerNationality}
+        playerDebutAge={playerDebutAge}
+        playerCareerLength={playerCareerLength}
+        seasonRecords={seasonRecords}
+        selectedAgeForStats={selectedAgeForStats}
+        setSelectedAgeForStats={setSelectedAgeForStats}
+        clubStints={clubStints}
+        peakOvrValue={peakOvrValue}
+        yearSimResult={yearSimResult}
+        yearEvolution={yearEvolution}
+        evolvedStatsThisYear={evolvedStatsThisYear}
+        careerWheelItems={careerWheelItems}
+        careerTargetIndex={careerTargetIndex}
+        careerSpinning={careerSpinning}
+        isProcessing={isProcessing}
+        seasonTicketResolved={seasonTicketResolved}
+        standingResult={standingResult}
+        domesticCupResult={domesticCupResult}
+        continentalCupResult={continentalCupResult}
+        nationalCallupResult={nationalCallupResult}
+        nationalTournamentResult={nationalTournamentResult}
+        hasBallonDorWinner={hasBallonDorWinner}
+        selectorIndex={selectorIndex}
+        tempSelectedStat={tempSelectedStat}
+        contractYearsTotal={contractYearsTotal}
+        contractYearsRemaining={contractYearsRemaining}
+        currentWageAnnual={currentWageAnnual}
+        marketValue={marketValue}
+        onOpenTrophyCabinet={() => {
+          if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
+        }}
+        onOpenTransferModal={() => void openModule(transferHref, true)}
+        onOpenShop={shopHref ? () => void openModule(shopHref, careerSubStep === "resolved") : undefined}
+        onOpenModal={(type) => {
+          if (!wheelInteractionLocked) setActiveModal(type);
+        }}
+        handleCareerSpinComplete={handleCareerSpinComplete}
+        handleCareerSpin={handleCareerSpin}
+        handleNextSeason={handleNextSeason}
+      />
 
       {/* ── TROPHY CABINET FLOATING MODAL ── */}
       {isTrophyCabinetOpen && (
@@ -534,17 +429,17 @@ export function DraftDrumScreen({
           onClose={() => undefined}
           closeOnBackdrop={false}
           size="sm"
-          className="rtg-ballon-dor-transition-modal"
+          className="football-ballon-dor-transition-modal"
         >
           <ModalHeader eyebrow="Quả Bóng Vàng · Xếp hạng chung cuộc">
             Đang mở kết quả…
           </ModalHeader>
           <ModalBody>
-            <div className="rtg-ballon-dor-transition__status" role="status" aria-live="polite" aria-busy="true">
-              <span className="rtg-ballon-dor-transition__spinner" aria-hidden="true" />
+            <div className="football-ballon-dor-transition__status" role="status" aria-live="polite" aria-busy="true">
+              <span className="football-ballon-dor-transition__spinner" aria-hidden="true" />
               <strong>Kết quả đã được ghi nhận</strong>
             </div>
-            <p className="rtg-ballon-dor-transition__note">Vui lòng chờ trang kết quả hiển thị.</p>
+            <p className="football-ballon-dor-transition__note">Vui lòng chờ trang kết quả hiển thị.</p>
           </ModalBody>
         </Modal>
       )}

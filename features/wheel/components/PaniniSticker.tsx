@@ -34,21 +34,21 @@ export function PaniniSticker({ playerName, position, playerNationality, current
   const season = seasonYear(currentAge, playerDebutAge);
 
   return (
-    <section className="rtg-panini-sticker">
-      <div className="rtg-panini-sticker__top"><span>Panini · {season}</span><strong>{position}</strong></div>
-      <div className="rtg-panini-sticker__portrait">
-        <span className="rtg-panini-sticker__flag">
+    <section className="football-panini-sticker">
+      <div className="football-panini-sticker__top"><span>Panini · {season}</span><strong>{position}</strong></div>
+      <div className="football-panini-sticker__portrait">
+        <span className="football-panini-sticker__flag">
           {flagUrl ? (
             // eslint-disable-next-line @next/next/no-img-element
             <img src={flagUrl} alt={playerNationality} />
           ) : nationCode}
         </span>
         <strong>{currentOvr}</strong>
-        <span className="rtg-panini-sticker__portrait-label">Ảnh cầu thủ</span>
+        <span className="football-panini-sticker__portrait-label">Ảnh cầu thủ</span>
         <div aria-hidden="true" />
       </div>
-      <div className="rtg-panini-sticker__identity"><strong>{playerName}</strong></div>
-      <div className="rtg-panini-sticker__stats">
+      <div className="football-panini-sticker__identity"><strong>{playerName}</strong></div>
+      <div className="football-panini-sticker__stats">
         {stats.map(([label, key]) => {
           const evolution = evolvedStatsThisYear.find((item) => item.stat === key);
           return <div key={key}><span>{label}</span><strong>{currentStats[key] ?? "—"}{evolution && <em>{evolution.delta > 0 ? ` +${evolution.delta}` : ` ${evolution.delta}`}</em>}</strong></div>;

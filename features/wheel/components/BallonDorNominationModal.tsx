@@ -12,7 +12,7 @@ interface Props {
 
 export function BallonDorNominationModal({ nominated, age, onClose }: Props) {
   return (
-    <Modal open title="Quả Bóng Vàng — đề cử" onClose={onClose} size="sm" className="rtg-season-result-modal">
+    <Modal open title="Quả Bóng Vàng — đề cử" onClose={onClose} size="sm" className="football-season-result-modal">
       <ModalHeader onClose={onClose} closeLabel="Đóng kết quả" eyebrow={`Quả Bóng Vàng · Tuổi ${age}`}>
         Quả Bóng Vàng — đề cử
       </ModalHeader>
@@ -20,7 +20,7 @@ export function BallonDorNominationModal({ nominated, age, onClose }: Props) {
         <ResultBanner tone={nominated ? "positive" : "default"}>
           {nominated ? "Được đề cử Top 10" : "Chưa được đề cử năm này"}
         </ResultBanner>
-        <p className="rtg-modal-note">
+        <p className="football-modal-note">
           {nominated
             ? "Bạn sẽ tiếp tục tới vòng xếp hạng chung cuộc."
             : "Bạn sẽ tiếp tục sang phần phát triển chỉ số của mùa giải."}

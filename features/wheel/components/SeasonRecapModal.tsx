@@ -31,7 +31,7 @@ function getStandingLabel(record: SeasonRecord) {
 
 function SummaryMetric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
   return (
-    <div className="rtg-season-close__metric">
+    <div className="football-season-close__metric">
       <span>{label}</span>
       <strong className={accent ? "is-accent" : undefined}>{value}</strong>
     </div>
@@ -40,7 +40,7 @@ function SummaryMetric({ label, value, accent = false }: { label: string; value:
 
 function SeasonStat({ label, value, accent = false }: { label: string; value: number | string; accent?: boolean }) {
   return (
-    <div className="rtg-season-close__stat">
+    <div className="football-season-close__stat">
       <span>{label}</span>
       <strong className={accent ? "is-positive" : undefined}>{value}</strong>
     </div>
@@ -49,7 +49,7 @@ function SeasonStat({ label, value, accent = false }: { label: string; value: nu
 
 function AwardItem({ title, detail, accent = false }: { title: string; detail: string; accent?: boolean }) {
   return (
-    <div className={`rtg-season-close__award${accent ? " is-accent" : ""}`}>
+    <div className={`football-season-close__award${accent ? " is-accent" : ""}`}>
       <i aria-hidden="true" />
       <div>
         <strong>{title}</strong>
@@ -68,11 +68,11 @@ function AccordionSection({ id, eyebrow, title, open, onToggle, children }: {
   children: ReactNode;
 }) {
   return (
-    <section className="rtg-season-close__accordion-item">
+    <section className="football-season-close__accordion-item">
       <h3>
         <button
           type="button"
-          className="rtg-season-close__accordion-trigger"
+          className="football-season-close__accordion-trigger"
           aria-expanded={open}
           aria-controls={`${id}-panel`}
           onClick={onToggle}
@@ -81,7 +81,7 @@ function AccordionSection({ id, eyebrow, title, open, onToggle, children }: {
           <i aria-hidden="true">{open ? "−" : "+"}</i>
         </button>
       </h3>
-      <Expandable open={open} id={`${id}-panel`} className="rtg-season-close__accordion-panel">
+      <Expandable open={open} id={`${id}-panel`} className="football-season-close__accordion-panel">
         {children}
       </Expandable>
     </section>
@@ -140,19 +140,19 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
   const toggleSection = (key: string) => setOpenSections((current) => ({ ...current, [key]: !current[key] }));
 
   return (
-    <Modal open title={`Mùa giải khép lại · ${season}`} onClose={onClose} size="md" className="rtg-season-close-modal">
+    <Modal open title={`Mùa giải khép lại · ${season}`} onClose={onClose} size="md" className="football-season-close-modal">
       <ModalHeader onClose={onClose} closeLabel="Đóng tổng kết" eyebrow={`Kết quả mùa giải · ${record.clubName} · tuổi ${record.age}`}>
         Mùa giải khép lại
       </ModalHeader>
 
       <ModalBody>
-        <section className="rtg-season-close__metrics" data-count={summaryMetrics.length} aria-label="Kết quả mùa giải">
+        <section className="football-season-close__metrics" data-count={summaryMetrics.length} aria-label="Kết quả mùa giải">
           {summaryMetrics.map((metric) => <SummaryMetric key={metric.label} {...metric} />)}
         </section>
 
-        <div className="rtg-season-close__accordion">
+        <div className="football-season-close__accordion">
           <AccordionSection id="season-stats" eyebrow="Hiệu suất" title="Số liệu mùa giải" open={Boolean(openSections.stats)} onToggle={() => toggleSection("stats")}>
-            <div className="rtg-season-close__stats">
+            <div className="football-season-close__stats">
               <SeasonStat label="Ra sân" value={yearSimResult.apps} />
               <SeasonStat label="Bàn thắng" value={yearSimResult.goals} />
               <SeasonStat label="Kiến tạo" value={yearSimResult.assists} />
@@ -162,8 +162,8 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
           </AccordionSection>
 
           <AccordionSection id="season-honours" eyebrow="Thành tích" title="Danh hiệu nhận được" open={Boolean(openSections.honours)} onToggle={() => toggleSection("honours")}>
-            <div className="rtg-season-close__awards">
-              {awards.length > 0 ? awards.map((award, index) => <AwardItem key={`${award.title}-${index}`} {...award} />) : <p className="rtg-modal-note">Chưa có danh hiệu mùa này.</p>}
+            <div className="football-season-close__awards">
+              {awards.length > 0 ? awards.map((award, index) => <AwardItem key={`${award.title}-${index}`} {...award} />) : <p className="football-modal-note">Chưa có danh hiệu mùa này.</p>}
             </div>
           </AccordionSection>
 
@@ -188,7 +188,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
         </div>
       </ModalBody>
 
-      <ModalFooter className="rtg-season-close__footer">
+      <ModalFooter className="football-season-close__footer">
         <Button size="lg" onClick={onClose}>Tiếp tục phát triển chỉ số</Button>
       </ModalFooter>
     </Modal>

@@ -70,7 +70,7 @@ export function ShopPageClient({
   }
 
   return (
-    <div className="rtg-shop-page">
+    <div className="football-shop-page">
       <ShopModal
         walletBalance={walletBalance}
         shopInventory={shopInventory}

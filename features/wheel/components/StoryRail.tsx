@@ -29,23 +29,23 @@ export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, pla
     }
   });
   const totalSeasons = Math.max(1, currentAge - playerDebutAge + 1);
-  return <aside className={`rtg-story-rail ${className}`.trim()} style={style}>
-    <header className="rtg-story-rail__header"><span className="rtg-eyebrow">Nhật ký sự nghiệp</span><h2>{totalSeasons} mùa đã đi qua</h2></header>
-    <section className="rtg-story-rail__summary" aria-label="Tóm tắt sự nghiệp">
+  return <aside className={`football-story-rail ${className}`.trim()} style={style}>
+    <header className="football-story-rail__header"><span className="football-eyebrow">Nhật ký sự nghiệp</span><h2>{totalSeasons} mùa đã đi qua</h2></header>
+    <section className="football-story-rail__summary" aria-label="Tóm tắt sự nghiệp">
       <div><span>OVR đỉnh cao</span><strong>{peakOvrValue ?? currentOvr}</strong></div>
       <div><span>Danh hiệu</span><strong>{totalTrophies}</strong></div>
     </section>
-    <section className="rtg-story-rail__clubs">
-      <span className="rtg-eyebrow">Các câu lạc bộ</span>
-      {clubStints.length === 0 ? <p className="rtg-modal-note">Đang khởi đầu sự nghiệp.</p> : clubStints.map((stint, index) => {
+    <section className="football-story-rail__clubs">
+      <span className="football-eyebrow">Các câu lạc bộ</span>
+      {clubStints.length === 0 ? <p className="football-modal-note">Đang khởi đầu sự nghiệp.</p> : clubStints.map((stint, index) => {
         const isCurrent = index === clubStints.length - 1;
-        return <div className={`rtg-story-rail__club${isCurrent ? " is-current" : ""}`} key={`${stint.clubName}-${index}`}>
+        return <div className={`football-story-rail__club${isCurrent ? " is-current" : ""}`} key={`${stint.clubName}-${index}`}>
           <i aria-hidden="true" />
           <div><strong>{stint.clubName}</strong><small>{stint.leagueName ?? ""} · tuổi {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : " · hiện tại"}</small></div>
         </div>;
       })}
     </section>
-    <button type="button" className="rtg-story-rail__honours" onClick={onOpenTrophyCabinet}>
+    <button type="button" className="football-story-rail__honours" onClick={onOpenTrophyCabinet}>
       <span><Trophy size={14} aria-hidden="true" /> Tủ danh hiệu</span>
       <strong>{totalTrophies}</strong><ChevronRight size={14} aria-hidden="true" />
       {ballonDorCount > 0 && <small>{ballonDorCount} QBV</small>}

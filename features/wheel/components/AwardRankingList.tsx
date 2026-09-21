@@ -36,13 +36,13 @@ export function AwardRankingList({ snapshots, playerName, compact = false, showH
     !isDeprecatedAwardKey(snapshot.awardKey) &&
     snapshot.revealStage !== "ballon_dor_result"
   ));
-  if (visible.length === 0) return <p className="rtg-modal-note">Chưa có bảng xếp hạng danh hiệu.</p>;
+  if (visible.length === 0) return <p className="football-modal-note">Chưa có bảng xếp hạng danh hiệu.</p>;
   return (
-    <div className={`rtg-award-ranking-list${compact ? " is-compact" : ""}`}>
+    <div className={`football-award-ranking-list${compact ? " is-compact" : ""}`}>
       {visible.map((snapshot) => (
-        <section key={snapshot.snapshotKey} className={`rtg-award-ranking${showHeading ? "" : " is-inline"}`} aria-labelledby={showHeading ? `ranking-${snapshot.snapshotKey}` : undefined}>
-          {showHeading && <div className="rtg-award-ranking__heading">
-            <div><span className="rtg-eyebrow">{scopeLabel(snapshot)}</span><h4 id={`ranking-${snapshot.snapshotKey}`}>{AWARD_LABELS[snapshot.awardKey]}</h4></div>
+        <section key={snapshot.snapshotKey} className={`football-award-ranking${showHeading ? "" : " is-inline"}`} aria-labelledby={showHeading ? `ranking-${snapshot.snapshotKey}` : undefined}>
+          {showHeading && <div className="football-award-ranking__heading">
+            <div><span className="football-eyebrow">{scopeLabel(snapshot)}</span><h4 id={`ranking-${snapshot.snapshotKey}`}>{AWARD_LABELS[snapshot.awardKey]}</h4></div>
             <span>{snapshot.status === "resolved" ? "Đã chốt" : "Đang đua"}</span>
           </div>}
           <ol>
@@ -55,7 +55,7 @@ export function AwardRankingList({ snapshots, playerName, compact = false, showH
               </li>;
             })}
           </ol>
-          {compact && snapshot.entries.length > 3 && <small className="rtg-award-ranking__more">+{snapshot.entries.length - 3} ứng viên trong bảng đầy đủ</small>}
+          {compact && snapshot.entries.length > 3 && <small className="football-award-ranking__more">+{snapshot.entries.length - 3} ứng viên trong bảng đầy đủ</small>}
         </section>
       ))}
     </div>

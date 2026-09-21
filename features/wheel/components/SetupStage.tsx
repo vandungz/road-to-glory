@@ -42,11 +42,11 @@ export function SetupStage({ slotIndex, activeStep, isSpinning, wheelItems, targ
   const chapterLabel = getChapterLabel(activeStep);
 
   return (
-    <main className="rtg-draft-setup">
-      <div className="rtg-draft-setup__main">
+    <main className="football-draft-setup">
+      <div className="football-draft-setup__main">
         <DraftProgressRail currentStep={activeStep} />
-        <section className="rtg-draft-setup__action">
-          <div className="rtg-draft-setup__heading">
+        <section className="football-draft-setup__action">
+          <div className="football-draft-setup__heading">
             <span>{isComplete ? "Draft hoàn tất" : `Vòng ${activeStep + 1} · ${chapterLabel}`}</span>
             <h1>{isComplete ? "Bắt đầu sự nghiệp cầu thủ" : STEP_LABELS[activeStep]}</h1>
             <p>{isComplete ? "Mười ba vòng quay đã tạo nên điểm xuất phát của cầu thủ." : getStepDescription(activeStep)}</p>
@@ -55,8 +55,8 @@ export function SetupStage({ slotIndex, activeStep, isSpinning, wheelItems, targ
           {!isComplete ? (
             <>
               <SpinnerWheel isSpinning={isSpinning} items={wheelItems} targetIndex={targetIndex} onSpinComplete={handleSetupSpinComplete} />
-              {tempValue !== null && !isSpinning && <div className="rtg-draft-setup__result" aria-live="polite">{tempValue}</div>}
-              <div className="rtg-draft-setup__cta">
+              {tempValue !== null && !isSpinning && <div className="football-draft-setup__result" aria-live="polite">{tempValue}</div>}
+              <div className="football-draft-setup__cta">
                 <span>{isSpinning ? "Đang quay..." : tempValue !== null ? "Kết quả đã ghi nhận" : "Sẵn sàng"}</span>
                 <Button size="lg" onClick={handleSetupSpin} disabled={isSpinning}>
                   {isSpinning ? "Bánh xe đang quay" : "Quay bánh xe"}
@@ -66,7 +66,7 @@ export function SetupStage({ slotIndex, activeStep, isSpinning, wheelItems, targ
           ) : (
             <>
               {startCareerError && (
-                <p className="rtg-draft-setup__error" role="alert">{startCareerError}</p>
+                <p className="football-draft-setup__error" role="alert">{startCareerError}</p>
               )}
               <Button size="lg" onClick={handleStartCareer} disabled={isProcessing}>
                 {isProcessing ? "Đang tạo cầu thủ" : "Bắt đầu sự nghiệp"}

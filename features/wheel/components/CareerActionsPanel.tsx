@@ -103,58 +103,58 @@ export function CareerActionsPanel({
     : getStageTitle(careerSubStep, currentContinentalCup, selectorIndex, totalNeed, yearEvolutionDirection, tempSelectedStat);
 
   return (
-    <section className={`rtg-action-panel${isHighStakes ? " rtg-action-panel--high-stakes" : ""}`}>
+    <section className={`football-action-panel${isHighStakes ? " football-action-panel--high-stakes" : ""}`}>
       {!isShopStage && (
-        <header className="rtg-action-panel__header">
-          <span className="rtg-eyebrow">{getStageEyebrow(careerSubStep, currentContinentalCup)}</span>
+        <header className="football-action-panel__header">
+          <span className="football-eyebrow">{getStageEyebrow(careerSubStep, currentContinentalCup)}</span>
           <h2>{stageTitle}</h2>
-          {careerSubStep === "domestic_cup" && <p className="rtg-action-panel__description">Quay để biết {domesticCupName} đi được đến đâu ở mùa này.</p>}
-          {careerSubStep === "continental_cup" && <p className="rtg-action-panel__description">Quay để biết {getContinentalCupLabel(currentContinentalCup)} đi được đến đâu ở mùa này.</p>}
-          {isFinalSeason && <span className="rtg-action-panel__notice">Mùa giải cuối cùng</span>}
+          {careerSubStep === "domestic_cup" && <p className="football-action-panel__description">Quay để biết {domesticCupName} đi được đến đâu ở mùa này.</p>}
+          {careerSubStep === "continental_cup" && <p className="football-action-panel__description">Quay để biết {getContinentalCupLabel(currentContinentalCup)} đi được đến đâu ở mùa này.</p>}
+          {isFinalSeason && <span className="football-action-panel__notice">Mùa giải cuối cùng</span>}
         </header>
       )}
 
-      <div className="rtg-action-panel__body">
+      <div className="football-action-panel__body">
         {careerSubStep === "idle" && (
-          <div className="rtg-career-shop-entry">
-            <span className="rtg-eyebrow">Mùa giải {seasonLabel} · tuổi {currentAge} · {clubLabel}</span>
+          <div className="football-career-shop-entry">
+            <span className="football-eyebrow">Mùa giải {seasonLabel} · tuổi {currentAge} · {clubLabel}</span>
             <h2>Cửa hàng đầu mùa giải</h2>
             <p>Mở module cửa hàng để dùng số dư ví cho các vật phẩm hỗ trợ mùa giải trước khi quay bánh xe.</p>
-            <Button size="lg" onClick={onOpenShop} disabled={isProcessing || !onOpenShop} className="rtg-action-panel__primary">
+            <Button size="lg" onClick={onOpenShop} disabled={isProcessing || !onOpenShop} className="football-action-panel__primary">
               Mở cửa hàng
             </Button>
           </div>
         )}
 
         {careerSubStep === "continental_cup" && careerWheelItems.length === 0 && (
-          <div className="rtg-wheel-stage__processing" role="status" aria-live="polite" aria-busy={isProcessing || !seasonTicketResolved}>
+          <div className="football-wheel-stage__processing" role="status" aria-live="polite" aria-busy={isProcessing || !seasonTicketResolved}>
             <span>{!seasonTicketResolved ? "Đang đồng bộ vé tham dự…" : isProcessing ? "Đang xác nhận vé tham dự…" : "Mùa này không có vé tham dự cúp châu lục."}</span>
           </div>
         )}
 
         {isWheelStep && careerWheelItems.length > 0 && (
-          <div className="rtg-wheel-stage" aria-busy={isProcessing}>
+          <div className="football-wheel-stage" aria-busy={isProcessing}>
             <SpinnerWheel isSpinning={careerSpinning} items={careerWheelItems} targetIndex={careerTargetIndex} onSpinComplete={handleCareerSpinComplete} stakes={isHighStakes ? "high" : ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep) ? "mid" : "low"} />
-            <Button size="lg" onClick={handleCareerSpin} disabled={careerSpinning || isProcessing} className="rtg-action-panel__primary">
+            <Button size="lg" onClick={handleCareerSpin} disabled={careerSpinning || isProcessing} className="football-action-panel__primary">
               {careerSpinning ? "Đang quay..." : isProcessing ? "Đã nhận kết quả" : isHighStakes ? "Quay vòng danh hiệu" : "Quay bánh xe"}
             </Button>
           </div>
         )}
 
         {(careerSubStep === "resolved" || careerSubStep === "transfer") && yearSimResult && (
-          <div className="rtg-season-report">
-            <div className="rtg-season-report__heading"><span className="rtg-eyebrow">Báo cáo thành tích</span><h3>Mùa giải {seasonLabel}</h3></div>
-            <div className="rtg-season-report__stats">
+          <div className="football-season-report">
+            <div className="football-season-report__heading"><span className="football-eyebrow">Báo cáo thành tích</span><h3>Mùa giải {seasonLabel}</h3></div>
+            <div className="football-season-report__stats">
               <DataRow label="Giải VĐQG" value={standingResult ? `Hạng ${standingResult}` : "Chưa có dữ liệu"} />
               <DataRow label="Cúp quốc gia" value={cupResultLabel(domesticCupResult)} />
               <DataRow label="Cá nhân" value={`${yearSimResult.apps} trận · ${yearSimResult.goals} bàn · ${yearSimResult.assists} kiến tạo`} />
-              <DataRow label="Match rating" value={<span className="rtg-data-row__value--accent">{yearSimResult.matchRating}</span>} />
+              <DataRow label="Match rating" value={<span className="football-data-row__value--accent">{yearSimResult.matchRating}</span>} />
             </div>
             {hasBallonDorWinner && <ResultBanner tone="honour">Quả Bóng Vàng — chiến thắng danh giá</ResultBanner>}
             {careerSubStep === "transfer" && !isFinalSeason ? (
-              <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="rtg-action-panel__primary">Mở thị trường chuyển nhượng</Button>
+              <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="football-action-panel__primary">Mở thị trường chuyển nhượng</Button>
             ) : (
-              <Button size="lg" onClick={!isFinalSeason && careerSubStep === "resolved" && onOpenShop ? onOpenShop : handleNextSeason} disabled={isProcessing} className="rtg-action-panel__primary">{isFinalSeason ? "Giải nghệ và tổng kết sự nghiệp" : "Tiến vào mùa giải tiếp theo"}</Button>
+              <Button size="lg" onClick={!isFinalSeason && careerSubStep === "resolved" && onOpenShop ? onOpenShop : handleNextSeason} disabled={isProcessing} className="football-action-panel__primary">{isFinalSeason ? "Giải nghệ và tổng kết sự nghiệp" : "Tiến vào mùa giải tiếp theo"}</Button>
             )}
           </div>
         )}
