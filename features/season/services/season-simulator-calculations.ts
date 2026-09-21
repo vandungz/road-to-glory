@@ -77,6 +77,12 @@ export function estimateMaxTeamCS(matches: number, ratio: number | undefined): n
 
 // ── Goals/Assists/CleanSheets — apps × rate(position) (SoT §7.0 & §7.7 & §7.8) ────────────
 
+/** Mild team attacking environment proxy; national output has its own team context. */
+function getTeamAttackFactor(clubPrestige: number, context: CompContext): number {
+  if (context === "national") return 1;
+  return Math.max(0.95, Math.min(1.05, 1 + (clubPrestige - 3) * 0.025));
+}
+
 export function rollCompetitionOutput(
   position: string,
   ovr: number,
@@ -89,18 +95,20 @@ export function rollCompetitionOutput(
 ): { goals: number; assists: number; cleanSheets: number } {
   if (apps <= 0) return { goals: 0, assists: 0, cleanSheets: 0 };
 
-  const rates = getPerAppRates(position, ovr, context, currentStats);
+  const normalizedPosition = position.toUpperCase();
+  const rates = getPerAppRates(normalizedPosition, ovr, context, currentStats);
   const rateCs = applyPrestigeToCsRate(rates.cleanSheets, clubPrestige);
+  const teamAttackFactor = getTeamAttackFactor(clubPrestige, context);
   const noise = () => 1 + (randomSource() * 0.4 - 0.2);
 
-  let goals = Math.round(apps * rates.goals * noise());
-  let assists = Math.round(apps * rates.assists * noise());
-  let cleanSheets = ["GK", "CB", "LB", "RB", "CDM", "CM"].includes(position)
+  let goals = Math.round(apps * rates.goals * teamAttackFactor * noise());
+  let assists = Math.round(apps * rates.assists * teamAttackFactor * noise());
+  let cleanSheets = ["GK", "CB", "LB", "RB", "CDM", "CM"].includes(normalizedPosition)
     ? Math.round(apps * rateCs * noise())
     : 0;
 
   // GK: rare assist instead of rate noise sometimes
-  if (position === "GK") {
+  if (normalizedPosition === "GK") {
     goals = 0;
     assists = randomSource() > 0.97 ? 1 : 0;
   }
@@ -110,7 +118,7 @@ export function rollCompetitionOutput(
     cleanSheets = Math.min(cleanSheets, maxTeamCleanSheets);
   }
 
-  return clampCompetitionStats(position, apps, goals, assists, cleanSheets);
+  return clampCompetitionStats(normalizedPosition, apps, goals, assists, cleanSheets);
 }
 
 // ── Match Rating per competition ───────────────────────────────────────────

@@ -9,6 +9,7 @@
     "lint": "eslint",
     "check:checkpoint-contract": "tsx scripts/checkpoint-contract-check.ts",
     "check:season-projection": "tsx scripts/season-projection-check.ts",
+    "check:season-stat-rates": "tsx scripts/season-stat-rates-check.ts",
     "check:career-setup-security": "tsx scripts/career-setup-security-check.ts",
     "check:season-record-hydration": "tsx scripts/season-record-hydration-check.ts",
     "check:competition-wheel-weights": "tsx scripts/competition-wheel-weight-check.ts",

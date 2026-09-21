@@ -31,6 +31,92 @@ export interface PerAppRates {
   cleanSheets: number;
 }
 
+type EventMetric = keyof PerAppRates;
+
+function average(values: number[]): number {
+  return values.reduce((sum, value) => sum + value, 0) / Math.max(1, values.length);
+}
+
+function readStat(
+  currentStats: Record<string, number>,
+  key: string,
+  defaultOvr: number,
+): number {
+  return currentStats[key] ?? defaultOvr;
+}
+
+/**
+ * Direction A opportunity proxy.
+ *
+ * The game currently exposes six attributes per player, so this is deliberately
+ * a proxy rather than a hidden seventh-stat system. It separates two questions:
+ * 1) can the player execute the event (getEffectiveAttributeRating), and
+ * 2) does the player's role create opportunities for that event (this function).
+ *
+ * The weights are intentionally conservative. They add cross-position impact
+ * without turning a CB into a ST or making every high-PAS player an automatic
+ * assist leader.
+ */
+function getOpportunityRating(
+  position: string,
+  metric: EventMetric,
+  currentStats: Record<string, number>,
+  defaultOvr: number,
+): number {
+  const pos = position.toUpperCase();
+  const get = (key: string) => readStat(currentStats, key, defaultOvr);
+
+  if (pos === "GK") {
+    if (metric === "goals") return 0;
+    if (metric === "assists") return average([get("kic"), get("pos"), get("spd")]);
+    return average([get("ref"), get("pos"), get("div"), get("han")]);
+  }
+
+  if (metric === "goals") {
+    if (pos === "CB") return average([get("phy"), get("def"), get("sho")]);
+    if (pos === "LB" || pos === "RB") return average([get("pac"), get("pas"), get("dri")]);
+    if (pos === "CDM") return average([get("pas"), get("phy"), get("sho"), get("def")]);
+    if (pos === "CM") return average([get("pac"), get("pas"), get("sho"), get("phy")]);
+    if (pos === "CAM") return average([get("pas"), get("dri"), get("sho")]);
+    if (pos === "LM" || pos === "RM") return average([get("pac"), get("pas"), get("dri"), get("sho")]);
+    if (pos === "LW" || pos === "RW") return average([get("pac"), get("dri"), get("sho"), get("pas")]);
+    if (pos === "ST") return average([get("sho"), get("pac"), get("dri")]);
+  }
+
+  if (metric === "assists") {
+    if (pos === "CB") return average([get("pas"), get("phy"), get("def")]);
+    if (pos === "LB" || pos === "RB") return average([get("pas"), get("pac"), get("dri")]);
+    if (pos === "CDM") return average([get("pas"), get("def"), get("dri")]);
+    if (pos === "CM") return average([get("pas"), get("dri"), get("phy")]);
+    if (pos === "CAM") return average([get("pas"), get("dri"), get("sho")]);
+    if (pos === "LM" || pos === "RM") return average([get("pas"), get("pac"), get("dri")]);
+    if (pos === "LW" || pos === "RW") return average([get("pas"), get("dri"), get("pac")]);
+    if (pos === "ST") return average([get("pas"), get("dri"), get("sho")]);
+  }
+
+  if (metric === "cleanSheets") {
+    if (pos === "CB") return average([get("def"), get("phy"), get("pac")]);
+    if (pos === "LB" || pos === "RB") return average([get("def"), get("pac"), get("phy")]);
+    if (pos === "CDM") return average([get("def"), get("phy"), get("pas")]);
+    if (pos === "CM") return average([get("def"), get("phy"), get("pas")]);
+  }
+
+  return defaultOvr;
+}
+
+/** Converts the role proxy into a bounded opportunity multiplier around 1.0. */
+function getOpportunityFactor(
+  position: string,
+  metric: EventMetric,
+  currentStats: Record<string, number> | undefined,
+  defaultOvr: number,
+): number {
+  if (!currentStats) return 1;
+  const opportunityRating = getOpportunityRating(position, metric, currentStats, defaultOvr);
+  const centeredSignal = clamp01((opportunityRating - 40) / 50) * 2 - 1;
+  return Math.max(0.88, Math.min(1.12, 1 + centeredSignal * 0.12));
+}
+
 export function getEffectiveAttributeRating(
   position: string,
   metric: "goals" | "assists" | "cleanSheets",
@@ -155,11 +241,17 @@ export function getPerAppRates(
     aLow = 0.05; aHigh = 0.12;
   }
 
-  // Prestige-ish bump for CS is applied by caller via clubPrestige on rate_cs
+  // Direction A: rate = skill/conversion signal × role opportunity × competition context.
+  // The existing bands remain the calibration baseline; the opportunity factor lets
+  // six current stats influence the player's event volume without a new stat schema.
+  const goalOpportunity = getOpportunityFactor(position, "goals", currentStats, ovr);
+  const assistOpportunity = getOpportunityFactor(position, "assists", currentStats, ovr);
+  const cleanSheetOpportunity = getOpportunityFactor(position, "cleanSheets", currentStats, ovr);
+
   return {
-    goals: lerp(gLow, gHigh, tG) * f,
-    assists: lerp(aLow, aHigh, tA) * f,
-    cleanSheets: lerp(csLow, csHigh, tCs) * f,
+    goals: lerp(gLow, gHigh, tG) * goalOpportunity * f,
+    assists: lerp(aLow, aHigh, tA) * assistOpportunity * f,
+    cleanSheets: lerp(csLow, csHigh, tCs) * cleanSheetOpportunity * f,
   };
 }
 

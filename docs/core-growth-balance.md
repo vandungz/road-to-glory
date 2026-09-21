@@ -481,6 +481,35 @@ cs_c      = round( apps_c × rate_cs × noise )  rồi clamp [0, apps_c]
 Cách dùng OVR: nội suy tuyến tính trong band (vd OVR 65 → cạnh dưới, OVR 90 → cạnh
 trên, soft-cap rate khi OVR > 92). **Không** cộng thêm hằng số bàn tuyệt đối ngoài rate.
 
+#### 7.0.2a Direction A — tách skill impact khỏi opportunity bằng 6 stat hiện tại
+
+Rate cuối không chỉ đọc một effective rating. Với dữ liệu hiện tại, hệ thống tách hai
+thành phần:
+
+```text
+skill / conversion signal = getEffectiveAttributeRating(metric)
+role opportunity signal   = weighted proxy từ PAC/SHO/PAS/DRI/DEF/PHY
+final rate                = calibrated position band
+                           × opportunity factor [0.88, 1.12]
+                           × team attacking factor [0.95, 1.05] for club competitions
+                           × competition factor
+```
+
+Opportunity proxy không phải stat thứ bảy và không tạo thêm schema. Nó cho phép:
+
+- CB tăng cơ hội ghi bàn từ PHY/DEF/SHO (đánh đầu, bóng cố định — proxy hiện có).
+- LB/RB tăng cơ hội kiến tạo từ PAS/PAC/DRI (dâng biên, crossing/cutback — proxy hiện có).
+- CM/CDM tăng cơ hội kiến tạo hoặc ghi bàn từ PAS/DRI/PHY/SHO theo vai trò.
+- Clean sheet phản ánh riêng DEF/PHY/PAC của nhóm phòng ngự thay vì dùng chung G/A signal.
+
+Factor được giới hạn chặt để giữ calibration cũ và tránh biến một vị trí thành vị trí khác.
+Đây là bước chuyển tiếp an toàn của hướng A; các hệ số phải được kiểm chứng bằng seed
+regression và playtest trước khi mở rộng biên độ.
+
+`clubPrestige` chỉ làm proxy rất nhẹ cho môi trường tấn công ở các giải cấp CLB
+(±5%); không dùng prestige của CLB cho đội tuyển quốc gia. Clean sheet vẫn giữ riêng
+đường điều chỉnh defensive bằng prestige như mô hình cũ.
+
 #### 7.0.3 Context competition (nhân lên rate, không thay model)
 
 | Competition | Hệ số lên `rate_g` / `rate_a` | Lý do |
@@ -954,5 +983,3 @@ Mở rộng kết quả quay Wheel và tính toán số trận (Match counts & A
    - **Domestic Cup**: Winner/Runner-Up = 6 trận; Semi-Finals = 5; Quarter-Finals = 4; Round of 16 = 3; Round of 32 = 2; Early Exit = 1 trận.
    - **Continental Cup (UCL/Libertadores)**: Winner/Runner-Up = 13 trận; Semi-Finals = 10; Quarter-Finals = 8; Round of 16 = 8; Group Stage = 6 trận.
    - **National Tournament (World Cup/Continental)**: Winner/Runner-Up = 7 trận; Semi-Finals = 6; Quarter-Finals = 5; Round of 16 = 4; Group Stage = 3 trận.
-
-
