@@ -56,7 +56,7 @@ export function SquadDashboard({
   }
 
   return (
-    <div className="rtg-squad-dashboard">
+    <div className="football-squad-dashboard">
       <SquadBoardPageHead
         sessionName={sessionName}
         mobileMeta={`${startingXI.length} / 11 · ovr tb ${displaySquadOvr || "—"}`}
@@ -66,8 +66,8 @@ export function SquadDashboard({
         status={status}
       />
 
-      <div className="rtg-squad-dashboard__body">
-        <section className="rtg-squad-dashboard__pitch">
+      <div className="football-squad-dashboard__body">
+        <section className="football-squad-dashboard__pitch">
           <PitchBoard
             gameId={gameId}
             formation={formation}
@@ -81,7 +81,7 @@ export function SquadDashboard({
           />
         </section>
 
-        <div className="rtg-squad-dashboard__sheet">
+        <div className="football-squad-dashboard__sheet">
           <SquadSummary
             gameId={gameId}
             status={status}
@@ -98,8 +98,8 @@ export function SquadDashboard({
             onSlotClick={handleSlotClick}
           />
           {status !== "completed" && (activeSlot || nextEmptySlot) && startingXI.length < 11 && (
-            <div className="rtg-squad-dashboard__next-action">
-              <button type="button" className="rtg-button rtg-button--primary" onClick={() => draftSlot((activeSlot ?? nextEmptySlot)!.index)}>
+            <div className="football-squad-dashboard__next-action">
+              <button type="button" className="football-button football-button--primary" onClick={() => draftSlot((activeSlot ?? nextEmptySlot)!.index)}>
                 {activeSlot ? `Quay tiếp ${activeSlot.position}` : `Draft ${nextEmptySlot!.position}`}
                 <span aria-hidden="true">›</span>
               </button>

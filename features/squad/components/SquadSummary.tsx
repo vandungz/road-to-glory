@@ -24,9 +24,9 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
   }
 
   return (
-    <section className="rtg-squad-summary">
-      <div className="rtg-squad-summary__metric">
-        <div className="rtg-squad-summary__score">
+    <section className="football-squad-summary">
+      <div className="football-squad-summary__metric">
+        <div className="football-squad-summary__score">
           <strong>{squadOvr || "—"}</strong>
           <div>
             <span>{isFull || isCompleted ? "Squad OVR" : "OVR trung bình"}</span>
@@ -34,8 +34,8 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
           </div>
         </div>
       </div>
-      <span className="rtg-squad-summary__rule" aria-hidden="true" />
-      <div className="rtg-squad-summary__message">
+      <span className="football-squad-summary__rule" aria-hidden="true" />
+      <div className="football-squad-summary__message">
         {isCompleted ? (
           <p>Mười một sự nghiệp đã khép. Bấm một dòng để đọc lại hồ sơ.</p>
         ) : isFull ? (
@@ -45,7 +45,7 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
         )}
       </div>
       {!isCompleted && isFull && (
-        <div className="rtg-squad-summary__action">
+        <div className="football-squad-summary__action">
           <Button onClick={() => void finishCareer()}>Hoàn thành sự nghiệp</Button>
           <span>hỏi xác nhận một lần · không thể mở lại đội hình đã chốt</span>
         </div>

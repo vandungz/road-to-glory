@@ -21,7 +21,7 @@ export function LogoutButton() {
       title="Đăng xuất"
       variant="quiet"
       size="sm"
-      className="rtg-app-shell__logout"
+      className="football-app-shell__logout"
     >
       {isPending ? "Đang thoát" : "Đăng xuất"}
     </Button>

@@ -23,15 +23,15 @@ function nationCode(nationality: string): string {
 
 export function PlayerStickerCard({ player, finalClub, debutAge, retireAge, careerLength }: PlayerStickerCardProps) {
   return (
-    <div className="rtg-player-sticker">
-      <div className="rtg-player-sticker__top"><span>Hall of Fame</span><strong>{player.position}</strong></div>
-      <div className="rtg-player-sticker__portrait">
+    <div className="football-player-sticker">
+      <div className="football-player-sticker__top"><span>Hall of Fame</span><strong>{player.position}</strong></div>
+      <div className="football-player-sticker__portrait">
         <strong>{player.peakOvr}</strong>
         <span>{nationCode(player.nationality)}</span>
-        <div className="rtg-player-sticker__silhouette" aria-hidden="true" />
+        <div className="football-player-sticker__silhouette" aria-hidden="true" />
         <small>Ảnh cầu thủ</small>
       </div>
-      <div className="rtg-player-sticker__identity">
+      <div className="football-player-sticker__identity">
         <h3>{player.name}</h3>
         <small>{debutAge} → {retireAge} tuổi · {careerLength} mùa · {finalClub}</small>
       </div>

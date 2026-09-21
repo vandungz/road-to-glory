@@ -12,7 +12,7 @@ interface HomepageProps {
 
 function ModeStat({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rtg-home-mode__stat">
+    <div className="football-home-mode__stat">
       <span>{label}</span>
       <strong>{value}</strong>
     </div>
@@ -21,7 +21,7 @@ function ModeStat({ label, value }: { label: string; value: string | number }) {
 
 function ModeMeta({ mode, status, tone = "" }: { mode: string; status: string; tone?: string }) {
   return (
-    <div className="rtg-home-mode__meta">
+    <div className="football-home-mode__meta">
       <span>Chế độ {mode}</span>
       <i aria-hidden="true" />
       <span className={tone}>{status}</span>
@@ -31,8 +31,8 @@ function ModeMeta({ mode, status, tone = "" }: { mode: string; status: string; t
 
 function ModeArt() {
   return (
-    <div className="rtg-home-mode__art" role="img" aria-label="Ảnh minh họa Classic chưa được cấu hình">
-      <span className="rtg-home-mode__art-mark" aria-hidden="true">▧</span>
+    <div className="football-home-mode__art" role="img" aria-label="Ảnh minh họa Classic chưa được cấu hình">
+      <span className="football-home-mode__art-mark" aria-hidden="true">▧</span>
       <span>Kéo ảnh Classic vào đây — thẻ Panini, sổ lưu niệm, tông ấm</span>
       <small>hoặc browse files</small>
     </div>
@@ -57,48 +57,48 @@ export function Homepage({ sessions }: HomepageProps) {
   }
 
   return (
-    <div className="rtg-homepage" key={motionKey}>
-      <div className="rtg-homepage__head" data-anim>
-        <span className="rtg-homepage__eyebrow">Chào Marco</span>
+    <div className="football-homepage" key={motionKey}>
+      <div className="football-homepage__head" data-anim>
+        <span className="football-homepage__eyebrow">Chào Marco</span>
         <h1>Hôm nay bạn chơi gì?</h1>
       </div>
 
-      <div className="rtg-homepage__modes">
-        <section className="rtg-home-mode rtg-home-mode--active" data-anim aria-labelledby="classic-mode-title">
-          <div className="rtg-home-mode__content">
-            <div className="rtg-home-mode__copy">
+      <div className="football-homepage__modes">
+        <section className="football-home-mode football-home-mode--active" data-anim aria-labelledby="classic-mode-title">
+          <div className="football-home-mode__content">
+            <div className="football-home-mode__copy">
               <ModeMeta mode="01" status="Đang mở" tone="is-open" />
               <h2 id="classic-mode-title">Classic</h2>
               <p>Mười ba vòng quay tạo ra một cầu thủ, mười sáu mùa quyết định anh ta trở thành ai.</p>
             </div>
 
-            <div className="rtg-home-mode__stats">
+            <div className="football-home-mode__stats">
               <ModeStat label="Đội hình" value={sessions.length} />
               <ModeStat label="Squad OVR cao nhất" value={highestSquadRating ?? "—"} />
             </div>
 
-            <div className="rtg-home-mode__actions">
+            <div className="football-home-mode__actions">
               {activeSession ? (
                 <Button size="lg" onClick={continueCareer}>Tiếp tục {activeSession.name}</Button>
               ) : (
                 <CreateGameDialog />
               )}
-              <Link className="rtg-button rtg-button--outline rtg-button--lg" href="/classic">Tất cả đội hình</Link>
+              <Link className="football-button football-button--outline football-button--lg" href="/classic">Tất cả đội hình</Link>
               <span>{activeSession ? `${activeSession.playerCount} / 11 cầu thủ đã draft` : "Chưa có đội hình đang dở"}</span>
             </div>
           </div>
           <ModeArt />
         </section>
 
-        <section className="rtg-home-mode rtg-home-mode--locked" data-anim aria-labelledby="pvp-mode-title">
-          <div className="rtg-home-mode__copy">
+        <section className="football-home-mode football-home-mode--locked" data-anim aria-labelledby="pvp-mode-title">
+          <div className="football-home-mode__copy">
             <ModeMeta mode="02" status="Sắp ra mắt" tone="is-coming" />
             <h2 id="pvp-mode-title">PvP — Đối đầu</h2>
             <p>Đưa một đội hình bạn đã dựng ở Classic đi đấu với người chơi khác.</p>
           </div>
-          <div className="rtg-home-mode__locked-action">
+          <div className="football-home-mode__locked-action">
             <span>Đội hình Classic của bạn sẽ tự sẵn sàng</span>
-            <span className="rtg-home-mode__locked-button">Sắp ra mắt</span>
+            <span className="football-home-mode__locked-button">Sắp ra mắt</span>
           </div>
         </section>
       </div>

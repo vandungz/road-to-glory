@@ -20,7 +20,7 @@ export function SlotTicks({ slots, players, inProgressSlots, status }: SlotTicks
   const playerMap = new Map(players.map((player) => [player.slotIndex, player]));
 
   return (
-    <div className="rtg-squad-slot-ticks" aria-label={`${players.length} trên ${slots.length} vị trí đã có cầu thủ`}>
+    <div className="football-squad-slot-ticks" aria-label={`${players.length} trên ${slots.length} vị trí đã có cầu thủ`}>
       {slots.map((slot) => (
         <span
           key={slot.index}
@@ -46,13 +46,13 @@ export function SquadBoardPageHead({
   status,
 }: Props) {
   return (
-    <div className="rtg-squad-board__head" data-anim>
-      <div className="rtg-squad-board__heading">
-        <Link className="rtg-squad-board__back" href="/classic">
+    <div className="football-squad-board__head" data-anim>
+      <div className="football-squad-board__heading">
+        <Link className="football-squad-board__back" href="/classic">
           <ArrowLeft aria-hidden="true" size={14} strokeWidth={1.7} />
           Đội hình của bạn
         </Link>
-        <div className="rtg-squad-board__title-row">
+        <div className="football-squad-board__title-row">
           <h1>{sessionName}</h1>
           <small>{mobileMeta}</small>
         </div>

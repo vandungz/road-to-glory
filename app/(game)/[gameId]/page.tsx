@@ -94,12 +94,12 @@ export default async function SquadBoardPage({ params }: Props) {
 
   return (
     <AppShell
-      className="rtg-squad-board-shell"
+      className="football-squad-board-shell"
       backHref="/classic"
       backLabel="Đội hình"
       userEmail={user.email}
-      headerIdentityMeta={<span className="rtg-app-shell__season">Classic · {formation}</span>}
-      headerMeta={<span className="rtg-app-shell__squad-formation">{formation}</span>}
+      headerIdentityMeta={<span className="football-app-shell__season">Classic · {formation}</span>}
+      headerMeta={<span className="football-app-shell__squad-formation">{formation}</span>}
     >
       <SquadDashboard
         gameId={gameId}

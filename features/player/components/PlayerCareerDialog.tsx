@@ -227,36 +227,36 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
       open={isOpen}
       title={`Hồ sơ sự nghiệp của ${player.name}`}
       onClose={onClose}
-      className="rtg-career-modal"
+      className="football-career-modal"
       mobileSheet={false}
       style={{ width: "min(1056px, calc(100vw - 32px))", maxWidth: "1056px", height: "min(700px, calc(100dvh - 40px))", padding: 0, overflow: "hidden" }}
     >
-      <div className="rtg-career-dialog">
-        <aside className="rtg-career-dialog__sidebar">
+      <div className="football-career-dialog">
+        <aside className="football-career-dialog__sidebar">
           <PlayerStickerCard player={player} finalClub={finalClub} debutAge={debutAge} retireAge={retireAge} careerLength={careerLength} />
 
-          <section className="rtg-career-dialog__section" aria-labelledby="career-total-title">
+          <section className="football-career-dialog__section" aria-labelledby="career-total-title">
             <h3 id="career-total-title">Trọn đời sự nghiệp</h3>
-            <div className="rtg-career-dialog__metric"><span>Ra sân</span><strong>{summaryStats.apps}</strong></div>
-            <div className="rtg-career-dialog__metric"><span>Bàn thắng</span><strong>{summaryStats.goals}</strong></div>
-            <div className="rtg-career-dialog__metric"><span>Kiến tạo</span><strong>{summaryStats.assists}</strong></div>
-            <div className="rtg-career-dialog__metric"><span>Phong độ trung bình</span><strong className="is-positive">{summaryStats.avgRating}</strong></div>
+            <div className="football-career-dialog__metric"><span>Ra sân</span><strong>{summaryStats.apps}</strong></div>
+            <div className="football-career-dialog__metric"><span>Bàn thắng</span><strong>{summaryStats.goals}</strong></div>
+            <div className="football-career-dialog__metric"><span>Kiến tạo</span><strong>{summaryStats.assists}</strong></div>
+            <div className="football-career-dialog__metric"><span>Phong độ trung bình</span><strong className="is-positive">{summaryStats.avgRating}</strong></div>
           </section>
 
-          <section className="rtg-career-dialog__section" aria-labelledby="club-honours-title">
+          <section className="football-career-dialog__section" aria-labelledby="club-honours-title">
             <h3 id="club-honours-title">Danh hiệu CLB</h3>
-            {clubHonours.length === 0 ? <p className="rtg-career-dialog__empty">Chưa đạt danh hiệu CLB nào</p> : clubHonours.map((honour) => (
-              <div className="rtg-career-dialog__metric" key={`club:${honour.label}`}>
+            {clubHonours.length === 0 ? <p className="football-career-dialog__empty">Chưa đạt danh hiệu CLB nào</p> : clubHonours.map((honour) => (
+              <div className="football-career-dialog__metric" key={`club:${honour.label}`}>
                 <span>{honour.label}</span>
                 <strong>{honour.count}</strong>
               </div>
             ))}
           </section>
 
-          <section className="rtg-career-dialog__section" aria-labelledby="individual-honours-title">
+          <section className="football-career-dialog__section" aria-labelledby="individual-honours-title">
             <h3 id="individual-honours-title">Danh hiệu cá nhân</h3>
-            {individualHonours.length === 0 ? <p className="rtg-career-dialog__empty">Chưa đạt danh hiệu cá nhân nào</p> : individualHonours.map((honour) => (
-              <div className="rtg-career-dialog__metric" key={`individual:${honour.label}`}>
+            {individualHonours.length === 0 ? <p className="football-career-dialog__empty">Chưa đạt danh hiệu cá nhân nào</p> : individualHonours.map((honour) => (
+              <div className="football-career-dialog__metric" key={`individual:${honour.label}`}>
                 <span className={honour.accent ? "is-honour" : undefined}>{honour.label}</span>
                 <strong className={honour.accent ? "is-honour" : undefined}>{honour.count}</strong>
               </div>
@@ -264,27 +264,27 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
           </section>
         </aside>
 
-        <main className="rtg-career-dialog__main">
-          <header className="rtg-career-dialog__heading">
+        <main className="football-career-dialog__main">
+          <header className="football-career-dialog__heading">
             <div>
-              <span className="rtg-career-dialog__eyebrow">Hồ sơ lưu trữ · vị trí {player.position} · đội hình {finalClub}</span>
+              <span className="football-career-dialog__eyebrow">Hồ sơ lưu trữ · vị trí {player.position} · đội hình {finalClub}</span>
               <h2>Tiến trình sự nghiệp</h2>
             </div>
-            <button type="button" className="rtg-career-dialog__close" onClick={onClose} aria-label="Đóng hồ sơ sự nghiệp"><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
+            <button type="button" className="football-career-dialog__close" onClick={onClose} aria-label="Đóng hồ sơ sự nghiệp"><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
           </header>
 
-          <section className="rtg-career-dialog__chart" aria-labelledby="ovr-chart-title">
-            <div className="rtg-career-dialog__section-heading"><h3 id="ovr-chart-title">Đường phát triển OVR</h3><span>thấp nhất {minOvr} · đỉnh cao {player.peakOvr}</span></div>
+          <section className="football-career-dialog__chart" aria-labelledby="ovr-chart-title">
+            <div className="football-career-dialog__section-heading"><h3 id="ovr-chart-title">Đường phát triển OVR</h3><span>thấp nhất {minOvr} · đỉnh cao {player.peakOvr}</span></div>
             <PlayerOvrChart statsTimeline={statsTimeline} debutAge={debutAge} retireAge={retireAge} />
           </section>
 
-          <section className="rtg-career-dialog__seasons" aria-labelledby="season-stats-title">
+          <section className="football-career-dialog__seasons" aria-labelledby="season-stats-title">
             <h3 id="season-stats-title">Thống kê từng mùa</h3>
-            <div className="rtg-career-dialog__table-wrap">
+            <div className="football-career-dialog__table-wrap">
               <table>
                 <thead><tr><th>Tuổi</th><th>Câu lạc bộ</th><th>Giải</th><th>OVR</th><th>Trận</th><th>Bàn</th><th>K.tạo</th><th>Phong độ</th></tr></thead>
                 <tbody>
-                  {seasonRows.length === 0 ? <tr><td className="rtg-career-dialog__empty" colSpan={8}>Chưa có dữ liệu mùa giải.</td></tr> : seasonRows.map((row) => (
+                  {seasonRows.length === 0 ? <tr><td className="football-career-dialog__empty" colSpan={8}>Chưa có dữ liệu mùa giải.</td></tr> : seasonRows.map((row) => (
                     <React.Fragment key={row.age}>
                       <tr>
                         <td className={row.isDebut ? "is-debut" : undefined}>{row.age}</td>
@@ -294,7 +294,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
                         <td>{row.snap.apps ?? "—"}</td><td>{row.snap.goals ?? "—"}</td><td>{row.snap.assists ?? "—"}</td>
                         <td className={(row.snap.matchRating ?? 0) >= 7.8 ? "is-positive" : undefined}>{row.snap.matchRating != null ? row.snap.matchRating.toFixed(2) : "—"}</td>
                       </tr>
-                      {row.awards.length > 0 && <tr className="rtg-career-dialog__award-row"><td colSpan={8}>{row.awards.map((award) => award.label).join(" · ")}</td></tr>}
+                      {row.awards.length > 0 && <tr className="football-career-dialog__award-row"><td colSpan={8}>{row.awards.map((award) => award.label).join(" · ")}</td></tr>}
                     </React.Fragment>
                   ))}
                 </tbody>

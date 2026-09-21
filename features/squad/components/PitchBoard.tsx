@@ -16,12 +16,12 @@ function slotZone(position: string): "goalkeeper" | "defense" | "midfield" | "at
 
 function PitchMarkings() {
   return (
-    <div className="rtg-pitch__markings" aria-hidden="true">
-      <span className="rtg-pitch__outline" />
-      <span className="rtg-pitch__halfway" />
-      <span className="rtg-pitch__circle" />
-      <span className="rtg-pitch__box rtg-pitch__box--top" />
-      <span className="rtg-pitch__box rtg-pitch__box--bottom" />
+    <div className="football-pitch__markings" aria-hidden="true">
+      <span className="football-pitch__outline" />
+      <span className="football-pitch__halfway" />
+      <span className="football-pitch__circle" />
+      <span className="football-pitch__box football-pitch__box--top" />
+      <span className="football-pitch__box football-pitch__box--bottom" />
     </div>
   );
 }
@@ -31,12 +31,12 @@ function SlotButton({ position, state, onClick }: { position: string; state: Exc
   return (
     <button
       type="button"
-      className={`rtg-pitch-token rtg-pitch-token--${state}`}
+      className={`football-pitch-token football-pitch-token--${state}`}
       onClick={onClick}
       disabled={!isInteractive}
       aria-label={state === "active" ? `Tiếp tục draft cầu thủ ${position}` : state === "empty" ? `Thêm cầu thủ ${position}` : `Vị trí ${position} chưa có cầu thủ`}
     >
-      {state === "active" ? <><span>{position}</span><span className="rtg-pitch-token__status"><i aria-hidden="true" />Đang dở</span></> : state === "empty" ? <><span>{position}</span><span className="rtg-pitch-token__status"><Plus aria-hidden="true" size={10} />Draft</span></> : <span>{position}</span>}
+      {state === "active" ? <><span>{position}</span><span className="football-pitch-token__status"><i aria-hidden="true" />Đang dở</span></> : state === "empty" ? <><span>{position}</span><span className="football-pitch-token__status"><Plus aria-hidden="true" size={10} />Draft</span></> : <span>{position}</span>}
     </button>
   );
 }
@@ -44,16 +44,16 @@ function SlotButton({ position, state, onClick }: { position: string; state: Exc
 function FilledSlot({ player, onClick }: { player: ClientSafePlayer; onClick: () => void }) {
   const nameParts = player.name.trim().split(/\s+/);
   const shortName = nameParts.length > 1 ? `${nameParts[0][0]}. ${nameParts.at(-1)}` : player.name;
-  const rarityColor = RARITY_ACCENT[player.cardRarity] ?? "var(--rtg-rule-strong)";
+  const rarityColor = RARITY_ACCENT[player.cardRarity] ?? "var(--football-rule-strong)";
   const flag = getFlagUrl(player.nationality);
   const style = {
     "--rarity-accent": rarityColor,
     ...(flag ? { "--player-flag": `url(${flag})` } : {}),
   } as React.CSSProperties;
   return (
-    <button type="button" className="rtg-pitch-player" onClick={onClick} style={style} aria-label={`${player.name} — ${player.position}`}>
-      <span className="rtg-pitch-player__top"><span>{player.position}</span><strong>{player.peakOvr}</strong></span>
-      <span className="rtg-pitch-player__name">{shortName}</span>
+    <button type="button" className="football-pitch-player" onClick={onClick} style={style} aria-label={`${player.name} — ${player.position}`}>
+      <span className="football-pitch-player__top"><span>{player.position}</span><strong>{player.peakOvr}</strong></span>
+      <span className="football-pitch-player__name">{shortName}</span>
     </button>
   );
 }
@@ -85,7 +85,7 @@ export function PitchBoard({ gameId, formation, players, status, inProgressSlots
   }
 
   return (
-    <div className="rtg-pitch" role="region" aria-label="Sân đấu chiến thuật">
+    <div className="football-pitch" role="region" aria-label="Sân đấu chiến thuật">
       <PitchMarkings />
       {slots.map((slot) => {
         const player = playerMap.get(slot.index);
@@ -93,7 +93,7 @@ export function PitchBoard({ gameId, formation, players, status, inProgressSlots
         return (
           <div
             key={slot.index}
-            className={`rtg-pitch__slot rtg-pitch__slot--${slotZone(slot.position)}${hoveredSlot === slot.index ? " is-hovered" : ""}`}
+            className={`football-pitch__slot football-pitch__slot--${slotZone(slot.position)}${hoveredSlot === slot.index ? " is-hovered" : ""}`}
             style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
             onMouseEnter={() => onSlotHover?.(slot.index)}
             onMouseLeave={() => onSlotHover?.(null)}

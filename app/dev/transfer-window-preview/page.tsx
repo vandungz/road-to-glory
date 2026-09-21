@@ -115,7 +115,7 @@ export default function TransferWindowPreviewPage() {
     <div
       style={{
         minHeight: "100vh",
-        backgroundColor: "var(--rtg-sunken)",
+        backgroundColor: "var(--football-sunken)",
         padding: "32px 24px",
         display: "flex",
         justifyContent: "center",
@@ -125,13 +125,13 @@ export default function TransferWindowPreviewPage() {
         style={{
           width: "100%",
           maxWidth: 1180,
-          backgroundColor: "var(--rtg-paper)",
-          border: "1px solid var(--rtg-rule)",
+          backgroundColor: "var(--football-paper)",
+          border: "1px solid var(--football-rule)",
           display: "flex",
           flexDirection: "column",
         }}
       >
-        <div style={{ borderBottom: "1px solid var(--rtg-rule)", padding: "18px 30px" }}>
+        <div style={{ borderBottom: "1px solid var(--football-rule)", padding: "18px 30px" }}>
           <p
             style={{
               fontFamily: "var(--font-stamp)",
@@ -174,7 +174,7 @@ export default function TransferWindowPreviewPage() {
           onSearchClubs={async () => ({ clubs: MOCK.shortlist, totalCount: MOCK.shortlist.length, leagues: [{ id: "eredivisie", name: "Eredivisie", tier: 1 }, { id: "bundesliga", name: "Bundesliga", tier: 1 }] })}
         />
 
-        <p style={{ margin: 0, borderTop: "1px solid var(--rtg-rule)", padding: "12px 30px", color: "var(--rtg-ink-3)", fontSize: "0.75rem" }}>Last action: {log}</p>
+        <p style={{ margin: 0, borderTop: "1px solid var(--football-rule)", padding: "12px 30px", color: "var(--football-ink-3)", fontSize: "0.75rem" }}>Last action: {log}</p>
       </div>
     </div>
   );

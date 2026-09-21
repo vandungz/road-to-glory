@@ -118,60 +118,60 @@ export function LoginForm({ initialError }: { initialError?: string }) {
 
   if (view === "confirm-email") {
     return (
-      <section className="rtg-auth-panel rtg-auth-confirm">
-        <div className="rtg-auth-panel__intro" key={`confirm-${replayToken}`} data-anim>
-          <span className="rtg-auth-panel__eyebrow">Xác nhận tài khoản</span>
+      <section className="football-auth-panel football-auth-confirm">
+        <div className="football-auth-panel__intro" key={`confirm-${replayToken}`} data-anim>
+          <span className="football-auth-panel__eyebrow">Xác nhận tài khoản</span>
           <h2>Kiểm tra email của bạn</h2>
           <p>Đường dẫn xác nhận đã được gửi tới <strong>{email}</strong>.</p>
-          <p className="rtg-auth-confirm__meta">Đường dẫn có hiệu lực trong 1 giờ.</p>
+          <p className="football-auth-confirm__meta">Đường dẫn có hiệu lực trong 1 giờ.</p>
         </div>
-        {error && <p className="rtg-auth-message rtg-auth-message--error" data-anim>{error}</p>}
+        {error && <p className="football-auth-message football-auth-message--error" data-anim>{error}</p>}
         <Button fullWidth variant="outline" onClick={handleResend} disabled={isResending || cooldown > 0} loading={isResending}>
           {cooldown > 0 ? `Gửi lại sau ${cooldown}s` : "Gửi lại email"}
         </Button>
-        <button type="button" className="rtg-text-button" onClick={() => setView("form")}>Quay lại đăng nhập</button>
+        <button type="button" className="football-text-button" onClick={() => setView("form")}>Quay lại đăng nhập</button>
       </section>
     );
   }
 
   const isLogin = mode === "login";
   return (
-    <section className="rtg-auth-panel">
-      <div className="rtg-auth-panel__intro" key={`intro-${mode}-${replayToken}`} data-anim>
+    <section className="football-auth-panel">
+      <div className="football-auth-panel__intro" key={`intro-${mode}-${replayToken}`} data-anim>
         <h2>{isLogin ? "Tiếp tục sự nghiệp" : "Bắt đầu sự nghiệp"}</h2>
         <p>{isLogin ? "Đăng nhập để mở lại đội hình và những mùa giải đang dở." : "Tạo tài khoản, rồi draft mười một sự nghiệp của riêng bạn."}</p>
       </div>
 
-      {initialError === "link_expired" && <p className="rtg-auth-message rtg-auth-message--warning">Đường dẫn đã hết hạn. Vui lòng đăng ký lại để nhận đường dẫn mới.</p>}
+      {initialError === "link_expired" && <p className="football-auth-message football-auth-message--warning">Đường dẫn đã hết hạn. Vui lòng đăng ký lại để nhận đường dẫn mới.</p>}
 
-      <div className="rtg-auth-tabs" role="tablist" aria-label="Phương thức xác thực" key={`tabs-${replayToken}`}>
-        <button type="button" role="tab" aria-selected={isLogin} aria-controls="rtg-auth-form" className={isLogin ? "is-active" : ""} onClick={() => { setMode("login"); setError(null); }}>Đăng nhập</button>
-        <button type="button" role="tab" aria-selected={!isLogin} aria-controls="rtg-auth-form" className={!isLogin ? "is-active" : ""} onClick={() => { setMode("register"); setError(null); }}>Đăng ký</button>
+      <div className="football-auth-tabs" role="tablist" aria-label="Phương thức xác thực" key={`tabs-${replayToken}`}>
+        <button type="button" role="tab" aria-selected={isLogin} aria-controls="football-auth-form" className={isLogin ? "is-active" : ""} onClick={() => { setMode("login"); setError(null); }}>Đăng nhập</button>
+        <button type="button" role="tab" aria-selected={!isLogin} aria-controls="football-auth-form" className={!isLogin ? "is-active" : ""} onClick={() => { setMode("register"); setError(null); }}>Đăng ký</button>
       </div>
 
-      <form id="rtg-auth-form" className="rtg-auth-form" onSubmit={handleSubmit} role="tabpanel">
-        <div className="rtg-auth-field" data-anim key={`email-${replayToken}`}>
-          <label htmlFor="rtg-email">Email</label>
-          <Input id="rtg-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
+      <form id="football-auth-form" className="football-auth-form" onSubmit={handleSubmit} role="tabpanel">
+        <div className="football-auth-field" data-anim key={`email-${replayToken}`}>
+          <label htmlFor="football-email">Email</label>
+          <Input id="football-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
         </div>
 
-        <div className="rtg-auth-field" data-anim key={`password-${replayToken}`}>
-          <div className="rtg-auth-field__label-row">
-            <label htmlFor="rtg-pass">{isLogin ? "Mật khẩu" : "Mật khẩu · tối thiểu 6 ký tự"}</label>
+        <div className="football-auth-field" data-anim key={`password-${replayToken}`}>
+          <div className="football-auth-field__label-row">
+            <label htmlFor="football-pass">{isLogin ? "Mật khẩu" : "Mật khẩu · tối thiểu 6 ký tự"}</label>
             {isLogin && <Link href="/auth/reset-password">Quên mật khẩu?</Link>}
           </div>
-          <div className="rtg-password-field">
-            <Input id="rtg-pass" type={showPassword ? "text" : "password"} required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "rtg-auth-error" : undefined} />
-            <IconButton type="button" className="rtg-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
+          <div className="football-password-field">
+            <Input id="football-pass" type={showPassword ? "text" : "password"} required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
+            <IconButton type="button" className="football-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
               {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
             </IconButton>
           </div>
-          {error && <p id="rtg-auth-error" className="rtg-auth-message rtg-auth-message--error" data-anim>{error}</p>}
+          {error && <p id="football-auth-error" className="football-auth-message football-auth-message--error" data-anim>{error}</p>}
         </div>
 
-        <Button type="submit" fullWidth loading={isPending} size="lg" className="rtg-auth-submit">{isLogin ? "Đăng nhập" : "Tạo tài khoản"}</Button>
-        <div className="rtg-auth-divider" aria-hidden="true"><span />hoặc<span /></div>
-        <Button type="button" variant="outline" fullWidth className="rtg-auth-google" onClick={handleGoogleSignIn} disabled={isPending}>Tiếp tục với Google</Button>
+        <Button type="submit" fullWidth loading={isPending} size="lg" className="football-auth-submit">{isLogin ? "Đăng nhập" : "Tạo tài khoản"}</Button>
+        <div className="football-auth-divider" aria-hidden="true"><span />hoặc<span /></div>
+        <Button type="button" variant="outline" fullWidth className="football-auth-google" onClick={handleGoogleSignIn} disabled={isPending}>Tiếp tục với Google</Button>
       </form>
     </section>
   );

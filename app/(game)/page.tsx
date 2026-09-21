@@ -13,7 +13,7 @@ export default async function LobbyPage() {
 
   return (
     <AppShell
-      className="rtg-homepage-shell"
+      className="football-homepage-shell"
       userEmail={user?.email}
       footerAction={<ReplayMotionButton />}
     >

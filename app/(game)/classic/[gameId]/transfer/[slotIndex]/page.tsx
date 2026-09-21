@@ -85,8 +85,8 @@ export default async function ClassicTransferPage({ params, searchParams }: Prop
   });
 
   return (
-    <AppShell className="rtg-transfer-shell" backHref={`/classic/${gameId}/draft/${slotIndex}`} backLabel="Sự nghiệp" headerMeta={(
-      <div className="rtg-transfer-shell__header-meta"><span><small>Cầu thủ</small><strong>{player.name}</strong></span><span><small>Vị trí</small><strong>{player.position}</strong></span><span><small>Giá trị</small><strong>{formatEuroThousands(syncedMarketValue)}</strong></span></div>
+    <AppShell className="football-transfer-shell" backHref={`/classic/${gameId}/draft/${slotIndex}`} backLabel="Sự nghiệp" headerMeta={(
+      <div className="football-transfer-shell__header-meta"><span><small>Cầu thủ</small><strong>{player.name}</strong></span><span><small>Vị trí</small><strong>{player.position}</strong></span><span><small>Giá trị</small><strong>{formatEuroThousands(syncedMarketValue)}</strong></span></div>
     )}>
       <TransferPageClient input={{
         gameId, slotIndex, playerId: player.id, playerName: player.name, position: player.position,

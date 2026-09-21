@@ -32,7 +32,7 @@ interface RowProps {
 
 function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps) {
   const isInteractive = state !== "locked";
-  const rarityColor = player ? RARITY_ACCENT[player.cardRarity] ?? "var(--rtg-rule-strong)" : "var(--rtg-rule-strong)";
+  const rarityColor = player ? RARITY_ACCENT[player.cardRarity] ?? "var(--football-rule-strong)" : "var(--football-rule-strong)";
   const flag = getFlagUrl(player?.nationality);
   const style = {
     "--rarity-accent": rarityColor,
@@ -42,7 +42,7 @@ function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps)
   return (
     <button
       type="button"
-      className={`rtg-squad-sheet__row is-${state}${isHovered ? " is-hovered" : ""}`}
+      className={`football-squad-sheet__row is-${state}${isHovered ? " is-hovered" : ""}`}
       onClick={onClick}
       onMouseEnter={() => onHover(slot.index)}
       onMouseLeave={() => onHover(null)}
@@ -50,13 +50,13 @@ function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps)
       style={style}
       aria-label={player ? `Mở hồ sơ ${player.name}` : state === "active" ? `Tiếp tục draft vị trí ${slot.position}` : state === "empty" ? `Draft vị trí ${slot.position}` : `Vị trí ${slot.position} chưa có cầu thủ`}
     >
-      <span className="rtg-squad-sheet__position">{slot.position}</span>
-      <span className="rtg-squad-sheet__nation">{nationCode(player?.nationality)}</span>
-      <span className="rtg-squad-sheet__player">
+      <span className="football-squad-sheet__position">{slot.position}</span>
+      <span className="football-squad-sheet__nation">{nationCode(player?.nationality)}</span>
+      <span className="football-squad-sheet__player">
         {state === "active" ? <><i aria-hidden="true" />Đang dở — quay tiếp</> : state === "empty" ? <><Plus aria-hidden="true" size={13} strokeWidth={2.2} />Draft cầu thủ</> : state === "locked" ? "Chưa có cầu thủ" : player?.name}
       </span>
-      <span className="rtg-squad-sheet__ovr">{player?.peakOvr ?? "—"}</span>
-      <ChevronRight className="rtg-squad-sheet__chevron" aria-hidden="true" size={15} strokeWidth={1.6} />
+      <span className="football-squad-sheet__ovr">{player?.peakOvr ?? "—"}</span>
+      <ChevronRight className="football-squad-sheet__chevron" aria-hidden="true" size={15} strokeWidth={1.6} />
     </button>
   );
 }
@@ -76,14 +76,14 @@ export function SquadSheet({ slots, players, inProgressSlots, status, hoveredSlo
   const playerCount = players.length;
 
   return (
-    <section className="rtg-squad-sheet" aria-labelledby="starting-xi-title">
-      <div className="rtg-squad-sheet__heading">
+    <section className="football-squad-sheet" aria-labelledby="starting-xi-title">
+      <div className="football-squad-sheet__heading">
         <h2 id="starting-xi-title">Đội hình xuất phát</h2>
         <span>{playerCount} / 11</span>
       </div>
-      <div className="rtg-squad-sheet__table" role="table" aria-label="Đội hình xuất phát">
-        <div className="rtg-squad-sheet__row rtg-squad-sheet__row--head" role="row">
-          <span>Vị trí</span><span className="rtg-squad-sheet__nation">QT</span><span>Cầu thủ</span><span>OVR</span><span />
+      <div className="football-squad-sheet__table" role="table" aria-label="Đội hình xuất phát">
+        <div className="football-squad-sheet__row football-squad-sheet__row--head" role="row">
+          <span>Vị trí</span><span className="football-squad-sheet__nation">QT</span><span>Cầu thủ</span><span>OVR</span><span />
         </div>
         {slots.map((slot) => {
           const player = playerMap.get(slot.index);

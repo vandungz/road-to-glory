@@ -76,11 +76,11 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
 
   return (
     <AppShell
-      className="rtg-shop-shell"
+      className="football-shop-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
       backLabel="Sự nghiệp"
       headerMeta={(
-        <div className="rtg-shop-shell__header-meta">
+        <div className="football-shop-shell__header-meta">
           <span>
             <small>Cầu thủ</small>
             <strong>{player.name}</strong>
@@ -91,7 +91,7 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
           </span>
           <span>
             <small>Số dư ví</small>
-            <strong className="rtg-shop-shell__wallet">{formatEuroThousands(player.walletBalance)}</strong>
+            <strong className="football-shop-shell__wallet">{formatEuroThousands(player.walletBalance)}</strong>
           </span>
         </div>
       )}

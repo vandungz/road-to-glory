@@ -64,9 +64,9 @@ export function CreateGameDialog() {
 
         <form ref={formRef} onSubmit={handleSubmit}>
           <ModalBody>
-            <div className="rtg-form-stack">
-              <label className="rtg-field">
-                <span className="rtg-field__label">Tên đội hình</span>
+            <div className="football-form-stack">
+              <label className="football-field">
+                <span className="football-field__label">Tên đội hình</span>
                 <input
                   id="squad-name"
                   name="name"
@@ -80,15 +80,15 @@ export function CreateGameDialog() {
                 />
               </label>
 
-              <fieldset className="rtg-field">
-                <legend className="rtg-field__label">Sơ đồ chiến thuật</legend>
-                <div className="rtg-formation-list">
+              <fieldset className="football-field">
+                <legend className="football-field__label">Sơ đồ chiến thuật</legend>
+                <div className="football-formation-list">
                   {FORMATIONS.map((formation) => {
                     const isSelected = selectedFormation === formation;
                     return (
                       <label
                         key={formation}
-                        className={`rtg-formation-option ${isSelected ? "is-selected" : ""}`}
+                        className={`football-formation-option ${isSelected ? "is-selected" : ""}`}
                       >
                         <input
                           type="radio"
@@ -109,7 +109,7 @@ export function CreateGameDialog() {
                 <input type="hidden" name="formation" value={selectedFormation} />
               </fieldset>
 
-              {errorMsg && <p className="rtg-form-error">{errorMsg}</p>}
+              {errorMsg && <p className="football-form-error">{errorMsg}</p>}
             </div>
           </ModalBody>
 

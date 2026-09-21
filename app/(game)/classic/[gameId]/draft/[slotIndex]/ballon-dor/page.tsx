@@ -86,27 +86,27 @@ export default async function BallonDorResultPage({ params }: Props) {
 
   return (
     <AppShell
-      className="rtg-ballon-dor-page-shell"
+      className="football-ballon-dor-page-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
       backLabel="Sự nghiệp"
       headerMeta={(
-        <div className="rtg-ballon-dor-page__header-meta">
+        <div className="football-ballon-dor-page__header-meta">
           <span><small>Cầu thủ</small><strong>{player.name}</strong></span>
           <span><small>Vị trí</small><strong>{player.position}</strong></span>
           <span><small>Tuổi</small><strong>{player.currentAge}</strong></span>
         </div>
       )}
     >
-      <section className="rtg-ballon-dor-page">
-        <header className="rtg-ballon-dor-page__intro">
-          <span className="rtg-eyebrow">Kết quả Ballon d&apos;Or</span>
+      <section className="football-ballon-dor-page">
+        <header className="football-ballon-dor-page__intro">
+          <span className="football-eyebrow">Kết quả Ballon d&apos;Or</span>
           <h1>Quả Bóng Vàng</h1>
         </header>
 
-        <article className={`rtg-ballon-dor-page__result${isWinner ? " is-winner" : ""}`}>
-          <ResultBanner tone={tone} className="rtg-ballon-dor-page__banner">{message}</ResultBanner>
+        <article className={`football-ballon-dor-page__result${isWinner ? " is-winner" : ""}`}>
+          <ResultBanner tone={tone} className="football-ballon-dor-page__banner">{message}</ResultBanner>
           {snapshot && snapshotEntries(snapshot.entries).length > 0 && (
-            <section className="rtg-ballon-dor-page__ranking" aria-labelledby="ballon-ranking-title">
+            <section className="football-ballon-dor-page__ranking" aria-labelledby="ballon-ranking-title">
               <h2 id="ballon-ranking-title">Danh sách ứng viên</h2>
               <ol>
                 {snapshotEntries(snapshot.entries).map((entry) => (
@@ -118,7 +118,7 @@ export default async function BallonDorResultPage({ params }: Props) {
               </ol>
             </section>
           )}
-          <Link className="rtg-button rtg-button--primary rtg-button--lg" href={`/classic/${gameId}/draft/${slotIndex}`}>
+          <Link className="football-button football-button--primary football-button--lg" href={`/classic/${gameId}/draft/${slotIndex}`}>
             Tiếp tục hành trình <ArrowRight aria-hidden="true" size={17} />
           </Link>
         </article>
