@@ -4,6 +4,7 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { isCareerRevisionConflict } from "@/features/career/hooks/useCareerCheckpointSync";
 import type { CareerSubStep, HiddenStats, CurrentClub } from "@/types/domain";
+import { TOP_TEN_LIMIT } from "@/types/awards";
 import { getWheelTypeForStep } from "@/features/career/contracts/wheel-step.contract";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import type { useCareerStats } from "./useCareerStats";
@@ -238,7 +239,7 @@ export function useDraftDrumWheelFlow({
     if (completedStep === "ballon_dor_nomination" || completedStep === "ballon_dor_ranking") {
       if (completedStep === "ballon_dor_nomination") {
         setBallonDorResult({ phase: "nomination", nominated: result === "yes" });
-      } else if (typeof result === "number" && result >= 1 && result <= 10) {
+      } else if (typeof result === "number" && result >= 1 && result <= TOP_TEN_LIMIT) {
         setBallonDorResult({ phase: "ranking", rank: result });
         // The stat flow moves to the next step in the same callback. Lock the
         // whole draft surface before that state can render, otherwise users

@@ -1,5 +1,6 @@
 export const AWARD_MODEL_VERSION = "awards-v5";
 export const AWARD_RESOLUTION_VERSION = "weighted-random-v5";
+export const TOP_TEN_LIMIT = 10;
 
 export type AwardCategory = "team_trophy" | "individual_award" | "ballon_dor";
 export type AwardScope = "league" | "domestic_cup" | "continental" | "national_team" | "club" | "career" | "unknown";

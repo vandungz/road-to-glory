@@ -3,6 +3,7 @@ import type { AchievementRecord, SeasonAwardRecord, TrophyRecord } from "@/types
 import {
   AWARD_MODEL_VERSION,
   AWARD_RESOLUTION_VERSION,
+  TOP_TEN_LIMIT,
   isDeprecatedAwardKey,
   type AwardHonourInput,
   type AwardRankingSnapshotInput,
@@ -191,7 +192,7 @@ export async function finalizeBallonDorRanking(params: {
   player: { name: string; position: string };
   club: { id?: string | null; name?: string | null; leagueId?: string | null };
 }): Promise<void> {
-  const rank = Math.max(1, Math.min(10, Math.round(params.rank)));
+  const rank = Math.max(1, Math.min(TOP_TEN_LIMIT, Math.round(params.rank)));
   const snapshot = await params.tx.careerAwardRankingSnapshot.findFirst({
     where: { careerPlayerId: params.playerId, seasonId: params.seasonId, awardKey: "ballon_dor" },
   });
@@ -213,7 +214,7 @@ export async function finalizeBallonDorRanking(params: {
     result: rank === 1 ? "winner" : "nominee",
   };
   others.splice(Math.min(rank - 1, others.length), 0, playerEntry);
-  const entries = others.slice(0, 10).map((entry, index) => ({ ...entry, rank: index + 1, result: entry.isCareerPlayer ? (index === 0 ? "winner" : "nominee") : "ranked" }));
+  const entries = others.slice(0, TOP_TEN_LIMIT).map((entry, index) => ({ ...entry, rank: index + 1, result: entry.isCareerPlayer ? (index === 0 ? "winner" : "nominee") : "ranked" }));
   const snapshotKey = snapshot?.snapshotKey ?? `${params.seasonId}:ballon_dor:global-candidate-universe`;
   await params.tx.careerAwardRankingSnapshot.upsert({
     where: { snapshotKey },

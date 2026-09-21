@@ -4,6 +4,7 @@ import {
   AWARD_LABELS,
   AWARD_MODEL_VERSION,
   AWARD_RESOLUTION_VERSION,
+  TOP_TEN_LIMIT,
   type AwardHonourInput,
   type AwardKey,
   type AwardRankingEntry,
@@ -80,6 +81,7 @@ const BEST_XI_POSITION_OPTIONS: Record<string, string[]> = {
   ST: ["ST", "CAM", "LW", "RW"],
 };
 const MIN_APPS = { league_golden_boot: 18, league_top_assist: 18, league_golden_glove: 18 } as const;
+const MIN_PRIMARY_OUTPUT = { league_golden_boot: 10, league_top_assist: 10 } as const;
 const BEST_XI_MIN_APPS = 18;
 
 function clamp(value: number, min: number, max: number): number {
@@ -169,6 +171,9 @@ function makeCandidates(input: AwardSimulatorInput, source: RandomSource): Candi
     seasonId: input.seasonId,
     leagueTier: input.leagueTier,
     clubs: player.leagueClubs,
+    // Keep enough league depth for the hard >=10 goals/assists gates to
+    // produce a complete top-ten ranking across deterministic seeds.
+    candidateCount: 500,
     randomSource: source,
   });
   return [playerCandidate, ...generated.map(fromSynthetic)];
@@ -189,6 +194,11 @@ function metricScore(key: AwardKey, candidate: Candidate): number {
 function isEligibleForAward(key: AwardKey, candidate: Candidate): boolean {
   const minimumApps = MIN_APPS[key as keyof typeof MIN_APPS];
   if (minimumApps !== undefined && candidate.leagueStats.apps < minimumApps) return false;
+  const minimumPrimaryOutput = MIN_PRIMARY_OUTPUT[key as keyof typeof MIN_PRIMARY_OUTPUT];
+  if (minimumPrimaryOutput !== undefined) {
+    const output = key === "league_golden_boot" ? candidate.leagueStats.goals : candidate.leagueStats.assists;
+    if (output < minimumPrimaryOutput) return false;
+  }
   if (key === "league_golden_glove") return candidate.position === "GK";
   return true;
 }
@@ -203,7 +213,7 @@ function weightedPick<T extends { weight: number }>(values: T[], source: RandomS
   return values.at(-1)!;
 }
 
-function rankedEntries(key: AwardKey, candidates: Candidate[], source: RandomSource, limit = 10): Candidate[] {
+function rankedEntries(key: AwardKey, candidates: Candidate[], source: RandomSource, limit = TOP_TEN_LIMIT): Candidate[] {
   const scored = candidates.map((candidate) => ({ ...candidate, score: round(metricScore(key, candidate)) }));
   const ordered: Candidate[] = [];
   const remaining = [...scored];
@@ -316,7 +326,7 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     snapshots.push({ ...snapshot(input, "league_best_xi", xiEntries), status: "resolved", entries: xiEntries.map((entry) => Object.fromEntries(Object.entries(entry).filter(([field]) => field !== "ovr" && field !== "teamSuccess")) as AwardRankingEntry), resolution: { candidateUniverseSize: xiEntries.length, resolver: AWARD_RESOLUTION_VERSION } });
   }
 
-  const ballonEntries = rankedEntries("ballon_dor", candidates, source, 10);
+  const ballonEntries = rankedEntries("ballon_dor", candidates, source, TOP_TEN_LIMIT);
   const playerBallonEntry = ballonEntries.find((entry) => entry.isCareerPlayer);
   const player = input.player;
   const evaluation = evaluateBallonDor({
@@ -341,7 +351,7 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     nationalType: player.nationalType,
   });
   snapshots.push(snapshot(input, "ballon_dor", ballonEntries, "global-candidate-universe"));
-  const eligibleBallon = Boolean(evaluation.eligible && playerBallonEntry && playerBallonEntry.rank <= 10);
+  const eligibleBallon = Boolean(evaluation.eligible && playerBallonEntry && playerBallonEntry.rank <= TOP_TEN_LIMIT);
   return {
     modelVersion: AWARD_MODEL_VERSION,
     resolutionVersion: AWARD_RESOLUTION_VERSION,

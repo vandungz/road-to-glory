@@ -19,6 +19,8 @@ export interface SyntheticLeagueInput {
   seasonId?: string;
   leagueTier?: number;
   clubs: SyntheticLeagueClubInput[];
+  /** Number of league candidates to synthesize for award ranking depth. */
+  candidateCount?: number;
   randomSource?: RandomSource;
 }
 
@@ -243,8 +245,10 @@ export function generateSyntheticLeagueCandidates(input: SyntheticLeagueInput): 
   const leagueTier = input.leagueTier ?? (leagueClubsCount >= 18 ? 1 : 2);
   const leagueBaseOvr = leagueTier <= 1 ? 78 : 72;
   const leagueMatches = Math.max(18, (Math.max(2, leagueClubsCount) - 1) * 2);
+  const candidateCount = Math.max(POSITION_ROTATION.length, Math.round(input.candidateCount ?? POSITION_ROTATION.length));
 
-  return POSITION_ROTATION.map((position, index) => {
+  return Array.from({ length: candidateCount }, (_, index) => {
+    const position = POSITION_ROTATION[index % POSITION_ROTATION.length];
     const club = clubs[index % clubs.length];
     const age = 19 + Math.floor(source() * 16);
     const ageModifier = age >= 23 && age <= 29 ? 2 : age >= 30 ? -1 : -2;
@@ -267,7 +271,7 @@ export function generateSyntheticLeagueCandidates(input: SyntheticLeagueInput): 
     const leagueStats = generateStats(position, ovr, apps, club, attributes, "league", source);
     return {
       candidateKey: `generated:${input.seasonId ?? "season"}:${index}`,
-      name: `${FIRST_NAMES[index % FIRST_NAMES.length]} ${LAST_NAMES[index % LAST_NAMES.length]}`,
+      name: `${FIRST_NAMES[index % FIRST_NAMES.length]} ${LAST_NAMES[Math.floor(index / FIRST_NAMES.length) % LAST_NAMES.length]}`,
       position,
       clubName: club.name,
       ovr,
