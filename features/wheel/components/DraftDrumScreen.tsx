@@ -259,61 +259,63 @@ export function DraftDrumScreen({
       )}
 
       {/* ── MODE 2: CAREER PLAYING LOOP ── */}
-      <DraftDrumCareerStage
-        mobileSection={mobileSection}
-        setMobileSection={setMobileSection}
-        rightTab={rightTab}
-        setRightTab={setRightTab}
-        wheelInteractionLocked={wheelInteractionLocked}
-        careerSubStep={careerSubStep}
-        isUnemployed={isUnemployed}
-        currentAge={currentAge}
-        currentOvr={currentOvr}
-        currentClub={currentClub}
-        currentContinentalCup={currentContinentalCup}
-        currentStats={currentStats}
-        position={position}
-        playerName={playerName}
-        playerNationality={playerNationality}
-        playerDebutAge={playerDebutAge}
-        playerCareerLength={playerCareerLength}
-        seasonRecords={seasonRecords}
-        selectedAgeForStats={selectedAgeForStats}
-        setSelectedAgeForStats={setSelectedAgeForStats}
-        clubStints={clubStints}
-        peakOvrValue={peakOvrValue}
-        yearSimResult={yearSimResult}
-        yearEvolution={yearEvolution}
-        evolvedStatsThisYear={evolvedStatsThisYear}
-        careerWheelItems={careerWheelItems}
-        careerTargetIndex={careerTargetIndex}
-        careerSpinning={careerSpinning}
-        isProcessing={isProcessing}
-        seasonTicketResolved={seasonTicketResolved}
-        standingResult={standingResult}
-        domesticCupResult={domesticCupResult}
-        continentalCupResult={continentalCupResult}
-        nationalCallupResult={nationalCallupResult}
-        nationalTournamentResult={nationalTournamentResult}
-        hasBallonDorWinner={hasBallonDorWinner}
-        selectorIndex={selectorIndex}
-        tempSelectedStat={tempSelectedStat}
-        contractYearsTotal={contractYearsTotal}
-        contractYearsRemaining={contractYearsRemaining}
-        currentWageAnnual={currentWageAnnual}
-        marketValue={marketValue}
-        onOpenTrophyCabinet={() => {
-          if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
-        }}
-        onOpenTransferModal={() => void openModule(transferHref, true)}
-        onOpenShop={shopHref ? () => void openModule(shopHref, careerSubStep === "resolved") : undefined}
-        onOpenModal={(type) => {
-          if (!wheelInteractionLocked) setActiveModal(type);
-        }}
-        handleCareerSpinComplete={handleCareerSpinComplete}
-        handleCareerSpin={handleCareerSpin}
-        handleNextSeason={handleNextSeason}
-      />
+      {mode === "career" && (
+        <DraftDrumCareerStage
+          mobileSection={mobileSection}
+          setMobileSection={setMobileSection}
+          rightTab={rightTab}
+          setRightTab={setRightTab}
+          wheelInteractionLocked={wheelInteractionLocked}
+          careerSubStep={careerSubStep}
+          isUnemployed={isUnemployed}
+          currentAge={currentAge}
+          currentOvr={currentOvr}
+          currentClub={currentClub}
+          currentContinentalCup={currentContinentalCup}
+          currentStats={currentStats}
+          position={position}
+          playerName={playerName}
+          playerNationality={playerNationality}
+          playerDebutAge={playerDebutAge}
+          playerCareerLength={playerCareerLength}
+          seasonRecords={seasonRecords}
+          selectedAgeForStats={selectedAgeForStats}
+          setSelectedAgeForStats={setSelectedAgeForStats}
+          clubStints={clubStints}
+          peakOvrValue={peakOvrValue}
+          yearSimResult={yearSimResult}
+          yearEvolution={yearEvolution}
+          evolvedStatsThisYear={evolvedStatsThisYear}
+          careerWheelItems={careerWheelItems}
+          careerTargetIndex={careerTargetIndex}
+          careerSpinning={careerSpinning}
+          isProcessing={isProcessing}
+          seasonTicketResolved={seasonTicketResolved}
+          standingResult={standingResult}
+          domesticCupResult={domesticCupResult}
+          continentalCupResult={continentalCupResult}
+          nationalCallupResult={nationalCallupResult}
+          nationalTournamentResult={nationalTournamentResult}
+          hasBallonDorWinner={hasBallonDorWinner}
+          selectorIndex={selectorIndex}
+          tempSelectedStat={tempSelectedStat}
+          contractYearsTotal={contractYearsTotal}
+          contractYearsRemaining={contractYearsRemaining}
+          currentWageAnnual={currentWageAnnual}
+          marketValue={marketValue}
+          onOpenTrophyCabinet={() => {
+            if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
+          }}
+          onOpenTransferModal={() => void openModule(transferHref, true)}
+          onOpenShop={shopHref ? () => void openModule(shopHref, careerSubStep === "resolved") : undefined}
+          onOpenModal={(type) => {
+            if (!wheelInteractionLocked) setActiveModal(type);
+          }}
+          handleCareerSpinComplete={handleCareerSpinComplete}
+          handleCareerSpin={handleCareerSpin}
+          handleNextSeason={handleNextSeason}
+        />
+      )}
 
       {/* ── TROPHY CABINET FLOATING MODAL ── */}
       {isTrophyCabinetOpen && (
