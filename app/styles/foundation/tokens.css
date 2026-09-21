@@ -1,0 +1,302 @@
+/* ============================================================
+   FOOTBALL LIFE — RETRO EDITORIAL DESIGN SYSTEM
+   Vintage Panini Sticker Album aesthetic
+   ============================================================ */
+
+:root {
+  /* RTG UI/UX redesign tokens */
+  --football-paper: #F4F1EA;
+  --football-surface: #FFFDF8;
+  --football-sunken: #EBE7DC;
+  --football-inverse: #1C1B18;
+  --football-ink: #21201D;
+  --football-ink-2: #5E5B52;
+  --football-ink-3: #8E8A7E;
+  --football-rule: #DEDACE;
+  --football-rule-strong: #C9C4B4;
+  --football-accent: #E8502F;
+  --football-accent-ink: #C7401F;
+  --football-positive: #2F6B45;
+  --football-warning: #B0761C;
+  --football-negative: #B23A2B;
+  --football-honour: #B08432;
+  --football-honour-lit: #C9A24D;
+  --football-disabled: #A8A49A;
+  --football-focus: #E8502F;
+  --football-shadow-overlay: 0 24px 56px -18px rgba(28, 27, 24, 0.55);
+  --football-scrim: rgba(28, 27, 24, 0.55);
+  --football-radius: 2px;
+  --football-radius-sheet: 12px;
+
+  /* Wheel palette */
+  --football-wheel-1: #E8502F;
+  --football-wheel-2: #3D6EA8;
+  --football-wheel-3: #2F7A5C;
+  --football-wheel-4: #A97A18;
+  --football-wheel-5: #635399;
+  --football-wheel-6: #9C3F6E;
+  --football-wheel-7: #25736D;
+  --football-wheel-8: #454E96;
+
+  /* Legacy aliases: migrate feature surfaces incrementally. */
+  --cream: var(--football-paper);
+  --cream-dark: var(--football-sunken);
+  --cream-border: var(--football-rule);
+  --charcoal: var(--football-ink);
+  --charcoal-light: var(--football-ink-2);
+  --black: #000000;
+  --coral: var(--football-accent);
+  --coral-hover: var(--football-accent-ink);
+  --coral-shadow: rgba(232, 80, 47, 0.18);
+  --white: var(--football-surface);
+  --ink-gray: var(--football-ink-2);
+  --ink-light: var(--football-ink-3);
+
+  /* Typography */
+  --font-headline: "Oswald", "Impact", sans-serif;
+  --font-body: "Lora", "Georgia", serif;
+  --font-stamp: "Special Elite", "Courier New", monospace;
+
+  /* Spacing & Shape */
+  --border-width: 1px;
+  --border-color: var(--football-rule);
+  --radius-card: var(--football-radius);
+
+  /* Shadows */
+  --shadow-card: none;
+  --shadow-button: none;
+  --shadow-button-hover: none;
+}
+
+/* ============================================================
+   RESET & BASE
+   ============================================================ */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  width: 100%;
+  margin: 0;
+  background-color: var(--football-paper);
+  background-image: none;
+  color: var(--football-ink);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+
+/* ============================================================
+   TAILWIND THEME TOKENS
+   ============================================================ */
+
+@theme inline {
+  --color-background: var(--cream);
+  --color-foreground: var(--charcoal);
+  --color-cream: #F5F2EB;
+  --color-cream-dark: #EDE9DF;
+  --color-cream-border: #D8D3C4;
+  --color-charcoal: #27272a;
+  --color-coral: #FF5A43;
+  --color-coral-hover: #E84A33;
+  --color-ink-gray: #71717a;
+
+  --font-headline: "Oswald", "Impact", sans-serif;
+  --font-body: "Lora", "Georgia", serif;
+  --font-stamp: "Special Elite", "Courier New", monospace;
+}
+
+/* ============================================================
+   TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+.font-headline {
+  font-family: var(--font-headline);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.font-stamp {
+  font-family: var(--font-stamp);
+}
+
+/* ============================================================
+   RETRO BUTTON STYLES
+   ============================================================ */
+
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 52px;
+  padding: 0 30px;
+  background-color: var(--football-accent);
+  color: var(--football-surface);
+  font-family: var(--font-headline);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--football-radius);
+  box-shadow: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+  user-select: none;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: var(--football-accent-ink);
+}
+
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--football-focus);
+  outline-offset: 2px;
+}
+
+.btn-primary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 48px;
+  padding: 0 24px;
+  background-color: transparent;
+  color: var(--football-ink);
+  font-family: var(--font-headline);
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+  border: 1px solid var(--football-rule-strong);
+  border-radius: var(--football-radius);
+  box-shadow: none;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background-color 120ms ease, color 120ms ease;
+  user-select: none;
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background-color: var(--football-sunken);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* ============================================================
+   RETRO CARD (STICKER) STYLES
+   ============================================================ */
+
+.card-retro {
+  background-color: var(--football-surface);
+  border: 1px solid var(--football-rule);
+  border-radius: var(--football-radius);
+  box-shadow: none;
+  overflow: hidden;
+  transition: background-color 120ms ease;
+}
+
+.card-retro:hover {
+  background-color: #FFFCF5;
+}
+
+/* ============================================================
+   FORM INPUT STYLES
+   ============================================================ */
+
+.input-retro {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 14px;
+  background-color: var(--football-surface);
+  color: var(--football-ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  border: 1px solid var(--football-rule-strong);
+  border-radius: var(--football-radius);
+  outline: none;
+  transition: box-shadow 80ms ease;
+}
+
+.input-retro:focus {
+  border-color: var(--football-accent);
+  box-shadow: inset 0 0 0 1px var(--football-accent);
+}
+
+.input-retro::placeholder {
+  color: var(--ink-light);
+}
+
+.select-retro {
+  width: 100%;
+  padding: 10px 14px;
+  background-color: var(--football-surface);
+  color: var(--football-ink);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  border: 1px solid var(--football-rule-strong);
+  border-radius: var(--football-radius);
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%2327272a' d='M6 8L1 3h10z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 14px center;
+  padding-right: 36px;
+  transition: box-shadow 80ms ease;
+}
+
+.select-retro:focus {
+  border-color: var(--football-accent);
+  box-shadow: inset 0 0 0 1px var(--football-accent);
+}
+
+/* ============================================================
+   RETRO DIVIDER
+   ============================================================ */
+
+.divider-retro {
+  border: none;
+  border-top: 1px solid var(--football-rule);
+  margin: 0;
+}
+
+/* ============================================================
+   BADGE / STAMP STYLES
+   ============================================================ */
+
+.badge-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  font-family: var(--font-stamp);
+  font-size: 0.68rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: none;
+  border-radius: var(--football-radius);
+}
+
+

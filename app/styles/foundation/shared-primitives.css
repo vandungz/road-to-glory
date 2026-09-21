@@ -1,0 +1,302 @@
+
+/* Shared redesign primitives. Domain components can adopt these one surface at a time. */
+.football-surface {
+  border-radius: var(--football-radius);
+}
+
+.football-surface--paper { background: var(--football-paper); }
+.football-surface--surface { background: var(--football-surface); }
+.football-surface--inverse { background: var(--football-inverse); color: var(--football-paper); }
+.football-surface--none { background: transparent; }
+.football-surface--padded { padding: 24px; }
+.football-surface--compact { padding: 16px; }
+
+.football-divider {
+  width: 100%;
+  height: 1px;
+  border: 0;
+  background: var(--football-rule);
+}
+
+.football-button {
+  display: inline-flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 0;
+  border-radius: var(--football-radius);
+  padding: 0 24px;
+  cursor: pointer;
+  font-family: var(--font-headline);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  line-height: 1;
+  text-transform: uppercase;
+  transition: background-color 120ms ease, color 120ms ease, opacity 120ms ease;
+}
+
+.football-button--primary { background: var(--football-accent); color: var(--football-surface); }
+.football-button--primary:hover:not(:disabled) { background: var(--football-accent-ink); }
+.football-button--outline { background: transparent; box-shadow: inset 0 0 0 1px var(--football-rule-strong); color: var(--football-ink); }
+.football-button--outline:hover:not(:disabled) { background: var(--football-sunken); }
+.football-button--quiet { background: transparent; color: var(--football-ink-2); padding-inline: 8px; }
+.football-button--quiet:hover:not(:disabled) { color: var(--football-ink); }
+.football-button:disabled { background: var(--football-sunken); color: var(--football-disabled); cursor: not-allowed; }
+.football-button--full { width: 100%; }
+.football-button--sm { min-height: 44px; font-size: 13px; }
+.football-button--lg { min-height: 52px; font-size: 15px; }
+
+.football-icon-button {
+  display: inline-flex;
+  width: 44px;
+  height: 44px;
+  align-items: center;
+  justify-content: center;
+  border: 0;
+  border-radius: var(--football-radius);
+  background: transparent;
+  color: var(--football-ink-2);
+  cursor: pointer;
+}
+.football-icon-button:hover:not(:disabled) { background: var(--football-sunken); color: var(--football-ink); }
+.football-icon-button:disabled { color: var(--football-disabled); cursor: not-allowed; }
+
+.football-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 0 8px;
+  border-radius: var(--football-radius);
+  font-family: var(--font-stamp);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+.football-badge--neutral { color: var(--football-ink-2); background: var(--football-sunken); }
+.football-badge--positive { color: var(--football-positive); background: transparent; }
+.football-badge--warning { color: var(--football-warning); background: transparent; }
+.football-badge--negative { color: var(--football-negative); background: transparent; }
+.football-badge--accent { color: var(--football-accent-ink); background: transparent; }
+
+.football-data-row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 36px;
+  border-bottom: 1px solid var(--football-rule);
+}
+.football-data-row:last-child { border-bottom: 0; }
+.football-data-row__label { color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-data-row__value { color: var(--football-ink); font-family: var(--font-headline); font-size: 15px; font-variant-numeric: tabular-nums; }
+
+.football-section-header { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.football-section-header__label { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.football-section-header__title { margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 20px; font-weight: 600; line-height: 1.15; }
+
+.football-form-stack { display: flex; flex-direction: column; gap: 24px; }
+.football-field { display: flex; flex-direction: column; gap: 8px; min-width: 0; border: 0; margin: 0; padding: 0; }
+.football-field__label { color: var(--football-ink); font-family: var(--font-headline); font-size: 13px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
+.football-formation-list { display: flex; flex-direction: column; gap: 8px; }
+.football-formation-option {
+  display: flex;
+  min-height: 56px;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--football-rule);
+  border-radius: var(--football-radius);
+  padding: 8px 12px;
+  cursor: pointer;
+  transition: background-color 120ms ease, border-color 120ms ease;
+}
+.football-formation-option:hover { background: var(--football-sunken); }
+.football-formation-option.is-selected { border-color: var(--football-accent); background: rgba(232, 80, 47, 0.06); }
+.football-formation-option input { accent-color: var(--football-accent); }
+.football-formation-option span { display: flex; flex-direction: column; gap: 2px; }
+.football-formation-option strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; }
+.football-formation-option small { color: var(--football-ink-2); font-family: var(--font-body); font-size: 12px; }
+.football-form-error { margin: 0; color: var(--football-negative); font-family: var(--font-body); font-size: 14px; line-height: 1.45; }
+.football-season-stats { display: flex; flex-direction: column; gap: 24px; }
+.football-season-stats__heading { display: flex; flex-direction: column; gap: 3px; }
+.football-season-stats__heading > span { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase; }
+.football-season-stats__heading > strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 24px; font-weight: 600; line-height: 1.1; }
+.football-season-stats__heading > small { color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; }
+.football-modal-section-label { margin: 0 0 10px; color: var(--football-ink-2); font-family: var(--font-headline); font-size: 12px; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-data-list { border-top: 1px solid var(--football-rule); }
+.football-competition-list { display: flex; flex-direction: column; gap: 0; border-top: 1px solid var(--football-rule); }
+.football-competition-row { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; border-bottom: 1px solid var(--football-rule); padding: 12px 0; }
+.football-competition-row strong { display: block; color: var(--football-ink); font-family: var(--font-headline); font-size: 15px; font-weight: 500; }
+.football-competition-row span { display: block; margin-top: 2px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.06em; text-transform: uppercase; }
+.football-competition-row small { flex: 0 0 auto; max-width: 52%; color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 10px; line-height: 1.5; text-align: right; }
+.football-awards-section { display: flex; flex-direction: column; align-items: flex-start; gap: 8px; }
+.football-honour-note { width: 100%; border-radius: var(--football-radius); padding: 12px; background: var(--football-inverse); color: var(--football-honour-lit); font-family: var(--font-stamp); font-size: 10px; line-height: 1.5; letter-spacing: 0.06em; text-transform: uppercase; }
+
+.football-app-shell { min-height: 100vh; display: flex; flex-direction: column; background: var(--football-paper); }
+.football-app-shell__header {
+  display: flex;
+  min-height: 64px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  border-bottom: 1px solid var(--football-rule);
+  padding: 0 28px;
+  background: var(--football-surface);
+}
+.football-app-shell__identity,
+.football-app-shell__context { display: flex; min-width: 0; align-items: center; gap: 20px; }
+.football-app-shell__wordmark { display: flex; flex-direction: column; gap: 2px; color: var(--football-ink); text-decoration: none; }
+.football-app-shell__wordmark span { font-family: var(--font-headline); font-size: 17px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; }
+.football-app-shell__wordmark small,
+.football-app-shell__email { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-app-shell__back { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; color: var(--football-ink-2); font-family: var(--font-headline); font-size: 13px; letter-spacing: 0.06em; text-decoration: none; text-transform: uppercase; }
+.football-app-shell__back:hover { color: var(--football-accent-ink); }
+.football-app-shell__main { flex: 1; width: min(100% - 40px, 1100px); margin: 0 auto; padding: 40px 0 56px; }
+.football-app-shell__footer { min-height: 56px; display: grid; place-items: center; border-top: 1px solid var(--football-rule); padding: 12px 20px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.12em; text-align: center; text-transform: uppercase; }
+.football-app-shell__season { color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 11px; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-lobby__intro { display: flex; align-items: flex-end; justify-content: space-between; gap: 24px; margin-bottom: 32px; }
+.football-lobby__title { margin: 6px 0 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 34px; font-weight: 600; line-height: 1.05; }
+.football-lobby__description { margin: 8px 0 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 15px; }
+.football-squad-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); border-top: 1px solid var(--football-rule); border-left: 1px solid var(--football-rule); }
+.football-squad-card { display: block; width: 100%; border: 0; border-right: 1px solid var(--football-rule); border-bottom: 1px solid var(--football-rule); padding: 0; background: var(--football-surface); color: var(--football-ink); cursor: pointer; text-align: left; transition: background-color 120ms ease; }
+.football-squad-card:hover { background: #FFFCF5; }
+.football-squad-card__main { padding: 20px; }
+.football-squad-card__heading { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; min-height: 86px; }
+.football-squad-card h3 { margin: 0 0 8px; overflow: hidden; color: var(--football-ink); font-family: var(--font-headline); font-size: 20px; font-weight: 600; line-height: 1.1; text-overflow: ellipsis; white-space: nowrap; }
+.football-squad-card__ovr { display: flex; flex: 0 0 auto; flex-direction: column; align-items: flex-end; gap: 2px; }
+.football-squad-card__ovr strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 40px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 0.9; }
+.football-squad-card__ovr span { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.1em; }
+.football-squad-card__meta { display: flex; align-items: center; gap: 12px; border-top: 1px solid var(--football-rule); padding-top: 12px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.football-squad-card__meta span:last-of-type { margin-left: auto; }
+.football-empty-state { padding: 80px 20px; text-align: center; }
+.football-empty-state h2 { margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 24px; font-weight: 600; }
+.football-empty-state p { margin: 8px auto 0; max-width: 360px; color: var(--football-ink-2); font-family: var(--font-body); font-size: 15px; }
+.football-squad-dashboard { display: grid; grid-template-columns: minmax(300px, 420px) minmax(0, 1fr); gap: 40px; align-items: start; }
+.football-squad-dashboard__pitch { display: flex; flex-direction: column; gap: 12px; }
+.football-squad-dashboard__sheet { display: flex; min-width: 0; flex-direction: column; gap: 24px; }
+.football-squad-summary { display: flex; align-items: center; justify-content: space-between; gap: 20px; border-bottom: 1px solid var(--football-rule); padding-bottom: 24px; }
+.football-squad-summary__score { display: flex; align-items: baseline; gap: 10px; margin-top: 4px; }
+.football-squad-summary__score strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 46px; font-weight: 500; font-variant-numeric: tabular-nums; line-height: 1; }
+.football-squad-summary__score span { color: var(--football-ink-2); font-family: var(--font-headline); font-size: 14px; letter-spacing: 0.08em; text-transform: uppercase; }
+.football-squad-summary p { margin: 8px 0 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 14px; }
+.football-squad-sheet-heading { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; }
+.football-squad-sheet-heading h1 { margin: 6px 0 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 30px; font-weight: 600; line-height: 1; }
+.football-squad-table { border-top: 1px solid var(--football-rule); }
+.football-squad-table__row { display: grid; width: 100%; grid-template-columns: 68px minmax(0, 1fr) 56px; align-items: center; gap: 12px; border: 0; border-bottom: 1px solid var(--football-rule); padding: 14px 12px; background: transparent; color: var(--football-ink); text-align: left; }
+button.football-squad-table__row { cursor: pointer; font-family: var(--font-body); }
+button.football-squad-table__row:hover:not(:disabled) { background: var(--football-sunken); }
+.football-squad-table__row--head { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-squad-table__position { color: var(--football-accent-ink); font-family: var(--font-headline); font-size: 14px; font-weight: 600; text-transform: uppercase; }
+.football-squad-table__player { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.football-squad-table__ovr { color: var(--football-ink); font-family: var(--font-headline); font-size: 18px; font-variant-numeric: tabular-nums; text-align: right; }
+.football-squad-table__row.is-empty .football-squad-table__player,
+.football-squad-table__row.is-empty .football-squad-table__ovr { color: var(--football-ink-3); }
+.football-squad-table__row:disabled { cursor: default; }
+.football-pitch { position: relative; width: 100%; max-width: 420px; aspect-ratio: 2 / 3; overflow: hidden; border-radius: var(--football-radius); }
+.football-pitch__markings { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.football-pitch__slot { position: absolute; z-index: 2; transform: translate(-50%, -50%); }
+.football-pitch-token { display: grid; width: 54px; height: 34px; place-items: center; border: 1px solid rgba(255,255,255,0.65); border-radius: 2px; background: rgba(28,27,24,0.35); color: var(--football-surface); cursor: pointer; font-family: var(--font-headline); font-size: 12px; font-weight: 600; letter-spacing: 0.08em; }
+.football-pitch-token--progress { border-color: var(--football-honour-lit); background: rgba(28,27,24,0.55); color: var(--football-honour-lit); }
+.football-pitch-token:hover { background: rgba(28,27,24,0.7); }
+.football-pitch-player { display: flex; width: 52px; min-height: 60px; flex-direction: column; align-items: center; border: 0; border-radius: 2px; padding: 4px; background: var(--football-surface); color: var(--football-ink); cursor: pointer; text-align: center; }
+.football-pitch-player:hover { background: #FFFCF5; }
+.football-pitch-player__ovr { font-family: var(--font-headline); font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
+.football-pitch-player__flag { font-size: 12px; line-height: 1.2; }
+.football-pitch-player__name { max-width: 48px; overflow: hidden; font-family: var(--font-headline); font-size: 9px; letter-spacing: 0.04em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.football-setup { display: grid; grid-template-columns: minmax(0, 1fr) 320px; gap: 40px; width: min(100% - 40px, 1100px); margin: 0 auto; padding: 40px 0 56px; }
+.football-setup__stage { display: flex; flex-direction: column; gap: 24px; }
+.football-setup__progress { display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--football-rule); padding-bottom: 16px; }
+.football-setup__chapters { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; color: var(--football-ink-3); font-family: var(--font-headline); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; }
+.football-setup__chapters .is-active { color: var(--football-accent-ink); }
+.football-setup__ticks { display: grid; grid-template-columns: repeat(13, 1fr); gap: 4px; }
+.football-setup__ticks span { height: 4px; border-radius: 1px; background: var(--football-sunken); }
+.football-setup__ticks span.is-complete { background: var(--football-positive); }
+.football-setup__ticks span.is-active { background: var(--football-accent); }
+.football-setup__action { display: flex; min-height: 620px; flex-direction: column; align-items: center; justify-content: center; gap: 24px; padding: 28px; background: var(--football-surface); }
+.football-setup__action h1 { margin: 4px 0 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 30px; font-weight: 600; line-height: 1.1; text-align: center; }
+.football-result-banner { max-width: 100%; border-radius: var(--football-radius); padding: 12px 20px; background: var(--football-sunken); color: var(--football-ink); font-family: var(--font-headline); font-size: 20px; font-weight: 600; text-align: center; text-transform: uppercase; }
+.football-setup-preview { display: flex; flex-direction: column; gap: 16px; align-self: start; border: 1px solid var(--football-rule); padding: 20px; background: var(--football-surface); }
+.football-setup-preview__top { display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--football-rule); padding-bottom: 10px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-setup-preview__top strong { color: var(--football-accent-ink); font-family: var(--font-headline); font-size: 14px; }
+.football-setup-preview__portrait { position: relative; display: flex; min-height: 240px; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; background: var(--football-sunken); }
+.football-setup-preview__portrait > strong { align-self: flex-start; padding: 12px; color: var(--football-ink); font-family: var(--font-headline); font-size: 34px; font-weight: 500; }
+.football-setup-preview__portrait > div { width: 72px; height: 110px; border-radius: 50% 50% 0 0; background: var(--football-rule-strong); }
+.football-setup-preview__flag { position: absolute; top: 12px; right: 12px; font-size: 22px; }
+.football-setup-preview__rows { display: flex; flex-direction: column; gap: 0; }
+.football-setup-preview__rows > div:not(.football-setup-preview__stats) { display: flex; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--football-rule); padding: 9px 0; }
+.football-setup-preview__rows span { color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
+.football-setup-preview__rows strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 13px; font-weight: 500; text-align: right; }
+.football-setup-preview__stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 4px; border-bottom: 1px solid var(--football-rule); padding: 10px 0; text-align: center; }
+.football-setup-preview__stat { display: flex; flex-direction: column; gap: 2px; }
+.football-setup-preview__stat span { font-size: 9px; }
+.football-setup-preview__stat strong { font-size: 16px; text-align: center; }
+.football-auth-shell { min-height: 100dvh; display: grid; place-items: center; padding: 0; background: var(--football-paper); }
+.football-auth-stage { display: flex; width: 100%; min-height: 100vh; height: 100dvh; overflow: hidden; background: var(--football-paper); }
+.football-auth-hero { position: relative; flex: 0 0 52%; width: 52%; overflow: hidden; background: var(--football-inverse); color: var(--football-paper); }
+.football-auth-hero__image, .football-auth-hero__scrim, .football-auth-hero__texture { position: absolute; inset: 0; pointer-events: none; }
+.football-auth-hero__image { background: url('/login-hero.svg') center / cover no-repeat; animation: football-auth-drift 26s cubic-bezier(.37, 0, .63, 1) infinite alternate; }
+.football-auth-hero__scrim { background: linear-gradient(103deg, rgba(28,27,24,.93) 0%, rgba(28,27,24,.72) 44%, rgba(28,27,24,.34) 100%); animation: football-auth-veil 900ms cubic-bezier(.16,1,.3,1) both; }
+.football-auth-hero__texture { opacity: .22; background-image: radial-gradient(rgba(244,241,234,.055) 1px, transparent 1px); background-size: 4px 4px; }
+.football-auth-hero::after { position: absolute; top: 0; right: 0; bottom: 0; width: 1px; background: rgba(244,241,234,.16); content: ""; }
+.football-auth-hero__content { position: relative; display: flex; height: 100%; flex-direction: column; justify-content: space-between; box-sizing: border-box; padding: 44px 56px 0; }
+.football-auth-hero__wordmark { display: flex; align-items: baseline; gap: 14px; animation: football-auth-rise 620ms cubic-bezier(.16,1,.3,1) 60ms both; }
+.football-auth-hero__wordmark span { color: var(--football-paper); font-family: var(--font-headline); font-size: 18px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+.football-auth-hero__wordmark i { width: 30px; height: 1px; background: rgba(244,241,234,.4); }
+.football-auth-hero__wordmark small { color: rgba(244,241,234,.55); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .2em; text-transform: uppercase; }
+.football-auth-hero__message { display: flex; max-width: 520px; flex-direction: column; gap: 26px; padding-bottom: 40px; }
+.football-auth-hero__eyebrow { color: var(--football-accent); font-family: var(--font-stamp); font-size: 10.5px; letter-spacing: .2em; text-transform: uppercase; }
+.football-auth-hero h1 { margin: 0; color: var(--football-paper); font-family: var(--font-headline); font-size: 66px; font-weight: 700; letter-spacing: -.005em; line-height: .98; }
+.football-auth-hero__message p { max-width: 430px; margin: 0; color: rgba(244,241,234,.72); font-family: var(--font-body); font-size: 17px; font-style: italic; line-height: 1.6; }
+.football-auth-hero__stats { display: flex; margin-top: 8px; animation: football-auth-rise 640ms cubic-bezier(.16,1,.3,1) 430ms both; }
+.football-auth-hero__stat { display: flex; min-height: 50px; flex-direction: column; gap: 5px; padding: 0 34px; border-right: 1px solid rgba(244,241,234,.16); }
+.football-auth-hero__stat:first-child { padding-left: 0; }
+.football-auth-hero__stat:last-child { border-right: 0; padding-right: 0; }
+.football-auth-hero__stat strong { color: var(--football-paper); font-family: var(--font-headline); font-size: 32px; font-variant-numeric: tabular-nums; line-height: 1; }
+.football-auth-hero__stat span { color: rgba(244,241,234,.5); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
+.football-auth-hero__stat--honour strong { color: var(--football-honour-lit); }
+.football-auth-hero__ticker { height: 52px; margin: 0 -56px; overflow: hidden; border-top: 1px solid rgba(244,241,234,.16); }
+.football-auth-hero__ticker-track { display: flex; width: max-content; white-space: nowrap; animation: football-auth-ticker 34s linear infinite; }
+.football-auth-hero__ticker-track span { padding: 17px 0 0 56px; color: rgba(244,241,234,.42); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .2em; text-transform: uppercase; }
+.football-auth-form-column { display: flex; min-width: 0; flex: 1 1 0%; flex-direction: column; background: var(--football-paper); }
+.football-auth-form-column__body { display: flex; min-height: 0; flex: 1; align-items: center; padding: 0 88px; }
+.football-auth-form-column__body > * { width: 100%; max-width: 396px; margin: 0 auto; }
+.football-auth-form-column__footer { display: flex; align-items: center; justify-content: space-between; gap: 20px; padding: 0 88px 30px; }
+.football-auth-form-column__footer span { color: var(--football-disabled); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; }
+.football-auth-form-column__footer button { min-height: 44px; border: 0; padding: 0 4px; background: transparent; color: var(--football-ink-3); cursor: pointer; font-family: var(--font-headline); font-size: 12px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+.football-auth-form-column__footer button:hover { color: var(--football-accent-ink); }
+.football-auth-panel { display: flex; flex-direction: column; gap: 20px; }
+.football-auth-panel__intro { display: flex; flex-direction: column; gap: 7px; padding-bottom: 10px; animation: football-auth-rise 560ms cubic-bezier(.16,1,.3,1) 300ms both; }
+.football-auth-panel__intro h2 { margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 34px; font-weight: 600; line-height: 1.08; }
+.football-auth-panel__intro p, .football-auth-panel p { margin: 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 14.5px; line-height: 1.55; }
+.football-auth-panel__eyebrow { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.football-auth-confirm { gap: 16px; }
+.football-auth-confirm__meta { color: var(--football-disabled) !important; font-family: var(--font-stamp) !important; font-size: 11px !important; letter-spacing: .08em; text-transform: uppercase; }
+.football-auth-tabs { position: relative; display: flex; gap: 26px; margin-bottom: 8px; border-bottom: 1px solid var(--football-rule); }
+.football-auth-tabs button { position: relative; min-height: 44px; border: 0; border-bottom: 2px solid transparent; padding: 0 0 13px; background: transparent; color: var(--football-ink-3); cursor: pointer; font-family: var(--font-headline); font-size: 13.5px; font-weight: 600; letter-spacing: .09em; text-transform: uppercase; }
+.football-auth-tabs button.is-active { color: var(--football-ink); }
+.football-auth-tabs button::after { position: absolute; right: 0; bottom: -1px; left: 0; height: 2px; background: var(--football-accent); content: ""; transform: scaleX(0); transform-origin: left center; transition: transform 240ms cubic-bezier(.4,0,.2,1); }
+.football-auth-tabs button.is-active::after { transform: scaleX(1); }
+.football-auth-form { display: flex; flex-direction: column; gap: 20px; }
+.football-auth-field { display: flex; flex-direction: column; gap: 7px; animation: football-auth-rise 560ms cubic-bezier(.16,1,.3,1) 420ms both; }
+.football-auth-field:nth-child(2) { animation-delay: 480ms; }
+.football-auth-field > label, .football-auth-field__label-row label { color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; }
+.football-auth-field__label-row { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.football-auth-field__label-row a { color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; }
+.football-auth-field__label-row a:hover { color: var(--football-accent-ink); }
+.football-input { width: 100%; min-height: 50px; border: 0; border-radius: var(--football-radius); padding: 0 15px; outline: none; background: var(--football-surface); box-shadow: inset 0 0 0 1px var(--football-rule-strong); color: var(--football-ink); font-family: var(--font-body); font-size: 15px; transition: box-shadow 140ms ease-out; }
+.football-input::placeholder { color: var(--football-disabled); }
+.football-input:focus { box-shadow: inset 0 0 0 1px var(--football-accent), 0 0 0 2px rgba(232,80,47,.22); }
+.football-input:disabled { background: var(--football-sunken); color: var(--football-disabled); }
+.football-input[aria-invalid="true"] { box-shadow: inset 0 0 0 1px var(--football-negative); }
+.football-password-field { position: relative; }
+.football-password-field .football-input { padding-right: 52px; }
+.football-password-field__toggle { position: absolute; top: 3px; right: 3px; color: var(--football-ink-3); }
+.football-auth-message { font-size: 13px !important; }
+.football-auth-message--warning { color: var(--football-warning) !important; }
+.football-auth-message--error { color: var(--football-negative) !important; animation: football-auth-shake 320ms cubic-bezier(.36,.07,.19,.97) both; }
+.football-auth-submit { min-height: 56px !important; margin-top: 6px; animation: football-auth-rise 560ms cubic-bezier(.16,1,.3,1) 540ms both; }
+.football-auth-submit:active { transform: scale(.985); }
+
+

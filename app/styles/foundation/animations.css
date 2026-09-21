@@ -1,0 +1,24 @@
+.football-ballon-dor-transition__note { margin: 10px 0 0 30px; color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; line-height: 1.5; }
+@keyframes football-ballon-dor-spin { to { transform: rotate(360deg); } }
+
+@media (max-width: 800px) {
+  .football-ballon-dor-page-shell .football-app-shell__main { width: calc(100% - 32px); padding: 24px 0 28px; }
+  .football-ballon-dor-page__header-meta > span:not(:last-child) { display: none; }
+  .football-ballon-dor-page__header-meta { gap: 0; }
+  .football-ballon-dor-page { min-height: 0; }
+  .football-ballon-dor-page__result { margin-top: 28px; }
+}
+
+@media (max-width: 560px) {
+  .football-ballon-dor-page__intro h1 { font-size: 38px; }
+  .football-ballon-dor-page__result { padding: 0 0 20px; }
+  .football-ballon-dor-page__banner { font-size: 27px; }
+  .football-ballon-dor-page__result .football-button { width: 100%; min-width: 0; }
+  .football-ballon-dor-transition-modal .football-modal-header { padding: 18px 20px 16px; }
+  .football-ballon-dor-transition-modal .football-modal-body { padding: 0 20px 20px; }
+  .football-ballon-dor-transition-modal .football-modal-header__title { font-size: 21px; }
+  .football-ballon-dor-transition__status strong { font-size: 18px; }
+}
+
+
+
