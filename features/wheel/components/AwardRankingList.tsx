@@ -1,6 +1,7 @@
 "use client";
 
-import { AWARD_LABELS, isDeprecatedAwardKey, type AwardRankingSnapshotInput, type AwardRankingEntry } from "@/types/awards";
+import { AWARD_LABELS, isDeprecatedAwardKey, TOP_TEN_LIMIT, type AwardRankingSnapshotInput, type AwardRankingEntry } from "@/types/awards";
+import { getPositionNumber } from "@/lib/position-number";
 
 interface Props {
   snapshots: AwardRankingSnapshotInput[];
@@ -46,12 +47,16 @@ export function AwardRankingList({ snapshots, playerName, compact = false, showH
             <span>{snapshot.status === "resolved" ? "Đã chốt" : "Đang đua"}</span>
           </div>}
           <ol>
-            {snapshot.entries.slice(0, compact ? 3 : snapshot.awardKey === "league_best_xi" ? 11 : 10).map((entry, entryIndex) => {
+            {snapshot.entries.slice(0, compact ? 3 : snapshot.awardKey === "league_best_xi" ? 11 : TOP_TEN_LIMIT).map((entry, entryIndex) => {
               const current = entry.isCareerPlayer || (playerName && entry.name === playerName);
               const metrics = metricText(snapshot.awardKey, entry);
+              const visibleName = current ? entry.name : `Số ${getPositionNumber(entry.position)}`;
+              const metadata = current
+                ? `${entry.clubName} · ${entry.position}`
+                : `${entry.clubName}`;
               return <li key={`${snapshot.snapshotKey}-${entry.candidateKey}-${entry.slotKey ?? ""}-${entry.rank}-${entryIndex}`} className={current ? "is-player" : undefined}>
                 <strong className={entry.rank === 1 ? "is-leader" : undefined}>{entry.rank}</strong>
-                <span><b>{entry.name}</b><small>{entry.clubName} · {entry.position}{metrics ? ` · ${metrics}` : ""}</small></span>
+                <span><b>{visibleName}</b><small>{metadata}{metrics ? ` · ${metrics}` : ""}</small></span>
               </li>;
             })}
           </ol>

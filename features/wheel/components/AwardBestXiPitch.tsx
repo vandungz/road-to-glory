@@ -3,6 +3,7 @@
 import type { Formation } from "@/types/game";
 import { FORMATION_SLOTS } from "@/types/squad";
 import type { AwardRankingEntry, AwardRankingSnapshotInput } from "@/types/awards";
+import { getPositionNumber } from "@/lib/position-number";
 
 interface Props {
   snapshot: AwardRankingSnapshotInput;
@@ -48,8 +49,8 @@ export function AwardBestXiPitch({ snapshot }: Props) {
             style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
           >
             <span>{slot.position}</span>
-            <strong>{entry ? shortName(entry.name) : "Chưa có"}</strong>
-            <small>{entry ? `Rating ${rating}` : "Đang cập nhật"}</small>
+            <strong>{entry ? (entry.isCareerPlayer ? shortName(entry.name) : `Số ${getPositionNumber(entry.position)}`) : "Chưa có"}</strong>
+            <small>{entry ? `${entry.clubName} · Rating ${rating}` : "Đang cập nhật"}</small>
           </div>
         );
       })}

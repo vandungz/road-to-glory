@@ -6,6 +6,8 @@ import { AppShell } from "@/components/shared/AppShell";
 import { ResultBanner } from "@/components/ui/ResultBanner";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
+import { TOP_TEN_LIMIT } from "@/types/awards";
+import { getPositionNumber } from "@/lib/position-number";
 
 interface Props {
   params: Promise<{ gameId: string; slotIndex: string }>;
@@ -20,7 +22,7 @@ function isRecord(value: unknown): value is Record<string, unknown> {
 function readResult(runtimeState: unknown): BallonResult | null {
   if (!isRecord(runtimeState) || !isRecord(runtimeState.lastWheel)) return null;
   const { stepKey, result } = runtimeState.lastWheel;
-  if (stepKey === "ballon_dor_ranking" && typeof result === "number" && result >= 1 && result <= 10) {
+  if (stepKey === "ballon_dor_ranking" && typeof result === "number" && result >= 1 && result <= TOP_TEN_LIMIT) {
     return { phase: "ranking", rank: result };
   }
   return null;
@@ -29,11 +31,11 @@ function readResult(runtimeState: unknown): BallonResult | null {
 function readSnapshotResult(value: unknown): BallonResult | null {
   if (!isRecord(value) || !isRecord(value.resolution)) return null;
   const rank = value.resolution.selectedRank;
-  return typeof rank === "number" && rank >= 1 && rank <= 10 ? { phase: "ranking", rank } : null;
+  return typeof rank === "number" && rank >= 1 && rank <= TOP_TEN_LIMIT ? { phase: "ranking", rank } : null;
 }
 
 function snapshotEntries(value: unknown): Array<Record<string, unknown>> {
-  return Array.isArray(value) ? value.slice(0, 10).filter(isRecord) : [];
+  return Array.isArray(value) ? value.slice(0, TOP_TEN_LIMIT).filter(isRecord) : [];
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -112,7 +114,7 @@ export default async function BallonDorResultPage({ params }: Props) {
                 {snapshotEntries(snapshot.entries).map((entry) => (
                   <li key={`${String(entry.candidateKey)}-${String(entry.rank)}`} className={entry.isCareerPlayer === true ? "is-player" : undefined}>
                     <strong>{String(entry.rank ?? "—")}</strong>
-                    <span><b>{String(entry.name ?? "Ứng viên")}</b><small>{String(entry.clubName ?? "—")} · {String(entry.position ?? "—")}</small></span>
+                    <span><b>{entry.isCareerPlayer === true ? String(entry.name ?? "Player") : `Số ${getPositionNumber(String(entry.position ?? ""))}`}</b><small>{String(entry.clubName ?? "—")}{entry.isCareerPlayer === true ? ` · ${String(entry.position ?? "—")}` : ""}</small></span>
                   </li>
                 ))}
               </ol>
