@@ -15,9 +15,9 @@
       "Framer Motion",
       "Zustand"
     ],
-    "description": "Football Life / Road to Glory — luck-based football career simulation driven by dynamic weighted wheels (no match engine).",
-    "analyzedAt": "2026-08-07T08:44:10.795Z",
-    "gitCommitHash": "bc8a63b81f1cb6814f36ff8a6a9adbe870f1b2e5"
+    "description": "Football Life / Road to Glory — luck-based football career simulation with Classic persistence and a public, session-only Quick Mode.",
+    "analyzedAt": "2026-09-21T17:52:08.145Z",
+    "gitCommitHash": "cf80b82a9bb69533c8f65ee246eba586fb843dbd"
   },
   "nodes": [
     {
@@ -70,12 +70,11 @@
       "type": "file",
       "name": "weight-calculator.ts",
       "filePath": "lib/wheel-engine/weight-calculator.ts",
-      "summary": "Core weight pools and OVR formulas for leagues, clubs, debut stats, nationality tiers, physique modifiers, and position-based ratings.",
+      "summary": "Existing weighted age and career-length pools re-exported and reused by Quick Mode.",
       "tags": [
         "wheel-engine",
         "weights",
-        "ovr",
-        "probability"
+        "reused"
       ],
       "complexity": "complex",
       "languageNotes": "Pure TypeScript with no Math.random; delegates randomness to spin-resolver."
@@ -400,14 +399,13 @@
       "type": "file",
       "name": "spin-resolver.ts",
       "filePath": "lib/wheel-engine/spin-resolver.ts",
-      "summary": "Sole Math.random entry point providing resolveRandom helpers and weighted outcome selection for the wheel engine.",
+      "summary": "Single random outcome boundary reused by Quick Mode; weight logic remains deterministic.",
       "tags": [
-        "utility",
         "wheel-engine",
-        "probability",
-        "singleton"
+        "randomness",
+        "reused"
       ],
-      "complexity": "simple",
+      "complexity": "complex",
       "languageNotes": "Project invariant: Math.random must only appear in this file."
     },
     {
@@ -633,12 +631,11 @@
       "type": "file",
       "name": "page.tsx",
       "filePath": "app/(game)/page.tsx",
-      "summary": "Lobby server page that lists the authenticated user's game sessions and provides create-game and logout UI.",
+      "summary": "Auth-aware public lobby entry: authenticated users retain Classic sessions while Guests can access Quick Mode without a null-user data lookup.",
       "tags": [
-        "entry-point",
+        "app-router",
         "lobby",
-        "server-component",
-        "component"
+        "auth"
       ],
       "complexity": "moderate"
     },
@@ -658,24 +655,6 @@
         "lobby"
       ],
       "complexity": "simple"
-    },
-    {
-      "id": "function:app/(game)/page.tsx:LobbyPage",
-      "type": "function",
-      "name": "LobbyPage",
-      "filePath": "app/(game)/page.tsx",
-      "lineRange": [
-        40,
-        185
-      ],
-      "summary": "Renders the career lobby with user greeting, session list, create-game dialog, and logout controls after auth.",
-      "tags": [
-        "entry-point",
-        "lobby",
-        "server-component",
-        "ui"
-      ],
-      "complexity": "moderate"
     },
     {
       "id": "file:features/game/actions/createGameSession.ts",
@@ -714,14 +693,11 @@
       "type": "file",
       "name": "CreateGameDialog.tsx",
       "filePath": "features/game/components/CreateGameDialog.tsx",
-      "summary": "Client dialog for naming a new career and picking a formation, then submitting via the createGameSession server action.",
+      "summary": "Project file features/game/components/CreateGameDialog.tsx.",
       "tags": [
-        "component",
-        "dialog",
-        "form",
-        "game-session"
+        "project"
       ],
-      "complexity": "complex"
+      "complexity": "moderate"
     },
     {
       "id": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
@@ -827,14 +803,12 @@
       "type": "file",
       "name": "server.ts",
       "filePath": "lib/supabase/server.ts",
-      "summary": "Creates a cookie-backed Supabase server client for Server Components, Server Actions, and route handlers.",
+      "summary": "Server Supabase client used only to determine optional authenticated context for public Quick Mode rendering.",
       "tags": [
         "auth",
-        "supabase",
-        "utility",
         "server"
       ],
-      "complexity": "simple"
+      "complexity": "moderate"
     },
     {
       "id": "function:lib/supabase/server.ts:createClient",
@@ -1140,12 +1114,10 @@
       "type": "file",
       "name": "squad.ts",
       "filePath": "types/squad.ts",
-      "summary": "Shared squad domain types and constants: SlotConfig, FORMATION_SLOTS layouts, ClientSafePlayer, FLAG_MAP/getFlagEmoji, and RARITY_ACCENT colors.",
+      "summary": "Existing flag helper reused for Quick Mode nationality display.",
       "tags": [
-        "type-definition",
-        "squad",
-        "constants",
-        "utility"
+        "domain-types",
+        "reused"
       ],
       "complexity": "moderate"
     },
@@ -1234,14 +1206,13 @@
       "type": "file",
       "name": "SpinnerWheel.tsx",
       "filePath": "features/wheel/components/SpinnerWheel.tsx",
-      "summary": "Framer Motion weighted spinner wheel that animates rotation to a target index and reports the landed label on complete.",
+      "summary": "Authoritative Framer Motion wheel animation reused by Quick Mode with weighted target items.",
       "tags": [
-        "component",
+        "feature-ui",
         "wheel",
-        "animation",
-        "ui"
+        "reused"
       ],
-      "complexity": "complex",
+      "complexity": "moderate",
       "languageNotes": "Uses Framer Motion useMotionValue/animate for continuous rotation tracking and SVG arc segments."
     },
     {
@@ -1300,44 +1271,26 @@
       "type": "file",
       "name": "LoginForm.tsx",
       "filePath": "app/(auth)/login/LoginForm.tsx",
-      "summary": "Client login/register form with email confirmation flow, password visibility, and Supabase auth calls.",
+      "summary": "Auth form that returns password-login users to the validated internal next path, including the Classic handoff from Guest mode.",
       "tags": [
-        "component",
+        "feature-ui",
         "auth",
-        "form",
-        "client"
+        "security"
       ],
-      "complexity": "complex"
-    },
-    {
-      "id": "function:app/(auth)/login/LoginForm.tsx:LoginForm",
-      "type": "function",
-      "name": "LoginForm",
-      "filePath": "app/(auth)/login/LoginForm.tsx",
-      "lineRange": [
-        15,
-        295
-      ],
-      "summary": "React client component handling login and registration modes with cooldown and error states.",
-      "tags": [
-        "component",
-        "auth",
-        "form"
-      ],
-      "complexity": "complex"
+      "complexity": "moderate"
     },
     {
       "id": "file:app/(auth)/login/page.tsx",
       "type": "file",
       "name": "page.tsx",
       "filePath": "app/(auth)/login/page.tsx",
-      "summary": "Login route page that renders LoginForm and forwards searchParams error to the form.",
+      "summary": "Login route that validates an internal-only next path before handing it to the auth form.",
       "tags": [
-        "entry-point",
+        "app-router",
         "auth",
-        "page"
+        "security"
       ],
-      "complexity": "simple"
+      "complexity": "moderate"
     },
     {
       "id": "file:features/auth/components/LogoutButton.tsx",
@@ -1373,13 +1326,11 @@
       "type": "file",
       "name": "client.ts",
       "filePath": "lib/supabase/client.ts",
-      "summary": "Browser Supabase client factory using createBrowserClient for client-side auth.",
+      "summary": "Project file lib/supabase/client.ts.",
       "tags": [
-        "utility",
-        "auth",
-        "supabase"
+        "project"
       ],
-      "complexity": "simple"
+      "complexity": "moderate"
     },
     {
       "id": "function:lib/supabase/client.ts:createClient",
@@ -1802,13 +1753,12 @@
       "type": "file",
       "name": "globals.css",
       "filePath": "app/globals.css",
-      "summary": "Global Tailwind CSS theme tokens, base styles, and design system variables for the app.",
+      "summary": "Global stylesheet entrypoint importing the Quick Mode feature surface after shared lobby primitives.",
       "tags": [
-        "styling",
-        "design-system",
-        "markup"
+        "styles",
+        "quick-mode"
       ],
-      "complexity": "complex"
+      "complexity": "simple"
     },
     {
       "id": "file:app/layout.tsx",
@@ -2212,13 +2162,13 @@
       "type": "file",
       "name": "club-fit.ts",
       "filePath": "lib/club-fit.ts",
-      "summary": "Deterministic player↔club fit: prestige threshold, apps ratio curve, and expected league appearances.",
+      "summary": "Existing prestige-to-OVR club threshold reused for Quick Mode club eligibility gates.",
       "tags": [
-        "utility",
-        "balance",
-        "pure"
+        "shared-lib",
+        "club-gate",
+        "reused"
       ],
-      "complexity": "simple"
+      "complexity": "moderate"
     },
     {
       "id": "function:lib/club-fit.ts:getClubThreshold",
@@ -4054,15 +4004,11 @@
       "filePath": "types/game.ts",
       "language": "typescript",
       "fileCategory": "code",
-      "summary": "Shared game-session and season-record types for the Football Life app, including formation choices, create-game validation, server action result types, competition stats, and position-aware draft step labels.",
+      "summary": "Project file types/game.ts.",
       "tags": [
-        "types",
-        "zod",
-        "game-session",
-        "season-record",
-        "formation"
+        "project"
       ],
-      "complexity": "simple"
+      "complexity": "moderate"
     },
     {
       "id": "function:types/game.ts:getStepLabels",
@@ -4574,14 +4520,12 @@
       "path": "middleware.ts",
       "label": "Supabase Auth Middleware",
       "language": "typescript",
-      "summary": "Next.js middleware that creates a Supabase SSR server client, refreshes authentication with auth.getUser, redirects unauthenticated users to /login, redirects authenticated users away from /login to the lobby, and permits development-only /dev routes while excluding static assets from the matcher.",
+      "summary": "Production route guard that refreshes Supabase auth with getUser, keeps only explicit auth, root, and Quick Mode routes public, and preserves Classic protection.",
       "tags": [
         "middleware",
-        "nextjs",
-        "supabase-auth",
-        "session-refresh",
-        "route-protection",
-        "dev-preview"
+        "auth",
+        "security",
+        "quick-mode"
       ],
       "metadata": {
         "fileCategory": "code",
@@ -4600,16 +4544,11 @@
       "path": "prisma/data/clubs.ts",
       "label": "Club Seed Data",
       "language": "typescript",
-      "summary": "Static CLUBS seed dataset for the 2025/26 football world included by the app. Each club record carries id, name, leagueId, prestige, historical league/domestic/continental title counts, and current continentalType so career setup, transfer filtering, competition qualification, prestige thresholds, and continental cup syncing can use consistent club metadata.",
+      "summary": "Static club source reused as the filtered tier 1/2 Quick Mode club pool.",
       "tags": [
-        "seed-data",
+        "data",
         "clubs",
-        "2025-26",
-        "prestige",
-        "league-relations",
-        "continental-type",
-        "transfer-filtering",
-        "competition-data"
+        "reused"
       ],
       "metadata": {
         "fileCategory": "code",
@@ -4627,16 +4566,11 @@
       "path": "prisma/data/leagues.ts",
       "label": "League Seed Data",
       "language": "typescript",
-      "summary": "Static LEAGUES seed dataset listing supported tier-one and tier-two competitions by id, display name, country, tier, prestige, domesticCupName, and confederation. The data anchors club league relations, domestic cup labeling, confederation lookups, and transfer buying-power tier inputs.",
+      "summary": "Static league source reused as the filtered tier 1/2 Quick Mode league pool.",
       "tags": [
-        "seed-data",
+        "data",
         "leagues",
-        "tier-one",
-        "tier-two",
-        "domestic-cups",
-        "confederations",
-        "prestige",
-        "transfer-economy"
+        "reused"
       ],
       "metadata": {
         "fileCategory": "code",
@@ -4724,6 +4658,829 @@
         "page"
       ],
       "complexity": "simple"
+    },
+    {
+      "id": "file:features/game/components/Homepage.tsx",
+      "type": "file",
+      "name": "Homepage.tsx",
+      "filePath": "features/game/components/Homepage.tsx",
+      "summary": "Mode picker that presents Classic, Quick Mode, and the locked PvP slot, with Guest-safe Classic CTA and Quick Mode entry.",
+      "tags": [
+        "feature-ui",
+        "lobby",
+        "auth",
+        "quick-mode"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:components/shared/AppShell.tsx",
+      "type": "file",
+      "name": "AppShell.tsx",
+      "filePath": "components/shared/AppShell.tsx",
+      "summary": "Shared Football Life page shell reused by Quick Mode for wordmark, back navigation, user context, and footer styling.",
+      "tags": [
+        "shared-ui",
+        "layout"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:components/ui/Button.tsx",
+      "type": "file",
+      "name": "Button.tsx",
+      "filePath": "components/ui/Button.tsx",
+      "summary": "Shared button primitive reused by Quick Mode actions and summary controls.",
+      "tags": [
+        "shared-ui",
+        "primitive"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:components/ui/ProgressIndicator.tsx",
+      "type": "file",
+      "name": "ProgressIndicator.tsx",
+      "filePath": "components/ui/ProgressIndicator.tsx",
+      "summary": "Shared segmented progress primitive reused by Quick Mode wheel phases.",
+      "tags": [
+        "shared-ui",
+        "primitive"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/game/services/game-session.service.ts",
+      "type": "file",
+      "name": "game-session.service.ts",
+      "filePath": "features/game/services/game-session.service.ts",
+      "summary": "Project file features/game/services/game-session.service.ts.",
+      "tags": [
+        "project"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:app/(game)/quick/page.tsx",
+      "type": "file",
+      "name": "page.tsx",
+      "filePath": "app/(game)/quick/page.tsx",
+      "summary": "Next.js public Quick Mode route that safely loads tier 1/2 league and club options and passes authenticated status without persisting a Guest career.",
+      "tags": [
+        "app-router",
+        "quick-mode",
+        "guest"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "type": "file",
+      "name": "QuickModeScreen.tsx",
+      "filePath": "features/quick-mode/components/QuickModeScreen.tsx",
+      "summary": "Client Quick Mode surface reusing AppShell primitives, ProgressIndicator, Button, and the existing Framer Motion SpinnerWheel for setup, career journey, and finale summary.",
+      "tags": [
+        "feature-ui",
+        "quick-mode",
+        "guest",
+        "wheel"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "type": "file",
+      "name": "useQuickMode.ts",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "summary": "Quick Mode orchestration hook that turns wheel outcomes into immutable in-memory career state and mirrors it to sessionStorage for refresh-safe Guest play.",
+      "tags": [
+        "hook",
+        "quick-mode",
+        "session-storage",
+        "wheel"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "type": "file",
+      "name": "quick-mode-engine.ts",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "summary": "Deterministic Quick Mode pools for stats, traits, club gates, career achievements, goals, assists, Ballon d'Or, and other awards; randomness remains delegated to spin-resolver.",
+      "tags": [
+        "wheel-engine",
+        "quick-mode",
+        "probability",
+        "club-gate"
+      ],
+      "complexity": "complex"
+    },
+    {
+      "id": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "type": "file",
+      "name": "quick-mode-storage.ts",
+      "filePath": "features/quick-mode/lib/quick-mode-storage.ts",
+      "summary": "Browser-only Quick Mode persistence adapter using sessionStorage, with safe no-op behavior when storage is unavailable.",
+      "tags": [
+        "quick-mode",
+        "session-storage",
+        "persistence"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/quick-mode/lib/traits.ts",
+      "type": "file",
+      "name": "traits.ts",
+      "filePath": "features/quick-mode/lib/traits.ts",
+      "summary": "Twenty football-inspired Special trait definitions and bounded stat modifiers used by Quick Mode.",
+      "tags": [
+        "quick-mode",
+        "traits",
+        "stats"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "file:features/quick-mode/types.ts",
+      "type": "file",
+      "name": "types.ts",
+      "filePath": "features/quick-mode/types.ts",
+      "summary": "Typed Quick Mode state model covering player setup, club journeys, improvements, and career finale outcomes.",
+      "tags": [
+        "domain-types",
+        "quick-mode"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "file:app/styles/features/quick-mode.css",
+      "type": "file",
+      "name": "quick-mode.css",
+      "filePath": "app/styles/features/quick-mode.css",
+      "summary": "Quick Mode visual layer following the Football Life token, BEM, responsive, and surface conventions.",
+      "tags": [
+        "styles",
+        "quick-mode",
+        "responsive"
+      ],
+      "complexity": "simple"
+    },
+    {
+      "id": "function:app/(game)/quick/page.tsx:QuickModePage",
+      "type": "function",
+      "name": "QuickModePage",
+      "filePath": "app/(game)/quick/page.tsx",
+      "lineRange": [
+        15,
+        52
+      ],
+      "summary": "Quick Mode QuickModePage implementation in app/(game)/quick/page.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/components/QuickModeScreen.tsx:valueLabel",
+      "type": "function",
+      "name": "valueLabel",
+      "filePath": "features/quick-mode/components/QuickModeScreen.tsx",
+      "lineRange": [
+        19,
+        24
+      ],
+      "summary": "Quick Mode valueLabel implementation in features/quick-mode/components/QuickModeScreen.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/components/QuickModeScreen.tsx:QuickModeScreen",
+      "type": "function",
+      "name": "QuickModeScreen",
+      "filePath": "features/quick-mode/components/QuickModeScreen.tsx",
+      "lineRange": [
+        26,
+        104
+      ],
+      "summary": "Quick Mode QuickModeScreen implementation in features/quick-mode/components/QuickModeScreen.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/components/QuickModeScreen.tsx:QuickSummary",
+      "type": "function",
+      "name": "QuickSummary",
+      "filePath": "features/quick-mode/components/QuickModeScreen.tsx",
+      "lineRange": [
+        106,
+        129
+      ],
+      "summary": "Quick Mode QuickSummary implementation in features/quick-mode/components/QuickModeScreen.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/hooks/useQuickMode.ts:createInitialState",
+      "type": "function",
+      "name": "createInitialState",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "lineRange": [
+        44,
+        49
+      ],
+      "summary": "Quick Mode createInitialState implementation in features/quick-mode/hooks/useQuickMode.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/hooks/useQuickMode.ts:draftToJourney",
+      "type": "function",
+      "name": "draftToJourney",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "lineRange": [
+        51,
+        65
+      ],
+      "summary": "Quick Mode draftToJourney implementation in features/quick-mode/hooks/useQuickMode.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/hooks/useQuickMode.ts:applyImprovements",
+      "type": "function",
+      "name": "applyImprovements",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "lineRange": [
+        67,
+        73
+      ],
+      "summary": "Quick Mode applyImprovements implementation in features/quick-mode/hooks/useQuickMode.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/hooks/useQuickMode.ts:getFinalTitle",
+      "type": "function",
+      "name": "getFinalTitle",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "lineRange": [
+        75,
+        77
+      ],
+      "summary": "Quick Mode getFinalTitle implementation in features/quick-mode/hooks/useQuickMode.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/hooks/useQuickMode.ts:useQuickMode",
+      "type": "function",
+      "name": "useQuickMode",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "lineRange": [
+        79,
+        234
+      ],
+      "summary": "Quick Mode useQuickMode implementation in features/quick-mode/hooks/useQuickMode.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/hooks/useQuickMode.ts:finalizeClub",
+      "type": "function",
+      "name": "finalizeClub",
+      "filePath": "features/quick-mode/hooks/useQuickMode.ts",
+      "lineRange": [
+        236,
+        251
+      ],
+      "summary": "Quick Mode finalizeClub implementation in features/quick-mode/hooks/useQuickMode.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickStatKeys",
+      "type": "function",
+      "name": "getQuickStatKeys",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        27,
+        29
+      ],
+      "summary": "Quick Mode getQuickStatKeys implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickStatLabel",
+      "type": "function",
+      "name": "getQuickStatLabel",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        31,
+        33
+      ],
+      "summary": "Quick Mode getQuickStatLabel implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickOverall",
+      "type": "function",
+      "name": "getQuickOverall",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        35,
+        40
+      ],
+      "summary": "Quick Mode getQuickOverall implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:quickClubGate",
+      "type": "function",
+      "name": "quickClubGate",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        42,
+        44
+      ],
+      "summary": "Quick Mode quickClubGate implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:isQuickClubEligible",
+      "type": "function",
+      "name": "isQuickClubEligible",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        46,
+        48
+      ],
+      "summary": "Quick Mode isQuickClubEligible implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getStatPool",
+      "type": "function",
+      "name": "getStatPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        50,
+        52
+      ],
+      "summary": "Quick Mode getStatPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getClubCountPool",
+      "type": "function",
+      "name": "getClubCountPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        54,
+        56
+      ],
+      "summary": "Quick Mode getClubCountPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getSeasonCountPool",
+      "type": "function",
+      "name": "getSeasonCountPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        58,
+        60
+      ],
+      "summary": "Quick Mode getSeasonCountPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getBoundedCountPool",
+      "type": "function",
+      "name": "getBoundedCountPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        62,
+        66
+      ],
+      "summary": "Quick Mode getBoundedCountPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getInternationalCountPool",
+      "type": "function",
+      "name": "getInternationalCountPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        68,
+        71
+      ],
+      "summary": "Quick Mode getInternationalCountPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getGoalPool",
+      "type": "function",
+      "name": "getGoalPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        73,
+        82
+      ],
+      "summary": "Quick Mode getGoalPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getAssistPool",
+      "type": "function",
+      "name": "getAssistPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        84,
+        92
+      ],
+      "summary": "Quick Mode getAssistPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getBallonDorPool",
+      "type": "function",
+      "name": "getBallonDorPool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        94,
+        97
+      ],
+      "summary": "Quick Mode getBallonDorPool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getTraitGatePool",
+      "type": "function",
+      "name": "getTraitGatePool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        99,
+        101
+      ],
+      "summary": "Quick Mode getTraitGatePool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getImprovementGatePool",
+      "type": "function",
+      "name": "getImprovementGatePool",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        103,
+        106
+      ],
+      "summary": "Quick Mode getImprovementGatePool implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-engine.ts:getTraitItems",
+      "type": "function",
+      "name": "getTraitItems",
+      "filePath": "features/quick-mode/lib/quick-mode-engine.ts",
+      "lineRange": [
+        108,
+        110
+      ],
+      "summary": "Quick Mode getTraitItems implementation in features/quick-mode/lib/quick-mode-engine.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-storage.ts:loadQuickModeState",
+      "type": "function",
+      "name": "loadQuickModeState",
+      "filePath": "features/quick-mode/lib/quick-mode-storage.ts",
+      "lineRange": [
+        5,
+        15
+      ],
+      "summary": "Quick Mode loadQuickModeState implementation in features/quick-mode/lib/quick-mode-storage.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-storage.ts:saveQuickModeState",
+      "type": "function",
+      "name": "saveQuickModeState",
+      "filePath": "features/quick-mode/lib/quick-mode-storage.ts",
+      "lineRange": [
+        17,
+        24
+      ],
+      "summary": "Quick Mode saveQuickModeState implementation in features/quick-mode/lib/quick-mode-storage.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/quick-mode-storage.ts:clearQuickModeState",
+      "type": "function",
+      "name": "clearQuickModeState",
+      "filePath": "features/quick-mode/lib/quick-mode-storage.ts",
+      "lineRange": [
+        26,
+        33
+      ],
+      "summary": "Quick Mode clearQuickModeState implementation in features/quick-mode/lib/quick-mode-storage.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/traits.ts:getTraitPool",
+      "type": "function",
+      "name": "getTraitPool",
+      "filePath": "features/quick-mode/lib/traits.ts",
+      "lineRange": [
+        28,
+        32
+      ],
+      "summary": "Quick Mode getTraitPool implementation in features/quick-mode/lib/traits.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/quick-mode/lib/traits.ts:applyTrait",
+      "type": "function",
+      "name": "applyTrait",
+      "filePath": "features/quick-mode/lib/traits.ts",
+      "lineRange": [
+        34,
+        40
+      ],
+      "summary": "Quick Mode applyTrait implementation in features/quick-mode/lib/traits.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:middleware.ts:middleware",
+      "type": "function",
+      "name": "middleware",
+      "filePath": "middleware.ts",
+      "lineRange": [
+        4,
+        48
+      ],
+      "summary": "Quick Mode middleware implementation in middleware.ts.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(game)/page.tsx:LobbyPage",
+      "type": "function",
+      "name": "LobbyPage",
+      "filePath": "app/(game)/page.tsx",
+      "lineRange": [
+        9,
+        23
+      ],
+      "summary": "Quick Mode LobbyPage implementation in app/(game)/page.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/components/Homepage.tsx:ModeStat",
+      "type": "function",
+      "name": "ModeStat",
+      "filePath": "features/game/components/Homepage.tsx",
+      "lineRange": [
+        14,
+        21
+      ],
+      "summary": "Quick Mode ModeStat implementation in features/game/components/Homepage.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/components/Homepage.tsx:ModeMeta",
+      "type": "function",
+      "name": "ModeMeta",
+      "filePath": "features/game/components/Homepage.tsx",
+      "lineRange": [
+        23,
+        31
+      ],
+      "summary": "Quick Mode ModeMeta implementation in features/game/components/Homepage.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/components/Homepage.tsx:ModeArt",
+      "type": "function",
+      "name": "ModeArt",
+      "filePath": "features/game/components/Homepage.tsx",
+      "lineRange": [
+        33,
+        41
+      ],
+      "summary": "Quick Mode ModeArt implementation in features/game/components/Homepage.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:features/game/components/Homepage.tsx:Homepage",
+      "type": "function",
+      "name": "Homepage",
+      "filePath": "features/game/components/Homepage.tsx",
+      "lineRange": [
+        43,
+        122
+      ],
+      "summary": "Quick Mode Homepage implementation in features/game/components/Homepage.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(auth)/login/page.tsx:getSafeNextPath",
+      "type": "function",
+      "name": "getSafeNextPath",
+      "filePath": "app/(auth)/login/page.tsx",
+      "lineRange": [
+        12,
+        14
+      ],
+      "summary": "Quick Mode getSafeNextPath implementation in app/(auth)/login/page.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(auth)/login/page.tsx:LoginPage",
+      "type": "function",
+      "name": "LoginPage",
+      "filePath": "app/(auth)/login/page.tsx",
+      "lineRange": [
+        16,
+        19
+      ],
+      "summary": "Quick Mode LoginPage implementation in app/(auth)/login/page.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(auth)/login/LoginForm.tsx:getErrorMessage",
+      "type": "function",
+      "name": "getErrorMessage",
+      "filePath": "app/(auth)/login/LoginForm.tsx",
+      "lineRange": [
+        15,
+        17
+      ],
+      "summary": "Quick Mode getErrorMessage implementation in app/(auth)/login/LoginForm.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
+    },
+    {
+      "id": "function:app/(auth)/login/LoginForm.tsx:LoginForm",
+      "type": "function",
+      "name": "LoginForm",
+      "filePath": "app/(auth)/login/LoginForm.tsx",
+      "lineRange": [
+        19,
+        178
+      ],
+      "summary": "Quick Mode LoginForm implementation in app/(auth)/login/LoginForm.tsx.",
+      "tags": [
+        "quick-mode",
+        "implementation"
+      ],
+      "complexity": "moderate"
     }
   ],
   "edges": [
@@ -5365,13 +6122,6 @@
       "weight": 1
     },
     {
-      "source": "file:app/(game)/page.tsx",
-      "target": "function:app/(game)/page.tsx:LobbyPage",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
       "source": "file:features/game/actions/createGameSession.ts",
       "target": "function:features/game/actions/createGameSession.ts:createGameSession",
       "type": "contains",
@@ -5428,13 +6178,6 @@
       "weight": 0.8
     },
     {
-      "source": "file:app/(game)/page.tsx",
-      "target": "function:app/(game)/page.tsx:LobbyPage",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "file:features/game/actions/createGameSession.ts",
       "target": "function:features/game/actions/createGameSession.ts:createGameSession",
       "type": "exports",
@@ -5470,13 +6213,6 @@
       "weight": 0.8
     },
     {
-      "source": "function:app/(game)/page.tsx:LobbyPage",
-      "target": "function:lib/supabase/server.ts:createClient",
-      "type": "calls",
-      "direction": "forward",
-      "weight": 0.8
-    },
-    {
       "source": "function:features/game/actions/createGameSession.ts:createGameSession",
       "target": "function:lib/supabase/server.ts:createClient",
       "type": "calls",
@@ -5489,27 +6225,6 @@
       "type": "calls",
       "direction": "forward",
       "weight": 0.8
-    },
-    {
-      "source": "function:app/(game)/page.tsx:LobbyPage",
-      "target": "function:features/game/components/CreateGameDialog.tsx:CreateGameDialog",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:app/(game)/page.tsx:LobbyPage",
-      "target": "function:features/game/components/GameList.tsx:GameList",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "function:app/(game)/page.tsx:LobbyPage",
-      "target": "function:features/auth/components/LogoutButton.tsx:LogoutButton",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
     },
     {
       "source": "file:app/(game)/[gameId]/page.tsx",
@@ -5867,20 +6582,6 @@
       "type": "imports",
       "direction": "forward",
       "weight": 0.7
-    },
-    {
-      "source": "file:app/(auth)/login/LoginForm.tsx",
-      "target": "function:app/(auth)/login/LoginForm.tsx:LoginForm",
-      "type": "contains",
-      "direction": "forward",
-      "weight": 1
-    },
-    {
-      "source": "file:app/(auth)/login/LoginForm.tsx",
-      "target": "function:app/(auth)/login/LoginForm.tsx:LoginForm",
-      "type": "exports",
-      "direction": "forward",
-      "weight": 0.8
     },
     {
       "source": "file:features/auth/components/LogoutButton.tsx",
@@ -9427,6 +10128,773 @@
       "direction": "forward",
       "weight": 0.7,
       "recoveredFromImportMap": true
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:features/game/components/Homepage.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:features/game/services/game-session.service.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:components/shared/AppShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "file:components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "file:features/game/components/CreateGameDialog.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "file:types/game.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(auth)/login/LoginForm.tsx",
+      "target": "file:components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:middleware.ts",
+      "target": "file:lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "file:features/game/components/Homepage.tsx",
+      "type": "renders",
+      "direction": "forward",
+      "weight": 0.9
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "function:app/(game)/quick/page.tsx:QuickModePage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "function:app/(game)/quick/page.tsx:QuickModePage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "function:features/quick-mode/components/QuickModeScreen.tsx:valueLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "function:features/quick-mode/components/QuickModeScreen.tsx:QuickModeScreen",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "function:features/quick-mode/components/QuickModeScreen.tsx:QuickModeScreen",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "function:features/quick-mode/components/QuickModeScreen.tsx:QuickSummary",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:createInitialState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:draftToJourney",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:applyImprovements",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:getFinalTitle",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:useQuickMode",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:useQuickMode",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "function:features/quick-mode/hooks/useQuickMode.ts:finalizeClub",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickStatKeys",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickStatKeys",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickStatLabel",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickStatLabel",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickOverall",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getQuickOverall",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:quickClubGate",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:quickClubGate",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:isQuickClubEligible",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:isQuickClubEligible",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getStatPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getStatPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getClubCountPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getClubCountPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getSeasonCountPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getSeasonCountPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getBoundedCountPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getBoundedCountPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getInternationalCountPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getInternationalCountPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getGoalPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getGoalPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getAssistPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getAssistPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getBallonDorPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getBallonDorPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getTraitGatePool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getTraitGatePool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getImprovementGatePool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getImprovementGatePool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getTraitItems",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-engine.ts:getTraitItems",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-storage.ts:loadQuickModeState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-storage.ts:loadQuickModeState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-storage.ts:saveQuickModeState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-storage.ts:saveQuickModeState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-storage.ts:clearQuickModeState",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "function:features/quick-mode/lib/quick-mode-storage.ts:clearQuickModeState",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/traits.ts",
+      "target": "function:features/quick-mode/lib/traits.ts:getTraitPool",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/traits.ts",
+      "target": "function:features/quick-mode/lib/traits.ts:getTraitPool",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/quick-mode/lib/traits.ts",
+      "target": "function:features/quick-mode/lib/traits.ts:applyTrait",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/quick-mode/lib/traits.ts",
+      "target": "function:features/quick-mode/lib/traits.ts:applyTrait",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:middleware.ts",
+      "target": "function:middleware.ts:middleware",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:middleware.ts",
+      "target": "function:middleware.ts:middleware",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "function:app/(game)/page.tsx:LobbyPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/(game)/page.tsx",
+      "target": "function:app/(game)/page.tsx:LobbyPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "function:features/game/components/Homepage.tsx:ModeStat",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "function:features/game/components/Homepage.tsx:ModeMeta",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "function:features/game/components/Homepage.tsx:ModeArt",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "function:features/game/components/Homepage.tsx:Homepage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:features/game/components/Homepage.tsx",
+      "target": "function:features/game/components/Homepage.tsx:Homepage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(auth)/login/page.tsx",
+      "target": "function:app/(auth)/login/page.tsx:getSafeNextPath",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/(auth)/login/page.tsx",
+      "target": "function:app/(auth)/login/page.tsx:LoginPage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/(auth)/login/page.tsx",
+      "target": "function:app/(auth)/login/page.tsx:LoginPage",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(auth)/login/LoginForm.tsx",
+      "target": "function:app/(auth)/login/LoginForm.tsx:getErrorMessage",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/(auth)/login/LoginForm.tsx",
+      "target": "function:app/(auth)/login/LoginForm.tsx:LoginForm",
+      "type": "contains",
+      "direction": "forward",
+      "weight": 1
+    },
+    {
+      "source": "file:app/(auth)/login/LoginForm.tsx",
+      "target": "function:app/(auth)/login/LoginForm.tsx:LoginForm",
+      "type": "exports",
+      "direction": "forward",
+      "weight": 0.8
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "file:lib/supabase/server.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "file:prisma/data/clubs.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "file:prisma/data/leagues.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "file:features/quick-mode/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/(game)/quick/page.tsx",
+      "target": "file:components/shared/AppShell.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "file:components/ui/Button.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "file:components/ui/ProgressIndicator.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "file:features/wheel/components/SpinnerWheel.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "file:features/quick-mode/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:types/squad.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:features/quick-mode/lib/traits.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:features/quick-mode/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "file:lib/club-fit.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "file:lib/wheel-engine/weight-calculator.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "file:features/quick-mode/lib/traits.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "file:features/quick-mode/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-storage.ts",
+      "target": "file:features/quick-mode/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:features/quick-mode/lib/traits.ts",
+      "target": "file:features/quick-mode/types.ts",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:app/globals.css",
+      "target": "file:app/styles/features/quick-mode.css",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:middleware.ts",
+      "target": "file:app/(game)/quick/page.tsx",
+      "type": "imports",
+      "direction": "forward",
+      "weight": 0.7
+    },
+    {
+      "source": "file:middleware.ts",
+      "target": "file:app/(game)/quick/page.tsx",
+      "type": "allows-public-route",
+      "direction": "forward",
+      "weight": 0.9,
+      "summary": "Explicit public exception for the Guest Quick Mode route; authenticated routes remain protected."
+    },
+    {
+      "source": "file:features/quick-mode/hooks/useQuickMode.ts",
+      "target": "file:lib/wheel-engine/spin-resolver.ts",
+      "type": "resolves-randomness",
+      "direction": "forward",
+      "weight": 0.9,
+      "summary": "Quick Mode delegates the final weighted choice to the shared resolver."
+    },
+    {
+      "source": "file:features/quick-mode/lib/quick-mode-engine.ts",
+      "target": "file:lib/club-fit.ts",
+      "type": "reuses-club-gate",
+      "direction": "forward",
+      "weight": 0.9,
+      "summary": "Quick Mode uses the existing prestige threshold instead of inventing a second club eligibility rule."
+    },
+    {
+      "source": "file:features/quick-mode/components/QuickModeScreen.tsx",
+      "target": "file:features/wheel/components/SpinnerWheel.tsx",
+      "type": "reuses-wheel-ui",
+      "direction": "forward",
+      "weight": 0.95,
+      "summary": "Quick Mode uses the existing animated wheel and passes a mode-specific item pool."
     }
   ],
   "layers": [
@@ -9437,15 +10905,16 @@
       "nodeIds": [
         "file:app/(auth)/auth/callback/route.ts",
         "file:app/(auth)/layout.tsx",
-        "file:app/(auth)/login/page.tsx",
         "file:app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
         "file:app/(game)/[gameId]/page.tsx",
         "file:app/(game)/layout.tsx",
-        "file:app/(game)/page.tsx",
         "file:app/dev/transfer-window-preview/page.tsx",
-        "file:app/globals.css",
         "file:app/layout.tsx",
-        "file:middleware.ts"
+        "file:middleware.ts",
+        "file:app/(game)/page.tsx",
+        "file:app/(auth)/login/page.tsx",
+        "file:app/globals.css",
+        "file:app/dev/draft-preview/page.tsx"
       ]
     },
     {
@@ -9453,7 +10922,6 @@
       "name": "Feature UI",
       "description": "Client components, hooks, and UI state stores that render the lobby, squad board, player cards, draft drum, wheel flow, transfers, and season modals.",
       "nodeIds": [
-        "file:app/(auth)/login/LoginForm.tsx",
         "file:features/auth/components/LogoutButton.tsx",
         "file:features/game/components/CreateGameDialog.tsx",
         "file:features/game/components/GameList.tsx",
@@ -9470,7 +10938,6 @@
         "file:features/wheel/components/SeasonResultModal.tsx",
         "file:features/wheel/components/SeasonStatsModal.tsx",
         "file:features/wheel/components/SetupStage.tsx",
-        "file:features/wheel/components/SpinnerWheel.tsx",
         "file:features/wheel/components/TransferWindowPanel.tsx",
         "file:features/wheel/hooks/useCareerStats.ts",
         "file:features/wheel/hooks/useCareerWheelItems.ts",
@@ -9478,7 +10945,14 @@
         "file:features/wheel/hooks/useDraftDrum.ts",
         "file:features/wheel/hooks/useSetupStage.ts",
         "file:features/wheel/hooks/useStatEvolutionFlow.ts",
-        "file:features/wheel/stores/useWheelUiStore.ts"
+        "file:features/wheel/stores/useWheelUiStore.ts",
+        "file:features/game/components/Homepage.tsx",
+        "file:components/shared/AppShell.tsx",
+        "file:components/ui/Button.tsx",
+        "file:components/ui/ProgressIndicator.tsx",
+        "file:features/wheel/components/SpinnerWheel.tsx",
+        "file:features/wheel/components/PersistentTransferSection.tsx",
+        "file:app/(auth)/login/LoginForm.tsx"
       ]
     },
     {
@@ -9501,7 +10975,8 @@
         "file:features/season/services/cup-journey.service.ts",
         "file:features/season/services/season-simulator.service.ts",
         "file:features/season/services/table-simulator.service.ts",
-        "file:features/transfer/services/transfer.service.ts"
+        "file:features/transfer/services/transfer.service.ts",
+        "file:features/game/services/game-session.service.ts"
       ]
     },
     {
@@ -9521,13 +10996,13 @@
       "name": "Shared Libraries",
       "description": "Reusable pure libraries and cross-cutting utilities for competitions, club fit, season stat rates, transfer economy, generated names, styling helpers, and rate limiting.",
       "nodeIds": [
-        "file:lib/club-fit.ts",
         "file:lib/competitions.ts",
         "file:lib/name-gen.ts",
         "file:lib/rate-limit.ts",
         "file:lib/season-stat-rates.ts",
         "file:lib/transfer-economy.ts",
-        "file:lib/utils.ts"
+        "file:lib/utils.ts",
+        "file:lib/club-fit.ts"
       ]
     },
     {
@@ -9555,8 +11030,6 @@
       "nodeIds": [
         "file:lib/prisma.ts",
         "file:prisma.config.ts",
-        "file:prisma/data/clubs.ts",
-        "file:prisma/data/leagues.ts",
         "file:prisma/seed.ts",
         "file:scratch/test-db.ts",
         "file:supabase/rls-lockdown.sql",
@@ -9565,7 +11038,9 @@
         "table:supabase/rls-lockdown.sql:clubs",
         "table:supabase/rls-lockdown.sql:game_sessions",
         "table:supabase/rls-lockdown.sql:leagues",
-        "table:supabase/rls-lockdown.sql:national_teams"
+        "table:supabase/rls-lockdown.sql:national_teams",
+        "file:prisma/data/clubs.ts",
+        "file:prisma/data/leagues.ts"
       ]
     },
     {
@@ -9620,6 +11095,21 @@
         "file:eslint.config.mjs",
         "file:next.config.ts",
         "file:postcss.config.mjs"
+      ]
+    },
+    {
+      "id": "layer:quick-mode",
+      "name": "Quick Mode — Guest Flow",
+      "description": "Public, browser-session-only career builder that reuses the shared wheel, club gate, data pools, and RTG visual primitives without touching Classic persistence.",
+      "nodeIds": [
+        "file:app/(game)/quick/page.tsx",
+        "file:features/quick-mode/components/QuickModeScreen.tsx",
+        "file:features/quick-mode/hooks/useQuickMode.ts",
+        "file:features/quick-mode/lib/quick-mode-engine.ts",
+        "file:features/quick-mode/lib/quick-mode-storage.ts",
+        "file:features/quick-mode/lib/traits.ts",
+        "file:features/quick-mode/types.ts",
+        "file:app/styles/features/quick-mode.css"
       ]
     }
   ],
@@ -9700,6 +11190,22 @@
         "file:prisma/seed.ts",
         "file:prisma/data/leagues.ts",
         "file:prisma/data/clubs.ts"
+      ]
+    },
+    {
+      "id": "tour:quick-mode",
+      "order": 8,
+      "title": "Quick Mode — Guest career flow",
+      "description": "Guest-safe route and middleware boundary, client-only session persistence, Quick Mode wheel engine, and the reused RTG wheel/UI primitives.",
+      "nodeIds": [
+        "file:app/(game)/quick/page.tsx",
+        "file:features/quick-mode/components/QuickModeScreen.tsx",
+        "file:features/quick-mode/hooks/useQuickMode.ts",
+        "file:features/quick-mode/lib/quick-mode-engine.ts",
+        "file:features/quick-mode/lib/quick-mode-storage.ts",
+        "file:features/quick-mode/lib/traits.ts",
+        "file:features/quick-mode/types.ts",
+        "file:app/styles/features/quick-mode.css"
       ]
     }
   ]

@@ -1,1209 +1,81 @@
 {
   "scriptCompleted": true,
-  "contentDigest": "40fcf14301ccb34f87801ddd7e85a1c7f7bbc5288f28cdc3f40cac0de761e720",
+  "projectName": "football-life",
   "files": [
-    {
-      "path": ".env",
-      "language": "config",
-      "sizeLines": 19,
-      "fileCategory": "config"
-    },
-    {
-      "path": "AGENTS.md",
-      "language": "markdown",
-      "sizeLines": 211,
-      "fileCategory": "docs"
-    },
-    {
-      "path": "README.md",
-      "language": "markdown",
-      "sizeLines": 54,
-      "fileCategory": "docs"
-    },
-    {
-      "path": "actions/career-checkpoint.actions.ts",
-      "language": "typescript",
-      "sizeLines": 68,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/career-command.actions.ts",
-      "language": "typescript",
-      "sizeLines": 21,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/career-honours.actions.ts",
-      "language": "typescript",
-      "sizeLines": 11,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/career-progress.actions.ts",
-      "language": "typescript",
-      "sizeLines": 15,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/career-season-stats.actions.ts",
-      "language": "typescript",
-      "sizeLines": 26,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/career-season.actions.ts",
-      "language": "typescript",
-      "sizeLines": 28,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/career-transfer.actions.ts",
-      "language": "typescript",
-      "sizeLines": 108,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/player.actions.ts",
-      "language": "typescript",
-      "sizeLines": 436,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/season-action-contracts.ts",
-      "language": "typescript",
-      "sizeLines": 263,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/season-cup.actions.ts",
-      "language": "typescript",
-      "sizeLines": 123,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/season-progress.actions.ts",
-      "language": "typescript",
-      "sizeLines": 374,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/season-simulation.actions.ts",
-      "language": "typescript",
-      "sizeLines": 144,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/season-transfer.actions.ts",
-      "language": "typescript",
-      "sizeLines": 332,
-      "fileCategory": "code"
-    },
-    {
-      "path": "actions/season.actions.ts",
-      "language": "typescript",
-      "sizeLines": 4,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(auth)/auth/callback/route.ts",
-      "language": "typescript",
-      "sizeLines": 17,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(auth)/auth/reset-password/ResetPasswordForm.tsx",
-      "language": "typescript",
-      "sizeLines": 35,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(auth)/auth/reset-password/page.tsx",
-      "language": "typescript",
-      "sizeLines": 5,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(auth)/layout.tsx",
-      "language": "typescript",
-      "sizeLines": 5,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(auth)/login/LoginForm.tsx",
-      "language": "typescript",
-      "sizeLines": 178,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(auth)/login/page.tsx",
-      "language": "typescript",
-      "sizeLines": 15,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
-      "language": "typescript",
-      "sizeLines": 89,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/[gameId]/page.tsx",
-      "language": "typescript",
-      "sizeLines": 116,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/classic/[gameId]/draft/[slotIndex]/ballon-dor/page.tsx",
-      "language": "typescript",
-      "sizeLines": 128,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/classic/[gameId]/draft/[slotIndex]/page.tsx",
-      "language": "typescript",
-      "sizeLines": 86,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/classic/[gameId]/page.tsx",
-      "language": "typescript",
-      "sizeLines": 124,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/classic/[gameId]/shop/[slotIndex]/page.tsx",
-      "language": "typescript",
-      "sizeLines": 111,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/classic/[gameId]/transfer/[slotIndex]/page.tsx",
-      "language": "typescript",
-      "sizeLines": 109,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/classic/page.tsx",
-      "language": "typescript",
-      "sizeLines": 43,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/layout.tsx",
-      "language": "typescript",
-      "sizeLines": 27,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/(game)/page.tsx",
-      "language": "typescript",
-      "sizeLines": 23,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/dev/draft-preview/page.tsx",
-      "language": "typescript",
-      "sizeLines": 26,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/dev/transfer-window-preview/page.tsx",
-      "language": "typescript",
-      "sizeLines": 181,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/globals.css",
-      "language": "css",
-      "sizeLines": 12,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/layout.tsx",
-      "language": "typescript",
-      "sizeLines": 46,
-      "fileCategory": "code"
-    },
-    {
-      "path": "app/styles/README.md",
-      "language": "markdown",
-      "sizeLines": 25,
-      "fileCategory": "docs"
-    },
-    {
-      "path": "app/styles/features/auth-and-gameplay.css",
-      "language": "css",
-      "sizeLines": 302,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/features/awards-transfer-wheel.css",
-      "language": "css",
-      "sizeLines": 302,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/features/lobby-and-results.css",
-      "language": "css",
-      "sizeLines": 302,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/features/shop-and-squad.css",
-      "language": "css",
-      "sizeLines": 308,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/foundation/animations.css",
-      "language": "css",
-      "sizeLines": 24,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/foundation/shared-primitives.css",
-      "language": "css",
-      "sizeLines": 302,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/foundation/tokens.css",
-      "language": "css",
-      "sizeLines": 302,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/layout/responsive.css",
-      "language": "css",
-      "sizeLines": 316,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "app/styles/overrides/final-surface-cascade.css",
-      "language": "css",
-      "sizeLines": 302,
-      "fileCategory": "markup"
-    },
-    {
-      "path": "components/auth/AuthLayoutClient.tsx",
-      "language": "typescript",
-      "sizeLines": 26,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/auth/AuthMotionContext.tsx",
-      "language": "typescript",
-      "sizeLines": 16,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/auth/HeroPanel.tsx",
-      "language": "typescript",
-      "sizeLines": 40,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/shared/AppShell.tsx",
-      "language": "typescript",
-      "sizeLines": 62,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/shared/ReplayMotionButton.tsx",
-      "language": "typescript",
-      "sizeLines": 13,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Badge.tsx",
-      "language": "typescript",
-      "sizeLines": 12,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Button.tsx",
-      "language": "typescript",
-      "sizeLines": 45,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/DataRow.tsx",
-      "language": "typescript",
-      "sizeLines": 17,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Divider.tsx",
-      "language": "typescript",
-      "sizeLines": 6,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Drawer.tsx",
-      "language": "typescript",
-      "sizeLines": 22,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Expandable.tsx",
-      "language": "typescript",
-      "sizeLines": 35,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Field.tsx",
-      "language": "typescript",
-      "sizeLines": 16,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/IconButton.tsx",
-      "language": "typescript",
-      "sizeLines": 17,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/LineChart.tsx",
-      "language": "typescript",
-      "sizeLines": 14,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Modal.tsx",
-      "language": "typescript",
-      "sizeLines": 184,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/PrimaryActionArea.tsx",
-      "language": "typescript",
-      "sizeLines": 19,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/ProgressIndicator.tsx",
-      "language": "typescript",
-      "sizeLines": 24,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/ResultBanner.tsx",
-      "language": "typescript",
-      "sizeLines": 6,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/SectionHeader.tsx",
-      "language": "typescript",
-      "sizeLines": 21,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Segmented.tsx",
-      "language": "typescript",
-      "sizeLines": 14,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Stat.tsx",
-      "language": "typescript",
-      "sizeLines": 24,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/States.tsx",
-      "language": "typescript",
-      "sizeLines": 14,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Surface.tsx",
-      "language": "typescript",
-      "sizeLines": 29,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Tabs.tsx",
-      "language": "typescript",
-      "sizeLines": 28,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/TimelineItem.tsx",
-      "language": "typescript",
-      "sizeLines": 27,
-      "fileCategory": "code"
-    },
-    {
-      "path": "components/ui/Tooltip.tsx",
-      "language": "typescript",
-      "sizeLines": 5,
-      "fileCategory": "code"
-    },
-    {
-      "path": "eslint.config.mjs",
-      "language": "javascript",
-      "sizeLines": 90,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/auth/components/LogoutButton.tsx",
-      "language": "typescript",
-      "sizeLines": 29,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/career-command.contract.ts",
-      "language": "typescript",
-      "sizeLines": 22,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/career-honours.contract.ts",
-      "language": "typescript",
-      "sizeLines": 50,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/career-progress.contract.ts",
-      "language": "typescript",
-      "sizeLines": 69,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/checkpoint.contract.ts",
-      "language": "typescript",
-      "sizeLines": 35,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/season-stats.contract.ts",
-      "language": "typescript",
-      "sizeLines": 20,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/season-transition.contract.ts",
-      "language": "typescript",
-      "sizeLines": 40,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/transfer-market.contract.ts",
-      "language": "typescript",
-      "sizeLines": 40,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/transfer-transition.contract.ts",
-      "language": "typescript",
-      "sizeLines": 30,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/contracts/wheel-step.contract.ts",
-      "language": "typescript",
-      "sizeLines": 21,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/hooks/useCareerCheckpointSync.ts",
-      "language": "typescript",
-      "sizeLines": 319,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/lib/honour-display.ts",
-      "language": "typescript",
-      "sizeLines": 67,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/award-persistence.service.ts",
-      "language": "typescript",
-      "sizeLines": 308,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/award-query.service.ts",
-      "language": "typescript",
-      "sizeLines": 85,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/career-command.service.ts",
-      "language": "typescript",
-      "sizeLines": 247,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/career-progress.service.ts",
-      "language": "typescript",
-      "sizeLines": 244,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/career-setup-token.service.ts",
-      "language": "typescript",
-      "sizeLines": 170,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/career-setup.service.ts",
-      "language": "typescript",
-      "sizeLines": 166,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/career-summary.service.ts",
-      "language": "typescript",
-      "sizeLines": 254,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/checkpoint-helpers.ts",
-      "language": "typescript",
-      "sizeLines": 218,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/checkpoint.service.ts",
-      "language": "typescript",
-      "sizeLines": 401,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/season-stats.service.ts",
-      "language": "typescript",
-      "sizeLines": 394,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/season-transition-helpers.ts",
-      "language": "typescript",
-      "sizeLines": 299,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/season-transition.service.ts",
-      "language": "typescript",
-      "sizeLines": 309,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/server-wheel-resolver.service.ts",
-      "language": "typescript",
-      "sizeLines": 334,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-market-authority-context.ts",
-      "language": "typescript",
-      "sizeLines": 287,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-market-authority-negotiation.ts",
-      "language": "typescript",
-      "sizeLines": 231,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-market-authority-parsing.ts",
-      "language": "typescript",
-      "sizeLines": 160,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-market-authority.service.ts",
-      "language": "typescript",
-      "sizeLines": 300,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-market-authority.shared.ts",
-      "language": "typescript",
-      "sizeLines": 4,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-transition-helpers.ts",
-      "language": "typescript",
-      "sizeLines": 310,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-transition.service.ts",
-      "language": "typescript",
-      "sizeLines": 389,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/career/services/transfer-workflow-state.service.ts",
-      "language": "typescript",
-      "sizeLines": 329,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/game/actions/createGameSession.ts",
-      "language": "typescript",
-      "sizeLines": 61,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/game/components/CreateGameDialog.tsx",
-      "language": "typescript",
-      "sizeLines": 128,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/game/components/GameList.tsx",
-      "language": "typescript",
-      "sizeLines": 83,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/game/components/Homepage.tsx",
-      "language": "typescript",
-      "sizeLines": 107,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/game/services/game-session.service.ts",
-      "language": "typescript",
-      "sizeLines": 20,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/player/components/PlayerCareerDialog.tsx",
-      "language": "typescript",
-      "sizeLines": 308,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/player/components/PlayerOvrChart.tsx",
-      "language": "typescript",
-      "sizeLines": 54,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/player/components/PlayerStickerCard.tsx",
-      "language": "typescript",
-      "sizeLines": 40,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/player/services/stats-evolution.service.ts",
-      "language": "typescript",
-      "sizeLines": 37,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/award-simulator.service.ts",
-      "language": "typescript",
-      "sizeLines": 359,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/ballon-dor.service.ts",
-      "language": "typescript",
-      "sizeLines": 298,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/cup-journey.service.ts",
-      "language": "typescript",
-      "sizeLines": 303,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/season-simulator-calculations.ts",
-      "language": "typescript",
-      "sizeLines": 168,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/season-simulator.service.ts",
-      "language": "typescript",
-      "sizeLines": 268,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/synthetic-league.service.ts",
-      "language": "typescript",
-      "sizeLines": 279,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/season/services/table-simulator.service.ts",
-      "language": "typescript",
-      "sizeLines": 94,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/components/PitchBoard.tsx",
-      "language": "typescript",
-      "sizeLines": 107,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/components/SquadBoardPageHead.tsx",
-      "language": "typescript",
-      "sizeLines": 63,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/components/SquadDashboard.tsx",
-      "language": "typescript",
-      "sizeLines": 115,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/components/SquadSheet.tsx",
-      "language": "typescript",
-      "sizeLines": 96,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/components/SquadSummary.tsx",
-      "language": "typescript",
-      "sizeLines": 55,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/lib/nation-flags.ts",
-      "language": "typescript",
-      "sizeLines": 29,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/squad/lib/slot-state.ts",
-      "language": "typescript",
-      "sizeLines": 15,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/transfer/services/transfer-market-generation.ts",
-      "language": "typescript",
-      "sizeLines": 403,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/transfer/services/transfer-market-negotiation.ts",
-      "language": "typescript",
-      "sizeLines": 321,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/transfer/services/transfer-market-scoring.ts",
-      "language": "typescript",
-      "sizeLines": 181,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/transfer/services/transfer-market-types.ts",
-      "language": "typescript",
-      "sizeLines": 112,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/transfer/services/transfer.service.ts",
-      "language": "typescript",
-      "sizeLines": 4,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/AwardBestXiPitch.tsx",
-      "language": "typescript",
-      "sizeLines": 58,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/AwardRankingList.tsx",
-      "language": "typescript",
-      "sizeLines": 63,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/BallonDorNominationModal.tsx",
-      "language": "typescript",
-      "sizeLines": 34,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/CareerActionsPanel.tsx",
-      "language": "typescript",
-      "sizeLines": 165,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/DraftDrumCareerStage.tsx",
-      "language": "typescript",
-      "sizeLines": 241,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/DraftDrumScreen.tsx",
-      "language": "typescript",
-      "sizeLines": 449,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/DraftPlayerDossier.tsx",
-      "language": "typescript",
-      "sizeLines": 67,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/DraftProgressRail.tsx",
-      "language": "typescript",
-      "sizeLines": 37,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/MobileCareerContext.tsx",
-      "language": "typescript",
-      "sizeLines": 50,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/PaniniSticker.tsx",
-      "language": "typescript",
-      "sizeLines": 59,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/PersistentTransferSection.tsx",
-      "language": "typescript",
-      "sizeLines": 195,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/RetiredStage.tsx",
-      "language": "typescript",
-      "sizeLines": 44,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SeasonProfile.tsx",
-      "language": "typescript",
-      "sizeLines": 70,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SeasonRecapModal.tsx",
-      "language": "typescript",
-      "sizeLines": 196,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SeasonResultModal.tsx",
-      "language": "typescript",
-      "sizeLines": 69,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SeasonSideSummary.tsx",
-      "language": "typescript",
-      "sizeLines": 21,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SeasonStatsModal.tsx",
-      "language": "typescript",
-      "sizeLines": 135,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SeasonStrip.tsx",
-      "language": "typescript",
-      "sizeLines": 99,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SetupStage.tsx",
-      "language": "typescript",
-      "sizeLines": 86,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/ShopModal.tsx",
-      "language": "typescript",
-      "sizeLines": 206,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/ShopPageClient.tsx",
-      "language": "typescript",
-      "sizeLines": 86,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SpinnerWheel.tsx",
-      "language": "typescript",
-      "sizeLines": 312,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/SpinnerWheelDisc.tsx",
-      "language": "typescript",
-      "sizeLines": 113,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/StoryRail.tsx",
-      "language": "typescript",
-      "sizeLines": 54,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/TransferDecisionModal.tsx",
-      "language": "typescript",
-      "sizeLines": 362,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/TransferPageClient.tsx",
-      "language": "typescript",
-      "sizeLines": 413,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/TransferWindowPanel.tsx",
-      "language": "typescript",
-      "sizeLines": 343,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/TrophyCabinetModal.tsx",
-      "language": "typescript",
-      "sizeLines": 148,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/components/WheelGameHeader.tsx",
-      "language": "typescript",
-      "sizeLines": 98,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/empty-unemployed-season-result.ts",
-      "language": "typescript",
-      "sizeLines": 25,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useCareerRecords.ts",
-      "language": "typescript",
-      "sizeLines": 110,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useCareerSeasonTransition.ts",
-      "language": "typescript",
-      "sizeLines": 223,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useCareerStats.ts",
-      "language": "typescript",
-      "sizeLines": 367,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useCareerWheelItems.ts",
-      "language": "typescript",
-      "sizeLines": 294,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useCompetitionFlow.ts",
-      "language": "typescript",
-      "sizeLines": 344,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrum.ts",
-      "language": "typescript",
-      "sizeLines": 512,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumAdvanceSeason.ts",
-      "language": "typescript",
-      "sizeLines": 144,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumHydration.ts",
-      "language": "typescript",
-      "sizeLines": 342,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumNavigation.ts",
-      "language": "typescript",
-      "sizeLines": 61,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumPersistence.ts",
-      "language": "typescript",
-      "sizeLines": 267,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumStartFlow.ts",
-      "language": "typescript",
-      "sizeLines": 279,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumTransferCommit.ts",
-      "language": "typescript",
-      "sizeLines": 210,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumTransferFlow.ts",
-      "language": "typescript",
-      "sizeLines": 333,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useDraftDrumWheelFlow.ts",
-      "language": "typescript",
-      "sizeLines": 271,
-      "fileCategory": "code"
-    },
     {
       "path": "features/wheel/hooks/useSetupStage.ts",
       "language": "typescript",
-      "sizeLines": 229,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/hooks/useStatEvolutionFlow.ts",
-      "language": "typescript",
-      "sizeLines": 268,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/career-resume-state.ts",
-      "language": "typescript",
-      "sizeLines": 14,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/career-wheel-resolver.ts",
-      "language": "typescript",
-      "sizeLines": 264,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/competition-result-labels.ts",
-      "language": "typescript",
-      "sizeLines": 18,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/competition-simulation-weights.ts",
-      "language": "typescript",
-      "sizeLines": 301,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/competition-transition.ts",
-      "language": "typescript",
-      "sizeLines": 38,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/growth-balance.ts",
-      "language": "typescript",
-      "sizeLines": 369,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/growth-pools.ts",
-      "language": "typescript",
-      "sizeLines": 218,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/previous-season-standing.ts",
-      "language": "typescript",
-      "sizeLines": 28,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/season-record-hydration.ts",
-      "language": "typescript",
-      "sizeLines": 125,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/simulation-helpers.ts",
-      "language": "typescript",
-      "sizeLines": 3,
-      "fileCategory": "code"
-    },
-    {
-      "path": "features/wheel/lib/wheel-team-params.ts",
-      "language": "typescript",
-      "sizeLines": 103,
+      "sizeLines": 230,
       "fileCategory": "code"
     },
     {
       "path": "features/wheel/stores/useWheelUiStore.ts",
       "language": "typescript",
-      "sizeLines": 193,
+      "sizeLines": 194,
       "fileCategory": "code"
     },
     {
-      "path": "lib/auth/guards.ts",
+      "path": "lib/wheel-engine/weight-calculator.ts",
       "language": "typescript",
-      "sizeLines": 53,
+      "sizeLines": 10,
       "fileCategory": "code"
     },
     {
-      "path": "lib/career/checkpoint-feature.ts",
+      "path": "features/player/services/stats-evolution.service.ts",
       "language": "typescript",
-      "sizeLines": 9,
+      "sizeLines": 38,
       "fileCategory": "code"
     },
     {
-      "path": "lib/club-fit.ts",
+      "path": "features/season/services/cup-journey.service.ts",
       "language": "typescript",
-      "sizeLines": 65,
+      "sizeLines": 304,
       "fileCategory": "code"
     },
     {
-      "path": "lib/competitions.ts",
+      "path": "features/season/services/table-simulator.service.ts",
       "language": "typescript",
-      "sizeLines": 124,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/influence-score.ts",
-      "language": "typescript",
-      "sizeLines": 167,
+      "sizeLines": 95,
       "fileCategory": "code"
     },
     {
       "path": "lib/name-gen.ts",
       "language": "typescript",
-      "sizeLines": 42,
+      "sizeLines": 43,
       "fileCategory": "code"
     },
     {
-      "path": "lib/observability/career-command-log.ts",
+      "path": "lib/wheel-engine/spin-resolver.ts",
       "language": "typescript",
-      "sizeLines": 68,
+      "sizeLines": 61,
       "fileCategory": "code"
     },
     {
-      "path": "lib/positional-value.ts",
+      "path": "app/(auth)/auth/callback/route.ts",
+      "language": "typescript",
+      "sizeLines": 18,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/(game)/page.tsx",
+      "language": "typescript",
+      "sizeLines": 24,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/game/actions/createGameSession.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/game/components/CreateGameDialog.tsx",
+      "language": "typescript",
+      "sizeLines": 129,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/game/components/GameList.tsx",
       "language": "typescript",
       "sizeLines": 84,
       "fileCategory": "code"
@@ -1211,364 +83,611 @@
     {
       "path": "lib/prisma.ts",
       "language": "typescript",
-      "sizeLines": 43,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/rate-limit.ts",
-      "language": "typescript",
-      "sizeLines": 61,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/salary-negotiation.ts",
-      "language": "typescript",
-      "sizeLines": 76,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/season-stat-rates.ts",
-      "language": "typescript",
-      "sizeLines": 193,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/secure-random.ts",
-      "language": "typescript",
-      "sizeLines": 6,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/shop-catalog.ts",
-      "language": "typescript",
-      "sizeLines": 116,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/supabase/client.ts",
-      "language": "typescript",
-      "sizeLines": 8,
+      "sizeLines": 44,
       "fileCategory": "code"
     },
     {
       "path": "lib/supabase/server.ts",
       "language": "typescript",
-      "sizeLines": 28,
+      "sizeLines": 29,
       "fileCategory": "code"
     },
     {
-      "path": "lib/transfer-economy-approach.ts",
+      "path": "scratch/test-db.ts",
       "language": "typescript",
-      "sizeLines": 207,
+      "sizeLines": 20,
       "fileCategory": "code"
     },
     {
-      "path": "lib/transfer-economy-contracts.ts",
+      "path": "app/(game)/[gameId]/page.tsx",
       "language": "typescript",
-      "sizeLines": 92,
+      "sizeLines": 117,
       "fileCategory": "code"
     },
     {
-      "path": "lib/transfer-economy-core.ts",
+      "path": "features/player/components/PlayerOvrChart.tsx",
       "language": "typescript",
-      "sizeLines": 319,
+      "sizeLines": 55,
       "fileCategory": "code"
     },
     {
-      "path": "lib/transfer-economy.ts",
+      "path": "features/player/components/PlayerStickerCard.tsx",
       "language": "typescript",
-      "sizeLines": 9,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/utils.ts",
-      "language": "typescript",
-      "sizeLines": 6,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wallet.ts",
-      "language": "typescript",
-      "sizeLines": 112,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wheel-engine/ovr-calculator.ts",
-      "language": "typescript",
-      "sizeLines": 50,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wheel-engine/physique-modifier.ts",
-      "language": "typescript",
-      "sizeLines": 82,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wheel-engine/spin-resolver.ts",
-      "language": "typescript",
-      "sizeLines": 60,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wheel-engine/stat-config.ts",
-      "language": "typescript",
-      "sizeLines": 63,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wheel-engine/weight-calculator.ts",
-      "language": "typescript",
-      "sizeLines": 9,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lib/wheel-engine/weight-pools.ts",
-      "language": "typescript",
-      "sizeLines": 255,
-      "fileCategory": "code"
-    },
-    {
-      "path": "lint_out.txt",
-      "language": "txt",
-      "sizeLines": 200,
-      "fileCategory": "docs"
-    },
-    {
-      "path": "middleware.ts",
-      "language": "typescript",
-      "sizeLines": 53,
-      "fileCategory": "code"
-    },
-    {
-      "path": "next-env.d.ts",
-      "language": "typescript",
-      "sizeLines": 6,
-      "fileCategory": "code"
-    },
-    {
-      "path": "next.config.ts",
-      "language": "typescript",
-      "sizeLines": 11,
-      "fileCategory": "code"
-    },
-    {
-      "path": "package.json",
-      "language": "json",
-      "sizeLines": 68,
-      "fileCategory": "config"
-    },
-    {
-      "path": "pnpm-workspace.yaml",
-      "language": "yaml",
-      "sizeLines": 19,
-      "fileCategory": "config"
-    },
-    {
-      "path": "postcss.config.mjs",
-      "language": "javascript",
-      "sizeLines": 5,
-      "fileCategory": "code"
-    },
-    {
-      "path": "prisma.config.ts",
-      "language": "typescript",
-      "sizeLines": 15,
-      "fileCategory": "code"
-    },
-    {
-      "path": "prisma/schema.prisma",
-      "language": "prisma",
-      "sizeLines": 331,
-      "fileCategory": "data"
-    },
-    {
-      "path": "prisma/seed.ts",
-      "language": "typescript",
-      "sizeLines": 140,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/awards-persistence-integration-check.ts",
-      "language": "typescript",
-      "sizeLines": 88,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/awards-simulator-check.ts",
-      "language": "typescript",
-      "sizeLines": 205,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/backfill-awards.ts",
-      "language": "typescript",
-      "sizeLines": 100,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/backfill-career-projection.ts",
-      "language": "typescript",
-      "sizeLines": 90,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/ballon-dor-logic-check.ts",
-      "language": "typescript",
-      "sizeLines": 110,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/career-persistence-audit.ts",
-      "language": "typescript",
-      "sizeLines": 175,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/career-persistence-integration-check.ts",
-      "language": "typescript",
-      "sizeLines": 228,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/career-setup-security-check.ts",
-      "language": "typescript",
-      "sizeLines": 82,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/career-summary-check.ts",
-      "language": "typescript",
-      "sizeLines": 66,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/checkpoint-contract-check.ts",
-      "language": "typescript",
-      "sizeLines": 209,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/competition-result-labels-check.ts",
-      "language": "typescript",
-      "sizeLines": 11,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/competition-wheel-weight-check.ts",
-      "language": "typescript",
-      "sizeLines": 92,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/honours-display-check.ts",
-      "language": "typescript",
-      "sizeLines": 24,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/season-projection-check.ts",
-      "language": "typescript",
-      "sizeLines": 42,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/season-record-hydration-check.ts",
-      "language": "typescript",
-      "sizeLines": 59,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/transfer-authority-check.ts",
-      "language": "typescript",
-      "sizeLines": 145,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/transfer-economy-check.ts",
-      "language": "typescript",
-      "sizeLines": 177,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/transfer-finance-check.ts",
-      "language": "typescript",
-      "sizeLines": 30,
-      "fileCategory": "code"
-    },
-    {
-      "path": "scripts/transfer-workflow-state-check.ts",
-      "language": "typescript",
-      "sizeLines": 92,
-      "fileCategory": "code"
-    },
-    {
-      "path": "supabase/rls-lockdown.sql",
-      "language": "sql",
-      "sizeLines": 33,
-      "fileCategory": "data"
-    },
-    {
-      "path": "tsconfig.json",
-      "language": "json",
       "sizeLines": 41,
-      "fileCategory": "config"
-    },
-    {
-      "path": "tsconfig.tsbuildinfo",
-      "language": "tsbuildinfo",
-      "sizeLines": 0,
       "fileCategory": "code"
     },
     {
-      "path": "types/awards.ts",
+      "path": "features/squad/components/PitchBoard.tsx",
       "language": "typescript",
-      "sizeLines": 98,
+      "sizeLines": 108,
       "fileCategory": "code"
     },
     {
-      "path": "types/domain.ts",
+      "path": "features/squad/components/SquadDashboard.tsx",
       "language": "typescript",
-      "sizeLines": 87,
-      "fileCategory": "code"
-    },
-    {
-      "path": "types/game.ts",
-      "language": "typescript",
-      "sizeLines": 122,
+      "sizeLines": 116,
       "fileCategory": "code"
     },
     {
       "path": "types/squad.ts",
       "language": "typescript",
-      "sizeLines": 169,
+      "sizeLines": 170,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/RetiredStage.tsx",
+      "language": "typescript",
+      "sizeLines": 45,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/SetupStage.tsx",
+      "language": "typescript",
+      "sizeLines": 87,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/SpinnerWheel.tsx",
+      "language": "typescript",
+      "sizeLines": 313,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/(auth)/login/LoginForm.tsx",
+      "language": "typescript",
+      "sizeLines": 179,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/(auth)/login/page.tsx",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/auth/components/LogoutButton.tsx",
+      "language": "typescript",
+      "sizeLines": 30,
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/supabase/client.ts",
+      "language": "typescript",
+      "sizeLines": 9,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".claude/launch.json",
+      "language": "json",
+      "sizeLines": 12,
+      "fileCategory": "config"
+    },
+    {
+      "path": ".claude/settings.json",
+      "language": "json",
+      "sizeLines": 23,
+      "fileCategory": "config"
+    },
+    {
+      "path": "AGENTS.md",
+      "language": "markdown",
+      "sizeLines": 212,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "README.md",
+      "language": "markdown",
+      "sizeLines": 55,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "lint_out.txt",
+      "language": "typescript",
+      "sizeLines": 201,
+      "fileCategory": "code"
+    },
+    {
+      "path": "pnpm-workspace.yaml",
+      "language": "typescript",
+      "sizeLines": 20,
+      "fileCategory": "code"
+    },
+    {
+      "path": "tsconfig.json",
+      "language": "json",
+      "sizeLines": 42,
+      "fileCategory": "config"
+    },
+    {
+      "path": "docs/FOOTBALL_LIFE_PROJECT_WIKI.md",
+      "language": "markdown",
+      "sizeLines": 609,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/Football_Life_Project_Planning_Document.md",
+      "language": "markdown",
+      "sizeLines": 188,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/ai-agent-rules.md",
+      "language": "markdown",
+      "sizeLines": 159,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/auth-implementation-plan.md",
+      "language": "markdown",
+      "sizeLines": 489,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/auth-ui-plan.md",
+      "language": "markdown",
+      "sizeLines": 348,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/ballon-dor-wheel-plan.md",
+      "language": "markdown",
+      "sizeLines": 301,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/career-resume-plan.md",
+      "language": "markdown",
+      "sizeLines": 350,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/code-review-findings.md",
+      "language": "markdown",
+      "sizeLines": 204,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/environment-variables.md",
+      "language": "markdown",
+      "sizeLines": 84,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/frontend-style-system-guide.md",
+      "language": "markdown",
+      "sizeLines": 1006,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/game-design.md",
+      "language": "markdown",
+      "sizeLines": 820,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/loading-agent-guide.md",
+      "language": "markdown",
+      "sizeLines": 172,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/modal-agent-guide.md",
+      "language": "markdown",
+      "sizeLines": 357,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/module-boundaries.md",
+      "language": "markdown",
+      "sizeLines": 301,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/remove-events-plan.md",
+      "language": "markdown",
+      "sizeLines": 229,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/season-profile-modal-plan.md",
+      "language": "markdown",
+      "sizeLines": 312,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/source-code-architecture-guide.md",
+      "language": "markdown",
+      "sizeLines": 833,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/state-management.md",
+      "language": "markdown",
+      "sizeLines": 405,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/ui-ux-flow.md",
+      "language": "markdown",
+      "sizeLines": 127,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "app/(auth)/layout.tsx",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/(game)/layout.tsx",
+      "language": "typescript",
+      "sizeLines": 28,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/globals.css",
+      "language": "css",
+      "sizeLines": 14,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "app/layout.tsx",
+      "language": "typescript",
+      "sizeLines": 47,
+      "fileCategory": "code"
+    },
+    {
+      "path": "docs/ui-plan/implementation-roadmap.md",
+      "language": "markdown",
+      "sizeLines": 92,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "eslint.config.mjs",
+      "language": "typescript",
+      "sizeLines": 91,
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/utils.ts",
+      "language": "typescript",
+      "sizeLines": 7,
+      "fileCategory": "code"
+    },
+    {
+      "path": "next.config.ts",
+      "language": "typescript",
+      "sizeLines": 12,
+      "fileCategory": "code"
+    },
+    {
+      "path": "postcss.config.mjs",
+      "language": "typescript",
+      "sizeLines": 6,
+      "fileCategory": "code"
+    },
+    {
+      "path": "prisma.config.ts",
+      "language": "typescript",
+      "sizeLines": 16,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/season/services/season-simulator.service.ts",
+      "language": "typescript",
+      "sizeLines": 269,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/hooks/useCareerWheelItems.ts",
+      "language": "typescript",
+      "sizeLines": 295,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/hooks/useCompetitionFlow.ts",
+      "language": "typescript",
+      "sizeLines": 345,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/lib/career-wheel-resolver.ts",
+      "language": "typescript",
+      "sizeLines": 265,
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/club-fit.ts",
+      "language": "typescript",
+      "sizeLines": 66,
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/season-stat-rates.ts",
+      "language": "typescript",
+      "sizeLines": 286,
+      "fileCategory": "code"
+    },
+    {
+      "path": "lib/rate-limit.ts",
+      "language": "typescript",
+      "sizeLines": 62,
+      "fileCategory": "code"
+    },
+    {
+      "path": ".claude/CLAUDE.md",
+      "language": "markdown",
+      "sizeLines": 273,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/api-integration.md",
+      "language": "markdown",
+      "sizeLines": 500,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/architecture.md",
+      "language": "markdown",
+      "sizeLines": 128,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/core-growth-balance.md",
+      "language": "markdown",
+      "sizeLines": 986,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/core-growth-logic-review.md",
+      "language": "markdown",
+      "sizeLines": 561,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "docs/security-checklist.md",
+      "language": "markdown",
+      "sizeLines": 93,
+      "fileCategory": "docs"
+    },
+    {
+      "path": "supabase/rls-lockdown.sql",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/SeasonProfile.tsx",
+      "language": "typescript",
+      "sizeLines": 71,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/SeasonStatsModal.tsx",
+      "language": "typescript",
+      "sizeLines": 136,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/hooks/useCareerStats.ts",
+      "language": "typescript",
+      "sizeLines": 368,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/hooks/useDraftDrum.ts",
+      "language": "typescript",
+      "sizeLines": 513,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/lib/growth-balance.ts",
+      "language": "typescript",
+      "sizeLines": 370,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/lib/simulation-helpers.ts",
+      "language": "typescript",
+      "sizeLines": 4,
+      "fileCategory": "code"
+    },
+    {
+      "path": "actions/player.actions.ts",
+      "language": "typescript",
+      "sizeLines": 437,
+      "fileCategory": "code"
+    },
+    {
+      "path": "actions/season.actions.ts",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/career/services/career-setup.service.ts",
+      "language": "typescript",
+      "sizeLines": 167,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/transfer/services/transfer.service.ts",
+      "language": "typescript",
+      "sizeLines": 5,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/hooks/useStatEvolutionFlow.ts",
+      "language": "typescript",
+      "sizeLines": 269,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/(game)/[gameId]/draft/[slotIndex]/page.tsx",
+      "language": "typescript",
+      "sizeLines": 90,
+      "fileCategory": "code"
+    },
+    {
+      "path": "prisma/seed.ts",
+      "language": "typescript",
+      "sizeLines": 141,
+      "fileCategory": "code"
+    },
+    {
+      "path": "types/game.ts",
+      "language": "typescript",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/player/components/PlayerCareerDialog.tsx",
+      "language": "typescript",
+      "sizeLines": 309,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/CareerActionsPanel.tsx",
+      "language": "typescript",
+      "sizeLines": 166,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/DraftDrumScreen.tsx",
+      "language": "typescript",
+      "sizeLines": 452,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/PaniniSticker.tsx",
+      "language": "typescript",
+      "sizeLines": 60,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/SeasonResultModal.tsx",
+      "language": "typescript",
+      "sizeLines": 70,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/wheel/components/PersistentTransferSection.tsx",
+      "language": "typescript",
+      "sizeLines": 196,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/dev/draft-preview/page.tsx",
+      "language": "typescript",
+      "sizeLines": 27,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/game/components/Homepage.tsx",
+      "language": "typescript",
+      "sizeLines": 123,
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/shared/AppShell.tsx",
+      "language": "typescript",
+      "sizeLines": 63,
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/Button.tsx",
+      "language": "typescript",
+      "sizeLines": 46,
+      "fileCategory": "code"
+    },
+    {
+      "path": "components/ui/ProgressIndicator.tsx",
+      "language": "typescript",
+      "sizeLines": 25,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/game/services/game-session.service.ts",
+      "language": "typescript",
+      "sizeLines": 21,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/(game)/quick/page.tsx",
+      "language": "typescript",
+      "sizeLines": 53,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/quick-mode/components/QuickModeScreen.tsx",
+      "language": "typescript",
+      "sizeLines": 130,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/quick-mode/hooks/useQuickMode.ts",
+      "language": "typescript",
+      "sizeLines": 252,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/quick-mode/lib/quick-mode-engine.ts",
+      "language": "typescript",
+      "sizeLines": 113,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/quick-mode/lib/quick-mode-storage.ts",
+      "language": "typescript",
+      "sizeLines": 34,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/quick-mode/lib/traits.ts",
+      "language": "typescript",
+      "sizeLines": 41,
+      "fileCategory": "code"
+    },
+    {
+      "path": "features/quick-mode/types.ts",
+      "language": "typescript",
+      "sizeLines": 102,
+      "fileCategory": "code"
+    },
+    {
+      "path": "app/styles/features/quick-mode.css",
+      "language": "css",
+      "sizeLines": 61,
+      "fileCategory": "markup"
+    },
+    {
+      "path": "middleware.ts",
+      "language": "typescript",
+      "sizeLines": 55,
       "fileCategory": "code"
     }
   ],
-  "totalFiles": 257,
-  "filteredByIgnore": 783,
-  "estimatedComplexity": "large",
-  "stats": {
-    "filesScanned": 257,
-    "byCategory": {
-      "config": 4,
-      "docs": 4,
-      "code": 237,
-      "markup": 10,
-      "data": 2
-    },
-    "byLanguage": {
-      "config": 1,
-      "markdown": 3,
-      "typescript": 234,
-      "css": 10,
-      "javascript": 2,
-      "txt": 1,
-      "json": 2,
-      "yaml": 1,
-      "prisma": 1,
-      "sql": 1,
-      "tsbuildinfo": 1
-    }
-  }
+  "totalFiles": 114,
+  "filteredByIgnore": 0,
+  "estimatedComplexity": "large"
 }
