@@ -12,6 +12,7 @@ export interface SpinnerItem {
   label: string;
   value: unknown;
   weight?: number;
+  active?: boolean;
 }
 
 interface Props {

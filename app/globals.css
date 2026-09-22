@@ -9,4 +9,5 @@
 @import "./styles/layout/responsive.css";
 @import "./styles/overrides/final-surface-cascade.css";
 @import "./styles/features/lobby-and-results.css";
+@import "./styles/features/quick-mode.css";
 @import "./styles/foundation/animations.css";

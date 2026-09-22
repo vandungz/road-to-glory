@@ -3,7 +3,7 @@
 import { motion, type MotionValue } from "framer-motion";
 
 export interface SpinnerWheelDiscProps {
-  items: { label: string; value: unknown; weight?: number }[];
+  items: { label: string; value: unknown; weight?: number; active?: boolean }[];
   arcSizes: number[];
   startAngles: number[];
   rotateValue: MotionValue<number>;
@@ -50,7 +50,7 @@ export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: 
               const isFullCircle = arcSize >= 359.999;
 
               return (
-                <g key={idx}>
+                <g key={idx} className={item.active === false ? "is-inactive" : "is-active"}>
                   {arcSize > 0 && (isFullCircle ? (
                     <circle
                       cx="100"
