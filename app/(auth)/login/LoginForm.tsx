@@ -16,7 +16,7 @@ function getErrorMessage(error: unknown, fallback: string) {
   return error instanceof Error && error.message ? error.message : fallback;
 }
 
-export function LoginForm({ initialError }: { initialError?: string }) {
+export function LoginForm({ initialError, nextPath = "/" }: { initialError?: string; nextPath?: string }) {
   const { replayToken } = useAuthMotion();
   const [mode, setMode] = useState<Mode>("login");
   const [view, setView] = useState<View>("form");
@@ -61,7 +61,7 @@ export function LoginForm({ initialError }: { initialError?: string }) {
           setError("Email hoặc mật khẩu không đúng.");
           return;
         }
-        window.location.href = "/";
+        window.location.href = nextPath;
         return;
       }
 

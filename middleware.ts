@@ -30,10 +30,11 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const pathname = request.nextUrl.pathname;
-  const isAuthRoute = pathname.startsWith("/login") || pathname.startsWith("/auth");
+  const isAuthRoute = pathname === "/login" || pathname.startsWith("/auth/");
+  const isPublicGameRoute = pathname === "/" || pathname === "/quick" || pathname === "/quick/play";
   const isDevPreview = process.env.NODE_ENV !== "production" && pathname.startsWith("/dev");
 
-  if (!user && !isAuthRoute && !isDevPreview) {
+  if (!user && !isAuthRoute && !isPublicGameRoute && !isDevPreview) {
     const loginUrl = new URL("/login", request.url);
     return NextResponse.redirect(loginUrl);
   }
