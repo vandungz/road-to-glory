@@ -9,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function LobbyPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const sessions = await getGameSessionsForUser(user!.id);
+  const sessions = user ? await getGameSessionsForUser(user.id) : [];
 
   return (
     <AppShell
@@ -17,7 +17,7 @@ export default async function LobbyPage() {
       userEmail={user?.email}
       footerAction={<ReplayMotionButton />}
     >
-      <Homepage sessions={sessions} />
+      <Homepage sessions={sessions} isAuthenticated={Boolean(user)} />
     </AppShell>
   );
 }
