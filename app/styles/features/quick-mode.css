@@ -173,6 +173,17 @@
 .football-quick-summary__journey::-webkit-scrollbar-thumb { border-radius: 999px; background: var(--football-ink-3); }
 .football-quick-summary__journey div { display: grid; gap: 3px; border-left: 2px solid var(--football-accent); padding: 7px 10px; }
 .football-quick-summary__journey strong { font-family: var(--font-headline); font-size: 17px; text-transform: uppercase; }
+.football-quick-summary__honours-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-top: 1px solid var(--football-rule); padding-top: 10px; }
+.football-quick-summary__honours-head span,
+.football-quick-summary__honours > div > span,
+.football-quick-summary__honours small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.football-quick-summary__honours-head strong { font-family: var(--font-headline); font-size: 16px; text-transform: uppercase; }
+.football-quick-summary__honours { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 8px; }
+.football-quick-summary__honours > div { display: grid; gap: 8px; border-left: 2px solid var(--football-accent); padding: 9px 10px; }
+.football-quick-summary__honours-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--football-rule); }
+.football-quick-summary__honours-grid div { display: grid; gap: 4px; background: var(--football-surface); padding: 7px 8px; }
+.football-quick-summary__honours-grid strong { font-family: var(--font-headline); font-size: 18px; }
+.football-quick-summary__honours-detail { line-height: 1.35; }
 .football-quick-summary__awards { display: grid; gap: 5px; border-top: 1px solid var(--football-rule); padding-top: 10px; }
 .football-quick-summary__awards strong { font-family: var(--font-headline); font-size: 18px; text-transform: uppercase; }
 .football-quick-summary__actions { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: stretch; gap: 12px; }
@@ -225,6 +236,10 @@
   .football-quick-summary__journey div { padding: 6px 8px; }
   .football-quick-summary__journey strong { font-size: 14px; }
   .football-quick-summary__journey small { font-size: 8px; line-height: 1.25; }
+  .football-quick-summary__honours { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .football-quick-summary__honours > div { padding: 7px 8px; }
+  .football-quick-summary__honours-grid strong { font-size: 15px; }
+  .football-quick-summary__honours small { font-size: 8px; line-height: 1.25; }
   .football-quick-summary__actions { grid-template-columns: 1fr; }
   .football-quick-summary__login-note { grid-template-columns: 1fr; grid-template-rows: auto; }
   .football-quick-summary__login-note strong,

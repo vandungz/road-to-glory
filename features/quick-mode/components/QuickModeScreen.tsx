@@ -28,6 +28,11 @@ function wheelLabel(item: { label?: string; value: unknown }) {
   return valueLabel(item.value);
 }
 
+function formatInternationalCups(types: string[]) {
+  const counts = types.reduce<Record<string, number>>((result, type) => ({ ...result, [type]: (result[type] ?? 0) + 1 }), {});
+  return Object.entries(counts).map(([type, count]) => count > 1 ? `${count}× ${type}` : type).join(" · ");
+}
+
 export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
   const quick = useQuickMode({ leagues, clubs });
   const { state, activeWheel } = quick;
@@ -47,8 +52,15 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
     );
   }
 
-  const currentProgress = state.phase === "setup" ? state.setupStep : state.phase === "career" ? state.careerStep : state.finaleStep;
-  const progressTotal = state.phase === "setup" ? SETUP_TOTAL : state.phase === "career" ? 12 : 6;
+  const internationalExtra = state.phase === "career" ? Math.max(0, (state.clubDraft.internationalCups ?? 0) - 1) : 0;
+  const currentProgress = state.phase === "setup"
+    ? state.setupStep
+    : state.phase === "career"
+      ? state.careerStep === 7
+        ? state.careerStep + state.clubDraft.internationalCupTypes.length
+        : state.careerStep >= 8 ? state.careerStep + internationalExtra : state.careerStep
+      : state.finaleStep;
+  const progressTotal = state.phase === "setup" ? SETUP_TOTAL : state.phase === "career" ? 12 + internationalExtra : 6;
   const readyToSpin = Boolean(activeWheel && quick.hydrated && !quick.isSpinning);
 
   return (
@@ -75,7 +87,7 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
             <ProgressIndicator current={currentProgress} total={progressTotal} label="Tiến trình" />
           </div>
 
-          {activeWheel && <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={quick.completeSpin} stakes={state.phase === "finale" ? "high" : "low"} items={activeWheel.items.map((item) => ({ label: wheelLabel(item), value: item.value, weight: item.weight, active: item.active }))} />}
+          {activeWheel && <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={quick.completeSpin} stakes={state.phase === "finale" ? "high" : "low"} items={activeWheel.items.map((item) => ({ label: wheelLabel(item), value: item.value, weight: activeWheel.key.startsWith("stat-") ? 1 : item.weight, active: item.active }))} />}
 
           <div className="football-quick-mode__action">
             <Button size="lg" onClick={quick.spin} disabled={!readyToSpin} loading={quick.isSpinning}>
@@ -93,7 +105,6 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
   const { state } = quick;
   const trait = state.player.trait;
   const yearsSpent = state.clubs.reduce((sum, club) => sum + club.seasons, 0);
-  const traitModifiers = trait?.modifiers ?? {};
 
   return (
     <aside className="football-quick-play__tracker" aria-label="Thông tin và chỉ số cầu thủ">
@@ -106,12 +117,10 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
       <div className="football-quick-play__stats">
         <span className="football-quick-play__tracker-label">Chỉ số</span>
         {quick.statKeys.map((key) => {
-          const bonus = traitModifiers[key] ?? 0;
           return (
             <div key={key}>
               <span>{quick.getQuickStatLabel(key)}</span>
               <strong>{state.player.stats[key] ?? "—"}</strong>
-              {bonus > 0 && <em>+{bonus}</em>}
             </div>
           );
         })}
@@ -146,7 +155,21 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
           <div key={`${club.clubId}-${club.clubIndex}`} role="listitem">
             <span>CLB {String(club.clubIndex + 1).padStart(2, "0")} · {club.leagueName}</span>
             <strong>{club.clubName}</strong>
-            <small>{club.seasons} mùa · {club.leagueTitles} giải · {club.domesticCups} cúp quốc nội · {club.internationalCups > 0 ? `${club.internationalCups} ${club.internationalCupType ?? "cúp quốc tế"}` : "0 cúp quốc tế"}</small>
+            <small>{club.seasons} mùa</small>
+          </div>
+        ))}
+      </div>
+      <div className="football-quick-summary__honours-head"><span>Danh hiệu</span><strong>Thành tích theo CLB</strong></div>
+      <div className="football-quick-summary__honours" role="list" aria-label="Danh hiệu theo từng CLB">
+        {state.clubs.map((club) => (
+          <div key={`${club.clubId}-${club.clubIndex}-honours`} role="listitem">
+            <span>CLB {String(club.clubIndex + 1).padStart(2, "0")} · {club.clubName}</span>
+            <div className="football-quick-summary__honours-grid">
+              <div><small>Giải quốc nội</small><strong>{club.leagueTitles}</strong></div>
+              <div><small>Cúp quốc nội</small><strong>{club.domesticCups}</strong></div>
+              <div><small>Cúp quốc tế</small><strong>{club.internationalCups}</strong></div>
+            </div>
+            {club.internationalCups > 0 && <small className="football-quick-summary__honours-detail">{formatInternationalCups(club.internationalCupTypes)}</small>}
           </div>
         ))}
       </div>
