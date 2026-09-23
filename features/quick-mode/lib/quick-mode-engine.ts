@@ -1,5 +1,5 @@
 import { getClubThreshold } from "@/lib/club-fit";
-import { generateContinuousWeights, CAREER_LENGTH_POOL, DEBUT_AGE_POOL } from "@/lib/wheel-engine/weight-calculator";
+import { DEBUT_AGE_POOL } from "@/lib/wheel-engine/weight-calculator";
 import type { WeightedItem } from "@/lib/wheel-engine/spin-resolver";
 import { getTraitPool } from "./traits";
 import type { QuickClubOption, QuickConfederation, QuickCountValue, QuickInternationalCupType, QuickLeagueOption, QuickPosition, QuickStatKey, QuickStats } from "../types";
@@ -75,11 +75,20 @@ export function isQuickLeagueEligible(league: QuickLeagueOption, stats: QuickSta
 }
 
 export function getStatPool(): WeightedItem<number>[] {
-  return generateContinuousWeights(1, 10);
+  return Array.from({ length: 10 }, (_, index) => ({ value: index + 1, weight: 1 }));
 }
 
 export function getClubCountPool(): WeightedItem<number>[] {
-  return [1, 2, 3, 4, 5].map((value, index) => ({ value, weight: [32, 27, 20, 13, 8][index] }));
+  return [1, 2, 3, 4, 5].map((value) => ({ value, weight: 1 }));
+}
+
+export function getQuickCareerLengthPool(): WeightedItem<number>[] {
+  return Array.from({ length: 16 }, (_, index) => ({ value: index + 10, weight: 1 }));
+}
+
+export function getImprovementCountPool(max: number): WeightedItem<number>[] {
+  const safeMax = Math.max(0, Math.floor(max));
+  return Array.from({ length: safeMax }, (_, index) => ({ value: index + 1, weight: 1 }));
 }
 
 export function getSeasonCountPool(max = 5): WeightedItem<number>[] {
@@ -96,8 +105,37 @@ export function getBoundedCountPool(max: number): WeightedItem<number>[] {
   return Array.from({ length: safeMax + 1 }, (_, value) => ({ value, weight: value === 0 ? 38 : Math.max(8, 30 - value * 5) }));
 }
 
+function getClubAchievementStrength(prestige: number, stats: QuickStats): number {
+  const clubStrength = clampUnit((prestige - 1) / 4);
+  const playerStrength = clampUnit((getQuickOverall(stats) - 50) / 50);
+  return clampUnit(clubStrength * 0.65 + playerStrength * 0.35);
+}
+
+function getAchievementCountPool(max: number, expectedRate: number): WeightedItem<number>[] {
+  const safeMax = Math.max(0, Math.floor(max));
+  if (safeMax === 0) return [{ value: 0, weight: 1 }];
+  const expected = safeMax * expectedRate;
+  const deviation = Math.max(1.2, Math.sqrt(safeMax * expectedRate * (1 - expectedRate)) * 1.35);
+  return Array.from({ length: safeMax + 1 }, (_, value) => ({
+    value,
+    weight: Math.max(1, Math.round(100 * Math.exp(-((value - expected) ** 2) / (2 * deviation * deviation)))),
+  }));
+}
+
+export function getLeagueTitlePool(seasons: number, prestige: number, stats: QuickStats): WeightedItem<number>[] {
+  const strength = getClubAchievementStrength(prestige, stats);
+  const expectedRate = 0.04 + strength * 0.54;
+  return getAchievementCountPool(seasons, expectedRate);
+}
+
+export function getDomesticCupPool(seasons: number, prestige: number, stats: QuickStats): WeightedItem<number>[] {
+  const strength = getClubAchievementStrength(prestige, stats);
+  const expectedRate = 0.1 + strength * 0.62;
+  return getAchievementCountPool(seasons, expectedRate);
+}
+
 export function getInternationalCountPool(max: number): WeightedItem<number>[] {
-  const safeMax = Math.min(5, Math.max(0, Math.floor(max)));
+  const safeMax = Math.max(0, Math.floor(max));
   if (safeMax === 0) return [{ value: 0, weight: 1 }];
   return Array.from({ length: safeMax }, (_, index) => ({ value: index + 1, weight: Math.max(8, 32 - index * 6) }));
 }
@@ -110,8 +148,10 @@ const INTERNATIONAL_CUP_POOLS: Record<QuickConfederation, QuickInternationalCupT
   CAF: ["CAF Champions League"],
 };
 
-export function getInternationalCupTypePool(confederation: QuickConfederation, prestige: number): WeightedItem<QuickInternationalCupType>[] {
-  return INTERNATIONAL_CUP_POOLS[confederation].map((value, index) => ({
+export function getInternationalCupTypePool(confederation: QuickConfederation, prestige: number, forceHighest = false): WeightedItem<QuickInternationalCupType>[] {
+  const pool = INTERNATIONAL_CUP_POOLS[confederation];
+  if (forceHighest) return [{ value: pool[0], weight: 1 }];
+  return pool.map((value, index) => ({
     value,
     weight: Math.max(1, prestige * 3 - index * 2),
   }));
@@ -139,40 +179,74 @@ function statValue(stats: QuickStats, key: QuickStatKey): number {
   return stats[key] ?? 5;
 }
 
-function achievementMultiplier(context: QuickCareerOutcomeContext): number {
-  return 1 + Math.min(0.28, context.leagueTitles * 0.02 + context.domesticCups * 0.006 + context.internationalCups * 0.04);
+interface QuickAchievementProfile {
+  leagueRate: number;
+  domesticCupRate: number;
+  internationalRate: number;
+  prestigeScore: number;
 }
 
-function getCareerCountWeights(values: (number | "1000+")[], expected: number): WeightedItem<number | "1000+">[] {
+function getAchievementProfile(context: QuickCareerOutcomeContext): QuickAchievementProfile {
+  const seasons = Math.max(1, context.careerLength);
+  const leagueRate = clampUnit(context.leagueTitles / seasons);
+  const domesticCupRate = clampUnit(context.domesticCups / seasons);
+  const internationalRate = clampUnit(context.internationalCups / seasons);
+  return {
+    leagueRate,
+    domesticCupRate,
+    internationalRate,
+    prestigeScore: clampUnit(leagueRate * 0.4 + domesticCupRate * 0.15 + internationalRate * 0.45),
+  };
+}
+
+function getCareerCountWeights(values: (number | "1000+")[], expected: number, prestigeScore: number): WeightedItem<number | "1000+">[] {
   const deviation = Math.max(42, expected * 0.42);
   return values.map((value) => {
-    if (value === "1000+") return { value, weight: Math.max(1, Math.round(expected > 650 ? (expected - 500) / 10 : 1)) };
+    if (value === "1000+") {
+      const openEndedWeight = expected > 650 ? (expected - 500) / 10 : 1;
+      return { value, weight: Math.max(1, Math.round(openEndedWeight * (1 + prestigeScore * 0.4))) };
+    }
     const distance = value - expected;
-    return { value, weight: Math.max(1, Math.round(100 * Math.exp(-(distance * distance) / (2 * deviation * deviation)))) };
+    const baseWeight = 100 * Math.exp(-(distance * distance) / (2 * deviation * deviation));
+    const relativeOutput = value / Math.max(75, expected);
+    const highOutputBias = 1 + prestigeScore * Math.max(0, relativeOutput - 0.8) * 0.35;
+    return { value, weight: Math.max(1, Math.round(baseWeight * highOutputBias)) };
   });
 }
 
 export function getGoalPool(position: QuickPosition, context: QuickCareerOutcomeContext): WeightedItem<number | "1000+">[] {
-  const scoringSkill = statValue(context.stats, "sho") * 0.45
+  const scoringSkill = statValue(context.stats, "sho") * 0.42
+    + statValue(context.stats, "dri") * 0.18
     + statValue(context.stats, "pac") * 0.15
-    + statValue(context.stats, "dri") * 0.15
-    + statValue(context.stats, "iq") * 0.15
-    + statValue(context.stats, "str") * 0.1;
-  const level = 0.35 + (scoringSkill / 10) * 0.95;
-  const expected = context.careerLength * 24 * GOAL_ROLE_FACTOR[position] * level * achievementMultiplier(context);
+    + statValue(context.stats, "iq") * 0.12
+    + statValue(context.stats, "str") * 0.08
+    + statValue(context.stats, "pas") * 0.05;
+  const achievement = getAchievementProfile(context);
+  const level = 0.3 + (scoringSkill / 10) * 1.05;
+  const achievementMultiplier = 1
+    + achievement.leagueRate * 0.12
+    + achievement.domesticCupRate * 0.04
+    + achievement.internationalRate * 0.18;
+  const expected = context.careerLength * 24 * GOAL_ROLE_FACTOR[position] * level * achievementMultiplier;
   const values: (number | "1000+")[] = [0, 25, 50, 75, 100, 150, 200, 300, 400, 500, 700, 1000, "1000+"];
-  return getCareerCountWeights(values, expected);
+  return getCareerCountWeights(values, expected, achievement.prestigeScore);
 }
 
 export function getAssistPool(position: QuickPosition, context: QuickCareerOutcomeContext): WeightedItem<number | "1000+">[] {
-  const creativeSkill = statValue(context.stats, "pas") * 0.45
-    + statValue(context.stats, "iq") * 0.25
-    + statValue(context.stats, "dri") * 0.2
-    + statValue(context.stats, "sho") * 0.1;
-  const level = 0.35 + (creativeSkill / 10) * 0.95;
-  const expected = context.careerLength * 18 * ASSIST_ROLE_FACTOR[position] * level * achievementMultiplier(context);
+  const creativeSkill = statValue(context.stats, "pas") * 0.42
+    + statValue(context.stats, "iq") * 0.28
+    + statValue(context.stats, "dri") * 0.18
+    + statValue(context.stats, "pac") * 0.07
+    + statValue(context.stats, "sho") * 0.05;
+  const achievement = getAchievementProfile(context);
+  const level = 0.3 + (creativeSkill / 10) * 1.05;
+  const achievementMultiplier = 1
+    + achievement.leagueRate * 0.1
+    + achievement.domesticCupRate * 0.06
+    + achievement.internationalRate * 0.15;
+  const expected = context.careerLength * 18 * ASSIST_ROLE_FACTOR[position] * level * achievementMultiplier;
   const values: (number | "1000+")[] = [0, 25, 50, 75, 100, 150, 200, 300, 400, 500, 700, 1000, "1000+"];
-  return getCareerCountWeights(values, expected);
+  return getCareerCountWeights(values, expected, achievement.prestigeScore);
 }
 
 export interface QuickBallonDorContext extends QuickCareerOutcomeContext {
@@ -270,12 +344,12 @@ const INDIVIDUAL_AWARDS = [
 
 export type QuickIndividualAwardItem = WeightedItem<string> & { active: boolean };
 
-export function getIndividualAwardPool(position: QuickPosition, usedAwards: string[]): QuickIndividualAwardItem[] {
+export function getIndividualAwardPool(position: QuickPosition, usedAwards: string[], goals: QuickCountValue | null = null, assists: QuickCountValue | null = null): QuickIndividualAwardItem[] {
   const available = INDIVIDUAL_AWARDS.filter((award) => !usedAwards.includes(award));
   return available.map((value) => ({
     value,
-    weight: isIndividualAwardActive(position, value) ? (isPositionAward(position, value) ? 3 : 1) : 1,
-    active: isIndividualAwardActive(position, value),
+    weight: isIndividualAwardActive(position, value, goals, assists) ? (isPositionAward(position, value) ? 3 : 1) : 1,
+    active: isIndividualAwardActive(position, value, goals, assists),
   }));
 }
 
@@ -286,11 +360,13 @@ function isPositionAward(position: QuickPosition, award: string): boolean {
   return false;
 }
 
-function isIndividualAwardActive(position: QuickPosition, award: string): boolean {
+function isIndividualAwardActive(position: QuickPosition, award: string, goals: QuickCountValue | null, assists: QuickCountValue | null): boolean {
   if (award === "Goalkeeper of the Year") return position === "GK";
   if (award === "Defender of the Year") return ["LB", "CB", "RB", "CDM"].includes(position);
   if (award === "Midfielder of the Year") return ["CDM", "CM", "CAM", "LM", "RM"].includes(position);
-  if (award === "Golden Boot" || award === "Playmaker of the Year") return position !== "GK";
+  if (award === "Golden Boot") return position !== "GK" && countValue(goals) > 0;
+  if (award === "Puskás Award") return countValue(goals) > 0;
+  if (award === "Playmaker of the Year") return position !== "GK" && countValue(assists) > 0;
   return true;
 }
 
@@ -305,4 +381,4 @@ export function getTraitItems(position: QuickPosition) {
   });
 }
 
-export { CAREER_LENGTH_POOL, DEBUT_AGE_POOL };
+export { DEBUT_AGE_POOL };

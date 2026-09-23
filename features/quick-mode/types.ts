@@ -65,7 +65,7 @@ export interface QuickClubJourney {
   leagueTitles: number;
   domesticCups: number;
   internationalCups: number;
-  internationalCupType: QuickInternationalCupType | null;
+  internationalCupTypes: QuickInternationalCupType[];
   improvements: QuickImprovement[];
 }
 
@@ -79,7 +79,7 @@ export interface QuickClubDraft {
   leagueTitles: number | null;
   domesticCups: number | null;
   internationalCups: number | null;
-  internationalCupType: QuickInternationalCupType | null;
+  internationalCupTypes: QuickInternationalCupType[];
   improvements: QuickImprovement[];
   improvementCount: number | null;
   improvementTarget: QuickStatKey | null;
@@ -94,7 +94,7 @@ export interface QuickFinale {
 }
 
 export interface QuickModeState {
-  version: 4;
+  version: 5;
   phase: QuickPhase;
   setupStep: number;
   careerClubIndex: number;

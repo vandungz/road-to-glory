@@ -5,21 +5,24 @@ import { resolveWeightedOutcome, type WeightedItem } from "@/lib/wheel-engine/sp
 import { getFlagEmoji } from "@/types/squad";
 import { applyTrait, getTraitPool } from "../lib/traits";
 import {
-  CAREER_LENGTH_POOL,
   DEBUT_AGE_POOL,
   getAssistPool,
   getBallonDorPool,
   getBoundedCountPool,
   getClubCountPool,
+  getDomesticCupPool,
   getGoalPool,
   getImprovementGatePool,
+  getImprovementCountPool,
   getIndividualAwardPool,
   getInternationalCountPool,
   getInternationalCupTypePool,
   getQuickOverall,
+  getLeagueTitlePool,
   getQuickStatKeys,
   getQuickStatLabel,
   getSeasonCountPool,
+  getQuickCareerLengthPool,
   getStatPool,
   getTraitGatePool,
   getTraitItems,
@@ -35,6 +38,7 @@ import type {
   QuickLeagueOption,
   QuickModeState,
   QuickPlayer,
+  QuickInternationalCupType,
   QuickStatKey,
   QuickStats,
 } from "../types";
@@ -75,7 +79,7 @@ const INITIAL_DRAFT: QuickClubDraft = {
   leagueTitles: null,
   domesticCups: null,
   internationalCups: null,
-  internationalCupType: null,
+  internationalCupTypes: [],
   improvements: [],
   improvementCount: null,
   improvementTarget: null,
@@ -91,7 +95,7 @@ const INITIAL_FINALE: QuickFinale = {
 
 function createInitialState(): QuickModeState {
   return {
-    version: 4,
+    version: 5,
     phase: "setup",
     setupStep: 0,
     careerClubIndex: 0,
@@ -117,7 +121,7 @@ function draftToJourney(draft: QuickClubDraft, clubIndex: number): QuickClubJour
     leagueTitles: draft.leagueTitles ?? 0,
     domesticCups: draft.domesticCups ?? 0,
     internationalCups: draft.internationalCups ?? 0,
-    internationalCupType: draft.internationalCupType,
+    internationalCupTypes: draft.internationalCupTypes.slice(0, Math.max(0, draft.internationalCups ?? 0)),
     improvements: draft.improvements,
   };
 }
@@ -203,7 +207,7 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
 
     if (state.phase === "setup") {
       if (state.setupStep === 0) return { key: "debut-age", label: "Tuổi debut", description: "Tuổi bạn bước vào bóng đá chuyên nghiệp.", items: DEBUT_AGE_POOL };
-      if (state.setupStep === 1) return { key: "career-length", label: "Độ dài sự nghiệp", description: "Bạn sẽ chơi chuyên nghiệp trong bao nhiêu mùa.", items: CAREER_LENGTH_POOL };
+      if (state.setupStep === 1) return { key: "career-length", label: "Độ dài sự nghiệp", description: "Bạn sẽ chơi chuyên nghiệp trong 10–25 mùa.", items: getQuickCareerLengthPool() };
       if (state.setupStep >= 2 && state.setupStep <= 8) {
         const key = getQuickStatKeys(player.position)[state.setupStep - 2];
         if (!key) return null;
@@ -237,24 +241,26 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
         const remainingYears = Math.max(1, (player.careerLength ?? 1) - getCareerYearsSpent(state));
         return { key: "club-seasons", label: "Số mùa tại CLB", description: `Còn ${remainingYears} năm trong sự nghiệp; các mùa còn lại sẽ được phân bổ cho các CLB tiếp theo.`, items: getCareerSeasonPool(state) };
       }
-      if (state.careerStep === 3) return { key: "league-titles", label: "Vô địch giải quốc nội", description: "Số lần nâng cúp vô địch quốc gia.", items: getBoundedCountPool(clubDraft.seasons ?? 1) };
-      if (state.careerStep === 4) return { key: "domestic-cups", label: "Cúp quốc nội", description: "Số cúp quốc nội giành được tại CLB.", items: getBoundedCountPool(clubDraft.seasons ?? 1) };
+      if (state.careerStep === 3) return { key: "league-titles", label: "Vô địch giải quốc nội", description: "Weight dựa trên prestige CLB, OVR và stats hiện tại của player.", items: getLeagueTitlePool(clubDraft.seasons ?? 1, clubDraft.prestige ?? 1, player.stats) };
+      if (state.careerStep === 4) return { key: "domestic-cups", label: "Cúp quốc nội", description: "Weight dựa trên prestige CLB, OVR và stats hiện tại của player.", items: getDomesticCupPool(clubDraft.seasons ?? 1, clubDraft.prestige ?? 1, player.stats) };
       if (state.careerStep === 5) {
-        const maxInternationalCups = Math.min(clubDraft.seasons ?? 1, clubDraft.leagueTitles ?? 0);
-        return { key: "international-gate", label: "Có vô địch cúp quốc tế?", description: maxInternationalCups > 0 ? "Nếu có, tiếp tục quay số lượng rồi mới chọn loại cúp.": "Chưa có chức vô địch giải quốc nội nên cúp quốc tế không khả dụng.", items: [{ value: "yes", label: "CÓ", weight: maxInternationalCups > 0 ? ((clubDraft.prestige ?? 1) >= 4 ? 55 : 25) : 0 }, { value: "no", label: "KHÔNG", weight: maxInternationalCups > 0 ? ((clubDraft.prestige ?? 1) >= 4 ? 45 : 75) : 100 }] };
+        const yesWeight = (clubDraft.prestige ?? 1) >= 4 ? 55 : 25;
+        return { key: "international-gate", label: "Có vô địch cúp quốc tế?", description: "Nếu có, tiếp tục quay số lượng rồi chọn loại cúp cho từng danh hiệu.", items: [{ value: "yes", label: "CÓ", weight: yesWeight }, { value: "no", label: "KHÔNG", weight: 100 - yesWeight }] };
       }
       if (state.careerStep === 6) {
-        const maxInternationalCups = Math.min(clubDraft.seasons ?? 1, clubDraft.leagueTitles ?? 0);
-        return { key: "international-cups", label: "Có bao nhiêu cúp quốc tế?", description: `Tối đa ${maxInternationalCups}, không vượt quá số lần vô địch giải quốc nội.`, items: getInternationalCountPool(maxInternationalCups) };
+        const maxInternationalCups = Math.max(1, clubDraft.seasons ?? 1);
+        return { key: "international-cups", label: "Có bao nhiêu cúp quốc tế?", description: `Tối đa ${maxInternationalCups}, theo số mùa tại CLB.`, items: getInternationalCountPool(maxInternationalCups) };
       }
       if (state.careerStep === 7) {
         const confederation = leagues.find((league) => league.id === clubDraft.leagueId)?.confederation ?? "UEFA";
-        return { key: "international-cup-type", label: "Loại cúp quốc tế", description: "Các cúp được chọn theo khu vực của giải.", items: getInternationalCupTypePool(confederation, clubDraft.prestige ?? 1) };
+        const forceHighest = (clubDraft.leagueTitles ?? 0) >= (clubDraft.seasons ?? 1);
+        const cupNumber = clubDraft.internationalCupTypes.length + 1;
+        return { key: "international-cup-type", label: `Loại cúp quốc tế ${cupNumber}/${clubDraft.internationalCups ?? 0}`, description: forceHighest ? "Bạn vô địch giải quốc nội ở mọi mùa: cúp quốc tế được tự động giới hạn ở hạng cao nhất khu vực." : "Mỗi danh hiệu quốc tế có một wheel chọn loại cúp theo khu vực.", items: getInternationalCupTypePool(confederation, clubDraft.prestige ?? 1, forceHighest) };
       }
       if (state.careerStep === 8) return { key: "improvement-gate", label: "Có tiến bộ tại CLB?", description: "Nếu có, tiếp tục quay số lượng stat và giá trị mới của từng stat.", items: getImprovementGatePool(getQuickOverall(player.stats)) };
       if (state.careerStep === 9) {
         const availableCount = Math.min(6, getImprovementStatPool(state).length);
-        return { key: "improvement-count", label: "Có bao nhiêu chỉ số tiến bộ?", description: "Mỗi chỉ số sẽ có một wheel giá trị riêng.", items: getBoundedCountPool(availableCount).filter((item) => item.value > 0) };
+        return { key: "improvement-count", label: "Có bao nhiêu chỉ số tiến bộ?", description: "Mỗi chỉ số sẽ có một wheel giá trị riêng; các lựa chọn có xác suất bằng nhau.", items: getImprovementCountPool(availableCount) };
       }
       if (state.careerStep === 10) {
         const available = getImprovementStatPool(state);
@@ -273,12 +279,12 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
       domesticCups: state.clubs.reduce((sum, club) => sum + club.domesticCups, 0),
       internationalCups: state.clubs.reduce((sum, club) => sum + club.internationalCups, 0),
     };
-    if (state.finaleStep === 0) return { key: "career-goals", label: "Bàn thắng sự nghiệp", description: "Trọng số dựa trên Shooting, Pace, Dribbling, IQ, vị trí, số năm và thành tích.", items: getGoalPool(player.position, outcomeContext) };
-    if (state.finaleStep === 1) return { key: "career-assists", label: "Kiến tạo sự nghiệp", description: "Trọng số dựa trên Passing, Football IQ, Dribbling, vị trí, số năm và thành tích.", items: getAssistPool(player.position, outcomeContext) };
+    if (state.finaleStep === 0) return { key: "career-goals", label: "Bàn thắng sự nghiệp", description: "Shooting, Dribbling, Pace, IQ, Strength, vị trí và tỷ lệ vô địch theo số mùa sẽ quyết định weight.", items: getGoalPool(player.position, outcomeContext) };
+    if (state.finaleStep === 1) return { key: "career-assists", label: "Kiến tạo sự nghiệp", description: "Passing, IQ, Dribbling, Pace, vị trí và tỷ lệ vô địch theo số mùa sẽ quyết định weight.", items: getAssistPool(player.position, outcomeContext) };
     if (state.finaleStep === 2) return { key: "ballon-dor", label: "Số lần Ballon d'Or", description: "Số lần thắng được cân theo OVR, output đúng vị trí, số mùa và thành tích tập thể.", items: getBallonDorPool({ ...outcomeContext, position: player.position, goals: state.finale.goals, assists: state.finale.assists }).map((item) => ({ ...item, label: `${item.value} LẦN` })) };
     if (state.finaleStep === 3) return { key: "other-awards-gate", label: "Giải cá nhân khác?", description: "Có thể là Golden Boot, Best XI hoặc những giải theo vị trí.", items: [{ value: "yes", label: "CÓ", weight: 52 }, { value: "no", label: "KHÔNG", weight: 48 }] };
     if (state.finaleStep === 4) return { key: "other-awards-count", label: "Có bao nhiêu loại giải?", description: "Sau đó bạn sẽ quay để biết chính xác tên từng giải.", items: getBoundedCountPool(5).filter((item) => item.value > 0) };
-    const awardItems = getIndividualAwardPool(player.position, state.finale.otherAwardTypes);
+    const awardItems = getIndividualAwardPool(player.position, state.finale.otherAwardTypes, state.finale.goals, state.finale.assists);
     return {
       key: "other-award-type",
       label: `Giải cá nhân ${state.finale.otherAwardTypes.length + 1}`,
@@ -328,7 +334,11 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
       }
 
       if (current.phase === "career") {
-        const draft = { ...current.clubDraft, improvements: [...current.clubDraft.improvements] };
+        const draft = {
+          ...current.clubDraft,
+          improvements: [...current.clubDraft.improvements],
+          internationalCupTypes: [...current.clubDraft.internationalCupTypes],
+        };
         if (current.careerStep === 0) {
           const league = result as QuickLeagueOption;
           draft.leagueId = league.id; draft.leagueName = league.name; draft.prestige = league.prestige; next.careerStep = 1;
@@ -339,14 +349,17 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
         } else if (current.careerStep === 3) { draft.leagueTitles = result as number; next.careerStep = 4;
         } else if (current.careerStep === 4) { draft.domesticCups = result as number; next.careerStep = 5;
         } else if (current.careerStep === 5) {
-          const maxInternationalCups = Math.min(draft.seasons ?? 1, draft.leagueTitles ?? 0);
-          if (result === "yes" && maxInternationalCups > 0) next.careerStep = 6;
-          else { draft.internationalCups = 0; draft.internationalCupType = null; next.careerStep = 8; }
+          if (result === "yes" && (draft.seasons ?? 0) > 0) next.careerStep = 6;
+          else { draft.internationalCups = 0; draft.internationalCupTypes = []; next.careerStep = 8; }
         } else if (current.careerStep === 6) {
           draft.internationalCups = result as number;
+          draft.internationalCupTypes = [];
           if (draft.internationalCups > 0) next.careerStep = 7;
-          else { draft.internationalCupType = null; next.careerStep = 8; }
-        } else if (current.careerStep === 7) { draft.internationalCupType = result as QuickClubDraft["internationalCupType"]; next.careerStep = 8;
+          else next.careerStep = 8;
+        } else if (current.careerStep === 7) {
+          const internationalCupTypes = [...draft.internationalCupTypes, result as QuickInternationalCupType];
+          draft.internationalCupTypes = internationalCupTypes;
+          next.careerStep = internationalCupTypes.length < (draft.internationalCups ?? 0) ? 7 : 8;
         } else if (current.careerStep === 8) {
           if (result === "yes" && getImprovementStatPool(current).length > 0) next.careerStep = 9;
           else return finalizeClub(next, draft, player);
