@@ -1,9 +1,14 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getCanonicalSiteUrl } from "@/lib/auth/site-url";
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url);
+  const { searchParams } = new URL(request.url);
+  const origin = getCanonicalSiteUrl(new Headers(request.headers));
   const code = searchParams.get("code");
+  const nextPath = searchParams.get("next") === "/auth/reset-password"
+    ? "/auth/reset-password"
+    : "/";
 
   if (code) {
     const supabase = await createClient();
@@ -13,5 +18,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/`);
+  return NextResponse.redirect(`${origin}${nextPath}`);
 }

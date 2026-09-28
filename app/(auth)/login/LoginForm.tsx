@@ -8,13 +8,10 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
 import { useAuthMotion } from "@/components/auth/AuthMotionContext";
 import { createClient } from "@/lib/supabase/client";
+import { loginAction, resendSignupAction, signUpAction } from "@/actions/auth.actions";
 
 type Mode = "login" | "register";
 type View = "form" | "confirm-email";
-
-function getErrorMessage(error: unknown, fallback: string) {
-  return error instanceof Error && error.message ? error.message : fallback;
-}
 
 export function LoginForm({ initialError, nextPath = "/" }: { initialError?: string; nextPath?: string }) {
   const { replayToken } = useAuthMotion();
@@ -52,34 +49,24 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     if (isPending) return;
     setError(null);
     setIsPending(true);
-    const supabase = createClient();
-
     try {
       if (mode === "login") {
-        const { error: authError } = await supabase.auth.signInWithPassword({ email, password });
-        if (authError) {
-          setError("Email hoặc mật khẩu không đúng.");
-          return;
-        }
+        const result = await loginAction({ email, password });
+        if (!result.success) { setError(result.error); return; }
         window.location.href = nextPath;
         return;
       }
 
-      const { error: authError } = await supabase.auth.signUp({
-        email,
-        password,
-        options: { emailRedirectTo: `${window.location.origin}/auth/callback` },
-      });
-      if (authError) {
-        setError(authError.message.includes("already registered")
-          ? "Email này đã được sử dụng. Vui lòng đăng nhập."
-          : authError.message);
+      const result = await signUpAction({ email, password });
+      if (!result.success) { setError(result.error); return; }
+      if (result.requiresEmailConfirmation === false) {
+        window.location.href = nextPath;
         return;
       }
       setView("confirm-email");
       startCooldown();
-    } catch (submitError) {
-      setError(getErrorMessage(submitError, "Không thể kết nối. Vui lòng thử lại."));
+    } catch {
+      setError("Không thể kết nối. Vui lòng thử lại.");
     } finally {
       setIsPending(false);
     }
@@ -94,9 +81,9 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
         provider: "google",
         options: { redirectTo: `${window.location.origin}/auth/callback` },
       });
-      if (authError) setError(getErrorMessage(authError, "Không thể đăng nhập với Google."));
-    } catch (oauthError) {
-      setError(getErrorMessage(oauthError, "Không thể đăng nhập với Google."));
+      if (authError) setError("Không thể đăng nhập với Google.");
+    } catch {
+      setError("Không thể đăng nhập với Google.");
     } finally {
       setIsPending(false);
     }
@@ -106,11 +93,11 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     if (cooldown > 0 || isResending) return;
     setIsResending(true);
     try {
-      const { error: resendError } = await createClient().auth.resend({ type: "signup", email });
-      if (resendError) throw resendError;
+      const result = await resendSignupAction(email);
+      if (!result.success) throw new Error(result.error);
       startCooldown();
-    } catch (resendError) {
-      setError(getErrorMessage(resendError, "Không thể gửi lại email."));
+    } catch {
+      setError("Không thể gửi lại email.");
     } finally {
       setIsResending(false);
     }
@@ -157,11 +144,11 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
 
         <div className="football-auth-field" data-anim key={`password-${replayToken}`}>
           <div className="football-auth-field__label-row">
-            <label htmlFor="football-pass">{isLogin ? "Mật khẩu" : "Mật khẩu · tối thiểu 6 ký tự"}</label>
+          <label htmlFor="football-pass">{isLogin ? "Mật khẩu" : "Mật khẩu · tối thiểu 8 ký tự"}</label>
             {isLogin && <Link href="/auth/reset-password">Quên mật khẩu?</Link>}
           </div>
           <div className="football-password-field">
-            <Input id="football-pass" type={showPassword ? "text" : "password"} required minLength={6} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
+            <Input id="football-pass" type={showPassword ? "text" : "password"} required minLength={isLogin ? 1 : 8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
             <IconButton type="button" className="football-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
               {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
             </IconButton>

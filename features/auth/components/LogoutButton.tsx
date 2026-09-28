@@ -1,16 +1,15 @@
 "use client";
 
 import { useState } from "react";
-import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/Button";
+import { logoutAction } from "@/actions/auth.actions";
 
 export function LogoutButton() {
   const [isPending, setIsPending] = useState(false);
 
   async function handleLogout() {
     setIsPending(true);
-    const supabase = createClient();
-    await supabase.auth.signOut();
+    await logoutAction();
     window.location.href = "/login";
   }
 

@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  poweredByHeader: false,
   // Keep Turbopack's mutable dev artifacts separate from production builds.
   // Running `next build` while a dev server is open otherwise lets both
   // processes write `.next/static/development`, which can remove a manifest

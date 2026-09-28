@@ -4,7 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
-import { createClient } from "@/lib/supabase/client";
+import { requestPasswordResetAction, updatePasswordAction } from "@/actions/auth.actions";
 
 export function ResetPasswordForm() {
   const [email, setEmail] = useState("");
@@ -16,12 +16,19 @@ export function ResetPasswordForm() {
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setPending(true); setError(null);
-    const supabase = createClient();
-    const result = password
-      ? await supabase.auth.updateUser({ password })
-      : await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/auth/reset-password` });
-    if (result.error) setError(result.error.message);
-    else setSent(true);
+    try {
+      if (password) {
+        const result = await updatePasswordAction(password);
+        if (!result.success) setError(result.error);
+        else setSent(true);
+      } else {
+        const result = await requestPasswordResetAction(email);
+        if (!result.success) setError(result.error);
+        else setSent(true);
+      }
+    } catch {
+      setError("Không thể hoàn tất yêu cầu. Vui lòng thử lại sau.");
+    }
     setPending(false);
   }
 

@@ -3,6 +3,9 @@
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 
+const isProduction = process.env.NODE_ENV === "production";
+const sessionCookieMaxAge = 60 * 60 * 24 * 7;
+
 export async function createClient() {
   const cookieStore = await cookies();
 
@@ -15,8 +18,16 @@ export async function createClient() {
         setAll: (cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) => {
           try {
             cookiesToSet.forEach(({ name, value, options }) =>
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              cookieStore.set(name, value, options as any)
+              cookieStore.set(name, value, {
+                ...options,
+                httpOnly: true,
+                secure: isProduction,
+                sameSite: "lax",
+                path: "/",
+                maxAge: typeof options?.maxAge === "number"
+                  ? Math.min(options.maxAge, sessionCookieMaxAge)
+                  : sessionCookieMaxAge,
+              } as Parameters<typeof cookieStore.set>[2])
             );
           } catch {
             // Server Component context — cookies can't be set, ignore
