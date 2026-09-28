@@ -32,7 +32,14 @@ const ratelimit = redis
     })
   : null;
 
-let warnedOnce = false;
+const authRatelimit = redis
+  ? new Ratelimit({
+      redis,
+      limiter: Ratelimit.slidingWindow(5, "15 m"),
+      analytics: true,
+      prefix: "rtg-auth-ratelimit",
+    })
+  : null;
 
 /**
  * Chặn 1 identifier (thường là user.id) gọi quá nhiều Server Action trong
@@ -42,20 +49,31 @@ let warnedOnce = false;
 export async function checkRateLimit(identifier: string): Promise<void> {
   if (!ratelimit) {
     if (process.env.NODE_ENV === "production") {
-      throw new Error("Rate limiting chưa được cấu hình cho production.");
-    }
-    if (!warnedOnce) {
-      console.warn(
-        "[rate-limit] UPSTASH_REDIS_REST_URL/TOKEN chưa được set — rate limiting đang TẮT. " +
-          "Xem lib/rate-limit.ts để biết cách bật."
-      );
-      warnedOnce = true;
+      throw new Error("Request protection is unavailable.");
     }
     return;
   }
 
   const { success } = await ratelimit.limit(identifier);
   if (!success) {
-    throw new Error("Quá nhiều yêu cầu — vui lòng thử lại sau ít phút.");
+    throw new Error("Too many requests. Please try again later.");
+  }
+}
+
+/**
+ * Login/signup throttling uses a shorter, separate window because the caller
+ * is not authenticated yet and therefore cannot be keyed by user id.
+ */
+export async function checkAuthRateLimit(identifier: string): Promise<void> {
+  if (!authRatelimit) {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("Request protection is unavailable.");
+    }
+    return;
+  }
+
+  const { success } = await authRatelimit.limit(identifier);
+  if (!success) {
+    throw new Error("Too many requests. Please try again later.");
   }
 }

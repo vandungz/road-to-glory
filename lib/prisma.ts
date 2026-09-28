@@ -5,6 +5,11 @@ import pg from "pg";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient; pool: pg.Pool };
 
+function sslRejectUnauthorized(): boolean {
+  if (process.env.NODE_ENV === "production") return true;
+  return process.env.PG_SSL_REJECT_UNAUTHORIZED !== "false";
+}
+
 function poolNumber(name: string, fallback: number, min: number, max: number): number {
   const parsed = Number.parseInt(process.env[name] ?? "", 10);
   return Number.isFinite(parsed) ? Math.min(max, Math.max(min, parsed)) : fallback;
@@ -16,8 +21,9 @@ function poolNumber(name: string, fallback: number, min: number, max: number): n
 // serverless instance.
 const pool = globalForPrisma.pool ?? new pg.Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
-  max: poolNumber("PG_POOL_MAX", 5, 1, 50),
+  ssl: { rejectUnauthorized: sslRejectUnauthorized() },
+  // Vercel may run many instances concurrently; keep each pool small.
+  max: poolNumber("PG_POOL_MAX", 3, 1, 10),
   connectionTimeoutMillis: poolNumber("PG_CONNECTION_TIMEOUT_MS", 10_000, 1_000, 60_000),
   idleTimeoutMillis: poolNumber("PG_IDLE_TIMEOUT_MS", 30_000, 1_000, 300_000),
   statement_timeout: poolNumber("PG_STATEMENT_TIMEOUT_MS", 15_000, 1_000, 120_000),
