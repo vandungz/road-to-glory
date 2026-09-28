@@ -115,8 +115,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       p.applySimResultToRecords(p.currentAge, simRes);
       p.setActiveModal("season_stats");
       p.setCareerSubStep("season_stats");
-    } catch (err) {
-      console.error("Error simulating season:", err);
+    } catch {
       p.setCareerSubStep("dir_increase");
     } finally {
       p.setIsProcessing(false);
@@ -159,10 +158,6 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       // Fail closed: never guess that a continental wheel exists when the V2
       // server did not authorize it. The next user action will resync through
       // the checkpoint conflict path instead of issuing a wrong wheel command.
-      console.error("Invalid authoritative competition transition", {
-        completedStep,
-        authoritativeNextStep,
-      });
       p.setApproachBanner?.("Không thể xác nhận bước thi đấu tiếp theo. Career sẽ được đồng bộ lại khi thử lại.");
       p.setIsProcessing(false);
       return;
@@ -191,8 +186,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           p.setCareerSubStep("domestic_cup");
           p.setIsProcessing(false);
         });
-      }).catch((err) => {
-        console.error("Error generating league table:", err);
+      }).catch(() => {
         updateCurrentSeasonRecord((record) => ({ ...record, standing: standingVal }));
         showCompetitionResultModal("league", () => {
           p.setCareerSubStep("domestic_cup");
@@ -234,8 +228,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       }).then((journey) => {
         updateCurrentSeasonRecord((record) => ({ ...record, domesticCup: cupVal, domesticCupJourney: journey }));
         advanceFromDomesticCup();
-      }).catch((err) => {
-        console.error("Error generating domestic cup journey:", err);
+      }).catch(() => {
         updateCurrentSeasonRecord((record) => ({ ...record, domesticCup: cupVal }));
         advanceFromDomesticCup();
       });
@@ -281,8 +274,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           continentalCupJourney: journey,
         }));
         advanceFromContinentalCup();
-      }).catch((err) => {
-        console.error("Error generating continental cup journey:", err);
+      }).catch(() => {
         updateCurrentSeasonRecord((record) => ({
           ...record,
           continentalCup: record.continentalCup
@@ -328,8 +320,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
           return { ...prev, [p.currentAge]: rec };
         });
         triggerSeasonStats(p.standingResult, p.domesticCupResult, p.continentalCupResult, p.nationalCallupResult, tournamentVal);
-      }).catch((err) => {
-        console.error("Error generating national team journey:", err);
+      }).catch(() => {
         triggerSeasonStats(p.standingResult, p.domesticCupResult, p.continentalCupResult, p.nationalCallupResult, tournamentVal);
       });
     }

@@ -111,10 +111,9 @@ export function useCareerCheckpointSync() {
     pendingSeasonStatsKeysRef.current.delete(requestKey);
     try {
       await hydrate(playerId);
-    } catch (hydrateError) {
+    } catch {
       // Preserve the original command error for the existing UI error path;
       // a later explicit retry can attempt hydration again.
-      console.error("Career conflict recovery hydration failed:", hydrateError);
     }
   }, [hydrate]);
 
@@ -123,8 +122,7 @@ export function useCareerCheckpointSync() {
     if (!playerId) return null;
     try {
       return await hydrate(playerId);
-    } catch (error) {
-      console.error("Career authoritative resync failed:", error);
+    } catch {
       return null;
     }
   }, [hydrate]);

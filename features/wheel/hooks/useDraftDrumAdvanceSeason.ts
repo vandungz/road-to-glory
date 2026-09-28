@@ -72,8 +72,7 @@ export function useDraftDrumAdvanceSeason({
     if (checkpointSync.isEnabled) {
       try {
         serverTransition = await checkpointSync.advanceSeason(shopDecision);
-      } catch (error) {
-        console.error("Career season transition failed:", error);
+      } catch {
         autoStartSeasonRef.current = false;
         setApproachBanner("Không thể chốt mùa giải — hãy thử lại.");
         setIsProcessing(false);
@@ -127,8 +126,7 @@ export function useDraftDrumAdvanceSeason({
           }
           statsProps.setSeasonRecords(persistedRecords);
         }
-      } catch (error) {
-        console.error("Final career summary hydration failed:", error);
+      } catch {
       }
     }
     if (isRetire || serverRetired) {

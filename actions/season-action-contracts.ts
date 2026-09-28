@@ -20,6 +20,54 @@ export interface SaveProgressParams {
   playersUpdate: PlayerUpdateInput[];
 }
 
+const legacyStatSnapshotSchema = z.object({
+  age: z.number().int().min(10).max(70),
+  ovr: z.number().int().min(1).max(99),
+}).catchall(z.number().finite().min(-1000).max(1000));
+
+const legacyClubStintSchema = z.object({
+  clubId: z.string().min(1).max(100),
+  clubName: z.string().min(1).max(200),
+  leagueId: z.string().min(1).max(100),
+  leagueName: z.string().min(1).max(200),
+  startAge: z.number().int().min(10).max(70),
+  endAge: z.number().int().min(10).max(70),
+  yearsAtClub: z.number().int().min(0).max(70),
+  ovrAtJoining: z.number().int().min(1).max(99),
+  ovrAtLeaving: z.number().int().min(1).max(99),
+  wageAtJoining: z.number().int().min(0).max(1_000_000).optional(),
+  feePaid: z.number().int().min(0).max(1_000_000_000).optional(),
+}).strict();
+
+const legacyEventSchema = z.record(
+  z.string().min(1).max(80),
+  z.union([z.string().max(500), z.number().finite().min(-1_000_000).max(1_000_000)]),
+);
+
+const legacyPlayerUpdateSchema = z.object({
+  id: z.string().uuid(),
+  statsTimeline: z.array(legacyStatSnapshotSchema).max(64),
+  clubStints: z.array(legacyClubStintSchema).max(64),
+  events: z.array(legacyEventSchema).max(256),
+  slotIndex: z.number().int().min(0).max(10),
+  currentContinentalCup: z.string().min(1).max(40).optional(),
+  contractYearsTotal: z.number().int().min(0).max(10).optional(),
+  contractYearsRemaining: z.number().int().min(0).max(10).optional(),
+  currentWageAnnual: z.number().int().min(0).max(1_000_000).optional(),
+  marketValue: z.number().int().min(0).max(1_000_000_000).optional(),
+  isUnemployed: z.boolean().optional(),
+}).strict();
+
+export const saveSeasonProgressSchema = z.object({
+  gameId: z.string().uuid(),
+  playersUpdate: z.array(legacyPlayerUpdateSchema).min(1).max(11),
+}).superRefine((value, context) => {
+  const ids = value.playersUpdate.map((player) => player.id);
+  if (new Set(ids).size !== ids.length) {
+    context.addIssue({ code: "custom", path: ["playersUpdate"], message: "Duplicate player id" });
+  }
+});
+
 export interface SeasonProgressUpdate {
   playerId: string;
   statsTimeline: StatSnapshot[];
@@ -189,12 +237,12 @@ export const resolveProactiveRenewalSchema = z.object({
 
 export const searchClubsForApproachSchema = z.object({
   currentClubId: z.string().nullable().optional(),
-  query: z.string().optional(),
-  leagueId: z.string().optional(),
-  prestigeMin: z.number().int().optional(),
-  prestigeMax: z.number().int().optional(),
-  page: z.number().int().default(1),
-  pageSize: z.number().int().default(8),
+  query: z.string().max(80).optional(),
+  leagueId: z.string().max(40).optional(),
+  prestigeMin: z.number().int().min(1).max(5).optional(),
+  prestigeMax: z.number().int().min(1).max(5).optional(),
+  page: z.number().int().min(1).max(1000).default(1),
+  pageSize: z.number().int().min(1).max(50).default(8),
   currentOvr: z.number().int(),
   currentStats: z.record(z.string(), z.number()).optional(),
   currentAge: z.number().int(),
@@ -259,5 +307,3 @@ export const evolvePlayerStatsSchema = z.object({
     delta: z.number().int(),
   })),
 });
-
-

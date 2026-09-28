@@ -13,16 +13,8 @@ interface Props {
   params: Promise<{ gameId: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { gameId } = await params;
-  const session = await prisma.gameSession.findUnique({
-    where: { id: gameId },
-    select: { name: true },
-  });
-
-  return {
-    title: session ? `${session.name} — Đội hình | Football Life` : "Đội hình | Football Life",
-  };
+export function generateMetadata(): Metadata {
+  return { title: "Đội hình | Football Life" };
 }
 
 export default async function ClassicSquadBoardPage({ params }: Props) {

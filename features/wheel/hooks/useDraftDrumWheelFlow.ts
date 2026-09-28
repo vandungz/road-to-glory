@@ -189,7 +189,6 @@ export function useDraftDrumWheelFlow({
           }
           setApproachBanner("Career đã được đồng bộ lại. Hãy tiếp tục từ bước hiện tại.");
         } else {
-          console.error("Career wheel checkpoint failed:", error);
           setApproachBanner("Không thể chốt kết quả — hãy thử lại.");
         }
         setIsProcessing(false);

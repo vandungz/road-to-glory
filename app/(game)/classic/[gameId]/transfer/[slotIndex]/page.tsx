@@ -12,10 +12,8 @@ interface Props {
   searchParams: Promise<{ return?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { gameId, slotIndex } = await params;
-  const player = await prisma.careerPlayer.findUnique({ where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex: Number(slotIndex) } }, select: { name: true } });
-  return { title: player ? `Chuyển nhượng — ${player.name} | Football Life` : "Chuyển nhượng | Football Life" };
+export function generateMetadata(): Metadata {
+  return { title: "Chuyển nhượng | Football Life" };
 }
 
 export default async function ClassicTransferPage({ params, searchParams }: Props) {

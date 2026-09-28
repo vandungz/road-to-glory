@@ -170,7 +170,6 @@ export function useDraftDrumTransferFlow({
       }
 
       if (res.accepted) {
-        console.log(`[Transfer Flow] Approach to ${club.clubName} ACCEPTED!`);
         setApproachBanner(`${club.clubName} đồng ý ký (${approachChancePercent(res.acceptChance)}%)`);
         // The approach only issues an offer. The user must still negotiate the
         // salary on the next screen; completing here made that step falsely
@@ -178,7 +177,6 @@ export function useDraftDrumTransferFlow({
         setTransferOffer(res.offer);
         return true;
       } else {
-        console.log(`[Transfer Flow] Approach to ${club.clubName} REJECTED.`);
         setApproachRejects((prev) => ({
           ...prev,
           [club.clubId]: { chance: res.acceptChance, reason: res.rejectReason },
@@ -188,8 +186,7 @@ export function useDraftDrumTransferFlow({
         );
         return false;
       }
-    } catch (err) {
-      console.error("Approach resolve failed:", err);
+    } catch {
       if (checkpointSync.isEnabled) await checkpointSync.resync();
       setApproachBanner("Không thể ngỏ lời — thử lại");
       return false;
@@ -247,18 +244,15 @@ export function useDraftDrumTransferFlow({
       }
 
       if (res.accepted) {
-        console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} ACCEPTED!`);
         setApproachBanner(`Gia hạn thành công với ${currentClub.name}!`);
         setTransferOffer(res.offer);
         return true;
       } else {
-        console.log(`[Transfer Flow] Proactive renewal with ${currentClub.name} REJECTED.`);
         setProactiveRenewalRejectedAge(currentAge);
         setApproachBanner(`Gia hạn không thành công — ${res.rejectReason}`);
         return false;
       }
-    } catch (err) {
-      console.error("Proactive renewal failed:", err);
+    } catch {
       if (checkpointSync.isEnabled) await checkpointSync.resync();
       setApproachBanner("Không thể gửi đề nghị gia hạn — thử lại");
       return false;

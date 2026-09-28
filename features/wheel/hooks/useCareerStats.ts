@@ -147,8 +147,7 @@ export function useCareerStats({ gameId, slotIndex, position }: UseCareerStatsPr
         matchRatingThisSeason: seasonRecords[currentAge]?.matchRating ?? 6.0,
         transferFeeThisSeason,
       });
-    } catch (err) {
-      console.error("Save player error:", err);
+    } catch {
       setIsSaving(false);
     }
   }

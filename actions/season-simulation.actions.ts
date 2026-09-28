@@ -20,8 +20,16 @@ async function requireAuth() { return requireAuthenticatedUser(); }
 async function verifyGameOwnership(gameId: string) { return requireGameOwnership(gameId); }
 
 export async function simulatePlayerSeasonAction(input: unknown): Promise<SimulatedSeasonResult> {
-  await requireAuth();
   const validated = simulatePlayerSeasonSchema.parse(input);
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
+  if (validated.playerId) {
+    const player = await prisma.careerPlayer.findUnique({
+      where: { id: validated.playerId },
+      select: { gameSession: { select: { userId: true } } },
+    });
+    if (!player || player.gameSession.userId !== user.id) throw new Error("Forbidden");
+  }
 
   const [leagueClubs, leagueRow] = await Promise.all([
     prisma.club.findMany({
@@ -63,7 +71,8 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
 }
 
 export async function generateLeagueTableAction(input: unknown): Promise<TableRow[]> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
   const validated = generateLeagueTableSchema.parse(input);
 
   const dbClubs = await prisma.club.findMany({
@@ -141,4 +150,3 @@ export async function startPlayerCareerAction(input: unknown): Promise<CareerSet
     }),
   };
 }
-

@@ -109,8 +109,7 @@ export function PersistentTransferSection({ market, currentClubId, currentClubNa
       try {
         const result = await searchRef.current({ currentClubId, query: query || undefined, leagueId: league === "all" ? undefined : league, prestigeMin: prestige === "all" ? undefined : Number(prestige), prestigeMax: prestige === "all" ? undefined : Number(prestige), page });
         if (active) setSearch({ ...result, clubs: result.clubs.filter((club) => club.clubId !== currentClubId && !excludedClubIds.has(club.clubId)) });
-      } catch (error) {
-        console.error("Failed to search transfer clubs:", error);
+      } catch {
       } finally {
         if (active) setIsSearching(false);
       }

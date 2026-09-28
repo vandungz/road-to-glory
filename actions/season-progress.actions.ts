@@ -10,7 +10,8 @@ import { checkRateLimit } from "@/lib/rate-limit";
 import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
 import { isShopItemAvailableForSeason, SHOP_CATALOG, type ShopInventoryEntry } from "@/lib/shop-catalog";
-import { seasonProgressUpdateSchema, type SaveProgressParams, type SeasonProgressUpdate } from "./season-action-contracts";
+import { assertLegacyWritesEnabled, assertOwnedLegacyPlayers } from "@/lib/career/legacy-write-policy";
+import { saveSeasonProgressSchema, seasonProgressUpdateSchema, type SeasonProgressUpdate } from "./season-action-contracts";
 import type { AchievementRecord, ClubStint, SeasonHistory, StatSnapshot } from "@/types/domain";
 import type { SeasonRecord } from "@/types/game";
 
@@ -18,26 +19,25 @@ async function verifyGameOwnership(gameId: string) {
   return requireGameOwnership(gameId);
 }
 
-export async function saveSeasonProgress(params: SaveProgressParams) {
-  const { gameId, playersUpdate } = params;
+export async function saveSeasonProgress(input: unknown) {
+  const { gameId, playersUpdate } = saveSeasonProgressSchema.parse(input);
   const owner = await verifyGameOwnership(gameId);
   await checkRateLimit(owner.id);
+  assertLegacyWritesEnabled();
 
-  const v2Players = await prisma.careerPlayer.count({
+  const ownedPlayers = await prisma.careerPlayer.findMany({
     where: {
       gameSessionId: gameId,
       id: { in: playersUpdate.map((player) => player.id) },
-      checkpointVersion: { gte: 2 },
     },
+    select: { id: true, checkpointVersion: true },
   });
-  if (v2Players > 0) {
-    throw new Error("Legacy season save không được phép ghi Career V2.");
-  }
+  assertOwnedLegacyPlayers(playersUpdate.map((player) => player.id), ownedPlayers);
 
-  await prisma.$transaction(
-    playersUpdate.map((player) =>
-      prisma.careerPlayer.update({
-        where: { id: player.id },
+  await prisma.$transaction(async (tx) => {
+    for (const player of playersUpdate) {
+      const result = await tx.careerPlayer.updateMany({
+        where: { id: player.id, gameSessionId: gameId, checkpointVersion: { lt: 2 } },
         data: {
           statsTimeline: player.statsTimeline,
           clubStints: player.clubStints as unknown as Prisma.InputJsonValue,
@@ -56,9 +56,10 @@ export async function saveSeasonProgress(params: SaveProgressParams) {
           ...(player.marketValue !== undefined ? { marketValue: player.marketValue } : {}),
           ...(player.isUnemployed !== undefined ? { isUnemployed: player.isUnemployed } : {}),
         },
-      })
-    )
-  );
+      });
+      if (result.count !== 1) throw new Error("Legacy career changed during save.");
+    }
+  });
 
   revalidatePath(`/${gameId}`);
   redirect(`/${gameId}`);
@@ -90,6 +91,7 @@ export async function updateSeasonProgressAction(
 
   const { id: userId } = await requireAuthenticatedUser();
   await checkRateLimit(userId);
+  assertLegacyWritesEnabled();
 
   const player = await prisma.careerPlayer.findUnique({
     where: { id: playerId },
@@ -294,6 +296,7 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
 
   const { id: userId } = await requireAuthenticatedUser();
   await checkRateLimit(userId);
+  assertLegacyWritesEnabled();
 
   return prisma.$transaction(async (tx) => {
     const player = await tx.careerPlayer.findUnique({
@@ -348,7 +351,6 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
 export async function completeGameSession(gameId: string) {
   const owner = await verifyGameOwnership(gameId);
   await checkRateLimit(owner.id);
-  console.log(`[completeGameSession] Completing game session: ${gameId}...`);
 
   const players = await prisma.careerPlayer.findMany({
     where: {

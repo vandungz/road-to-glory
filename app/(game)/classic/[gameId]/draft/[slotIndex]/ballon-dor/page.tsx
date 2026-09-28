@@ -38,13 +38,8 @@ function snapshotEntries(value: unknown): Array<Record<string, unknown>> {
   return Array.isArray(value) ? value.slice(0, TOP_TEN_LIMIT).filter(isRecord) : [];
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { gameId, slotIndex } = await params;
-  const player = await prisma.careerPlayer.findUnique({
-    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex: Number(slotIndex) } },
-    select: { name: true },
-  });
-  return { title: player ? `Quả Bóng Vàng — ${player.name} | Football Life` : "Quả Bóng Vàng | Football Life" };
+export function generateMetadata(): Metadata {
+  return { title: "Quả Bóng Vàng | Football Life" };
 }
 
 export default async function BallonDorResultPage({ params }: Props) {

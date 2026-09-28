@@ -13,6 +13,7 @@ import { setupDataForInit, verifyCareerSetupToken } from "@/features/career/serv
 import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerEntry } from "@/lib/wallet";
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
 import { normalizeClubStints } from "@/features/career/services/career-summary.service";
+import { assertLegacyWritesEnabled } from "@/lib/career/legacy-write-policy";
 
 // ============================================================
 // HELPERS
@@ -267,7 +268,6 @@ export async function saveCareerPlayer(input: unknown) {
     careerLength,
     statsTimeline,
     clubStints,
-    hiddenStats,
     contractYearsTotal,
     contractYearsRemaining,
     currentWageAnnual,
@@ -316,19 +316,16 @@ export async function saveCareerPlayer(input: unknown) {
     revalidatePath(`/${gameId}`);
     redirect(`/${gameId}`);
   }
+  assertLegacyWritesEnabled();
   const serverAchievements = (existing.achievements as unknown as import("@/types/domain").AchievementRecord | null) ?? {
     ballonDor: 0,
     trophies: [],
     seasonAwards: [],
   };
-  let resolvedHiddenStats = hiddenStats ?? null;
-  if (!resolvedHiddenStats) {
-    resolvedHiddenStats = (existing?.hiddenStats as z.infer<typeof hiddenStatsSchema> | null) ?? {
-      luckRating: 10,
-      professionalism: 10,
-      personality: "Balanced",
-    };
-  }
+  // Hidden stats are a server-only invariant. Keep the persisted value and
+  // never accept the legacy client copy, even when it passes the shape check.
+  const resolvedHiddenStats =
+    (existing?.hiddenStats as z.infer<typeof hiddenStatsSchema> | null) ?? createServerHiddenStats();
 
   // Wallet — final season's income (retirement checkpoint), server-authoritative.
   const income = computeSeasonWalletIncome({
@@ -382,7 +379,7 @@ export async function saveCareerPlayer(input: unknown) {
       statsTimeline,
       clubStints,
       events: [],
-      hiddenStats: resolvedHiddenStats,
+      hiddenStats: resolvedHiddenStats as unknown as Prisma.InputJsonValue,
       achievements: serverAchievements as unknown as Prisma.InputJsonValue,
       seasonHistory: seasonHistory ?? {},
       isRetired: true,
@@ -414,7 +411,6 @@ export async function saveCareerPlayer(input: unknown) {
       currentContinentalCup: params.currentContinentalCup ?? "none",
       statsTimeline,
       clubStints,
-      ...(hiddenStats ? { hiddenStats } : {}),
       achievements: serverAchievements as unknown as Prisma.InputJsonValue,
       ...(seasonHistory !== undefined ? { seasonHistory } : {}),
       isRetired: true,

@@ -184,7 +184,6 @@ export function useDraftDrumStartFlow({
       resetSeasonState(); setTransferOffer(null); setTransferMarket(null); setWillingToMove(false);
       setMode("career"); setCareerSubStep("idle");
     } catch (err) {
-      console.error("Error starting career:", err);
       setStartCareerError(
         err instanceof Error && err.message
           ? err.message
@@ -206,8 +205,7 @@ export function useDraftDrumStartFlow({
         if (typeof started?.seasonContinentalCup === "string") {
           applyAuthoritativeSeasonTicket(started.seasonContinentalCup);
         }
-      } catch (error) {
-        console.error("Career season start failed:", error);
+      } catch {
         setApproachBanner("Không thể bắt đầu mùa giải — hãy thử lại");
         setIsProcessing(false);
         return;

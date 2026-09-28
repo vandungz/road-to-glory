@@ -9,6 +9,8 @@ import { clubCanAffordBuyout, computeClubTransferFee, computeApproachAcceptChanc
 import { secureRandom } from "@/lib/secure-random";
 import { computeWageAgreementChance } from "@/lib/salary-negotiation";
 import { estimateAppsRatio } from "@/lib/club-fit";
+import { assertLegacyWritesEnabled } from "@/lib/career/legacy-write-policy";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { generateTransferMarketSchema, resolveProactiveRenewalSchema, searchClubsForApproachSchema, resolveShortlistApproachSchema, completeTransferSchema } from "./season-action-contracts";
 import type { ClubStint, StatSnapshot } from "@/types/domain";
 
@@ -16,7 +18,9 @@ async function verifyGameOwnership(gameId: string) { return requireGameOwnership
 async function requireAuth() { return requireAuthenticatedUser(); }
 
 export async function generateTransferMarketAction(input: unknown): Promise<TransferMarketResult> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
+  assertLegacyWritesEnabled();
   const validated = generateTransferMarketSchema.parse(input);
   const isUnemployed = validated.isUnemployed || !validated.currentClubId;
 
@@ -87,7 +91,9 @@ export async function generateTransferMarketAction(input: unknown): Promise<Tran
 }
 
 export async function resolveProactiveRenewalAction(input: unknown): Promise<ResolveProactiveRenewalResult> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
+  assertLegacyWritesEnabled();
   const validated = resolveProactiveRenewalSchema.parse(input);
   return resolveProactiveRenewalService({ ...validated, randomSource: secureRandom });
 }
@@ -97,7 +103,9 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
   totalCount: number;
   leagues: Array<{ id: string; name: string; tier: number }>;
 }> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
+  assertLegacyWritesEnabled();
   const validated = searchClubsForApproachSchema.parse(input);
 
   const where: Prisma.ClubWhereInput = {};
@@ -234,7 +242,9 @@ export async function searchClubsForApproachAction(input: unknown): Promise<{
 }
 
 export async function resolveShortlistApproachAction(input: unknown): Promise<ResolveApproachResult> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
+  assertLegacyWritesEnabled();
   const validated = resolveShortlistApproachSchema.parse(input);
   return resolveApproachService({ ...validated, randomSource: secureRandom });
 }
@@ -249,7 +259,9 @@ export async function completeTransferAction(input: unknown): Promise<{
   age: number;
 }> {
   const validated = completeTransferSchema.parse(input);
-  await verifyGameOwnership(validated.gameId);
+  const owner = await verifyGameOwnership(validated.gameId);
+  await checkRateLimit(owner.id);
+  assertLegacyWritesEnabled();
 
   const player = await prisma.careerPlayer.findFirst({
       where: { id: validated.playerId, gameSessionId: validated.gameId, slotIndex: validated.slotIndex, isRetired: false },

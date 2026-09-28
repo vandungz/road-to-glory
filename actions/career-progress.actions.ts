@@ -1,6 +1,7 @@
 "use server";
 
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
+import { checkRateLimit } from "@/lib/rate-limit";
 import {
   getCareerProgressSchema,
   type CareerProgressDto,
@@ -11,5 +12,6 @@ import { getCareerProgressQuery } from "@/features/career/services/career-progre
 export async function getCareerProgressAction(input: unknown): Promise<CareerProgressDto> {
   const { playerId } = getCareerProgressSchema.parse(input);
   const { id: userId } = await requireAuthenticatedUser();
+  await checkRateLimit(userId);
   return getCareerProgressQuery({ playerId, userId });
 }

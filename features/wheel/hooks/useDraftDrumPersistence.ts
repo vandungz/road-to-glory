@@ -136,7 +136,7 @@ export function useDraftDrumPersistence({
         statsProps.setInfluenceScore(result.influenceScore);
         statsProps.setShopInventory(result.shopInventory);
       })
-      .catch((err) => console.error("Background save failed:", err))
+      .catch(() => undefined)
       .finally(() => {
         saveInFlightRef.current = false;
         if (pendingSaveRef.current) {
@@ -162,8 +162,7 @@ export function useDraftDrumPersistence({
       statsProps.setInfluenceScore(result.influenceScore);
       statsProps.setShopInventory(result.shopInventory);
       return true;
-    } catch (err) {
-      console.error("Progress save before module navigation failed:", err);
+    } catch {
       return false;
     } finally {
       setIsProcessing(false);
@@ -211,7 +210,6 @@ export function useDraftDrumPersistence({
       statsProps.setShopInventory(result.shopInventory as ShopInventoryEntry[]);
       if ("revision" in result) checkpointSync.applyShopPurchase(result.revision);
     } catch (err) {
-      console.error("Purchase shop item failed:", err);
       if (checkpointSync.isEnabled) await checkpointSync.resync();
       throw err;
     } finally {

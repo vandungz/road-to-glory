@@ -13,13 +13,8 @@ interface Props {
   searchParams: Promise<{ season?: string; return?: string }>;
 }
 
-export async function generateMetadata({ params }: Props): Promise<Metadata> {
-  const { gameId, slotIndex } = await params;
-  const player = await prisma.careerPlayer.findUnique({
-    where: { gameSessionId_slotIndex: { gameSessionId: gameId, slotIndex: Number(slotIndex) } },
-    select: { name: true },
-  });
-  return { title: player ? `Cửa hàng — ${player.name} | Football Life` : "Cửa hàng | Football Life" };
+export function generateMetadata(): Metadata {
+  return { title: "Cửa hàng | Football Life" };
 }
 
 export default async function ClassicShopPage({ params, searchParams }: Props) {

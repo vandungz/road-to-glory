@@ -47,8 +47,7 @@ export async function createGameSession(
         status: "in_progress",
       },
     });
-  } catch (err) {
-    console.error("[createGameSession] DB error:", err);
+  } catch {
     return {
       success: false,
       error: "Không thể tạo squad. Vui lòng thử lại.",

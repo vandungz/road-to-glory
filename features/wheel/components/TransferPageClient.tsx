@@ -118,8 +118,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
         setFailedWageOptions(result.pendingNegotiation?.failedWageOptions ?? []);
         setDeal("standard");
       }
-    }).catch((error) => {
-      console.error("Failed to load transfer market:", error);
+    }).catch(() => {
       if (active) setApproachBanner("Không thể mở cửa sổ chuyển nhượng — thử tải lại trang.");
     }).finally(() => {
       if (active) setIsLoading(false);
@@ -282,8 +281,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
         expectedRevision: input.revision,
         clubId: null,
       });
-    } catch (error) {
-      console.error("Failed to clear transfer offer selection:", error);
+    } catch {
     }
   }
 

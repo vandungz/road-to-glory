@@ -86,7 +86,6 @@ export function useDraftDrumTransferCommit({
         },
       };
     } catch (error) {
-      console.error("Transfer completion command failed:", error);
       if (checkpointSync.isEnabled) await checkpointSync.resync();
       const message = error instanceof Error ? error.message : "";
       const cancelled = message.includes("thương vụ") || message.includes("đã bị hủy");
@@ -120,7 +119,6 @@ export function useDraftDrumTransferCommit({
     offer: ContractOfferCard,
     wageOption: WageDealOption = "standard",
   ): Promise<TransferDealResolution> {
-    console.log("[Transfer Flow] User accepted offer:", offer.clubName, offer);
     const ownsProcessing = !isProcessing;
     if (ownsProcessing) setIsProcessing(true);
     try {
@@ -162,7 +160,6 @@ export function useDraftDrumTransferCommit({
 
   async function handleRejectTransferWindow() {
     if (isProcessing) return;
-    console.log("[Transfer Flow] User bypassed/rejected transfer window. Staying at current club. Transitioning careerSubStep to 'resolved'.");
     const remaining = transferMarket?.contract.yearsRemaining ?? statsProps.contractYearsRemaining;
     const fa = remaining <= 0 || statsProps.isUnemployed || !currentClub;
     if (checkpointSync.isEnabled) {
@@ -183,8 +180,7 @@ export function useDraftDrumTransferCommit({
           kind: "stay",
         });
         checkpointSync.applyTransferCompletion(result);
-      } catch (error) {
-        console.error("Stay transfer command failed:", error);
+      } catch {
         await checkpointSync.resync();
         setApproachBanner("Không thể chốt ở lại — hãy thử lại.");
         setIsProcessing(false);

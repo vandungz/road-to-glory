@@ -150,8 +150,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         p.setTransferOffer(res.inbound[0] ?? res.renewal ?? null);
         p.setCareerSubStep("transfer");
       }
-    } catch (err) {
-      console.error("Error checking transfer market:", err);
+    } catch {
       // A failed authoritative market lookup must not silently skip the
       // transfer step. Keep the persisted step visible so the user can retry.
       if (p.serverAuthoritativeGrowth && p.checkpointVersion !== undefined && p.checkpointVersion >= 2) {
@@ -242,8 +241,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
               p.setCurrentOvr(res.nextOvr);
               triggerTransferCheck({ overrideOvr: res.nextOvr, overrideStats: res.nextStats });
             })
-            .catch((err) => {
-              console.error("Error evolving player stats on backend:", err);
+            .catch(() => {
               triggerTransferCheck();
             });
         }

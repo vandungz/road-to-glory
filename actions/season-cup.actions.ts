@@ -3,6 +3,7 @@
 import { unstable_cache } from "next/cache";
 import { prisma } from "@/lib/prisma";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
+import { checkRateLimit } from "@/lib/rate-limit";
 import { generateDomesticCupJourneyService, generateContinentalCupJourneyService, generateNationalTeamJourneyService } from "@/features/season/services/cup-journey.service";
 import { evolvePlayerStatsService, type StatsEvolutionResult } from "@/features/player/services/stats-evolution.service";
 import { generateCupJourneySchema, evolvePlayerStatsSchema } from "./season-action-contracts";
@@ -53,7 +54,8 @@ const getCachedClubCountry = unstable_cache(
 async function requireAuth() { return requireAuthenticatedUser(); }
 
 export async function generateCupJourneyAction(input: unknown): Promise<string[]> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
   const validated = generateCupJourneySchema.parse(input);
 
   if (validated.type === "domestic") {
@@ -117,7 +119,8 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
 }
 
 export async function evolvePlayerStatsAction(input: unknown): Promise<StatsEvolutionResult> {
-  await requireAuth();
+  const user = await requireAuth();
+  await checkRateLimit(user.id);
   const validated = evolvePlayerStatsSchema.parse(input);
   return evolvePlayerStatsService(validated);
 }

@@ -110,10 +110,9 @@ export function useDraftDrumHydration({
         .then(async (player) => {
           if (controller.signal.aborted || !player) return;
           const playerRecord = player as unknown as ResumeCareerPlayer;
-          const progress = await checkpointSync.hydrate(savedPlayerId).catch((error) => {
+          const progress = await checkpointSync.hydrate(savedPlayerId).catch(() => {
             // Legacy rows can still be opened while the projection is being
             // rolled out. Keep the old resume path if the V2 read is unavailable.
-            console.error("Career checkpoint hydration failed:", error);
             if ((playerRecord.checkpointVersion ?? 1) >= 2) {
               // Do not fall back to client RNG for a V2 career when its
               // authoritative read failed. The transport stays enabled and
@@ -263,8 +262,7 @@ export function useDraftDrumHydration({
               const committed = await checkpointSync.commitSeasonStats();
               restoredYearResult = committed.seasonStats;
               restoredStep = committed.nextStep as CareerSubStep;
-            } catch (error) {
-              console.error("Resume season stats commit failed:", error);
+            } catch {
             }
           }
           if (restoredYearResult && typeof restoredYearResult === "object" && !Array.isArray(restoredYearResult)) {
