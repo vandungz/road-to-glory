@@ -3,6 +3,14 @@
 import "dotenv/config";
 import { defineConfig } from "prisma/config";
 
+const directUrl = process.env["DIRECT_URL"]?.trim();
+const runtimeUrl = process.env["DATABASE_URL"]?.trim();
+const isDatabaseCommand = process.argv.some((argument) => argument === "migrate" || argument === "db");
+
+if (isDatabaseCommand && !directUrl) {
+  throw new Error("DIRECT_URL is required for Prisma database commands; refusing to use DATABASE_URL as a migration credential.");
+}
+
 export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: {
@@ -10,6 +18,9 @@ export default defineConfig({
     seed: "npx tsx prisma/seed.ts",
   },
   datasource: {
-    url: process.env["DATABASE_URL"],
+    // DIRECT_URL is a migration-only direct connection supplied by the
+    // deployment/admin runner. DATABASE_URL is only a generate-time fallback;
+    // database commands fail above when DIRECT_URL is absent.
+    url: directUrl ?? runtimeUrl,
   },
 });
