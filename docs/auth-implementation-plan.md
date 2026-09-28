@@ -452,7 +452,10 @@ CREATE POLICY "Users can only access players in their sessions"
   );
 ```
 
-**Lưu ý**: RLS dùng `anon key`. Các server actions dùng `service_role key` sẽ bypass RLS — đó là lý do ownership check trong Server Actions là primary defense, còn RLS là backup.
+**Lưu ý**: RLS/Data API dùng `anon`/`authenticated` roles. Source hiện tại không
+dùng `service_role` key cho Server Actions; gameplay data access đi qua Prisma
+runtime role. Ownership check trong Server Actions vẫn là primary per-user
+defense, còn database role/RLS boundary là defense in depth.
 
 ---
 

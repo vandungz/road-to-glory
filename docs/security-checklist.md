@@ -44,9 +44,11 @@ mọi Server Action đã có auth check, không cần sửa gì thêm.
 **Hiện đang NO-OP** (không chặn gì) vì chưa có `UPSTASH_REDIS_REST_URL`/
 `UPSTASH_REDIS_REST_TOKEN`. Để bật:
 
-1. Tạo free database tại https://console.upstash.com
-2. Copy "REST URL" + "REST TOKEN"
-3. Vercel Project Settings → Environment Variables → thêm 2 biến trên
+1. Tạo Redis database tại [Upstash Console](https://console.upstash.com) — đây là
+   dịch vụ riêng, không nằm trong Supabase Postgres.
+2. Copy "REST URL" + "REST TOKEN" từ tab Details/Connect
+3. Vercel Project Settings → Environment Variables → thêm 2 biến trên, theo từng
+   environment Preview/Production
 4. Redeploy — rate limit tự động có hiệu lực (30 request/60 giây/user), không cần
    sửa code.
 
@@ -54,17 +56,27 @@ mọi Server Action đã có auth check, không cần sửa gì thêm.
 
 ## ⚠️ Chưa fix — cần bạn tự làm (ngoài phạm vi code repo)
 
-### 4. RLS (Row Level Security) — file `supabase/rls-lockdown.sql` đã chuẩn bị sẵn
+### 4. RLS (Row Level Security) và Data API
 
-5 bảng (`career_players`, `game_sessions`, `leagues`, `clubs`, `national_teams`) đang
-tắt RLS → `anon key` (công khai trong bundle client) có thể gọi thẳng PostgREST REST
-API của Supabase để đọc/ghi toàn bộ dữ liệu, bỏ qua hoàn toàn app. Nghiêm trọng nhất
-là `career_players` — RLS tắt làm lộ cả cột `hiddenStats` vốn được code cẩn thận giấu
-khỏi client (invariant #2).
+Source hiện tại dùng Prisma cho toàn bộ data access và Supabase client cho Auth;
+không có `supabase.from(...)` hoặc browser Data API query cho các bảng career.
+Vì vậy app cần một role runtime riêng, còn `anon`/`authenticated` không cần
+quyền truy cập các bảng ứng dụng.
 
-**Cách fix**: chạy `supabase/rls-lockdown.sql` qua Supabase Dashboard → SQL Editor.
-An toàn tuyệt đối — app dùng Prisma kết nối trực tiếp (bypass RLS hoàn toàn), nên bật
-RLS deny-all không ảnh hưởng gì tới app đang chạy.
+Migration RLS hiện tại:
+
+- giữ nguyên owner/admin path của Supabase;
+- revoke table grants khỏi `PUBLIC`, `anon` và `authenticated`;
+- grant DML cho các bảng game mutable và chỉ `SELECT` cho catalog;
+- bật RLS nhưng không bật `FORCE ROW LEVEL SECURITY`, để Dashboard/Table Editor
+  và migration admin path không bị policy runtime chặn;
+- khóa `_prisma_migrations` khỏi Data API.
+
+Đây là role boundary, không phải user-level RLS policy. Ownership/IDOR vẫn phải
+được enforce trong Server Actions như source hiện tại. Chạy migration qua
+Prisma/CI hoặc dùng bản SQL manual, không chạy cả hai như hai production change.
+Trước public phải audit `pg_default_acl`/Data API default privileges để bảng mới
+không tự mở quyền cho `anon` hoặc `authenticated`.
 
 ### 5. Leaked Password Protection
 
@@ -79,7 +91,8 @@ liên quan code.
 - **Load testing / stress test** — chưa từng chạy.
 - **Error monitoring** (Sentry hoặc tương đương) — chưa tích hợp, lỗi runtime hiện chỉ
   log ra console (mất khi serverless function kết thúc).
-- **CORS / CSP headers** — chưa audit.
+- **CORS / CSP headers** — CSP/security headers đã có trong middleware; cần verify
+  trên deployed HTTPS domain.
 - **Secrets rotation policy** — chưa có quy trình xoay `DATABASE_URL`/service keys định kỳ.
 - Xem thêm bảng "Các vi phạm hiện tại" trong `.claude/CLAUDE.md` — mục
   `lib/simulation-engine/match-simulator.ts` (dead code) vẫn còn tồn đọng, không phải
