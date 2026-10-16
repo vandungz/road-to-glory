@@ -1,4 +1,4 @@
-import { Ratelimit } from "@upstash/ratelimit";
+import { Ratelimit, type Duration } from "@upstash/ratelimit";
 import { Redis } from "@upstash/redis";
 
 // Rate limit dùng Upstash Redis — cần thiết cho serverless (Vercel) vì mỗi
@@ -32,13 +32,40 @@ const ratelimit = redis
     })
   : null;
 
-const authRatelimit = redis
-  ? new Ratelimit({
-      redis,
-      limiter: Ratelimit.slidingWindow(5, "15 m"),
-      analytics: true,
-      prefix: "rtg-auth-ratelimit",
-    })
+export type AuthRateLimitOperation =
+  | "login"
+  | "login-failure"
+  | "signup"
+  | "password-reset"
+  | "resend-confirmation";
+
+const authRateLimitConfig: Record<
+  AuthRateLimitOperation,
+  { limit: number; window: Duration }
+> = {
+  // This is a request guard. Successful logins may consume it, but they do
+  // not consume the separate login-failure budget or any other auth budget.
+  login: { limit: 10, window: "15 m" },
+  // Failed credentials are intentionally much tighter than normal login
+  // traffic. This bucket is recorded only after Supabase rejects credentials.
+  "login-failure": { limit: 5, window: "15 m" },
+  signup: { limit: 3, window: "15 m" },
+  "password-reset": { limit: 3, window: "15 m" },
+  "resend-confirmation": { limit: 3, window: "15 m" },
+};
+
+const authRatelimits = redis
+  ? Object.fromEntries(
+      Object.entries(authRateLimitConfig).map(([operation, config]) => [
+        operation,
+        new Ratelimit({
+          redis,
+          limiter: Ratelimit.slidingWindow(config.limit, config.window),
+          analytics: true,
+          prefix: `rtg-auth-ratelimit:${operation}`,
+        }),
+      ]),
+    ) as Record<AuthRateLimitOperation, Ratelimit>
   : null;
 
 export class AuthRateLimitError extends Error {
@@ -74,15 +101,18 @@ export async function checkRateLimit(identifier: string): Promise<void> {
  * Login/signup throttling uses a shorter, separate window because the caller
  * is not authenticated yet and therefore cannot be keyed by user id.
  */
-export async function checkAuthRateLimit(identifier: string): Promise<void> {
-  if (!authRatelimit) {
+export async function checkAuthRateLimit(
+  operation: AuthRateLimitOperation,
+  identifier: string,
+): Promise<void> {
+  if (!authRatelimits) {
     if (process.env.NODE_ENV === "production") {
       throw new Error("Request protection is unavailable.");
     }
     return;
   }
 
-  const { success, reset } = await authRatelimit.limit(identifier);
+  const { success, reset } = await authRatelimits[operation].limit(identifier);
   if (!success) {
     throw new AuthRateLimitError(reset);
   }

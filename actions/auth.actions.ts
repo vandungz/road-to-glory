@@ -3,7 +3,10 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { AuthRateLimitError, checkAuthRateLimit } from "@/lib/rate-limit";
+import {
+  AuthRateLimitError,
+  checkAuthRateLimit,
+} from "@/lib/rate-limit";
 import { getCanonicalSiteUrl } from "@/lib/auth/site-url";
 
 const loginCredentialsSchema = z.object({
@@ -34,11 +37,24 @@ function getClientIp(requestHeaders: Headers): string {
   return (forwardedIp || "unknown").slice(0, 128);
 }
 
-async function checkCredentialRateLimit(email: string): Promise<void> {
+async function checkAuthOperationRateLimit(
+  operation: "login" | "signup" | "password-reset" | "resend-confirmation",
+  email: string,
+): Promise<{ ip: string }> {
   const requestHeaders = await headers();
   const ip = getClientIp(requestHeaders);
-  await checkAuthRateLimit(`ip:${ip}`);
-  await checkAuthRateLimit(`email:${email}`);
+  await Promise.all([
+    checkAuthRateLimit(operation, `ip:${ip}`),
+    checkAuthRateLimit(operation, `email:${email}`),
+  ]);
+  return { ip };
+}
+
+async function recordLoginFailureRateLimit(ip: string, email: string): Promise<void> {
+  await Promise.all([
+    checkAuthRateLimit("login-failure", `ip:${ip}`),
+    checkAuthRateLimit("login-failure", `email:${email}`),
+  ]);
 }
 
 function genericAuthError(): AuthActionResult {
@@ -72,10 +88,18 @@ export async function loginAction(input: unknown): Promise<AuthActionResult> {
   if (!parsed.success) return genericAuthError();
 
   try {
-    await checkCredentialRateLimit(parsed.data.email);
+    const { ip } = await checkAuthOperationRateLimit("login", parsed.data.email);
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
-    return error ? genericAuthError() : { success: true };
+    if (error) {
+      // Only invalid-credential responses count toward the stricter failure
+      // budget. Provider/network failures must not lock out real users.
+      if (error.status === 400 || error.status === 401) {
+        await recordLoginFailureRateLimit(ip, parsed.data.email);
+      }
+      return genericAuthError();
+    }
+    return { success: true };
   } catch (error) {
     return authActionError(error);
   }
@@ -86,7 +110,7 @@ export async function signUpAction(input: unknown): Promise<AuthActionResult> {
   if (!parsed.success) return genericAuthError();
 
   try {
-    await checkCredentialRateLimit(parsed.data.email);
+    await checkAuthOperationRateLimit("signup", parsed.data.email);
     const supabase = await createClient();
     const siteUrl = getCanonicalSiteUrl(await headers());
     const { data, error } = await supabase.auth.signUp({
@@ -105,7 +129,7 @@ export async function requestPasswordResetAction(input: unknown): Promise<AuthAc
   if (!parsed.success) return genericAuthError();
 
   try {
-    await checkCredentialRateLimit(parsed.data);
+    await checkAuthOperationRateLimit("password-reset", parsed.data);
     const supabase = await createClient();
     const siteUrl = getCanonicalSiteUrl(await headers());
     const { error } = await supabase.auth.resetPasswordForEmail(parsed.data, {
@@ -122,7 +146,7 @@ export async function resendSignupAction(input: unknown): Promise<AuthActionResu
   if (!parsed.success) return genericAuthError();
 
   try {
-    await checkCredentialRateLimit(parsed.data);
+    await checkAuthOperationRateLimit("resend-confirmation", parsed.data);
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({ type: "signup", email: parsed.data });
     return error ? genericAuthError() : { success: true };

@@ -351,8 +351,15 @@ UPSTASH_REDIS_REST_TOKEN
 
 6. Redeploy Production.
 
-Source hiện giới hạn auth ở 5 request/15 phút theo IP và email. Sau khi bị giới
-hạn, UI phải nói rõ thời gian chờ; đừng thử liên tục vì sẽ tự gia hạn counter.
+Source hiện tách limiter auth theo từng hành động: login request guard 10/15 phút,
+login thất bại 5/15 phút, signup 3/15 phút, password reset 3/15 phút và resend
+confirmation 3/15 phút. Mỗi hành động có bucket IP và email riêng; login thành
+công không tiêu thụ bucket signup, reset, resend hoặc login-failure. Key trong Redis
+sẽ bắt đầu bằng `rtg-auth-ratelimit:login`, `:login-failure`, `:signup`,
+`:password-reset` hoặc `:resend-confirmation`, sau đó mới tới identifier IP/email.
+Các key cũ bắt đầu bằng `rtg-auth-ratelimit:` không có operation có thể hết hạn tự
+nhiên và không được đọc bởi code mới. Sau khi bị giới hạn, UI phải nói rõ thời gian
+chờ; đừng thử liên tục vì sẽ tự gia hạn counter.
 
 ## 8. Deploy và kiểm tra Production
 

@@ -64,7 +64,7 @@ Kiểm tra dựa trên source code và hoàn thiện các kiểm soát bảo m�
 | Hạng mục | Trạng thái | Bằng chứng / việc còn lại |
 | --- | --- | --- |
 | Password hashing | EXTERNAL CHECK | Source không có bảng password, bcrypt/Argon2 tự triển khai hay password verifier riêng. Auth đi qua Supabase Auth (actions/auth.actions.ts). Hashing do Supabase quản lý; cần xác minh setting/password policy của Supabase project, không tự thêm hash song song vào app. |
-| Login rate limit | SOURCE PASS / DEPLOYMENT BLOCKER | Login và signup chạy qua Server Action; giới hạn theo IP và email trong actions/auth.actions.ts:32-33, limiter auth 5 request/15 phút trong lib/rate-limit.ts:67. Production fail closed nếu Upstash chưa cấu hình; hiện chưa có evidence hai biến Upstash đã được đặt trên Vercel. |
+| Login rate limit | SOURCE PASS / DEPLOYMENT BLOCKER | Auth actions chạy qua Server Action với bucket độc lập theo hành động: login request guard 10/15 phút, login thất bại 5/15 phút, signup 3/15 phút, password reset 3/15 phút và resend confirmation 3/15 phút. Mỗi bucket tách theo IP và email; login thành công không làm signup bị block. Production fail closed nếu Upstash chưa cấu hình; cần xác minh biến Upstash trên Vercel sau deploy. |
 | Session expiry | PARTIAL | Cookie server có HttpOnly, Secure ở production, SameSite=Lax và max-age 7 ngày trong middleware.ts:5-57 và lib/supabase/server.ts:7-27. Cần đặt finite JWT expiry/refresh-token lifetime trong Supabase; cookie max-age không tự thu hồi refresh token. |
 | Generic auth errors | PASS | Provider error không còn trả raw ra UI; auth actions trả thông báo generic. Signup mới yêu cầu password tối thiểu 8 ký tự. |
 
