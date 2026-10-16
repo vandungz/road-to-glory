@@ -3,7 +3,7 @@
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { checkAuthRateLimit } from "@/lib/rate-limit";
+import { AuthRateLimitError, checkAuthRateLimit } from "@/lib/rate-limit";
 import { getCanonicalSiteUrl } from "@/lib/auth/site-url";
 
 const loginCredentialsSchema = z.object({
@@ -19,7 +19,12 @@ const emailSchema = z.string().trim().toLowerCase().email().max(254);
 
 export type AuthActionResult =
   | { success: true; requiresEmailConfirmation?: boolean }
-  | { success: false; error: string };
+  | {
+      success: false;
+      error: string;
+      code?: "rate_limited";
+      retryAfterSeconds?: number;
+    };
 
 function getClientIp(requestHeaders: Headers): string {
   const trustedProxyIp = requestHeaders.get("x-real-ip")?.trim();
@@ -43,6 +48,25 @@ function genericAuthError(): AuthActionResult {
   };
 }
 
+function authActionError(error: unknown): AuthActionResult {
+  if (error instanceof AuthRateLimitError) {
+    const retryAfterSeconds = Math.max(
+      1,
+      Math.ceil((error.resetAt - Date.now()) / 1000),
+    );
+    const retryAfterMinutes = Math.max(1, Math.ceil(retryAfterSeconds / 60));
+
+    return {
+      success: false,
+      code: "rate_limited",
+      retryAfterSeconds,
+      error: `Bạn đã thử quá nhiều lần. Vui lòng thử lại sau khoảng ${retryAfterMinutes} phút.`,
+    };
+  }
+
+  return genericAuthError();
+}
+
 export async function loginAction(input: unknown): Promise<AuthActionResult> {
   const parsed = loginCredentialsSchema.safeParse(input);
   if (!parsed.success) return genericAuthError();
@@ -52,8 +76,8 @@ export async function loginAction(input: unknown): Promise<AuthActionResult> {
     const supabase = await createClient();
     const { error } = await supabase.auth.signInWithPassword(parsed.data);
     return error ? genericAuthError() : { success: true };
-  } catch {
-    return genericAuthError();
+  } catch (error) {
+    return authActionError(error);
   }
 }
 
@@ -71,8 +95,8 @@ export async function signUpAction(input: unknown): Promise<AuthActionResult> {
     });
     if (error) return genericAuthError();
     return { success: true, requiresEmailConfirmation: !data.session };
-  } catch {
-    return genericAuthError();
+  } catch (error) {
+    return authActionError(error);
   }
 }
 
@@ -88,8 +112,8 @@ export async function requestPasswordResetAction(input: unknown): Promise<AuthAc
       redirectTo: `${siteUrl}/auth/callback?next=/auth/reset-password`,
     });
     return error ? genericAuthError() : { success: true };
-  } catch {
-    return genericAuthError();
+  } catch (error) {
+    return authActionError(error);
   }
 }
 
@@ -102,8 +126,8 @@ export async function resendSignupAction(input: unknown): Promise<AuthActionResu
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({ type: "signup", email: parsed.data });
     return error ? genericAuthError() : { success: true };
-  } catch {
-    return genericAuthError();
+  } catch (error) {
+    return authActionError(error);
   }
 }
 

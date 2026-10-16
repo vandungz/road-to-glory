@@ -41,6 +41,16 @@ const authRatelimit = redis
     })
   : null;
 
+export class AuthRateLimitError extends Error {
+  readonly resetAt: number;
+
+  constructor(resetAt: number) {
+    super("Too many authentication attempts.");
+    this.name = "AuthRateLimitError";
+    this.resetAt = resetAt;
+  }
+}
+
 /**
  * Chặn 1 identifier (thường là user.id) gọi quá nhiều Server Action trong
  * khoảng thời gian ngắn. Throw nếu vượt giới hạn. Local development vẫn
@@ -72,8 +82,8 @@ export async function checkAuthRateLimit(identifier: string): Promise<void> {
     return;
   }
 
-  const { success } = await authRatelimit.limit(identifier);
+  const { success, reset } = await authRatelimit.limit(identifier);
   if (!success) {
-    throw new Error("Too many requests. Please try again later.");
+    throw new AuthRateLimitError(reset);
   }
 }
