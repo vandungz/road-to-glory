@@ -104,9 +104,9 @@ Kiểm tra dựa trên source code và hoàn thiện các kiểm soát bảo m�
 | Hạng mục | Trạng thái | Bằng chứng / việc còn lại |
 | --- | --- | --- |
 | CORS | PASS SOURCE | Không có app/api route hoặc broad Access-Control-Allow-Origin; app dùng same-origin Server Actions. Nếu mở API public sau này phải allowlist exact origins, methods và headers. |
-| RLS/public PostgREST | SOURCE REVISED / APPLY MIGRATION | `supabase/rls-lockdown.sql` và Prisma migration bật RLS cho 13 bảng app, revoke table grants khỏi `PUBLIC`/`anon`/`authenticated`, grant DML cho bảng game mutable và chỉ `SELECT` cho catalog (`leagues`, `clubs`, `national_teams`) tới `football_life_runtime`, đồng thời giữ `NO FORCE ROW LEVEL SECURITY` để Supabase owner/admin path còn hoạt động. Phải apply và test Data API thật. |
-| DB least privilege | SOURCE IMPLEMENTED / DEPLOYMENT BLOCKER | Runtime dùng `football_life_runtime`; script không đổi OWNER và không tạo migration-owner role. Prisma migration dùng direct Supabase owner/admin connection trong migration runner riêng, không phải request runtime. |
-| DB TLS | PASS SOURCE / VERIFY CERT | lib/prisma.ts:8-24 buộc rejectUnauthorized=true ở production và giữ pool/query timeout bounded. Cần kiểm thử connection bằng CA/trust chain của Supabase trước deploy. |
+| RLS/public PostgREST | APPLIED / VERIFY EDGE | Prisma migration đã bật RLS cho 13 bảng app, revoke table grants khỏi `PUBLIC`/`anon`/`authenticated`, grant DML cho bảng game mutable và chỉ `SELECT` cho catalog (`leagues`, `clubs`, `national_teams`) tới `football_life_runtime`, đồng thời giữ `NO FORCE ROW LEVEL SECURITY` để Supabase owner/admin path còn hoạt động. Cần test REST denial và runtime query trên deployment. |
+| DB least privilege | LIVE DATABASE VERIFIED / RUNTIME LOGIN PENDING | Database hiện có `football_life_runtime` an toàn, owner bảng vẫn là `postgres`, grants/RLS đúng và không có migration-owner role. Cần đặt/kiểm tra password role và deploy `DATABASE_URL` dùng đúng username pooler. |
+| DB TLS | SOURCE REMEDIATION / DEPLOYMENT VERIFY | `lib/prisma.ts` giữ SSL bắt buộc trong production; `sslmode=require` mặc định dùng mã hóa nhưng chưa xác minh CA (`rejectUnauthorized=false`) để tránh lỗi pooler hiện tại. Muốn xác minh certificate đầy đủ phải cung cấp CA Supabase và kiểm thử trên deployment. |
 
 ## Verification đã chạy
 
@@ -156,7 +156,7 @@ hoàn tất.
 | --- | --- | --- | --- |
 | P1 | REMEDIATED SOURCE / DEPLOY TEST | **Cross-user write trong legacy save**: `actions/season-progress.actions.ts:22-62` hiện parse runtime schema, kiểm tra toàn bộ IDs thuộc game và update kèm `id + gameSessionId + checkpointVersion`. | Regression check đã chứng minh foreign ID bị từ chối; vẫn phải chạy two-user test trên staging. |
 | P1 | REMEDIATED SOURCE / DEPLOY TEST | **RLS role boundary**: migration revoke public Data API grants, grant runtime DML cho bảng mutable và chỉ `SELECT` cho catalog, bật RLS không FORCE và policy chỉ cho runtime role. Đây không phải per-user RLS; ownership checks trong app vẫn là primary control. | Phải provision role thật, apply migration và kiểm tra PostgREST, Dashboard/Table Editor và runtime query bằng staging credentials. |
-| P1 | REMEDIATED SOURCE | **Migration credential separation**: `prisma.config.ts` ưu tiên `DIRECT_URL` và từ chối Prisma database commands nếu DIRECT_URL thiếu; không còn mô hình custom migration role sở hữu app tables. | Dùng direct Supabase owner/admin credential chỉ trong CI/migration runner; không đưa nó vào request-serving runtime. |
+| P1 | REMEDIATED SOURCE | **Migration credential separation**: `prisma.config.ts` ưu tiên `DIRECT_URL` và từ chối Prisma database commands nếu DIRECT_URL thiếu; không còn mô hình custom migration role sở hữu app tables. | Dùng Supabase migration/admin credential chỉ trong CI/migration runner; trên Free có thể dùng shared session pooler nếu direct host không reachable; không đưa nó vào request-serving runtime. |
 | P2 | REMEDIATED SOURCE / DEPLOYMENT BLOCKER | **Rate limit action coverage**: transfer, simulation, cup, progress/honours read và transfer completion đều gọi limiter; backend là Upstash Redis riêng, không phải Supabase Postgres. | Tạo Redis staging/production trên Upstash hoặc Vercel Integration, đặt `UPSTASH_REDIS_REST_URL`/`UPSTASH_REDIS_REST_TOKEN` theo từng environment, redeploy và load-test. |
 | P2 | REMEDIATED SOURCE | **Recovery email/resend throttle**: reset/resend đã qua Server Actions generic response và IP/email auth limiter. | Phải kiểm thử provider quota/redirect allowlist trên HTTPS preview. |
 | P2 | REMEDIATED FOR WRITES | **Legacy client authority**: hidden stats chỉ lấy từ DB/server; legacy mutations bị khóa mặc định ở production bằng `LEGACY_CAREER_WRITES=false`; preview simulations không phải persistence authority. | Không bật cờ này ngoài migration window có kiểm soát. |
@@ -225,14 +225,15 @@ Runbook thao tác chi tiết: [`docs/production-infrastructure-runbook.md`](prod
 Source remediation không tự provision/rotate được database production. Trước
 public phải thực hiện và lưu bằng chứng deployment:
 
-1. Rotate credential database hiện có; tạo `football_life_runtime` bằng
-   script/admin channel, đặt password trong secret manager.
-2. Set `DATABASE_URL` cho runtime role; chỉ migration runner/CI nhận `DIRECT_URL`
-   là direct Supabase owner/admin connection. Chạy `prisma migrate deploy` rồi
-   kiểm tra Prisma runtime query.
-3. Verify `rolsuper=false`, `rolbypassrls=false`, runtime không sở hữu bảng và
-   table OWNER không bị đổi; verify anon/authenticated PostgREST không đọc/ghi
-   được 13 bảng app.
+1. Đặt/rotate password `football_life_runtime` trong secret manager; không đưa
+   password vào SQL file hoặc frontend.
+2. Set `DATABASE_URL` cho runtime role với username pooler đúng dạng
+   `football_life_runtime.<PROJECT_REF>`; chỉ migration runner/CI nhận
+   `DIRECT_URL` là connection migration/admin. Migration hardening hiện đã
+   được apply và `prisma migrate status` đã up to date.
+3. Runtime login/query vẫn cần xác minh; database audit đã xác nhận
+   `rolsuper=false`, `rolbypassrls=false`, runtime không sở hữu bảng, owner
+   bảng không bị đổi và anon/authenticated không có grants trên 13 bảng app.
 4. Set `LEGACY_CAREER_WRITES=false`, `NEXT_PUBLIC_SITE_URL` là HTTPS origin,
    Upstash variables đầy đủ và Supabase redirect allowlist exact.
 5. Chạy two-user IDOR smoke test, OAuth/password recovery, HTTPS/header/cookie
@@ -258,20 +259,20 @@ Supabase hiện hành.
 | Hardcode database postgres trong provisioning | Không portable và không kiểm chứng database session hiện tại. | Grant CONNECT dùng current_database(). |
 | _prisma_migrations chưa nằm trong public Data API lockdown | Có thể lộ migration metadata nếu project có default grants. | Migration revoke grants public/anon/authenticated cho bảng này khi tồn tại. |
 | Prisma migration và SQL manual có hai bản logic | Dễ drift hoặc apply hai lần trên production. | Prisma migration là canonical; supabase/rls-lockdown.sql chỉ là manual copy, không chạy cả hai. |
-| Default privileges của Supabase project chưa có evidence | Bảng mới có thể nhận grant Data API mặc định tùy cấu hình project/provider. | Đã thêm read-only audit `scripts/audit-production-db-roles.sql`; phải kiểm tra `pg_default_acl` và tắt/revoke default Data API grants theo owner role thực tế trước khi public. |
+| Default privileges của Supabase project | Đã xử lý cho app owner | Đã audit `pg_default_acl` và apply migration revoke default Data API grants của `postgres` trong `public`; không sửa default ACL của `supabase_admin`. |
 
 ### Giới hạn còn phải xác minh ngoài source
 
-- Chưa có Supabase project credential/CLI trong workspace nên chưa chạy query
-  thật để xác nhận role flags, owner hiện tại, grants, RLS state hoặc Table Editor.
-- Chưa biết production đã từng chạy script cũ hay chưa. Nếu đã chạy, cần
-  kiểm tra owner của từng bảng trước khi sửa; không tự động DROP role hoặc
-  REASSIGN OWNED trên production.
+- Supabase CLI chưa được cài và MCP Supabase chưa xuất hiện thành tool trong
+  phiên hiện tại; trạng thái database đã được kiểm tra bằng connection
+  read-only của workspace, không dùng SQL write ad-hoc ngoài migration.
+- Không cần suy đoán script cũ: database audit hiện tại đã xác nhận role,
+  owner, grants và RLS đúng; không có `football_life_migration` làm owner.
 - Chưa xác minh plan/provider-specific connection limits, backup/PITR restore
   và Vercel deployment concurrency.
-- Chưa có evidence về default privileges của project production; đây là blocker
-  cho schema changes mới cho tới khi audit `pg_default_acl` và Data API settings
-  được lưu lại.
+- Default privileges đã được audit và migration hardening đã áp dụng cho
+  `postgres` trong `public`; không thay đổi default privileges của các role
+  Supabase-managed như `supabase_admin`.
 - Chưa thể kết luận production ready cho tới khi staging chứng minh đồng thời:
   runtime query, Prisma migration, PostgREST denial, Dashboard Table Editor,
   two-user IDOR và rollback.
@@ -279,10 +280,60 @@ Supabase hiện hành.
 ### Mô hình được chấp thuận cho codebase hiện tại
 
 - App request runtime: football_life_runtime + DATABASE_URL/pooler.
-- Prisma migration: Supabase direct owner/admin connection + DIRECT_URL trong
-  CI hoặc controlled migration runner; không cần có trong app runtime env.
+- Prisma migration: Supabase migration/admin connection + DIRECT_URL trong CI
+  hoặc controlled migration runner; trên Free có thể là shared session pooler
+  nếu direct host không reachable từ runner; không cần có trong app runtime env.
 - Supabase Dashboard/Table Editor: giữ nguyên provider admin/owner path.
 - Browser Supabase key: chỉ dùng Auth; không cấp Data API table grants cho
   anon/authenticated khi app không dùng PostgREST data access.
 - User isolation: bắt buộc kiểm tra userId/gameSessionId ở server; RLS không
   được dùng như thay thế cho kiểm tra này.
+
+### Supabase database verification — 2026-10-16
+
+The connected project was checked with read-only SQL through the configured
+database connection. The observed state is:
+
+- `football_life_runtime` exists with `rolsuper=false`, `rolcreatedb=false`,
+  `rolcreaterole=false`, `rolreplication=false`, `rolbypassrls=false`, and
+  `rolcanlogin=true`.
+- All 13 application tables are owned by `postgres`; none is owned by the
+  runtime role or the removed migration-role name.
+- All 13 application tables have RLS enabled and `relforcerowsecurity=false`.
+- The app tables have zero table grants for `PUBLIC`, `anon`, or
+  `authenticated`; runtime grants match the lockdown migration.
+- The old `pg_default_acl` rows for `postgres` did grant public Data API roles
+  on future public objects. Migration
+  `20261016000100_harden_public_default_privileges` was applied successfully,
+  and a follow-up query confirmed those default grants are gone while existing
+  table owners/grants/RLS remain unchanged.
+- The runtime role's password and an actual login as that role were not tested
+  because the configured local connection is for `postgres`; this remains a
+  deployment/runtime verification item.
+
+### Re-evaluation after production SQL review — 2026-10-16
+
+The database-role path is now explicitly classified as optional hardening, not
+as a prerequisite for Supabase Auth or for the application to boot. The
+baseline deployment can use the existing Supabase database connection while
+the runtime-role migration is planned and verified separately. This avoids
+turning an operational security improvement into an unexplained production
+blocker.
+
+The provisioning SQL now ends with a read-only result showing only the role,
+database CONNECT, and `public` schema privileges that the script itself owns.
+It still does not claim that table grants or RLS are complete; those are owned
+by the versioned migration. The audit output containing `pg_default_acl` is a
+future-object default privilege report, not a current-table exposure report.
+Current-table decisions must use the audit's table grants, table owner/RLS,
+and policy result sets.
+
+## Current verification snapshot — 2026-10-16
+
+- Source/local verification was checked against the current repository; the production runbook was rewritten because the previous version incorrectly assumed that infrastructure steps 1–5 were already complete.
+- Local `.env` metadata showed `DATABASE_URL` and `DIRECT_URL` using the `postgres` user and the same pooler host, while `NEXT_PUBLIC_SITE_URL` remained `http://localhost:3000`. These values are not evidence of the intended Production configuration and must not be copied to Vercel unchanged.
+- The public Supabase Auth settings endpoint for the configured project reported Email enabled, signup enabled, email confirmation required, and Google disabled. This confirms only public provider settings; Supabase Dashboard private settings and Auth Logs still require a connected provider/dashboard check.
+- Public Production checks for `https://rtg-vandungz.vercel.app` passed: `/login` and anonymous `/` returned 200, HTTP `/login` redirected with 308 to HTTPS, and the expected security headers were present.
+- `prisma migrate status` reported the schema up to date using the local configured connection. This does not prove the deployed runtime uses `football_life_runtime`, nor does it prove the authenticated Prisma request path works in Production.
+- Vercel/Supabase MCP connectors were not connected in the current Codex session and the local Vercel CLI could not reach its API. Vercel Environment Variables, deployment logs, Supabase role audit, RLS grants and Auth Logs therefore remain `DEPLOYMENT CHECK`, not `PASS`.
+- `P1011 self-signed certificate in certificate chain` remains an observed Production runtime incident from the previous deployment. The source has a TLS configuration remediation, but it is not verified in Production until an authenticated request succeeds after redeploy.
