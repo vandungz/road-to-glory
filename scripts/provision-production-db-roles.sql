@@ -66,6 +66,24 @@ REVOKE CREATE ON SCHEMA public FROM football_life_runtime;
 -- No table ownership changes happen here. Table grants, RLS and the explicit
 -- app-table allowlist are applied by the versioned Prisma migration.
 
--- After this script, set passwords out-of-band and verify:
---   SELECT rolname, rolsuper, rolbypassrls, rolcanlogin
---   FROM pg_roles WHERE rolname = 'football_life_runtime';
+-- Verification result. This deliberately verifies only what this script owns:
+-- role attributes and database/schema privileges. It does not claim that the
+-- app-table grants/RLS are ready; those belong to the versioned migration.
+SELECT
+  current_database() AS database_name,
+  current_user AS executed_as,
+  r.rolname,
+  r.rolsuper,
+  r.rolcreatedb,
+  r.rolcreaterole,
+  r.rolreplication,
+  r.rolbypassrls,
+  r.rolcanlogin,
+  has_database_privilege(r.rolname, current_database(), 'CONNECT') AS can_connect,
+  has_schema_privilege(r.rolname, 'public', 'USAGE') AS public_schema_usage,
+  has_schema_privilege(r.rolname, 'public', 'CREATE') AS public_schema_create
+FROM pg_roles AS r
+WHERE r.rolname = 'football_life_runtime';
+
+-- After this script, set the password out-of-band. Never put it in this file:
+-- it is tracked in git and SQL Editor history may retain it.

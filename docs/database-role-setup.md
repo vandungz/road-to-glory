@@ -22,9 +22,11 @@ Set the runtime password out-of-band and never put it in the repository.
 ## Runtime and migration URLs
 
 - DATABASE_URL: runtime role, normally through the Supabase pooler.
-- DIRECT_URL: direct connection for Prisma CLI only, normally the Supabase
-  project admin/postgres credential. Keep it in CI or a controlled migration
-  runner; it is not required by the deployed request-serving application.
+- DIRECT_URL: Supabase migration/admin connection for Prisma CLI only, normally
+  using the project postgres credential. On Free this may be the shared session
+  pooler when the direct host is not reachable from the runner. Keep it in CI or
+  a controlled migration runner; it is not required by the deployed
+  request-serving application.
 - The application never imports DIRECT_URL into client code.
 - prisma.config.ts refuses Prisma database commands when DIRECT_URL is not set,
   so a migration cannot silently fall back to the runtime role.
