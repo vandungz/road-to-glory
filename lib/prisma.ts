@@ -5,9 +5,51 @@ import pg from "pg";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient; pool: pg.Pool };
 
-function sslRejectUnauthorized(): boolean {
-  if (process.env.NODE_ENV === "production") return true;
-  return process.env.PG_SSL_REJECT_UNAUTHORIZED !== "false";
+type DatabaseSslConfig = false | { rejectUnauthorized: boolean; ca?: string };
+
+function databaseConnectionConfig(connectionString: string): {
+  connectionString: string;
+  ssl: DatabaseSslConfig;
+} {
+  const databaseUrl = new URL(connectionString);
+  const sslMode = databaseUrl.searchParams.get("sslmode")?.toLowerCase() ?? "prefer";
+  const rootCertificate = process.env.PGSSL_CA?.trim();
+  const explicitVerification = process.env.PG_SSL_REJECT_UNAUTHORIZED?.trim().toLowerCase();
+  databaseUrl.searchParams.delete("sslmode");
+
+  if (sslMode === "disable") {
+    if (process.env.NODE_ENV === "production") {
+      throw new Error("DATABASE_URL must use SSL in production.");
+    }
+    return { connectionString: databaseUrl.toString(), ssl: false };
+  }
+
+  if (rootCertificate) {
+    return {
+      connectionString: databaseUrl.toString(),
+      ssl: { ca: rootCertificate, rejectUnauthorized: true },
+    };
+  }
+
+  if (sslMode === "verify-ca" || sslMode === "verify-full") {
+    throw new Error("PGSSL_CA is required when DATABASE_URL uses sslmode=verify-ca or verify-full.");
+  }
+
+  if (explicitVerification === "true") {
+    return {
+      connectionString: databaseUrl.toString(),
+      ssl: { rejectUnauthorized: true },
+    };
+  }
+
+  // Supabase's sslmode=require encrypts the connection but does not verify
+  // the server certificate. Use PGSSL_CA + sslmode=verify-full when certificate
+  // verification is required. This avoids the current pooler TLS failure while
+  // keeping SSL mandatory in production.
+  return {
+    connectionString: databaseUrl.toString(),
+    ssl: { rejectUnauthorized: false },
+  };
 }
 
 function poolNumber(name: string, fallback: number, min: number, max: number): number {
@@ -19,9 +61,9 @@ function poolNumber(name: string, fallback: number, min: number, max: number): n
 // can be tuned from deployment env after measuring p95/query and connection
 // usage; the application must not silently create an unbounded pool per
 // serverless instance.
+const databaseConfig = databaseConnectionConfig(process.env.DATABASE_URL!);
 const pool = globalForPrisma.pool ?? new pg.Pool({
-  connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: sslRejectUnauthorized() },
+  ...databaseConfig,
   // Vercel may run many instances concurrently; keep each pool small.
   max: poolNumber("PG_POOL_MAX", 3, 1, 10),
   connectionTimeoutMillis: poolNumber("PG_CONNECTION_TIMEOUT_MS", 10_000, 1_000, 60_000),
