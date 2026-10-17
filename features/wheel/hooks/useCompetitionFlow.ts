@@ -51,6 +51,7 @@ interface CompetitionFlowProps {
 
 export function useCompetitionFlow(p: CompetitionFlowProps) {
   const pendingAfterCompetitionModalRef = useRef<(() => void) | null>(null);
+  const pendingSeasonStatsRetryRef = useRef<(() => void) | null>(null);
 
   function updateCurrentSeasonRecord(updater: (record: SeasonRecord) => SeasonRecord) {
     p.setSeasonRecords((prev) => {
@@ -77,6 +78,10 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     tournament: string | null
   ) {
     p.setIsProcessing(true);
+    p.setApproachBanner?.(null);
+    pendingSeasonStatsRetryRef.current = () => {
+      void triggerSeasonStats(standing, domestic, continental, callup, tournament);
+    };
     const luck = p.hiddenStats?.luckRating ?? 10;
     const nationalTournamentType = callup === "called_up"
       ? getNationalTournamentName(
@@ -115,10 +120,24 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       p.applySimResultToRecords(p.currentAge, simRes);
       p.setActiveModal("season_stats");
       p.setCareerSubStep("season_stats");
+      pendingSeasonStatsRetryRef.current = null;
     } catch {
-      p.setCareerSubStep("dir_increase");
+      if (p.commitSeasonStats) {
+        // V2 owns the authoritative step. A failed commit must never advance
+        // the local UI to a wheel the server has not committed yet.
+        p.setCareerSubStep("season_stats");
+        p.setApproachBanner?.("Chưa chốt được thống kê mùa giải. Hãy thử lại.");
+      } else {
+        p.setCareerSubStep("dir_increase");
+      }
     } finally {
       p.setIsProcessing(false);
+    }
+  }
+
+  function retrySeasonStats() {
+    if (p.commitSeasonStats && pendingSeasonStatsRetryRef.current) {
+      pendingSeasonStatsRetryRef.current();
     }
   }
 
@@ -328,6 +347,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
 
   return {
     triggerSeasonStats,
+    retrySeasonStats,
     handleSpinComplete,
     handleSeasonStatsModalClose,
     handleCompetitionResultModalClose,

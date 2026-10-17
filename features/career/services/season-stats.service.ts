@@ -32,6 +32,14 @@ export class SeasonStatsCommandError extends Error {
 
 type PublicSeasonStatsResult = Omit<SeasonStatsCommitDto, "replayed">;
 
+// This command performs the season simulation and several award/cache writes
+// as one atomic operation. Use an explicit budget for this known transaction
+// instead of Prisma's generic 5-second interactive-transaction default.
+const SEASON_STATS_TRANSACTION_OPTIONS = {
+  maxWait: 5_000,
+  timeout: 15_000,
+} as const;
+
 const playerSeasonStatsSelect = {
   id: true,
   name: true,
@@ -390,5 +398,5 @@ export async function commitSeasonStatsCommand(params: {
     });
 
     return { ...result, replayed: false };
-  });
+  }, SEASON_STATS_TRANSACTION_OPTIONS);
 }

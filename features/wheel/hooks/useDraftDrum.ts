@@ -493,6 +493,7 @@ export function useDraftDrum(
     handleStartCareer, handleStartSeason,
     handleCareerSpin: wheelFlow.handleCareerSpin,
     handleCareerSpinComplete: wheelFlow.handleCareerSpinComplete,
+    retrySeasonStats: competitionFlow.retrySeasonStats,
     handleAcceptTransfer: transferFlow.handleAcceptTransfer,
     handleAcceptMarketOffer: transferFlow.handleAcceptMarketOffer,
     clearPendingTransferOffer: transferFlow.clearPendingTransferOffer,
