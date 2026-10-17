@@ -14,6 +14,7 @@ import { PersistentTransferSection } from "./PersistentTransferSection";
 import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
 import { WheelGameHeader } from "./WheelGameHeader";
 import { getSeasonYearString } from "../lib/simulation-helpers";
+import { Toast } from "@/components/ui/Toast";
 
 function consumeReturnQuery(param: "shopReturn" | "transferReturn") {
   const url = new URL(window.location.href);
@@ -117,6 +118,7 @@ export function DraftDrumScreen({
     handleStartCareer,
     handleCareerSpin,
     handleCareerSpinComplete,
+    retrySeasonStats,
     handleAcceptMarketOffer,
     clearPendingTransferOffer,
     handleRejectTransferWindow,
@@ -339,6 +341,17 @@ export function DraftDrumScreen({
           isSaving={isSaving}
           handleSavePlayer={handleSavePlayer}
         />
+      )}
+
+      {mode === "career" && careerSubStep === "season_stats" && !yearSimResult && approachBanner && (
+        <Toast
+          title="Chưa thể chốt mùa giải"
+          actionLabel="Thử lại"
+          onAction={retrySeasonStats}
+          actionBusy={isProcessing}
+        >
+          Thống kê mùa giải chưa được lưu. Bạn có thể thử lại ngay.
+        </Toast>
       )}
 
       {/* ── TRANSFER DECISION FLOATING MODAL ── */}

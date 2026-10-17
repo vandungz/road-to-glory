@@ -24,6 +24,14 @@
 .football-action-panel__primary { width: min(100%, 360px); }
 .football-wheel-stage { display: flex; width: 100%; flex-direction: column; align-items: center; gap: 18px; }
 .football-wheel-stage__processing { display: inline-flex; min-height: 24px; align-items: center; justify-content: center; gap: 8px; color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; text-align: center; }
+.football-toast { position: fixed; right: 24px; bottom: 24px; z-index: 80; display: flex; width: min(410px, calc(100vw - 32px)); align-items: flex-start; gap: 12px; border: 1px solid var(--football-accent); border-left-width: 4px; padding: 14px 16px; background: var(--football-surface); box-shadow: var(--football-shadow-overlay); color: var(--football-ink); }
+.football-toast__icon { flex: 0 0 auto; color: var(--football-accent-ink); padding-top: 1px; }
+.football-toast__content { min-width: 0; flex: 1; }
+.football-toast__content strong { display: block; font-family: var(--font-headline); font-size: 16px; font-weight: 600; letter-spacing: .03em; text-transform: uppercase; }
+.football-toast__content p { margin: 3px 0 11px; color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; line-height: 1.45; }
+.football-toast__content .football-button { min-height: 36px; }
+.football-toast__dismiss { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; border: 0; padding: 2px; background: transparent; color: var(--football-ink-3); cursor: pointer; }
+.football-toast__dismiss:hover { color: var(--football-ink); }
 .football-season-report { display: flex; width: min(100%, 560px); flex-direction: column; gap: 20px; border-top: 1px solid var(--football-rule); padding-top: 18px; }
 .football-season-report__heading h3 { margin: 5px 0 0; font-family: var(--font-headline); font-size: 24px; font-weight: 600; text-transform: uppercase; }
 .football-season-report__stats { border-top: 1px solid var(--football-rule); }
@@ -73,6 +81,7 @@
 .football-shop-modal .football-shop-content { padding: 0; }
 .football-shop-modal .football-modal-body { min-height: 0; overflow: hidden; padding: 22px 28px 20px; }
 @media (max-width: 800px) {
+  .football-toast { right: 16px; bottom: 16px; left: 16px; width: auto; }
   .football-shop-content__header { gap: 12px; }
   .football-shop-content__heading h3 { font-size: 20px; }
   .football-shop-item { align-items: flex-start; flex-direction: column; gap: 10px; padding: 16px 0; }
