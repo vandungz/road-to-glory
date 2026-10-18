@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { prisma } from "@/lib/prisma";
-import { persistAwardSimulation, syncAchievementCache } from "@/features/career/services/award-persistence.service";
+import { persistAwardSimulation, persistTeamTrophies, syncAchievementCache } from "@/features/career/services/award-persistence.service";
 import { simulateAwardSeason } from "@/features/season/services/award-simulator.service";
 
 const rollbackMarker = "__AWARDS_INTEGRATION_ROLLBACK__";
@@ -70,8 +70,21 @@ async function main() {
       ]);
       assert.ok(rankingCount > 0, "ranking snapshots must persist");
       assert.equal(honourCount, new Set(simulation.honours.map((honour) => honour.awardInstanceKey)).size, "honours must be idempotent");
+      await persistTeamTrophies({
+        tx,
+        playerId,
+        seasonId: season.id,
+        age: 25,
+        club: { id: "integration-club", name: "Integration Club", leagueId: "TEST1", leagueName: "Test League" },
+        standing: 2,
+        domesticCup: "Runner-Up",
+        continentalCup: { type: "UEL", result: "Runner-Up" },
+      });
+      const runnerUps = await tx.careerHonour.findMany({ where: { careerPlayerId: playerId, category: "team_trophy", result: "runner_up" } });
+      assert.equal(runnerUps.length, 3, "team runner-up records must persist separately from winners");
       const cache = await syncAchievementCache(tx, playerId);
-      assert.equal(cache.seasonAwards.length, honourCount, "derived cache must reflect canonical honours");
+      assert.equal(cache.seasonAwards.length, honourCount, "derived individual cache must reflect canonical honours");
+      assert.equal(cache.trophies.filter((trophy) => trophy.result === "runner_up").length, 3, "derived cache must preserve runner-up status");
       throw new Error(rollbackMarker);
     });
   } catch (error) {
