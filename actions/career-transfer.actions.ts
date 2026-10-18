@@ -4,7 +4,7 @@ import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import { checkRateLimit } from "@/lib/rate-limit";
 import {
   completeTransferCommandSchema,
-  type TransferCompletionDto,
+  type TransferCommandResult,
 } from "@/features/career/contracts/transfer-transition.contract";
 import {
   getTransferMarketSchema,
@@ -24,7 +24,7 @@ import type { PendingTransferNegotiation, TransferMarketResult, ShortlistClubCar
 import { withCareerCommandLogging } from "@/lib/observability/career-command-log";
 
 /** V2 transfer completion; the server derives destination terms and mutates the projection atomically. */
-export async function completeTransferCommandAction(input: unknown): Promise<TransferCompletionDto> {
+export async function completeTransferCommandAction(input: unknown): Promise<TransferCommandResult> {
   const parsed = completeTransferCommandSchema.parse(input);
   const { id: userId } = await requireAuthenticatedUser();
   await checkRateLimit(userId);

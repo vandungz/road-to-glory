@@ -6,13 +6,13 @@ import { completeTransferWorkflow, lockTransferWorkflow, recordTransferWageFailu
 import { randomUUID } from "node:crypto";
 import { computeWageAgreementChance } from "@/lib/salary-negotiation";
 import { secureRandom } from "@/lib/secure-random";
-import type { CompleteTransferCommand, TransferCompletionDto } from "@/features/career/contracts/transfer-transition.contract";
-import { TransferTransitionError, playerSelect, seasonSelect, asRecord, asArray, asNumber, currentSnapshot, currentStats, seasonMatchRating, wageAttemptState, issuedWageMultiplier, parseReplayResult, transferResult, assertServerIssuedOffer, renewalWageMultiplier, wageMultiplier, type TransferCommandOutcome } from "./transfer-transition-helpers";
+import type { CompleteTransferCommand, TransferCommandResult } from "@/features/career/contracts/transfer-transition.contract";
+import { TransferTransitionError, playerSelect, seasonSelect, asRecord, asArray, asNumber, currentSnapshot, currentStats, seasonMatchRating, wageAttemptState, issuedWageMultiplier, parseReplayResult, transferResult, assertServerIssuedOffer, renewalWageMultiplier, wageMultiplier, transferCommandResultFromOutcome, type TransferCommandOutcome } from "./transfer-transition-helpers";
 
 export async function completeTransferCommand(params: {
   input: CompleteTransferCommand;
   userId: string;
-}): Promise<TransferCompletionDto> {
+}): Promise<TransferCommandResult> {
   const { input, userId } = params;
 
   const outcome: TransferCommandOutcome = await prisma.$transaction(async (tx): Promise<TransferCommandOutcome> => {
@@ -97,10 +97,22 @@ export async function completeTransferCommand(params: {
     if (input.kind !== "stay" && negotiationClubId) {
       const attempts = wageAttemptState(season.runtimeState, negotiationClubId, transferWorkflow);
       if (attempts.cancelled) {
-        throw new TransferTransitionError("TRANSFER_DEAL_CANCELLED", "Thương vụ với CLB này đã bị hủy");
+        return {
+          kind: "failure",
+          code: "TRANSFER_DEAL_CANCELLED",
+          message: "Thương vụ với CLB này đã bị hủy",
+          failedWageOptions: attempts.failedWageOptions,
+          cancelled: true,
+        };
       }
       if (attempts.failedWageOptions.includes(input.wageOption)) {
-        throw new TransferTransitionError("WAGE_OPTION_UNAVAILABLE", "Mức lương này đã bị CLB từ chối");
+        return {
+          kind: "failure",
+          code: "WAGE_OPTION_UNAVAILABLE",
+          message: "Mức lương này đã bị CLB từ chối",
+          failedWageOptions: attempts.failedWageOptions,
+          cancelled: false,
+        };
       }
     }
     const destination = input.clubId
@@ -201,12 +213,21 @@ export async function completeTransferCommand(params: {
             offerKind: input.kind === "renewal" ? "renewal" : input.kind === "free_agent" ? "free_agent" : "transfer",
             wageOption: input.wageOption,
           });
+          if (workflowResult.cancelled) {
+            return {
+              kind: "failure",
+              code: "TRANSFER_DEAL_CANCELLED",
+              message: "CLB đã mất kiên nhẫn — thương vụ chuyển nhượng bị hủy.",
+              failedWageOptions: workflowResult.failedWageOptions,
+              cancelled: true,
+            };
+          }
           return {
             kind: "failure",
-            code: workflowResult.cancelled ? "TRANSFER_DEAL_CANCELLED" : "WAGE_NEGOTIATION_FAILED",
-            message: workflowResult.cancelled
-              ? "CLB đã mất kiên nhẫn — thương vụ chuyển nhượng bị hủy."
-              : "CLB không chấp nhận mức lương này — hãy chọn một phương án khác.",
+            code: "WAGE_NEGOTIATION_FAILED",
+            message: "CLB không chấp nhận mức lương này — hãy chọn một phương án khác.",
+            failedWageOptions: workflowResult.failedWageOptions,
+            cancelled: false,
           };
         }
         throw new TransferTransitionError(
@@ -382,8 +403,5 @@ export async function completeTransferCommand(params: {
     return { kind: "success", result: { ...result, replayed: false } };
   });
 
-  if (outcome.kind === "failure") {
-    throw new TransferTransitionError(outcome.code, outcome.message);
-  }
-  return outcome.result;
+  return transferCommandResultFromOutcome(outcome);
 }

@@ -1,5 +1,5 @@
 import type { Prisma } from "@/app/generated/prisma/client";
-import type { CompleteTransferCommand, TransferCompletionDto } from "@/features/career/contracts/transfer-transition.contract";
+import type { CompleteTransferCommand, TransferCommandResult, TransferCompletionDto } from "@/features/career/contracts/transfer-transition.contract";
 import type { ContractOfferCard, ContractOfferKind } from "@/features/transfer/services/transfer.service";
 import type { WageDealOption } from "@/lib/salary-negotiation";
 import { cancelledTransferClubIds, commandKey, failedWageOptionsForClub } from "@/features/career/services/transfer-market-authority.shared";
@@ -64,7 +64,42 @@ export type Season = Prisma.CareerSeasonGetPayload<{ select: typeof seasonSelect
 
 export type TransferCommandOutcome =
   | { kind: "success"; result: TransferCompletionDto }
-  | { kind: "failure"; code: TransferTransitionErrorCode; message: string };
+  | {
+      kind: "failure";
+      code: "WAGE_NEGOTIATION_FAILED" | "WAGE_OPTION_UNAVAILABLE";
+      message: string;
+      failedWageOptions: WageDealOption[];
+      cancelled: false;
+    }
+  | {
+      kind: "failure";
+      code: "TRANSFER_DEAL_CANCELLED";
+      message: string;
+      failedWageOptions: WageDealOption[];
+      cancelled: true;
+    };
+
+export function transferCommandResultFromOutcome(outcome: TransferCommandOutcome): TransferCommandResult {
+  if (outcome.kind === "success") {
+    return { status: "accepted", transfer: outcome.result };
+  }
+  if (outcome.cancelled) {
+    return {
+      status: "cancelled",
+      code: outcome.code,
+      message: outcome.message,
+      failedWageOptions: outcome.failedWageOptions,
+      cancelled: true,
+    };
+  }
+  return {
+    status: "rejected",
+    code: outcome.code,
+    message: outcome.message,
+    failedWageOptions: outcome.failedWageOptions,
+    cancelled: false,
+  };
+}
 
 export function asRecord(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)

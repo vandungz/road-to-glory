@@ -1,4 +1,5 @@
 import { z } from "zod";
+import type { WageDealOption } from "@/lib/salary-negotiation";
 
 export const completeTransferCommandSchema = z.object({
   playerId: z.string().uuid(),
@@ -11,6 +12,11 @@ export const completeTransferCommandSchema = z.object({
 }).strict();
 
 export type CompleteTransferCommand = z.infer<typeof completeTransferCommandSchema>;
+
+export type TransferNegotiationFailureCode =
+  | "WAGE_NEGOTIATION_FAILED"
+  | "WAGE_OPTION_UNAVAILABLE"
+  | "TRANSFER_DEAL_CANCELLED";
 
 export interface TransferCompletionDto {
   commandId: string;
@@ -28,3 +34,23 @@ export interface TransferCompletionDto {
   nextAge: number;
   replayed: boolean;
 }
+
+export type TransferCommandResult =
+  | {
+      status: "accepted";
+      transfer: TransferCompletionDto;
+    }
+  | {
+      status: "rejected";
+      code: "WAGE_NEGOTIATION_FAILED" | "WAGE_OPTION_UNAVAILABLE";
+      message: string;
+      failedWageOptions: WageDealOption[];
+      cancelled: false;
+    }
+  | {
+      status: "cancelled";
+      code: "TRANSFER_DEAL_CANCELLED";
+      message: string;
+      failedWageOptions: WageDealOption[];
+      cancelled: true;
+    };
