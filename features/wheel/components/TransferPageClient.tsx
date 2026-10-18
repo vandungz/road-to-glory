@@ -11,6 +11,7 @@ import {
   setTransferOfferSelectionCommandAction,
   searchTransferClubsCommandAction,
 } from "@/actions/career-transfer.actions";
+import type { TransferCommandResult } from "@/features/career/contracts/transfer-transition.contract";
 import type { ContractOfferCard, PendingTransferNegotiation, ShortlistClubCard, TransferDealResolution, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import { computeWageAgreementChance, type WageDealOption } from "@/lib/salary-negotiation";
 import type { ApproachRejectState } from "./TransferWindowPanel";
@@ -137,8 +138,17 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
     const wageMultiplier = selectedWageOption === "lower" ? 0.8 : selectedWageOption === "higher" ? 1.15 : 1;
     const finalizedWageAnnual = Math.round(offer.wageAnnual * wageMultiplier);
     try {
-      const result = input.checkpointVersion >= 2
-        ? await completeTransferCommandAction({
+      let completion: {
+        clubName: string;
+        leagueName: string;
+        fee: number;
+        contractYears: number;
+        wageAnnual: number;
+        age?: number;
+        nextAge?: number;
+      };
+      if (input.checkpointVersion >= 2) {
+        const result: TransferCommandResult = await completeTransferCommandAction({
             playerId: input.playerId,
             seasonId: input.seasonId,
             expectedRevision: input.revision,
@@ -146,8 +156,30 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
             kind: offer.kind,
             clubId: offer.clubId,
             wageOption: selectedWageOption,
-          })
-        : await completeTransferAction({
+          });
+        if (result.status !== "accepted") {
+          if (offer.kind === "renewal") {
+            setApproachBanner(result.message);
+            setMarket((previous) => previous ? { ...previous, renewal: null } : previous);
+          } else if (result.status === "cancelled") {
+            setCancelledOffer(offer);
+            setSelectedOffer(null);
+            setMarket((previous) => previous ? {
+              ...previous,
+              inbound: previous.inbound.filter((item) => item.clubId !== offer.clubId),
+              shortlist: previous.shortlist.filter((item) => item.clubId !== offer.clubId),
+            } : previous);
+          } else {
+            setFailedWageOptions(result.failedWageOptions);
+            setFinalizationError(result.message);
+            const nextOption = (["lower", "standard", "higher"] as WageDealOption[]).find((option) => !result.failedWageOptions.includes(option));
+            if (nextOption) setDeal(nextOption);
+          }
+          return result.status === "cancelled" ? "cancelled" : "rejected";
+        }
+        completion = result.transfer;
+      } else {
+        completion = await completeTransferAction({
             gameId: input.gameId,
             playerId: input.playerId,
             slotIndex: input.slotIndex,
@@ -158,16 +190,17 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
             transferFee: offer.transferFee,
             wageOption: selectedWageOption,
           });
+      }
       if (offer.kind === "renewal") {
         router.push(input.shopHref);
       } else {
         setSuccess({
-          clubName: result.clubName,
-          leagueName: result.leagueName,
-          fee: result.fee,
-          contractYears: result.contractYears,
-          wageAnnual: result.wageAnnual,
-          age: "nextAge" in result ? result.nextAge : result.age,
+          clubName: completion.clubName,
+          leagueName: completion.leagueName,
+          fee: completion.fee,
+          contractYears: completion.contractYears,
+          wageAnnual: completion.wageAnnual,
+          age: completion.nextAge ?? completion.age!,
         });
         setSelectedOffer(null);
       }
@@ -175,8 +208,9 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
       return "accepted";
     } catch (error) {
       const message = error instanceof Error ? error.message : "Không thể hoàn tất chuyển nhượng.";
-      const cancelled = message.includes("thương vụ") || message.includes("đã bị hủy");
-      const rejected = message.includes("mức lương") || message.includes("lương");
+      const normalizedMessage = message.toLocaleLowerCase("vi-VN");
+      const cancelled = normalizedMessage.includes("thương vụ") || normalizedMessage.includes("đã bị hủy");
+      const rejected = normalizedMessage.includes("mức lương") || normalizedMessage.includes("lương");
       if (offer.kind === "renewal") {
         setApproachBanner(message);
         if (rejected || cancelled) setMarket((previous) => previous ? { ...previous, renewal: null } : previous);
@@ -375,13 +409,17 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
     try {
       if (input.checkpointVersion >= 2) {
         if (!input.seasonId) throw new Error("Thiếu mùa giải hiện tại");
-        await completeTransferCommandAction({
+        const result = await completeTransferCommandAction({
           playerId: input.playerId,
           seasonId: input.seasonId,
           expectedRevision: input.revision,
           idempotencyKey: transferCommandKey(),
           kind: "stay",
         });
+        if (result.status !== "accepted") {
+          setApproachBanner(result.message);
+          return;
+        }
       }
       router.push(input.shopHref);
     } catch (error) {
@@ -405,7 +443,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
   }
 
   if (isLoading || !market) return <main className="football-transfer-loading"><span className="football-eyebrow">Cửa sổ chuyển nhượng</span><h1>Đang dò tìm cơ hội mới...</h1><p>Đang cập nhật các CLB phù hợp với hồ sơ của bạn.</p></main>;
-  return <PersistentTransferSection market={market} currentClubId={input.currentClubId} currentClubName={input.currentClubName} willingToMove={willingToMove} setWillingToMove={setWillingToMove} isProcessing={isProcessing} onAcceptOffer={(offer, wageOption) => commitOffer(offer, wageOption)} onRejectAll={() => void stayAtCurrentClub()} onApproachShortlist={approachClub} onProactiveRenewal={() => { if (market.renewal) void acceptOffer(market.renewal); }} onSearchClubs={searchClubs} approachRejects={approachRejects} approachBanner={approachBanner} onSelectOffer={persistOfferSelection} onClearAcceptedOffer={clearPersistedOfferSelection} />;
+  return <PersistentTransferSection market={market} currentClubId={input.currentClubId} currentClubName={input.currentClubName} willingToMove={willingToMove} setWillingToMove={setWillingToMove} isProcessing={isProcessing} onAcceptOffer={async (offer, wageOption) => ({ resolution: await commitOffer(offer, wageOption) })} onRejectAll={() => void stayAtCurrentClub()} onApproachShortlist={approachClub} onProactiveRenewal={() => { if (market.renewal) void acceptOffer(market.renewal); }} onSearchClubs={searchClubs} approachRejects={approachRejects} approachBanner={approachBanner} onSelectOffer={persistOfferSelection} onClearAcceptedOffer={clearPersistedOfferSelection} />;
 }
 
 function ArrowRightIcon() { return <ArrowRight aria-hidden="true" size={16} />; }

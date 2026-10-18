@@ -13,7 +13,7 @@ import {
   type TransferFeeDealOption,
 } from "@/lib/transfer-economy";
 import { computeWageAgreementChance, computeWageOptions, type WageDealOption } from "@/lib/salary-negotiation";
-import type { ContractOfferCard, PendingTransferNegotiation, ShortlistClubCard, TransferDealResolution, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { ContractOfferCard, PendingTransferNegotiation, ShortlistClubCard, TransferDealAttemptResult, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { ApproachRejectState } from "./TransferWindowPanel";
 
 interface SearchResult {
@@ -30,7 +30,7 @@ export interface PersistentTransferSectionProps {
   willingToMove: boolean;
   setWillingToMove: (v: boolean) => void;
   isProcessing: boolean;
-  onAcceptOffer: (offer: ContractOfferCard, wageOption?: WageDealOption) => Promise<TransferDealResolution> | TransferDealResolution;
+  onAcceptOffer: (offer: ContractOfferCard, wageOption?: WageDealOption) => Promise<TransferDealAttemptResult> | TransferDealAttemptResult;
   onRejectAll: () => void;
   onApproachShortlist: (club: ShortlistClubCard, feeOption?: TransferFeeDealOption) => Promise<boolean> | void;
   onProactiveRenewal: (wageOption?: WageDealOption) => Promise<boolean> | void;
@@ -158,7 +158,7 @@ export function PersistentTransferSection({ market, currentClubId, currentClubNa
       <div className="football-transfer-offer__details"><span><small>Phí chuyển nhượng</small><strong>{pendingOffer.transferFee ? formatTransferFee(pendingOffer.transferFee) : "Miễn phí"}</strong></span><span><small>Thời hạn</small><strong>{pendingOffer.contractYears} mùa</strong></span></div>
       <div className="football-transfer-mood" aria-label={`Mức độ vui vẻ của ${pendingOffer.clubName}: ${wageMood}%`}><div><small>Mức độ vui vẻ của CLB</small><strong>{wageMood}%</strong></div><div className="football-transfer-mood__track"><span style={{ width: `${wageMood}%`, backgroundColor: wageMood <= 50 ? "var(--football-accent)" : "var(--football-positive)" }} /></div><p>{wageMood === 100 ? "CLB vẫn đang sẵn sàng thương lượng." : "Một phương án đã bị từ chối. Nếu thanh cạn, thương vụ sẽ bị hủy."}</p></div>
       <div className="football-transfer-wage-options">{(["lower", "standard", "higher"] as WageDealOption[]).map((option) => { const chance = approachChancePercent(computeWageAgreementChance({ option, baseWage: pendingOffer.wageAnnual, clubPrestige: pendingOffer.prestige, leagueTier: pendingOffer.leagueTier, expectedLeagueApps: pendingOffer.expectedLeagueApps })); const failed = failedWageOptions.includes(option); return <button type="button" key={option} disabled={failed || isProcessing} aria-disabled={failed} className={`${wageDeal === option ? "is-active" : ""}${failed ? " is-rejected" : ""}`} onClick={() => setWageDeal(option)}><span>{failed ? "Đã bị từ chối" : wageOptions[option].label}</span><strong>{formatEuroThousands(wageOptions[option].wageAnnual)}/năm</strong><small>{failed ? "Không thể chọn lại" : `${option === "lower" ? "Dễ được chấp nhận hơn" : option === "higher" ? "Có thể bị từ chối" : "Cân bằng"} · Cơ hội ${chance}%`}</small></button>; })}</div>
-      <Button size="lg" fullWidth disabled={isProcessing || failedWageOptions.includes(wageDeal)} loading={isProcessing} onClick={async () => { const resolution = await onAcceptOffer(pendingOffer, wageDeal); if (resolution === "accepted") { setPendingOffer(null); onClearAcceptedOffer?.(); } else if (resolution === "rejected") { setFailedWageOptions((previous) => [...new Set([...previous, wageDeal])]); } else if (resolution === "cancelled") { setExcludedClubIds((previous) => new Set(previous).add(pendingOffer.clubId)); setPendingOffer(null); onClearAcceptedOffer?.(); setCancelledOffer(pendingOffer); } }}>Chốt mức lương & hoàn tất</Button>
+      <Button size="lg" fullWidth disabled={isProcessing || failedWageOptions.includes(wageDeal)} loading={isProcessing} onClick={async () => { const result = await onAcceptOffer(pendingOffer, wageDeal); if (result.resolution === "accepted") { setPendingOffer(null); onClearAcceptedOffer?.(); } else if (result.resolution === "rejected") { setFailedWageOptions(result.failedWageOptions ?? [...new Set([...failedWageOptions, wageDeal])]); } else if (result.resolution === "cancelled") { setExcludedClubIds((previous) => new Set(previous).add(pendingOffer.clubId)); setPendingOffer(null); onClearAcceptedOffer?.(); setCancelledOffer(pendingOffer); } }}>Chốt mức lương & hoàn tất</Button>
     </section>
   ) : null;
   const cancelledContent = cancelledOffer ? (

@@ -381,9 +381,9 @@ export function DraftDrumScreen({
           setWillingToMove={handleSetWillingToMove}
           isProcessing={isProcessing}
           onAcceptOffer={async (offer, wageOption) => {
-            const resolution = await handleAcceptMarketOffer(offer, wageOption);
-            if (resolution === "accepted") setActiveModal(null);
-            return resolution;
+            const result = await handleAcceptMarketOffer(offer, wageOption);
+            if (result.resolution === "accepted") setActiveModal(null);
+            return result;
           }}
           onRejectAll={() => {
             void handleRejectTransferWindow().then(() => setActiveModal(null));

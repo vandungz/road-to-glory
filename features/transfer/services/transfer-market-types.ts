@@ -19,6 +19,11 @@ export type ContractOfferKind = "transfer" | "free_agent" | "renewal";
 
 export type TransferDealResolution = "accepted" | "rejected" | "cancelled" | "error";
 
+export interface TransferDealAttemptResult {
+  resolution: TransferDealResolution;
+  failedWageOptions?: WageDealOption[];
+}
+
 export type PendingTransferNegotiation = {
   offer: ContractOfferCard;
   failedWageOptions: WageDealOption[];

@@ -4,7 +4,8 @@ import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { completeTransferCommandAction } from "@/actions/career-transfer.actions";
 import type { WageDealOption } from "@/lib/salary-negotiation";
 import type { ApproachRejectState } from "../components/TransferWindowPanel";
-import type { ContractOfferCard, TransferDealResolution, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { ContractOfferCard, TransferDealAttemptResult, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import type { TransferCommandResult } from "@/features/career/contracts/transfer-transition.contract";
 import type { CareerSubStep, ClubSummary } from "@/types/domain";
 import type { useCareerStats } from "./useCareerStats";
 import type { useCareerCheckpointSync } from "@/features/career/hooks/useCareerCheckpointSync";
@@ -52,7 +53,7 @@ export function useDraftDrumTransferCommit({
   async function commitTransferSelection(
     offer: ContractOfferCard,
     wageOption: WageDealOption = "standard",
-  ): Promise<{ resolution: TransferDealResolution; offer?: ContractOfferCard }> {
+  ): Promise<TransferDealAttemptResult & { offer?: ContractOfferCard }> {
     if (!checkpointSync.isEnabled) return { resolution: "accepted", offer };
     const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
     if (!syncPlayerId || !seasonId || revision === null) {
@@ -60,7 +61,7 @@ export function useDraftDrumTransferCommit({
       return { resolution: "error" };
     }
     try {
-      const result = await completeTransferCommandAction({
+      const result: TransferCommandResult = await completeTransferCommandAction({
         playerId: syncPlayerId,
         seasonId,
         expectedRevision: revision,
@@ -71,27 +72,32 @@ export function useDraftDrumTransferCommit({
         clubId: offer.clubId,
         wageOption,
       });
-      checkpointSync.applyTransferCompletion(result);
-      statsProps.setWalletBalance(result.walletBalance);
+      if (result.status !== "accepted") {
+        setApproachBanner(result.message);
+        return {
+          resolution: result.status === "cancelled" ? "cancelled" : "rejected",
+          failedWageOptions: result.failedWageOptions,
+        };
+      }
+      checkpointSync.applyTransferCompletion(result.transfer);
+      statsProps.setWalletBalance(result.transfer.walletBalance);
       return {
         resolution: "accepted",
         offer: {
           ...offer,
-          clubId: result.clubId ?? offer.clubId,
-          clubName: result.clubName,
-          leagueName: result.leagueName,
-          transferFee: result.fee,
-          contractYears: result.contractYears,
-          wageAnnual: result.wageAnnual,
+          clubId: result.transfer.clubId ?? offer.clubId,
+          clubName: result.transfer.clubName,
+          leagueName: result.transfer.leagueName,
+          transferFee: result.transfer.fee,
+          contractYears: result.transfer.contractYears,
+          wageAnnual: result.transfer.wageAnnual,
         },
       };
     } catch (error) {
       if (checkpointSync.isEnabled) await checkpointSync.resync();
       const message = error instanceof Error ? error.message : "";
-      const cancelled = message.includes("thương vụ") || message.includes("đã bị hủy");
-      const rejected = message.includes("mức lương") || message.includes("lương");
       setApproachBanner(message || "Không thể chốt chuyển nhượng — hãy thử lại.");
-      return { resolution: cancelled ? "cancelled" : rejected ? "rejected" : "error" };
+      return { resolution: "error" };
     }
   }
 
@@ -118,12 +124,12 @@ export function useDraftDrumTransferCommit({
   async function handleAcceptMarketOffer(
     offer: ContractOfferCard,
     wageOption: WageDealOption = "standard",
-  ): Promise<TransferDealResolution> {
+  ): Promise<TransferDealAttemptResult> {
     const ownsProcessing = !isProcessing;
     if (ownsProcessing) setIsProcessing(true);
     try {
       const committed = await commitTransferSelection(offer, wageOption);
-      if (committed.resolution !== "accepted" || !committed.offer) return committed.resolution;
+      if (committed.resolution !== "accepted" || !committed.offer) return committed;
       const authoritativeOffer = committed.offer;
       const finalizedOffer = checkpointSync.isEnabled
         ? authoritativeOffer
@@ -149,10 +155,10 @@ export function useDraftDrumTransferCommit({
           setApproachBanner(null);
         },
       );
-      return "accepted";
+      return committed;
     } catch (error) {
-      const message = error instanceof Error ? error.message : "";
-      return message.includes("thương vụ") || message.includes("đã bị hủy") ? "cancelled" : message.includes("mức lương") || message.includes("lương") ? "rejected" : "error";
+      setApproachBanner(error instanceof Error ? error.message : "Không thể chốt chuyển nhượng — hãy thử lại.");
+      return { resolution: "error" };
     } finally {
       if (ownsProcessing) setIsProcessing(false);
     }
@@ -179,7 +185,12 @@ export function useDraftDrumTransferCommit({
           ),
           kind: "stay",
         });
-        checkpointSync.applyTransferCompletion(result);
+        if (result.status !== "accepted") {
+          setApproachBanner(result.message);
+          setIsProcessing(false);
+          return;
+        }
+        checkpointSync.applyTransferCompletion(result.transfer);
       } catch {
         await checkpointSync.resync();
         setApproachBanner("Không thể chốt ở lại — hãy thử lại.");
