@@ -152,6 +152,7 @@
 .football-trophy-modal__body { display: flex; flex-direction: column; gap: 0; }
 .football-trophy-row { display: grid; grid-template-columns: 32px minmax(0, 1fr) auto; gap: 12px; align-items: center; border-bottom: 1px solid rgba(201,162,77,0.35); padding: 14px 0; }
 .football-trophy-row__mark { display: grid; width: 30px; height: 30px; place-items: center; color: var(--football-honour-lit); }
+.football-trophy-row.is-runner-up .football-trophy-row__mark, .football-trophy-row.is-runner-up time { color: var(--football-ink-3); }
 .football-trophy-row__copy { display: flex; min-width: 0; flex-direction: column; gap: 2px; }
 .football-trophy-row__copy span, .football-trophy-row__copy small, .football-trophy-row time { color: rgba(244,241,234,0.62); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.08em; text-transform: uppercase; }
 .football-trophy-row__copy strong { overflow: hidden; color: var(--football-surface); font-family: var(--font-headline); font-size: 16px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
@@ -222,6 +223,7 @@
 .football-player-sticker__identity small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
 .football-career-dialog__section { display: flex; flex-direction: column; gap: 0; }
 .football-career-dialog__section h3, .football-career-dialog__seasons > h3 { margin: 0 0 10px; color: var(--football-ink); font-family: var(--font-headline); font-size: 12px; font-weight: 600; letter-spacing: .1em; text-transform: uppercase; }
+.football-career-dialog__subheading { margin-top: 14px !important; color: var(--football-ink-3) !important; font-size: 10px !important; }
 .football-career-dialog__metric { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; border-bottom: 1px solid var(--football-rule); padding: 0 0 9px; margin-bottom: 9px; }
 .football-career-dialog__metric span { color: var(--football-ink-2); font-family: var(--font-body); font-size: 13.5px; }
 .football-career-dialog__metric strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
