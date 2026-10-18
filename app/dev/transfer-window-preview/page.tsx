@@ -167,7 +167,7 @@ export default function TransferWindowPreviewPage() {
           isProcessing={false}
           approachRejects={{}}
           approachBanner={null}
-          onAcceptOffer={(o) => { setLog(`Offer ${o.kind}: ${o.clubName}`); return "accepted"; }}
+          onAcceptOffer={(o) => { setLog(`Offer ${o.kind}: ${o.clubName}`); return { resolution: "accepted" }; }}
           onRejectAll={() => setLog("Reject all / stay")}
           onApproachShortlist={(c) => { setLog(`Approach ${c.clubName} (${Math.round((c.acceptChance ?? 0) * 100)}%)`); }}
           onProactiveRenewal={() => setLog("Renewal")}
