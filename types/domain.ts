@@ -56,12 +56,16 @@ export interface TrophyRecord {
   name: string;
   club: string;
   age: number;
+  /** Legacy records omit this and are treated as wins when read. */
+  result?: "winner" | "runner_up";
 }
 
 export interface SeasonAwardRecord {
   type: string;
   label: string;
   age: number;
+  /** Legacy records omit this and are treated as wins when read. */
+  result?: "winner" | "runner_up";
 }
 
 export interface AchievementRecord {

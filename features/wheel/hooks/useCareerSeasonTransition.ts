@@ -119,20 +119,20 @@ export function useCareerSeasonTransition(props: UseCareerSeasonTransitionProps)
       const seasonAwards = [...(prev.seasonAwards ?? [])];
       let ballonDor = prev.ballonDor ?? 0;
 
-      if (standingResult === 1) {
-        trophies.push({ type: "league", name: actualLeagueName || "Giải vô địch quốc gia", club: actualClubName, age: currentAge });
+      if (standingResult === 1 || standingResult === 2) {
+        trophies.push({ type: "league", name: actualLeagueName || "Giải vô địch quốc gia", club: actualClubName, age: currentAge, result: standingResult === 2 ? "runner_up" : "winner" });
       }
-      if (domesticCupResult === "Winner") {
-        trophies.push({ type: "cup", name: getDomesticCupName(actualLeagueName, actualStintLeagueId), club: actualClubName, age: currentAge });
+      if (domesticCupResult === "Winner" || domesticCupResult === "Runner-Up") {
+        trophies.push({ type: "cup", name: getDomesticCupName(actualLeagueName, actualStintLeagueId), club: actualClubName, age: currentAge, result: domesticCupResult === "Runner-Up" ? "runner_up" : "winner" });
       }
-      if (continentalCupResult === "Winner") {
-        trophies.push({ type: "continental", name: getContinentalCupLabel(currentContinentalCup), club: actualClubName, age: currentAge });
+      if (continentalCupResult === "Winner" || continentalCupResult === "Runner-Up") {
+        trophies.push({ type: "continental", name: getContinentalCupLabel(currentContinentalCup), club: actualClubName, age: currentAge, result: continentalCupResult === "Runner-Up" ? "runner_up" : "winner" });
       }
-      if (nationalCallupResult === "called_up" && nationalTournamentResult === "Winner") {
+      if (nationalCallupResult === "called_up" && (nationalTournamentResult === "Winner" || nationalTournamentResult === "Runner-Up")) {
         const tourney = getNationalTournamentName(
           playerNationality, currentAge, playerDebutAge, getNationalContinentalCup,
         );
-        trophies.push({ type: "international", name: tourney, club: playerNationality, age: currentAge });
+        trophies.push({ type: "international", name: tourney, club: playerNationality, age: currentAge, result: nationalTournamentResult === "Runner-Up" ? "runner_up" : "winner" });
       }
       if (ballonDorRank !== null) {
         // top 10 nomination

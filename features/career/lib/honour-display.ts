@@ -1,6 +1,7 @@
 import { getContinentalCupLabel, getDomesticCupNameByLeagueId, getDomesticCupNameFromLeagueName } from "@/lib/competitions";
 
 export type HonourDisplayCategory = "club" | "individual";
+export type HonourResult = "winner" | "runner_up";
 
 export interface HonourDisplayContext {
   leagueId?: string | null;
@@ -58,10 +59,21 @@ export function getSpecificHonourLabel(
   return fallbackLabel || fallbackAfterVictoryPrefix(awardKey);
 }
 
+export function normalizeHonourResult(value: unknown): HonourResult {
+  return value === "runner_up" || value === "Runner-Up" ? "runner_up" : "winner";
+}
+
+export function getHonourResultLabel(label: string, result: unknown): string {
+  if (normalizeHonourResult(result) === "winner") return label;
+  if (/^á quân\s+/i.test(label)) return label;
+  return /^vô địch\s+/i.test(label) ? label.replace(/^vô địch\s+/i, "Á quân ") : `Á quân ${label}`;
+}
+
 export function getHonourIdentity(
   awardKey: string,
   _label: string,
   slotKey?: string | null,
+  result?: unknown,
 ): string {
-  return `${awardKey}:${slotKey ?? "winner"}`;
+  return `${awardKey}:${slotKey ?? "winner"}:${normalizeHonourResult(result)}`;
 }

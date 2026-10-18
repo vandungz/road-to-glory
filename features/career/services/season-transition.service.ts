@@ -128,8 +128,16 @@ export async function advanceCareerSeasonCommand(params: {
     );
     const runtime = asRecord(season.runtimeState);
     const simulated = asRecord(runtime.yearSimResult);
-    const continentalRecord = typeof runtime.continentalCupType === "string" && runtime.continentalCupType !== "none"
-      ? { type: runtime.continentalCupType, result: typeof runtime.continentalCupResult === "string" ? runtime.continentalCupResult : null }
+    // Older production seasons may have the authoritative competition result in
+    // seasonHistory/summary but no runtime continentalCupType.
+    const completedContinental = asRecord(seasonRecord.continentalCup);
+    const continentalType = typeof runtime.continentalCupType === "string" && runtime.continentalCupType !== "none"
+      ? runtime.continentalCupType
+      : typeof completedContinental.type === "string" && completedContinental.type !== "none"
+        ? completedContinental.type
+        : null;
+    const continentalRecord = continentalType
+      ? { type: continentalType, result: typeof runtime.continentalCupResult === "string" ? runtime.continentalCupResult : typeof completedContinental.result === "string" ? completedContinental.result : null }
       : null;
     const nationalRecord = season.age % 2 === 0
       ? { type: typeof runtime.nationalTournamentType === "string" ? runtime.nationalTournamentType : null, result: typeof runtime.nationalTournamentResult === "string" ? runtime.nationalTournamentResult : null }

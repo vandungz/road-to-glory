@@ -5,6 +5,7 @@ export const TOP_TEN_LIMIT = 10;
 export type AwardCategory = "team_trophy" | "individual_award" | "ballon_dor";
 export type AwardScope = "league" | "domestic_cup" | "continental" | "national_team" | "club" | "career" | "unknown";
 export type AwardRevealStage = "season_recap" | "ballon_dor_result";
+export type AwardHonourResult = "winner" | "runner_up" | "selected" | "nominee";
 
 export type AwardKey =
   | "league_golden_boot"
@@ -28,7 +29,7 @@ export interface AwardRankingEntry {
   metrics: Record<string, number | string | boolean | null>;
   score: number;
   weight: number;
-  result: "winner" | "selected" | "nominee" | "ranked";
+  result: "winner" | "runner_up" | "selected" | "nominee" | "ranked";
 }
 
 export interface AwardRankingSnapshotInput {
@@ -54,7 +55,7 @@ export interface AwardHonourInput {
   scopeKey: string;
   slotKey?: string;
   rank?: number;
-  result: "winner" | "selected" | "nominee";
+  result: AwardHonourResult;
   label: string;
   metrics: Record<string, number | string | boolean | null>;
   modelVersion: string;

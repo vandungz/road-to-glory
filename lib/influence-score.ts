@@ -31,6 +31,7 @@ export interface TrophyEntry {
   name: string;
   club: string;
   age: number;
+  result?: "winner" | "runner_up";
 }
 
 export interface NationalTeamSeasonEntry {
@@ -52,6 +53,9 @@ export function computeTrophyScore(trophies: TrophyEntry[] | undefined): number 
   let score = 0;
 
   for (const trophy of trophies) {
+    // Runner-up is a displayable career achievement, but must not change the
+    // legacy influence balance. This keeps the feature additive to gameplay.
+    if (trophy.result === "runner_up") continue;
     const seen = countByType[trophy.type] ?? 0;
     countByType[trophy.type] = seen + 1;
     // Diminishing weight after the 6th trophy of a given type.

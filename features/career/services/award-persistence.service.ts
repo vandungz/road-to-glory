@@ -9,7 +9,7 @@ import {
   type AwardRankingSnapshotInput,
   type AwardSimulationResult,
 } from "@/types/awards";
-import { getSpecificHonourLabel } from "@/features/career/lib/honour-display";
+import { getHonourResultLabel, getSpecificHonourLabel } from "@/features/career/lib/honour-display";
 
 type AwardTransaction = Prisma.TransactionClient;
 
@@ -134,27 +134,31 @@ export async function persistTeamTrophies(params: {
   nationalTeam?: { type?: string | null; result?: string | null } | null;
 }): Promise<void> {
   const trophies = [
-    params.standing === 1 ? {
+    params.standing === 1 || params.standing === 2 ? {
       key: "league_title" as const,
       scope: "league",
-      label: getSpecificHonourLabel("league_title", "Vô địch giải quốc gia", params.club),
+      result: params.standing === 2 ? "runner_up" as const : "winner" as const,
+      label: getHonourResultLabel(getSpecificHonourLabel("league_title", "Vô địch giải quốc gia", params.club), params.standing === 2 ? "runner_up" : "winner"),
     } : null,
-    params.domesticCup === "Winner" ? {
+    params.domesticCup === "Winner" || params.domesticCup === "Runner-Up" ? {
       key: "domestic_cup_title" as const,
       scope: "domestic_cup",
-      label: getSpecificHonourLabel("domestic_cup_title", "Vô địch Cúp quốc gia", params.club),
+      result: params.domesticCup === "Runner-Up" ? "runner_up" as const : "winner" as const,
+      label: getHonourResultLabel(getSpecificHonourLabel("domestic_cup_title", "Vô địch Cúp quốc gia", params.club), params.domesticCup === "Runner-Up" ? "runner_up" : "winner"),
     } : null,
-    params.continentalCup?.result === "Winner" ? {
+    params.continentalCup?.result === "Winner" || params.continentalCup?.result === "Runner-Up" ? {
       key: "continental_title" as const,
       scope: "continental",
-      label: getSpecificHonourLabel("continental_title", "Vô địch cúp châu lục", { continentalType: params.continentalCup.type }),
+      result: params.continentalCup.result === "Runner-Up" ? "runner_up" as const : "winner" as const,
+      label: getHonourResultLabel(getSpecificHonourLabel("continental_title", "Vô địch cúp châu lục", { continentalType: params.continentalCup.type }), params.continentalCup.result === "Runner-Up" ? "runner_up" : "winner"),
     } : null,
-    params.nationalTeam?.result === "Winner" ? {
+    params.nationalTeam?.result === "Winner" || params.nationalTeam?.result === "Runner-Up" ? {
       key: "national_team_title" as const,
       scope: "national_team",
-      label: getSpecificHonourLabel("national_team_title", "Vô địch giải quốc tế", { nationalTeamType: params.nationalTeam.type }),
+      result: params.nationalTeam.result === "Runner-Up" ? "runner_up" as const : "winner" as const,
+      label: getHonourResultLabel(getSpecificHonourLabel("national_team_title", "Vô địch giải quốc tế", { nationalTeamType: params.nationalTeam.type }), params.nationalTeam.result === "Runner-Up" ? "runner_up" : "winner"),
     } : null,
-  ].filter((value): value is { key: "league_title" | "domestic_cup_title" | "continental_title" | "national_team_title"; scope: string; label: string } => value !== null);
+  ].filter((value): value is { key: "league_title" | "domestic_cup_title" | "continental_title" | "national_team_title"; scope: string; result: "winner" | "runner_up"; label: string } => value !== null);
   for (const trophy of trophies) {
     await params.tx.careerHonour.upsert({
       where: { careerPlayerId_awardInstanceKey: { careerPlayerId: params.playerId, awardInstanceKey: `${params.seasonId}:${trophy.key}` } },
@@ -168,17 +172,21 @@ export async function persistTeamTrophies(params: {
         scope: trophy.scope,
         scopeKey: params.club.leagueId ?? undefined,
         awardInstanceKey: `${params.seasonId}:${trophy.key}`,
-        result: "winner",
+        result: trophy.result,
         label: trophy.label,
         clubId: params.club.id ?? undefined,
         clubName: params.club.name ?? undefined,
         leagueId: params.club.leagueId ?? undefined,
-        metrics: json({ standing: params.standing, result: "Winner" }),
+        metrics: json({ standing: params.standing, result: trophy.result === "runner_up" ? "Runner-Up" : "Winner" }),
         modelVersion: AWARD_MODEL_VERSION,
         resolutionVersion: "season-outcome-v1",
         source: "season_simulation",
       },
-      update: { label: trophy.label, metrics: json({ standing: params.standing, result: "Winner" }) },
+      update: {
+        label: trophy.label,
+        result: trophy.result,
+        metrics: json({ standing: params.standing, result: trophy.result === "runner_up" ? "Runner-Up" : "Winner" }),
+      },
     });
   }
 }
@@ -211,10 +219,10 @@ export async function finalizeBallonDorRanking(params: {
     isCareerPlayer: true,
     metrics: current?.metrics ?? {},
     rank,
-    result: rank === 1 ? "winner" : "nominee",
+    result: rank === 2 ? "runner_up" : rank === 1 ? "winner" : "nominee",
   };
   others.splice(Math.min(rank - 1, others.length), 0, playerEntry);
-  const entries = others.slice(0, TOP_TEN_LIMIT).map((entry, index) => ({ ...entry, rank: index + 1, result: entry.isCareerPlayer ? (index === 0 ? "winner" : "nominee") : "ranked" }));
+  const entries = others.slice(0, TOP_TEN_LIMIT).map((entry, index) => ({ ...entry, rank: index + 1, result: entry.isCareerPlayer ? (index === 0 ? "winner" : index === 1 ? "runner_up" : "nominee") : "ranked" }));
   const snapshotKey = snapshot?.snapshotKey ?? `${params.seasonId}:ballon_dor:global-candidate-universe`;
   await params.tx.careerAwardRankingSnapshot.upsert({
     where: { snapshotKey },
@@ -252,7 +260,7 @@ export async function finalizeBallonDorRanking(params: {
       scopeKey: "global-candidate-universe",
       awardInstanceKey: `${params.seasonId}:ballon_dor:result`,
       rank,
-      result: rank === 1 ? "winner" : "nominee",
+      result: rank === 2 ? "runner_up" : rank === 1 ? "winner" : "nominee",
       label: "Quả bóng vàng",
       clubId: params.club.id ?? undefined,
       clubName: params.club.name ?? undefined,
@@ -262,7 +270,7 @@ export async function finalizeBallonDorRanking(params: {
       resolutionVersion: AWARD_RESOLUTION_VERSION,
       source: "ballon_dor_wheel",
     },
-    update: { rank, result: rank === 1 ? "winner" : "nominee", metrics: json({ rank }) },
+    update: { rank, result: rank === 2 ? "runner_up" : rank === 1 ? "winner" : "nominee", metrics: json({ rank }) },
   });
 }
 
@@ -296,9 +304,9 @@ export async function syncAchievementCache(tx: AwardTransaction, playerId: strin
       continue;
     }
     if (honour.category === "team_trophy") {
-      trophies.push({ type: honour.awardKey === "league_title" ? "league" : honour.awardKey === "continental_title" ? "continental" : honour.awardKey === "national_team_title" ? "international" : "cup", name: label, club: honour.clubName ?? "", age: honour.age });
+      trophies.push({ type: honour.awardKey === "league_title" ? "league" : honour.awardKey === "continental_title" ? "continental" : honour.awardKey === "national_team_title" ? "international" : "cup", name: getHonourResultLabel(label, honour.result), club: honour.clubName ?? "", age: honour.age, result: honour.result === "runner_up" ? "runner_up" : "winner" });
     } else {
-      seasonAwards.push({ type: honour.awardKey, label, age: honour.age });
+      seasonAwards.push({ type: honour.awardKey, label: getHonourResultLabel(label, honour.result), age: honour.age, result: honour.result === "runner_up" ? "runner_up" : "winner" });
     }
   }
   return { ballonDor, ballonDorNominations, trophies, seasonAwards };

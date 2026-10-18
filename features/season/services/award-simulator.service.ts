@@ -272,7 +272,7 @@ function makeHonour(input: AwardSimulatorInput, key: AwardKey, entry: AwardRanki
     scopeKey: "league",
     slotKey,
     rank: entry.rank,
-    result: slotKey ? "selected" : "winner",
+    result: slotKey ? "selected" : entry.rank === 2 ? "runner_up" : "winner",
     label: AWARD_LABELS[key],
     metrics: entry.metrics,
     modelVersion: AWARD_MODEL_VERSION,
@@ -296,7 +296,7 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     rankingSnapshot.status = "resolved";
     rankingSnapshot.resolution = { candidateUniverseSize: eligible.length, resolver: AWARD_RESOLUTION_VERSION, winnerKey: entries[0]?.candidateKey };
     snapshots.push(rankingSnapshot);
-    if (current?.isCareerPlayer && current.rank === 1) honours.push(makeHonour(input, key, current));
+    if (current?.isCareerPlayer && current.rank <= 2) honours.push(makeHonour(input, key, current));
   }
 
   const formation = input.formation && BEST_XI_SLOTS[input.formation] ? input.formation : BEST_XI_FORMATION;
