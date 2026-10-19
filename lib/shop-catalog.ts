@@ -39,12 +39,17 @@ export interface ShopInventoryEntry {
 export const FITNESS_COACH_SEVERITY_MULTIPLIER = 0.55;
 // Flat bonus added to calcRating's base for every competition in the target season
 // (Updated 2026-08-09) — DRAFT.
-export const TRAINING_CAMP_RATING_BONUS = 0.4;
+export const TRAINING_CAMP_RATING_BONUS = 0.8;
+/** Flat +5 season contribution, routed to the player's primary role metric. */
+export const TRAINING_CAMP_STAT_BONUS = 5;
 export const EXTRA_APPEARANCES_BONUS = 6;
-export const NATIONAL_CALLUP_WEIGHT_BONUS = 18;
+/** The call-up pool is normalized to 100 points, so this is +20 percentage points. */
+export const NATIONAL_CALLUP_WEIGHT_BONUS = 20;
 export const DEVELOPMENT_GATE_BONUS = 15;
 export const DEVELOPMENT_SPECIALIST_WEIGHT_MULTIPLIER = 1.6;
-export const DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER = 2.2;
+export const DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER = 3;
+/** Elite development keeps each +1/+2 magnitude at 12% of the final pool. */
+export const DEVELOPMENT_LOW_MAGNITUDE_WEIGHT = 12;
 
 export const SHOP_CATALOG: ShopCatalogItem[] = [
   {
@@ -58,9 +63,9 @@ export const SHOP_CATALOG: ShopCatalogItem[] = [
   {
     id: "training_camp",
     name: "Trại Tập Luyện Chuyên Sâu",
-    description: "Tăng thẳng +0.4 phong độ (match rating) ở mọi giải đấu trong mùa này.",
+    description: "Tăng +0.8 phong độ (match rating) ở mọi giải đấu và cộng tối đa +5 G/A/CS theo vị trí trong mùa này.",
     group: "performance",
-    priceThousands: 1400,
+    priceThousands: 1700,
     maxPurchasesPerSeason: 1,
   },
   {
@@ -68,13 +73,13 @@ export const SHOP_CATALOG: ShopCatalogItem[] = [
     name: "Gói Cơ Hội Ra Sân",
     description: `Tăng trực tiếp tối đa +${EXTRA_APPEARANCES_BONUS} trận ra sân trong mùa này (không vượt quá số trận của giải).`,
     group: "performance",
-    priceThousands: 650,
+    priceThousands: 400,
     maxPurchasesPerSeason: 1,
   },
   {
     id: "national_callup_boost",
     name: "Hồ Sơ Tuyển Trạch ĐTQG",
-    description: `Tăng +${NATIONAL_CALLUP_WEIGHT_BONUS} điểm trọng số cơ hội được gọi lên ĐTQG mùa này.`,
+    description: `Tăng +${NATIONAL_CALLUP_WEIGHT_BONUS} điểm phần trăm cơ hội được gọi lên ĐTQG mùa này.`,
     group: "performance",
     priceThousands: 900,
     maxPurchasesPerSeason: 1,
@@ -85,9 +90,9 @@ export const SHOP_CATALOG: ShopCatalogItem[] = [
     name: "Chương Trình Phát Triển Tinh Hoa",
     description: "Tăng cơ hội phát triển, ưu tiên chỉ số chuyên môn và tăng trọng số các biên độ +2 đến +6. Món đồ cao cấp, giá rất đắt.",
     group: "performance",
-    // Balance pass 2026-08-28: the item affects three growth levers, so its price
+    // Balance pass 2026-10-19: the item affects three growth levers, so its price
     // must create a meaningful opportunity cost instead of being an automatic buy.
-    priceThousands: 4500,
+    priceThousands: 6000,
     maxPurchasesPerSeason: 1,
   },
 ];

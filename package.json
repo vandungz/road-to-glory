@@ -29,6 +29,7 @@
     "backfill:awards": "tsx scripts/backfill-awards.ts",
     "check:transfer-economy": "tsx scripts/transfer-economy-check.ts",
     "check:transfer-finance": "tsx scripts/transfer-finance-check.ts",
+    "check:shop-balance": "tsx scripts/shop-balance-check.ts",
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {

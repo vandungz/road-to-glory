@@ -19,10 +19,51 @@ import {
 } from "./simulation-helpers";
 import {
   DEVELOPMENT_GATE_BONUS,
+  DEVELOPMENT_LOW_MAGNITUDE_WEIGHT,
   DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER,
   DEVELOPMENT_SPECIALIST_WEIGHT_MULTIPLIER,
   FITNESS_COACH_SEVERITY_MULTIPLIER,
 } from "@/lib/shop-catalog";
+
+function applyEliteMagnitudeWeights(
+  pool: { value: number; weight: number }[],
+): { value: number; weight: number }[] {
+  const lowWeight = DEVELOPMENT_LOW_MAGNITUDE_WEIGHT;
+  const remainder = 100 - lowWeight * 2;
+  const highMagnitude = pool
+    .filter((item) => item.value >= 3)
+    .map((item) => ({
+      value: item.value,
+      weight: Math.max(1, item.value >= 4
+        ? Math.round(item.weight * DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER)
+        : item.weight),
+    }));
+  const total = highMagnitude.reduce((sum, item) => sum + item.weight, 0);
+  const scaled = highMagnitude.map((item) => ({
+    value: item.value,
+    weight: Math.max(1, Math.floor((item.weight / total) * remainder)),
+  }));
+  let drift = remainder - scaled.reduce((sum, item) => sum + item.weight, 0);
+  let index = scaled.length - 1;
+  while (drift > 0 && scaled.length > 0) {
+    scaled[index].weight += 1;
+    drift -= 1;
+    index = (index - 1 + scaled.length) % scaled.length;
+  }
+  index = scaled.length - 1;
+  while (drift < 0 && scaled.length > 0) {
+    if (scaled[index].weight > 1) {
+      scaled[index].weight -= 1;
+      drift += 1;
+    }
+    index = (index - 1 + scaled.length) % scaled.length;
+  }
+  return [
+    { value: 1, weight: lowWeight },
+    { value: 2, weight: lowWeight },
+    ...scaled,
+  ];
+}
 
 export function getSoftCapFactor(ovr: number): number {
   if (ovr >= 99) return 0;
@@ -336,12 +377,7 @@ export function getEffectiveMagnitudePool(params: {
     }
   }
   if (params.isIncrease && params.eliteDevelopmentActive) {
-    return pool.map((item) => ({
-      ...item,
-      weight: item.value >= 2
-        ? Math.max(1, Math.round(item.weight * DEVELOPMENT_HIGH_MAGNITUDE_WEIGHT_MULTIPLIER))
-        : item.weight,
-    }));
+    return applyEliteMagnitudeWeights(pool);
   }
   return pool;
 }

@@ -18,6 +18,7 @@ interface ShopModalProps {
   isProcessing: boolean;
   targetSeason: number | null;
   onPurchase: (itemId: string) => Promise<void>;
+  onPurchaseAll: () => Promise<void>;
   onContinue: () => void;
   embedded?: boolean;
   onClose?: () => void;
@@ -111,6 +112,7 @@ export function ShopModal({
   isProcessing,
   targetSeason,
   onPurchase,
+  onPurchaseAll,
   onContinue,
   embedded = false,
   onClose,
@@ -118,7 +120,17 @@ export function ShopModal({
 }: ShopModalProps) {
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [errorByItem, setErrorByItem] = useState<Record<string, string>>({});
+  const [purchaseAllError, setPurchaseAllError] = useState<string | null>(null);
   const canPurchase = targetSeason !== null;
+
+  const availableItems = targetSeason === null
+    ? []
+    : SHOP_CATALOG.filter((item) =>
+        isShopItemAvailableForSeason(item, targetSeason) &&
+        !shopInventory.some((entry) => entry.itemId === item.id && entry.appliedSeason === targetSeason),
+      );
+  const totalAvailablePrice = availableItems.reduce((sum, item) => sum + item.priceThousands, 0);
+  const canPurchaseAll = availableItems.length > 0 && walletBalance >= totalAvailablePrice;
 
   async function handleBuy(item: ShopCatalogItem) {
     if (isProcessing || purchasingId) return;
@@ -131,6 +143,19 @@ export function ShopModal({
         ...previous,
         [item.id]: err instanceof Error ? err.message : "Giao dịch thất bại",
       }));
+    } finally {
+      setPurchasingId(null);
+    }
+  }
+
+  async function handleBuyAll() {
+    if (!canPurchaseAll || isProcessing || purchasingId) return;
+    setPurchaseAllError(null);
+    setPurchasingId("__all__");
+    try {
+      await onPurchaseAll();
+    } catch (err: unknown) {
+      setPurchaseAllError(err instanceof Error ? err.message : "Không thể mua tất cả vật phẩm");
     } finally {
       setPurchasingId(null);
     }
@@ -190,10 +215,14 @@ export function ShopModal({
 
       <footer className="football-shop-content__footer">
         <span>Mỗi vật phẩm mua một lần cho mỗi mùa.</span>
-        <Button size="lg" onClick={onContinue} disabled={!canPurchase || isProcessing || purchasingId !== null}>
-          {canPurchase ? `Vào mùa tuổi ${targetSeason} →` : "Chưa sẵn sàng"}
-        </Button>
+        <div className="football-shop-content__footer-actions">
+          {canPurchaseAll && <Button size="lg" variant="outline" onClick={() => void handleBuyAll()} disabled={isProcessing || purchasingId !== null} loading={purchasingId === "__all__"}>Mua tất cả · {formatEuroThousands(totalAvailablePrice)}</Button>}
+          <Button size="lg" onClick={onContinue} disabled={!canPurchase || isProcessing || purchasingId !== null}>
+            {canPurchase ? `Vào mùa tuổi ${targetSeason} →` : "Chưa sẵn sàng"}
+          </Button>
+        </div>
       </footer>
+      {purchaseAllError && <p className="football-shop-content__purchase-all-error" role="alert">{purchaseAllError}</p>}
     </div>
   );
 

@@ -3,7 +3,8 @@
 import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { purchaseShopItemAction } from "@/actions/season.actions";
-import { purchaseShopItemCommandAction } from "@/actions/career-command.actions";
+import { purchaseAllShopItemsCommandAction, purchaseShopItemCommandAction } from "@/actions/career-command.actions";
+import { purchaseAllShopItemsAction } from "@/actions/season-progress.actions";
 import type { ShopInventoryEntry } from "@/lib/shop-catalog";
 import { ShopModal } from "./ShopModal";
 
@@ -69,6 +70,31 @@ export function ShopPageClient({
     }
   }
 
+  async function handlePurchaseAll() {
+    if (isProcessing) return;
+    setIsProcessing(true);
+    try {
+      const requestKey = playerId + ":all:" + targetSeason + ":" + revision;
+      const idempotencyKey = pendingKeysRef.current.get(requestKey) ?? globalThis.crypto.randomUUID();
+      pendingKeysRef.current.set(requestKey, idempotencyKey);
+      const result = checkpointVersion >= 2
+        ? await purchaseAllShopItemsCommandAction({
+            playerId,
+            targetSeason,
+            expectedRevision: revision,
+            idempotencyKey,
+          })
+        : await purchaseAllShopItemsAction({ playerId, currentAge, targetSeason });
+      pendingKeysRef.current.delete(requestKey);
+      setWalletBalance(result.walletBalance);
+      setShopInventory(result.shopInventory as ShopInventoryEntry[]);
+      if ("revision" in result) setRevision(result.revision);
+      router.refresh();
+    } finally {
+      setIsProcessing(false);
+    }
+  }
+
   return (
     <div className="football-shop-page">
       <ShopModal
@@ -77,6 +103,7 @@ export function ShopPageClient({
         isProcessing={isProcessing}
         targetSeason={targetSeason}
         onPurchase={handlePurchase}
+        onPurchaseAll={handlePurchaseAll}
         onContinue={() => router.push(returnHref)}
         embedded
         standalone

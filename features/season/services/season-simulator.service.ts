@@ -3,6 +3,7 @@ import { estimateAppsRatio } from "@/lib/club-fit";
 import { computeEffectivePositionOvr } from "@/lib/transfer-economy";
 import {
   EXTRA_APPEARANCES_BONUS,
+  TRAINING_CAMP_STAT_BONUS,
   TRAINING_CAMP_RATING_BONUS,
 } from "@/lib/shop-catalog";
 import type { BallonDorEligibility } from "./ballon-dor.service";
@@ -86,6 +87,15 @@ export interface SimulatedSeasonResult {
   awardSimulation: AwardSimulationResult;
 }
 
+type TrainingCampMetric = "goals" | "assists" | "cleanSheets";
+
+function trainingCampMetricForPosition(position: string): TrainingCampMetric {
+  const normalized = position.toUpperCase();
+  if (["ST", "LW", "RW"].includes(normalized)) return "goals";
+  if (["CAM", "LM", "RM", "CM"].includes(normalized)) return "assists";
+  return "cleanSheets";
+}
+
 
 // ── Main service ───────────────────────────────────────────────────────────
 
@@ -163,7 +173,7 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const totalApps = leagueApps + cupApps + continentalApps + nationalApps;
 
   // 4. Per-competition goals/assists/CS (volume ∝ apps)
-  const { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS } = rollCompetitionOutput(
+  let { goals: lgGoals, assists: lgAssists, cleanSheets: leagueCS } = rollCompetitionOutput(
     position, effPositionOvr, clubPrestige, leagueApps, "league", currentStats, maxLeagueTeamCS, randomSource,
   );
   const { goals: cpGoals, assists: cpAssists, cleanSheets: cupCS } = rollCompetitionOutput(
@@ -175,6 +185,16 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const { goals: ntGoals, assists: ntAssists, cleanSheets: natCS } = rollCompetitionOutput(
     position, effPositionOvr, clubPrestige, nationalApps, "national", currentStats, maxNationalTeamCS, randomSource,
   );
+
+  if (trainingCampActive) {
+    const metric = trainingCampMetricForPosition(position);
+    if (metric === "goals") lgGoals = Math.min(leagueApps, lgGoals + TRAINING_CAMP_STAT_BONUS);
+    if (metric === "assists") lgAssists = Math.min(leagueApps, lgAssists + TRAINING_CAMP_STAT_BONUS);
+    if (metric === "cleanSheets") {
+      const cleanSheetLimit = Math.min(leagueApps, maxLeagueTeamCS ?? leagueApps);
+      leagueCS = Math.min(cleanSheetLimit, leagueCS + TRAINING_CAMP_STAT_BONUS);
+    }
+  }
 
   // 5. Match ratings per competition (SoT §7.3: use effPositionOvr for ovrVsClub)
   const lgRatingBonus = getStandingBonus(standingResult) * 0.8;
