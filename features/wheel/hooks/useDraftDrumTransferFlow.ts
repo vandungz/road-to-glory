@@ -2,6 +2,7 @@
 
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {
+  dismissTransferNegotiationCommandAction,
   resolveTransferNegotiationCommandAction,
   searchTransferClubsCommandAction,
 } from "@/actions/career-transfer.actions";
@@ -262,7 +263,23 @@ export function useDraftDrumTransferFlow({
     }
   }
 
-  function clearPendingTransferOffer() {
+  async function clearPendingTransferOffer(offer?: ContractOfferCard, state?: { failedWageOptions: WageDealOption[] }) {
+    if (checkpointSync.isEnabled && offer?.kind === "renewal" && (state?.failedWageOptions.length ?? 0) > 0) {
+      const { playerId, seasonId, revision } = checkpointSync.state;
+      if (playerId && seasonId && revision !== null) {
+        try {
+          await dismissTransferNegotiationCommandAction({
+            playerId,
+            seasonId,
+            expectedRevision: revision,
+            clubId: offer.clubId,
+            offerKind: offer.kind,
+          });
+        } catch {
+          setApproachBanner("Không thể đóng đề nghị gia hạn — hãy tải lại cửa sổ chuyển nhượng.");
+        }
+      }
+    }
     setTransferOffer(null);
   }
 

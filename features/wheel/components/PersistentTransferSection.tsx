@@ -46,7 +46,7 @@ export interface PersistentTransferSectionProps {
   approachBanner: string | null;
   onClose?: () => void;
   acceptedOffer?: ContractOfferCard | null;
-  onClearAcceptedOffer?: () => Promise<void> | void;
+  onClearAcceptedOffer?: (offer?: ContractOfferCard, state?: { failedWageOptions: WageDealOption[] }) => Promise<void> | void;
   onSelectOffer?: (offer: ContractOfferCard) => Promise<PendingTransferNegotiation | null> | PendingTransferNegotiation | null;
 }
 
@@ -85,8 +85,10 @@ function ShortlistCard({ club, selectedDeal, isProcessing, rejected, onDealChang
 
 export function PersistentTransferSection({ market, currentClubId, currentClubName, proactiveRenewalRejected = false, willingToMove, setWillingToMove, isProcessing, onAcceptOffer, onRejectAll, onApproachShortlist, onProactiveRenewal, onSearchClubs, approachRejects, approachBanner, onClose, acceptedOffer, onClearAcceptedOffer, onSelectOffer }: PersistentTransferSectionProps) {
   const { contract, renewal, inbound, shortlist, isUnemployedMarket } = market;
-  const visibleRenewal = proactiveRenewalRejected ? null : renewal;
-  const [activeTab, setActiveTab] = useState<"renewal" | "inbound" | "shortlist">(inbound.length > 0 ? "inbound" : "renewal");
+  const renewalKey = renewal ? [renewal.clubId, renewal.wageAnnual, renewal.contractYears, renewal.expectedLeagueApps].join(":") : null;
+  const [dismissedRenewalKey, setDismissedRenewalKey] = useState<string | null>(null);
+  const visibleRenewal = proactiveRenewalRejected || dismissedRenewalKey === renewalKey ? null : renewal;
+  const [activeTab, setActiveTab] = useState<"renewal" | "inbound" | "shortlist">(visibleRenewal ? "renewal" : inbound.length > 0 ? "inbound" : "renewal");
   const [feeDeals, setFeeDeals] = useState<Record<string, TransferFeeDealOption>>({});
   const [wageDeal, setWageDeal] = useState<WageDealOption>("standard");
   const [failedWageOptions, setFailedWageOptions] = useState<WageDealOption[]>([]);
@@ -142,6 +144,9 @@ export function PersistentTransferSection({ market, currentClubId, currentClubNa
     }
   }, [acceptedOffer]);
   useEffect(() => {
+    if (dismissedRenewalKey && dismissedRenewalKey !== renewalKey) setDismissedRenewalKey(null);
+  }, [dismissedRenewalKey, renewalKey]);
+  useEffect(() => {
     if (failedWageOptions.includes(wageDeal)) {
       const nextOption = (["lower", "standard", "higher"] as WageDealOption[]).find((option) => !failedWageOptions.includes(option));
       if (nextOption) setWageDeal(nextOption);
@@ -153,7 +158,7 @@ export function PersistentTransferSection({ market, currentClubId, currentClubNa
   const wageMood = Math.max(0, 100 - failedWageOptions.length * 50);
   const pendingContent = pendingOffer && wageOptions ? (
     <section className="football-transfer-panel football-transfer-negotiation">
-      <button type="button" className="football-transfer-back" onClick={() => { setPendingOffer(null); void onClearAcceptedOffer?.(); }}>← Về danh sách lời đề nghị</button>
+      <button type="button" className="football-transfer-back" onClick={() => { if (pendingOffer.kind === "renewal" && failedWageOptions.length > 0) { setDismissedRenewalKey([pendingOffer.clubId, pendingOffer.wageAnnual, pendingOffer.contractYears, pendingOffer.expectedLeagueApps].join(":")); if (visibleInbound.length > 0) setActiveTab("inbound"); } setPendingOffer(null); void onClearAcceptedOffer?.(pendingOffer, { failedWageOptions }); }}>← Về danh sách lời đề nghị</button>
       <div className="football-transfer-panel__heading"><span className="football-eyebrow">Bước 2 · đàm phán lương</span><h2>Chốt hợp đồng với {pendingOffer.clubName}</h2><p>Phí chuyển nhượng đã được CLB chấp thuận. Mức lương cuối cùng vẫn cần được đồng ý.</p></div>
       <div className="football-transfer-offer__details"><span><small>Phí chuyển nhượng</small><strong>{pendingOffer.transferFee ? formatTransferFee(pendingOffer.transferFee) : "Miễn phí"}</strong></span><span><small>Thời hạn</small><strong>{pendingOffer.contractYears} mùa</strong></span></div>
       <div className="football-transfer-mood" aria-label={`Mức độ vui vẻ của ${pendingOffer.clubName}: ${wageMood}%`}><div><small>Mức độ vui vẻ của CLB</small><strong>{wageMood}%</strong></div><div className="football-transfer-mood__track"><span style={{ width: `${wageMood}%`, backgroundColor: wageMood <= 50 ? "var(--football-accent)" : "var(--football-positive)" }} /></div><p>{wageMood === 100 ? "CLB vẫn đang sẵn sàng thương lượng." : "Một phương án đã bị từ chối. Nếu thanh cạn, thương vụ sẽ bị hủy."}</p></div>
