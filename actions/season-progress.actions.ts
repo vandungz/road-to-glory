@@ -271,6 +271,8 @@ const purchaseShopItemSchema = z.object({
   targetSeason: z.number().int().min(15).max(51),
 });
 
+const purchaseAllShopItemsSchema = purchaseShopItemSchema.omit({ itemId: true });
+
 /**
  * First interactive read-check-write transaction in this codebase — everywhere else is a
  * single update() or an unguarded findUnique()→update() (fine for low-stakes fields, not
@@ -341,6 +343,66 @@ export async function purchaseShopItemAction(input: unknown): Promise<{
       select: { walletBalance: true, shopInventory: true },
     });
 
+    return {
+      walletBalance: updated.walletBalance,
+      shopInventory: updated.shopInventory as unknown as ShopInventoryEntry[],
+    };
+  });
+}
+
+export async function purchaseAllShopItemsAction(input: unknown): Promise<{
+  walletBalance: number;
+  shopInventory: ShopInventoryEntry[];
+}> {
+  const { playerId, currentAge, targetSeason } = purchaseAllShopItemsSchema.parse(input);
+  if (targetSeason !== currentAge && targetSeason !== currentAge + 1) {
+    throw new Error("Invalid target season");
+  }
+
+  const { id: userId } = await requireAuthenticatedUser();
+  await checkRateLimit(userId);
+  assertLegacyWritesEnabled();
+
+  return prisma.$transaction(async (tx) => {
+    const player = await tx.careerPlayer.findUnique({
+      where: { id: playerId },
+      select: {
+        gameSession: { select: { userId: true } },
+        checkpointVersion: true,
+        walletBalance: true,
+        walletLedger: true,
+        shopInventory: true,
+      },
+    });
+    if (!player || player.gameSession.userId !== userId) throw new Error("Forbidden");
+    if (player.checkpointVersion >= 2) throw new Error("Legacy Shop purchase không được phép ghi Career V2.");
+
+    const inventory = (player.shopInventory as unknown as ShopInventoryEntry[]) ?? [];
+    const items = SHOP_CATALOG.filter((item) =>
+      isShopItemAvailableForSeason(item, targetSeason) &&
+      !inventory.some((entry) => entry.itemId === item.id && entry.appliedSeason === targetSeason),
+    );
+    if (items.length === 0) throw new Error("Không còn vật phẩm nào để mua cho mùa này");
+    const totalPrice = items.reduce((sum, item) => sum + item.priceThousands, 0);
+    if (player.walletBalance < totalPrice) throw new Error("Không đủ số dư để mua tất cả vật phẩm đang mở bán");
+
+    const nextLedger: WalletLedgerEntry[] = [
+      ...((player.walletLedger as unknown as WalletLedgerEntry[]) ?? []),
+      ...items.map((item) => ({ age: currentAge, type: "shop_purchase" as const, amount: -item.priceThousands, label: `Mua: ${item.name}` })),
+    ];
+    const nextInventory: ShopInventoryEntry[] = [
+      ...inventory,
+      ...items.map((item) => ({ itemId: item.id, purchasedAtAge: currentAge, appliedSeason: targetSeason, consumed: false })),
+    ];
+    const updated = await tx.careerPlayer.update({
+      where: { id: playerId },
+      data: {
+        walletBalance: { decrement: totalPrice },
+        walletLedger: nextLedger as unknown as Prisma.InputJsonValue,
+        shopInventory: nextInventory as unknown as Prisma.InputJsonValue,
+      },
+      select: { walletBalance: true, shopInventory: true },
+    });
     return {
       walletBalance: updated.walletBalance,
       shopInventory: updated.shopInventory as unknown as ShopInventoryEntry[],

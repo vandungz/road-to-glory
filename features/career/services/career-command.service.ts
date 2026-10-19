@@ -11,7 +11,9 @@ import {
   type WalletLedgerEntry,
 } from "@/lib/wallet";
 import type {
+  PurchaseAllShopItemsCommand,
   PurchaseShopItemCommand,
+  ShopPurchaseAllCommandDto,
   ShopPurchaseCommandDto,
 } from "@/features/career/contracts/career-command.contract";
 
@@ -37,6 +39,15 @@ type PublicShopResult = {
   walletBalance: number;
   shopInventory: unknown[];
   itemId: string;
+  appliedSeason: number;
+};
+
+type PublicShopAllResult = {
+  commandId: string;
+  revision: number;
+  walletBalance: number;
+  shopInventory: unknown[];
+  itemIds: string[];
   appliedSeason: number;
 };
 
@@ -83,6 +94,21 @@ function parseReplayResult(value: unknown): ShopPurchaseCommandDto {
       typeof result.walletBalance !== "number" ||
       !Array.isArray(result.shopInventory) ||
       typeof result.itemId !== "string" ||
+      typeof result.appliedSeason !== "number") {
+    throw new CareerCommandError("COMMAND_EXISTS", "Idempotency record không hợp lệ");
+  }
+  return { ...result, replayed: true };
+}
+
+function parseReplayAllResult(value: unknown): ShopPurchaseAllCommandDto {
+  const result = value as PublicShopAllResult;
+  if (!result || typeof result !== "object" ||
+      typeof result.commandId !== "string" ||
+      typeof result.revision !== "number" ||
+      typeof result.walletBalance !== "number" ||
+      !Array.isArray(result.shopInventory) ||
+      !Array.isArray(result.itemIds) ||
+      result.itemIds.some((itemId) => typeof itemId !== "string") ||
       typeof result.appliedSeason !== "number") {
     throw new CareerCommandError("COMMAND_EXISTS", "Idempotency record không hợp lệ");
   }
@@ -242,6 +268,148 @@ export async function purchaseShopItemCommand(params: {
       },
     });
 
+    return { ...result, replayed: false };
+  });
+}
+
+/** Atomically buys every currently available item for one target season. */
+export async function purchaseAllShopItemsCommand(params: {
+  input: PurchaseAllShopItemsCommand;
+  userId: string;
+}): Promise<ShopPurchaseAllCommandDto> {
+  const { input, userId } = params;
+
+  return prisma.$transaction(async (tx) => {
+    const player = await tx.careerPlayer.findUnique({
+      where: { id: input.playerId },
+      select: playerPurchaseSelect,
+    });
+    if (!player || player.gameSession.userId !== userId) {
+      throw new CareerCommandError("FORBIDDEN", "Career không thuộc user hiện tại");
+    }
+
+    const replay = await tx.careerCommand.findUnique({
+      where: {
+        careerPlayerId_idempotencyKey: {
+          careerPlayerId: player.id,
+          idempotencyKey: input.idempotencyKey,
+        },
+      },
+      select: { commandType: true, input: true, result: true },
+    });
+    if (replay) {
+      const replayInput = replay.input as { appliedSeason?: number } | null;
+      if (replay.commandType !== "shop_purchase_all" ||
+          (input.targetSeason !== undefined && replayInput?.appliedSeason !== input.targetSeason)) {
+        throw new CareerCommandError("COMMAND_EXISTS", "Idempotency key đã được dùng cho command khác");
+      }
+      return parseReplayAllResult(replay.result);
+    }
+
+    if (player.checkpointVersion < 2 || player.currentAge === null || player.currentStep === null) {
+      throw new CareerCommandError("CAREER_PROJECTION_UNAVAILABLE", "Career chưa được khởi tạo projection checkpoint V2");
+    }
+    const appliedSeason = expectedShopSeason(player.currentAge, player.currentStep);
+    if (appliedSeason === null ||
+        (input.targetSeason !== undefined && input.targetSeason !== appliedSeason)) {
+      throw new CareerCommandError("INVALID_TRANSITION", "Cửa hàng không mở ở bước hiện tại");
+    }
+
+    const inventory = asInventory(player.shopInventory);
+    const items = SHOP_CATALOG.filter((item) =>
+      isShopItemAvailableForSeason(item, appliedSeason) &&
+      !inventory.some((entry) => entry.itemId === item.id && entry.appliedSeason === appliedSeason),
+    );
+    if (items.length === 0) {
+      throw new CareerCommandError("COMMAND_EXISTS", "Không còn vật phẩm nào để mua cho mùa này");
+    }
+
+    const lastStint = asRecord(Array.isArray(player.clubStints) ? player.clubStints.at(-1) : null);
+    const wallet = appendMissingSeasonIncomeEntries({
+      age: appliedSeason,
+      currentWageAnnual: player.isUnemployed ? 0 : player.currentWageAnnual,
+      transferFeeThisSeason: lastStint.startAge === appliedSeason && typeof lastStint.feePaid === "number"
+        ? lastStint.feePaid
+        : 0,
+      ledger: asLedger(player.walletLedger),
+    });
+    const totalPrice = items.reduce((sum, item) => sum + item.priceThousands, 0);
+    const availableBalance = player.walletBalance + wallet.creditedIncome;
+    if (availableBalance < totalPrice) {
+      throw new CareerCommandError("INSUFFICIENT_FUNDS", "Không đủ số dư để mua tất cả vật phẩm đang mở bán");
+    }
+
+    const reserved = await tx.careerPlayer.updateMany({
+      where: { id: player.id, revision: input.expectedRevision },
+      data: { revision: { increment: 1 } },
+    });
+    if (reserved.count !== 1) throw new CareerCommandError("STALE_REVISION", "Career đã có thay đổi mới hơn");
+
+    const itemIds = items.map((item) => item.id);
+    const nextInventory = [
+      ...inventory,
+      ...items.map((item) => ({
+        itemId: item.id,
+        purchasedAtAge: player.currentAge!,
+        appliedSeason,
+        consumed: false,
+      })),
+    ] satisfies ShopInventoryEntry[];
+    const nextLedger: WalletLedgerEntry[] = [
+      ...wallet.ledger,
+      ...items.map((item) => ({
+        age: player.currentAge!,
+        type: "shop_purchase" as const,
+        amount: -item.priceThousands,
+        label: `Mua: ${item.name}`,
+      })),
+    ];
+    const updated = await tx.careerPlayer.updateMany({
+      where: { id: player.id, revision: input.expectedRevision + 1 },
+      data: {
+        walletBalance: { increment: wallet.creditedIncome - totalPrice },
+        walletLedger: nextLedger as unknown as Prisma.InputJsonValue,
+        shopInventory: nextInventory as unknown as Prisma.InputJsonValue,
+      },
+    });
+    if (updated.count !== 1) throw new CareerCommandError("STALE_REVISION", "Không thể commit giao dịch Shop");
+
+    const commandId = randomUUID();
+    const result: PublicShopAllResult = {
+      commandId,
+      revision: input.expectedRevision + 1,
+      walletBalance: availableBalance - totalPrice,
+      shopInventory: nextInventory,
+      itemIds,
+      appliedSeason,
+    };
+    const command = await tx.careerCommand.create({
+      data: {
+        id: commandId,
+        careerPlayerId: player.id,
+        seasonId: null,
+        commandType: "shop_purchase_all",
+        idempotencyKey: input.idempotencyKey,
+        input: { appliedSeason, itemIds } as Prisma.InputJsonValue,
+        result: result as unknown as Prisma.InputJsonValue,
+        revisionBefore: input.expectedRevision,
+        revisionAfter: input.expectedRevision + 1,
+      },
+    });
+    await tx.careerEvent.createMany({
+      data: items.map((item) => ({
+        careerPlayerId: player.id,
+        type: "shop_item_purchased",
+        label: `Đã mua ${item.name}`,
+        payload: {
+          commandId: command.id,
+          itemId: item.id,
+          appliedSeason,
+          revisionBefore: input.expectedRevision,
+          revisionAfter: input.expectedRevision + 1,
+        },
+      })),
+    });
     return { ...result, replayed: false };
   });
 }
