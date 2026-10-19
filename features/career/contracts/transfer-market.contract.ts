@@ -26,6 +26,12 @@ export const setTransferOfferSelectionSchema = z.object({
   clubId: z.string().min(1).max(80).nullable(),
 }).strict();
 
+export const dismissTransferNegotiationSchema = z.object({
+  ...transferContextSchema,
+  clubId: z.string().min(1).max(80),
+  offerKind: z.enum(["transfer", "free_agent", "renewal"]),
+}).strict();
+
 export const resolveTransferNegotiationSchema = z.object({
   ...transferContextSchema,
   kind: z.enum(["approach", "renewal"]),
@@ -37,4 +43,5 @@ export const resolveTransferNegotiationSchema = z.object({
 export type GetTransferMarketInput = z.infer<typeof getTransferMarketSchema>;
 export type SearchTransferClubsInput = z.infer<typeof searchTransferClubsSchema>;
 export type SetTransferOfferSelectionInput = z.infer<typeof setTransferOfferSelectionSchema>;
+export type DismissTransferNegotiationInput = z.infer<typeof dismissTransferNegotiationSchema>;
 export type ResolveTransferNegotiationInput = z.infer<typeof resolveTransferNegotiationSchema>;

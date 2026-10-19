@@ -302,6 +302,47 @@ export async function recordTransferWageFailure(
   throw new Error("Không thể cập nhật trạng thái đàm phán lương đồng thời");
 }
 
+/**
+ * Leaves the salary screen without accepting the negotiation. A current-club renewal that
+ * already lost one wage option is consumed on Back; clearing only selectedClubId would make
+ * the same renewal reappear from the immutable market snapshot.
+ */
+export async function dismissTransferNegotiation(
+  tx: Prisma.TransactionClient,
+  params: {
+    playerId: string;
+    seasonId: string;
+    clubId: string;
+    offerKind: TransferOfferKind;
+  },
+): Promise<void> {
+  const workflow = await lockTransferWorkflow(tx, params.playerId, params.seasonId);
+  const negotiation = workflow.negotiations.find((row) =>
+    row.clubId === params.clubId && row.offerKind === params.offerKind,
+  );
+  if (params.offerKind === "renewal" && negotiation && negotiation.failedWageMask !== 0) {
+    await tx.careerTransferNegotiation.updateMany({
+      where: {
+        careerPlayerId: params.playerId,
+        seasonId: params.seasonId,
+        clubId: params.clubId,
+        offerKind: params.offerKind,
+      },
+      data: { status: "cancelled" },
+    });
+  }
+  if (!workflow.workflowId) return;
+  await tx.careerTransferWorkflow.update({
+    where: { id: workflow.workflowId },
+    data: {
+      status: "idle",
+      selectedClubId: null,
+      selectedOfferKind: null,
+      version: { increment: 1 },
+    },
+  });
+}
+
 export async function completeTransferWorkflow(
   tx: Prisma.TransactionClient,
   params: { playerId: string; seasonId: string; clubId: string | null; offerKind: TransferOfferKind },

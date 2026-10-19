@@ -7,6 +7,7 @@ import {
   type TransferCommandResult,
 } from "@/features/career/contracts/transfer-transition.contract";
 import {
+  dismissTransferNegotiationSchema,
   getTransferMarketSchema,
   resolveTransferNegotiationSchema,
   searchTransferClubsSchema,
@@ -15,6 +16,7 @@ import {
 import { completeTransferCommand } from "@/features/career/services/transfer-transition.service";
 import {
   getAuthoritativeTransferMarket,
+  dismissAuthoritativeTransferNegotiation,
   resolveAuthoritativeTransferNegotiation,
   searchAuthoritativeTransferClubs,
   setAuthoritativeTransferOfferSelection,
@@ -88,6 +90,21 @@ export async function setTransferOfferSelectionCommandAction(input: unknown): Pr
       seasonId: parsed.seasonId,
     },
     () => setAuthoritativeTransferOfferSelection({ input: parsed, userId }),
+  );
+}
+
+export async function dismissTransferNegotiationCommandAction(input: unknown): Promise<void> {
+  const parsed = dismissTransferNegotiationSchema.parse(input);
+  const { id: userId } = await requireAuthenticatedUser();
+  await checkRateLimit(userId);
+  return withCareerCommandLogging(
+    {
+      command: "transfer.negotiation_dismiss",
+      actorId: userId,
+      careerId: parsed.playerId,
+      seasonId: parsed.seasonId,
+    },
+    () => dismissAuthoritativeTransferNegotiation({ input: parsed, userId }),
   );
 }
 

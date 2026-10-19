@@ -7,6 +7,7 @@ import {
   type TransferMarketResult,
 } from "@/features/transfer/services/transfer.service";
 import type {
+  DismissTransferNegotiationInput,
   GetTransferMarketInput,
   ResolveTransferNegotiationInput,
   SearchTransferClubsInput,
@@ -26,6 +27,7 @@ import {
   type TransferNegotiationDto,
 } from "@/features/career/services/transfer-market-authority.shared";
 import {
+  dismissTransferNegotiation,
   isClubCancelledInWorkflow,
   loadTransferWorkflowState,
   persistTransferOfferSelection,
@@ -188,6 +190,22 @@ export async function setAuthoritativeTransferOfferSelection(params: {
     });
     const workflow = await loadTransferWorkflowState(tx, context.player.id, context.season.id);
     return findPendingTransferNegotiation([], context.season.runtimeState, workflow, market);
+  });
+}
+
+export async function dismissAuthoritativeTransferNegotiation(params: {
+  input: DismissTransferNegotiationInput;
+  userId: string;
+}): Promise<void> {
+  const { input, userId } = params;
+  return prisma.$transaction(async (tx) => {
+    const context = await loadAuthorityContext(tx, input, userId);
+    await dismissTransferNegotiation(tx, {
+      playerId: context.player.id,
+      seasonId: context.season.id,
+      clubId: input.clubId,
+      offerKind: input.offerKind,
+    });
   });
 }
 
