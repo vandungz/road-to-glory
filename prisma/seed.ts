@@ -1,6 +1,8 @@
 import { prisma } from "../lib/prisma";
+import type { Prisma } from "../app/generated/prisma/client";
 import { LEAGUES } from "./data/leagues";
 import { CLUBS } from "./data/clubs";
+import { PVE_PLAYERS } from "./data/pve-players";
 
 const NATIONAL_TEAMS = [
   // ── UEFA ──
@@ -85,6 +87,7 @@ const NATIONAL_TEAMS = [
 
 async function main() {
   console.log("Cleaning existing reference data...");
+  await prisma.pvePlayer.deleteMany({});
   await prisma.nationalTeam.deleteMany({});
   await prisma.club.deleteMany({});
   await prisma.league.deleteMany({});
@@ -125,8 +128,13 @@ async function main() {
     });
   }
 
+  console.log("Seeding historical PvE players...");
+  await prisma.pvePlayer.createMany({
+    data: PVE_PLAYERS.map((player) => ({ ...player, stats: player.stats as unknown as Prisma.InputJsonValue })),
+  });
+
   console.log(
-    `Database seeded successfully. National Teams: ${NATIONAL_TEAMS.length}, Leagues: ${LEAGUES.length}, Clubs: ${CLUBS.length}`,
+    `Database seeded successfully. National Teams: ${NATIONAL_TEAMS.length}, Leagues: ${LEAGUES.length}, Clubs: ${CLUBS.length}, PvE players: ${PVE_PLAYERS.length}`,
   );
 }
 
