@@ -1,6 +1,8 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
+import { ArrowRight } from "lucide-react";
 import { completeGameSession } from "@/actions/season.actions";
 import { Button } from "@/components/ui/Button";
 
@@ -48,6 +50,15 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
         <div className="football-squad-summary__action">
           <Button onClick={() => void finishCareer()}>Hoàn thành sự nghiệp</Button>
           <span>hỏi xác nhận một lần · không thể mở lại đội hình đã chốt</span>
+        </div>
+      )}
+      {isCompleted && (
+        <div className="football-squad-summary__pve-entry">
+          <Link href={`/pve/${gameId}`} className="football-button football-button--outline">
+            <span>Đưa đội hình vào PvE Tournament</span>
+            <ArrowRight aria-hidden="true" size={16} />
+          </Link>
+          <span>chinh chiến qua vòng bảng và bốn vòng knock-out</span>
         </div>
       )}
     </section>

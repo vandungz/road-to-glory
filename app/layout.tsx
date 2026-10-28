@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Oswald, Lora, Special_Elite } from "next/font/google";
 import "./globals.css";
+import { AppProviders } from "./providers";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -39,7 +40,7 @@ export default function RootLayout({
   return (
     <html lang="vi" suppressHydrationWarning className={`${oswald.variable} ${lora.variable} ${specialElite.variable}`}>
       <body className="antialiased">
-        {children}
+        <AppProviders>{children}</AppProviders>
       </body>
     </html>
   );

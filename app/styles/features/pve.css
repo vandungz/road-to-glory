@@ -1,0 +1,112 @@
+.football-pve-lobby-shell .football-app-shell__main,
+.football-pve-tournament-shell .football-app-shell__main { width: 100%; max-width: none; margin: 0; padding: 32px 40px 48px; }
+.football-squad-summary__pve-entry { display: flex; align-items: center; gap: 12px; margin-top: 18px; border-top: 1px solid var(--football-rule); padding-top: 16px; }
+.football-squad-summary__pve-entry > span { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.football-pve-lobby { display: flex; min-height: 100%; flex-direction: column; }
+.football-pve-lobby__back { display: inline-flex; min-height: 28px; align-items: center; align-self: flex-start; gap: 4px; margin-bottom: 20px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .13em; text-decoration: none; text-transform: uppercase; }
+.football-pve-lobby__back:hover { color: var(--football-accent-ink); }
+.football-pve-lobby__back .is-back { transform: rotate(180deg); }
+.football-pve-lobby__intro { display: flex; align-items: flex-start; justify-content: space-between; gap: 32px; border-bottom: 1px solid var(--football-ink); padding-bottom: 22px; }
+.football-pve-lobby__intro > div:first-child { display: flex; max-width: 650px; flex-direction: column; gap: 8px; }
+.football-pve-lobby__eyebrow, .football-pve-eyebrow { color: var(--football-accent-ink); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .15em; text-transform: uppercase; }
+.football-pve-lobby h1, .football-pve-hero h1 { margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: clamp(32px, 5vw, 52px); font-weight: 600; line-height: 1; }
+.football-pve-lobby__intro p, .football-pve-hero p { max-width: 580px; margin: 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 15px; line-height: 1.6; }
+.football-pve-lobby__mark { display: flex; min-width: 126px; flex-direction: column; align-items: center; gap: 5px; border-left: 1px solid var(--football-rule); padding: 10px 0 10px 30px; color: var(--football-accent-ink); }
+.football-pve-lobby__mark span { font-family: var(--font-headline); font-size: 25px; font-weight: 600; }
+.football-pve-lobby__mark small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.football-pve-lobby__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--football-rule); }
+.football-pve-lobby__session { display: flex; min-height: 145px; align-items: stretch; justify-content: space-between; gap: 18px; padding: 22px 24px; background: var(--football-surface); color: inherit; text-decoration: none; transition: background 140ms ease-out; }
+.football-pve-lobby__session:hover { background: var(--football-paper); }
+.football-pve-lobby__session-copy { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
+.football-pve-lobby__session-meta, .football-pve-match__sub { overflow: hidden; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
+.football-pve-lobby__session h2 { overflow: hidden; margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 25px; font-weight: 600; text-overflow: ellipsis; white-space: nowrap; }
+.football-pve-lobby__session-status { color: var(--football-positive); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+.football-pve-lobby__session-action { display: flex; align-items: center; gap: 8px; align-self: flex-end; color: var(--football-accent-ink); font-family: var(--font-headline); font-size: 13px; white-space: nowrap; }
+.football-pve-lobby__empty { display: flex; align-items: center; flex-direction: column; gap: 9px; border-top: 1px solid var(--football-rule); padding: 70px 24px; text-align: center; }
+.football-pve-lobby__empty > svg { color: var(--football-honour); }
+.football-pve-lobby__empty h2 { margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 24px; }
+.football-pve-lobby__empty p { max-width: 420px; margin: 0 0 10px; color: var(--football-ink-2); font-family: var(--font-body); font-size: 14px; line-height: 1.6; }
+
+.football-pve-shell { display: flex; width: min(100%, 1240px); min-height: calc(100vh - 120px); margin: 0 auto; flex-direction: column; }
+.football-pve-topbar { display: flex; align-items: center; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--football-rule); padding: 0 0 14px; }
+.football-pve-topbar a { display: inline-flex; min-height: 32px; align-items: center; gap: 5px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .11em; text-decoration: none; text-transform: uppercase; }
+.football-pve-topbar a:hover { color: var(--football-accent-ink); }
+.football-pve-topbar > span { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .1em; text-transform: uppercase; }
+.football-pve-hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 30px; padding: 34px 0 30px; }
+.football-pve-hero > div:first-child { display: flex; max-width: 760px; flex-direction: column; gap: 10px; }
+.football-pve-hero__stamp { display: flex; min-width: 145px; flex-direction: column; align-items: center; gap: 3px; border-left: 1px solid var(--football-rule); padding: 10px 0 10px 28px; color: var(--football-honour); }
+.football-pve-hero__stamp span { font-family: var(--font-stamp); font-size: 9px; letter-spacing: .14em; text-transform: uppercase; }
+.football-pve-hero__stamp strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 23px; font-weight: 600; }
+.football-pve-content { display: flex; flex-direction: column; gap: 18px; }
+.football-pve-group, .football-pve-start, .football-pve-next, .football-pve-terminal, .football-pve-match { border: 1px solid var(--football-rule); background: var(--football-surface); }
+.football-pve-group { padding: 22px 24px; }
+.football-pve-group.is-passed { border-left: 3px solid var(--football-positive); }
+.football-pve-group.is-eliminated { border-left: 3px solid var(--football-accent); }
+.football-pve-group__heading, .football-pve-moments__heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .13em; text-transform: uppercase; }
+.football-pve-group__heading strong { color: var(--football-positive); font-family: var(--font-headline); font-size: 18px; letter-spacing: .04em; }
+.football-pve-group.is-eliminated .football-pve-group__heading strong { color: var(--football-accent-ink); }
+.football-pve-group p { margin: 10px 0 15px; color: var(--football-ink); font-family: var(--font-headline); font-size: 23px; line-height: 1.15; }
+.football-pve-group__meta { display: flex; gap: 22px; color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 10px; letter-spacing: .08em; text-transform: uppercase; }
+.football-pve-group__opponents { margin-top: 18px; border-top: 1px solid var(--football-rule); padding-top: 14px; }
+.football-pve-group__opponents small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.football-pve-group__opponents div { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 9px; }
+.football-pve-group__opponents span { border: 1px solid var(--football-rule); padding: 7px 9px; color: var(--football-ink-2); font-family: var(--font-headline); font-size: 13px; }
+.football-pve-start, .football-pve-next { display: flex; align-items: center; gap: 20px; padding: 24px; }
+.football-pve-start__number { color: var(--football-accent); font-family: var(--font-headline); font-size: 42px; line-height: 1; }
+.football-pve-start h2, .football-pve-next h2 { margin: 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 26px; font-weight: 600; }
+.football-pve-start p, .football-pve-next p { max-width: 650px; margin: 5px 0 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 14px; line-height: 1.55; }
+.football-pve-start .football-button, .football-pve-next .football-button { margin-left: auto; flex: 0 0 auto; min-height: 50px; }
+.football-pve-match { overflow: hidden; }
+.football-pve-match__header { display: flex; align-items: flex-start; justify-content: space-between; gap: 18px; border-bottom: 1px solid var(--football-rule); padding: 22px 24px; }
+.football-pve-match__header h2 { margin: 5px 0 3px; color: var(--football-ink); font-family: var(--font-headline); font-size: 31px; font-weight: 600; line-height: 1; }
+.football-pve-match__score { display: flex; min-width: 110px; flex-direction: column; align-items: flex-end; gap: 2px; }
+.football-pve-match__score strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 32px; font-weight: 600; line-height: 1; }
+.football-pve-match__score span { color: var(--football-positive); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .1em; text-transform: uppercase; }
+.football-pve-match__score.is-loss span { color: var(--football-accent-ink); }
+.football-pve-lineup { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 1px; background: var(--football-rule); }
+.football-pve-lineup__player { display: flex; min-width: 0; min-height: 80px; flex-direction: column; justify-content: center; gap: 3px; padding: 12px 15px; background: var(--football-paper); }
+.football-pve-lineup__player strong { overflow: hidden; color: var(--football-ink); font-family: var(--font-headline); font-size: 14px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
+.football-pve-lineup__player span, .football-pve-lineup__player small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .05em; text-transform: uppercase; }
+.football-pve-moments { padding: 20px 24px 24px; }
+.football-pve-moment { display: grid; grid-template-columns: 34px minmax(0, 1fr) 30px; gap: 10px; align-items: center; border-top: 1px solid var(--football-rule); padding: 14px 0; }
+.football-pve-moment__index { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; }
+.football-pve-moment strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 15px; font-weight: 600; }
+.football-pve-moment p { margin: 3px 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; line-height: 1.45; }
+.football-pve-moment small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9px; letter-spacing: .08em; text-transform: uppercase; }
+.football-pve-moment__result { display: inline-flex; width: 30px; height: 30px; align-items: center; justify-content: center; border: 1px solid var(--football-rule); color: var(--football-accent-ink); }
+.football-pve-moment.is-user .football-pve-moment__result { border-color: var(--football-positive); color: var(--football-positive); }
+.football-pve-terminal { display: flex; align-items: center; gap: 16px; padding: 25px 24px; }
+.football-pve-terminal > svg { flex: 0 0 auto; color: var(--football-honour); }
+.football-pve-terminal.is-eliminated > svg { color: var(--football-accent-ink); }
+.football-pve-terminal h2 { margin: 4px 0 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 27px; }
+.football-pve-terminal p { margin: 4px 0 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 14px; }
+.football-pve-error { display: flex; align-items: center; gap: 8px; border: 1px solid var(--football-accent); padding: 11px 14px; color: var(--football-accent-ink); font-family: var(--font-body); font-size: 13px; }
+.football-pve-skeleton { display: block; background: color-mix(in srgb, var(--football-ink) 9%, transparent); animation: football-pve-shimmer 1.2s ease-in-out infinite alternate; }
+.football-pve-loading { display: flex; width: min(100% - 48px, 1000px); min-height: 70vh; margin: 0 auto; flex-direction: column; gap: 18px; padding-top: 70px; }
+.football-pve-skeleton--eyebrow { width: 120px; height: 12px; }.football-pve-skeleton--hero { width: min(70%, 600px); height: 58px; }.football-pve-skeleton--copy { width: min(90%, 680px); height: 42px; }.football-pve-skeleton--card { width: 100%; height: 120px; }.football-pve-skeleton--group { width: 100%; height: 112px; }.football-pve-skeleton--match { width: 100%; height: 420px; }.football-pve-skeleton--title { width: 35%; height: 30px; margin-bottom: 12px; }.football-pve-skeleton--line { width: 100%; height: 38px; }
+@keyframes football-pve-shimmer { from { opacity: .55; } to { opacity: 1; } }
+
+@media (max-width: 800px) {
+  .football-pve-lobby-shell .football-app-shell__main, .football-pve-tournament-shell .football-app-shell__main { width: calc(100% - 32px); padding: 24px 0 40px; }
+  .football-pve-lobby__intro, .football-pve-hero { flex-direction: column; }
+  .football-pve-lobby__mark, .football-pve-hero__stamp { align-items: flex-start; border-top: 1px solid var(--football-rule); border-left: 0; padding: 14px 0 0; }
+  .football-pve-lobby__list { grid-template-columns: 1fr; }
+  .football-pve-hero { gap: 18px; padding: 26px 0 22px; }
+  .football-pve-start, .football-pve-next { align-items: flex-start; flex-direction: column; }
+  .football-pve-start .football-button, .football-pve-next .football-button { width: 100%; margin-left: 0; justify-content: center; }
+  .football-pve-lineup { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+@media (max-width: 480px) {
+  .football-pve-topbar { align-items: flex-start; flex-direction: column; gap: 3px; }
+  .football-pve-match__header { padding: 18px; }
+  .football-pve-match__header h2 { font-size: 25px; }
+  .football-pve-match__score strong { font-size: 25px; }
+  .football-pve-group, .football-pve-start, .football-pve-next, .football-pve-terminal { padding: 18px; }
+  .football-pve-moments { padding: 18px; }
+  .football-pve-group__meta { flex-direction: column; gap: 5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .football-pve-skeleton { animation: none; }
+}

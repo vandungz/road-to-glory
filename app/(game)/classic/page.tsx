@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { notFound } from "next/navigation";
 import Link from "next/link";
 import { ChevronLeft } from "lucide-react";
 import { createClient } from "@/lib/supabase/server";
@@ -16,7 +17,8 @@ export const metadata: Metadata = {
 export default async function ClassicLobbyPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const sessions = await getGameSessionsForUser(user!.id);
+  if (!user) notFound();
+  const sessions = await getGameSessionsForUser(user.id);
 
   return (
     <AppShell

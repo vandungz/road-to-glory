@@ -115,15 +115,15 @@ export function Homepage({ sessions, isAuthenticated }: HomepageProps) {
               </div>
             </section>
 
-            <section className="football-home-mode football-home-mode--pvp" aria-labelledby="pvp-mode-title">
+            <section className="football-home-mode football-home-mode--pve" aria-labelledby="pve-mode-title">
               <div className="football-home-mode__copy">
-                <ModeMeta mode="03" status="Sắp ra mắt" tone="is-coming" />
-                <h2 id="pvp-mode-title">PvP — Đối đầu</h2>
-                <p>Đưa một đội hình bạn đã dựng ở Classic đi đấu với người chơi khác.</p>
+                <ModeMeta mode="03" status="Đang mở" tone="is-open" />
+                <h2 id="pve-mode-title">PvE — Road to Glory</h2>
+                <p>Đưa một đội hình Classic đã hoàn thành vào giải đấu huyền thoại. Vượt qua vòng bảng, rồi thắng hai trên ba nhịp để đi tiếp.</p>
               </div>
               <div className="football-home-mode__locked-action">
-                <span>Đội hình Classic của bạn sẽ tự sẵn sàng</span>
-                <span className="football-home-mode__locked-button">Sắp ra mắt</span>
+                <span>Dùng squad Classic · đối thủ bốc từ catalog cầu thủ thực tế</span>
+                <Link className="football-button football-button--primary" href="/pve">Vào PvE Tournament</Link>
               </div>
             </section>
           </div>
