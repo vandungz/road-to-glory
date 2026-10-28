@@ -18,9 +18,10 @@ DECLARE
     'game_sessions', 'career_players', 'career_seasons', 'wheel_checkpoints',
     'career_events', 'career_commands', 'career_transfer_workflows',
     'career_transfer_negotiations', 'career_honours',
-    'career_award_ranking_snapshots', 'leagues', 'clubs', 'national_teams'
+    'career_award_ranking_snapshots', 'pve_tournaments',
+    'leagues', 'clubs', 'national_teams', 'pve_players'
   ];
-  catalog_tables text[] := ARRAY['leagues', 'clubs', 'national_teams'];
+  catalog_tables text[] := ARRAY['leagues', 'clubs', 'national_teams', 'pve_players'];
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'football_life_runtime') THEN
     RAISE EXCEPTION 'Create role football_life_runtime before applying RLS lockdown';

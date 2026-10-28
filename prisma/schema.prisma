@@ -19,6 +19,7 @@ model GameSession {
   status       String         @default("in_progress") // "in_progress" | "completed"
   userId       String         // Supabase User ID
   players      CareerPlayer[]
+  pveTournament PveTournament?
 
   @@map("game_sessions")
 }
@@ -186,6 +187,7 @@ model CareerCommand {
   @@unique([careerPlayerId, idempotencyKey])
   @@index([careerPlayerId, commandType, createdAt])
   @@index([careerPlayerId, seasonId, commandType, revisionBefore, createdAt])
+  @@index([seasonId])
   @@map("career_commands")
 }
 
@@ -227,6 +229,8 @@ model CareerTransferNegotiation {
   @@unique([careerPlayerId, seasonId, clubId, offerKind])
   @@index([careerPlayerId, seasonId, status])
   @@index([workflowId, status])
+  @@index([marketCommandId])
+  @@index([seasonId])
   @@map("career_transfer_negotiations")
 }
 
@@ -324,7 +328,37 @@ model Club {
   continentalTitlesCount Int      @default(0)
   continentalType        String   @default("none") // "UCL" | "UEL" | "UECL" | "Libertadores" | "Sudamericana" | "AFC_CL" | "CONCACAF_CC" | "CAF_CL" | "none"
 
+  @@index([leagueId])
   @@map("clubs")
+}
+
+model PvePlayer {
+  id          String @id
+  name        String
+  nationality String
+  position    String
+  eraStart    Int
+  eraEnd      Int
+  overall     Int
+  stats       Json
+
+  @@index([position, overall])
+  @@map("pve_players")
+}
+
+model PveTournament {
+  id            String      @id @default(uuid()) @db.Uuid
+  gameSessionId String      @unique @db.Uuid
+  gameSession   GameSession @relation(fields: [gameSessionId], references: [id], onDelete: Cascade)
+  userId        String
+  status        String
+  revision      Int         @default(0)
+  state         Json
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@index([userId, status])
+  @@map("pve_tournaments")
 }
 
 // Development-only reusable fixtures. These are cloned into an authenticated
