@@ -42,10 +42,7 @@ function databaseConnectionConfig(connectionString: string): {
     };
   }
 
-  // Supabase's sslmode=require encrypts the connection but does not verify
-  // the server certificate. Use PGSSL_CA + sslmode=verify-full when certificate
-  // verification is required. This avoids the current pooler TLS failure while
-  // keeping SSL mandatory in production.
+  // Supabase pooler compatibility; enable PGSSL_CA when certificate pinning is ready.
   return {
     connectionString: databaseUrl.toString(),
     ssl: { rejectUnauthorized: false },
