@@ -3,7 +3,7 @@
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Formation } from "@/types/game";
-import { FORMATION_SLOTS, RARITY_ACCENT, type ClientSafePlayer } from "@/types/squad";
+import { FORMATION_SLOTS, RARITY_ACCENT, type ClientSafePlayer, type SlotConfig } from "@/types/squad";
 import { getSlotStateForIndex, type SlotState } from "../lib/slot-state";
 import { getFlagUrl } from "../lib/nation-flags";
 
@@ -104,4 +104,20 @@ export function PitchBoard({ gameId, formation, players, status, inProgressSlots
       })}
     </div>
   );
+}
+
+export interface ReadonlyPitchPlayer {
+  slotIndex: number;
+  name: string;
+  position?: string;
+  overall?: number;
+}
+
+export function ReadonlyPitchBoard({ formation, slots: providedSlots, players, ariaLabel, className = "" }: { formation: Formation; slots?: SlotConfig[]; players: ReadonlyPitchPlayer[]; ariaLabel: string; className?: string }) {
+  const slots = providedSlots ?? FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
+  const playerMap = new Map(players.map((player) => [player.slotIndex, player]));
+  return <div className={`football-pitch ${className}`} role="region" aria-label={ariaLabel}>
+    <PitchMarkings />
+    {slots.map((slot) => { const player = playerMap.get(slot.index); return <div key={slot.index} className={`football-pitch__slot football-pitch__slot--${slotZone(slot.position)}`} style={{ left: `${slot.x}%`, top: `${slot.y}%` }}><span className="football-pitch-player football-pitch-player--readonly"><span className="football-pitch-player__top"><span>{player?.position ?? slot.position}</span><strong>{player?.overall ?? "—"}</strong></span><span className="football-pitch-player__name">{player?.name ?? "—"}</span></span></div>; })}
+  </div>;
 }

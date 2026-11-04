@@ -109,7 +109,7 @@ export function SquadDashboard({
         </div>
       </div>
 
-      <PlayerCareerDialog player={selectedPlayer} isOpen={selectedPlayer !== null} onClose={() => setSelectedPlayer(null)} />
+      <PlayerCareerDialog player={selectedPlayer} isOpen={selectedPlayer !== null} onClose={() => setSelectedPlayer(null)} gameId={gameId} canManage={status === "completed"} />
     </div>
   );
 }

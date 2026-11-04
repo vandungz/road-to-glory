@@ -20,7 +20,7 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
   const missingCount = Math.max(0, 11 - playerCount);
 
   async function finishCareer() {
-    if (!window.confirm("Hoàn thành sự nghiệp? Đội hình đã chốt sẽ không thể mở lại.")) return;
+    if (!window.confirm("Hoàn thành sự nghiệp? Bạn vẫn có thể thay hoặc xóa cầu thủ sau đó để chỉnh sửa đội hình.")) return;
     await completeGameSession(gameId);
     router.refresh();
   }
@@ -39,7 +39,7 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
       <span className="football-squad-summary__rule" aria-hidden="true" />
       <div className="football-squad-summary__message">
         {isCompleted ? (
-          <p>Mười một sự nghiệp đã khép. Bấm một dòng để đọc lại hồ sơ.</p>
+          <p>Đội hình đã chốt. Bấm một dòng để đọc hồ sơ hoặc thay/xóa cầu thủ để chỉnh sửa lại.</p>
         ) : isFull ? (
           <p>Đội hình đã đủ. Chốt sự nghiệp để khép đội hình này lại và đưa nó vào danh sách đã hoàn thành.</p>
         ) : (
@@ -49,7 +49,7 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
       {!isCompleted && isFull && (
         <div className="football-squad-summary__action">
           <Button onClick={() => void finishCareer()}>Hoàn thành sự nghiệp</Button>
-          <span>hỏi xác nhận một lần · không thể mở lại đội hình đã chốt</span>
+          <span>hỏi xác nhận một lần · đội hình vẫn có thể chỉnh sửa sau này</span>
         </div>
       )}
       {isCompleted && (

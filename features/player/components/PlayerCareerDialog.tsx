@@ -1,7 +1,10 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { X } from "lucide-react";
+import React, { useMemo, useState, useTransition } from "react";
+import { RotateCcw, Trash2, X } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { manageSquadPlayerAction } from "@/actions/squad.actions";
+import { Button } from "@/components/ui/Button";
 import type { SeasonAwardRecord } from "@/types/domain";
 import type { ClientSafePlayer } from "@/types/squad";
 import { getHonourResultLabel, getSpecificHonourLabel } from "@/features/career/lib/honour-display";
@@ -20,6 +23,8 @@ interface PlayerCareerDialogProps {
   player: ClientSafePlayer | null;
   isOpen: boolean;
   onClose: () => void;
+  gameId?: string;
+  canManage?: boolean;
 }
 
 interface SeasonRow {
@@ -33,7 +38,10 @@ interface SeasonRow {
   isFinal: boolean;
 }
 
-export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDialogProps) {
+export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage = false }: PlayerCareerDialogProps) {
+  const router = useRouter();
+  const [isPending, startTransition] = useTransition();
+  const [actionError, setActionError] = useState<string | null>(null);
   const debutAge = player?.debutAge ?? 18;
   const retireAge = player?.retireAge ?? 35;
   const statsTimeline = useMemo(() => buildCareerArchiveTimeline({
@@ -80,6 +88,29 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
   const individualHonours = honours.filter((honour) => honour.category === "individual");
   const clubRunnerUps = clubHonours.filter((honour) => honour.result === "runner_up");
   const individualRunnerUps = individualHonours.filter((honour) => honour.result === "runner_up");
+
+  function managePlayer(mode: "replace" | "delete") {
+    if (!player || !gameId) return;
+    const message = mode === "replace"
+      ? `Thay ${player.name}? Hồ sơ sự nghiệp và kết quả PvE hiện tại sẽ bị xóa để mở lại vị trí này.`
+      : `Xóa ${player.name} khỏi đội hình? Hồ sơ sự nghiệp và kết quả PvE hiện tại sẽ bị xóa. Hành động này không thể hoàn tác.`;
+    if (!window.confirm(message)) return;
+    setActionError(null);
+    startTransition(async () => {
+      try {
+        const result = await manageSquadPlayerAction({ gameId, playerId: player.id, mode });
+        if (!result.success) {
+          setActionError(result.error);
+          return;
+        }
+        onClose();
+        if (mode === "replace") router.push(`/classic/${gameId}/draft/${result.slotIndex}`);
+        else router.refresh();
+      } catch {
+        setActionError("Không thể cập nhật đội hình. Vui lòng thử lại.");
+      }
+    });
+  }
 
   const seasonRows = useMemo<SeasonRow[]>(() => {
     const seasonAwards = player?.honours && player.honours.length > 0
@@ -138,6 +169,17 @@ export function PlayerCareerDialog({ player, isOpen, onClose }: PlayerCareerDial
       <div className="football-career-dialog">
         <aside className="football-career-dialog__sidebar">
           <PlayerStickerCard player={player} finalClub={finalClub} debutAge={debutAge} retireAge={retireAge} careerLength={careerLength} />
+
+          {canManage && gameId && <section className="football-career-dialog__management" aria-labelledby="squad-management-title">
+            <span className="football-career-dialog__eyebrow">Quản lý đội hình</span>
+            <h3 id="squad-management-title">Cập nhật vị trí này</h3>
+            <p>Thay cầu thủ sẽ mở lại đúng vị trí. Kết quả PvE cũ sẽ được làm mới theo đội hình mới.</p>
+            <div className="football-career-dialog__management-actions">
+              <Button variant="outline" size="sm" onClick={() => managePlayer("replace")} disabled={isPending} loading={isPending}><RotateCcw aria-hidden="true" size={14} /> Thay cầu thủ</Button>
+              <Button variant="quiet" size="sm" className="football-career-dialog__danger-button" onClick={() => managePlayer("delete")} disabled={isPending}><Trash2 aria-hidden="true" size={14} /> Xóa khỏi đội hình</Button>
+            </div>
+            {actionError && <p className="football-career-dialog__action-error" role="alert">{actionError}</p>}
+          </section>}
 
           <section className="football-career-dialog__section" aria-labelledby="career-total-title">
             <h3 id="career-total-title">Trọn đời sự nghiệp</h3>
