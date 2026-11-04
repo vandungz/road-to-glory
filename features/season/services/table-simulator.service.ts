@@ -1,4 +1,4 @@
-import { resolveRandomFloat, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 
 export interface ClubInfo {
   id: string;
@@ -18,10 +18,16 @@ export interface TableRow {
   points: number;
 }
 
+export interface LeagueTableSimulationOptions {
+  matches?: number;
+  randomSource?: RandomSource;
+}
+
 export function simulateDynamicLeagueTableService(
   playerStanding: number,
   playerClubName: string,
-  currentLeagueClubs: ClubInfo[]
+  currentLeagueClubs: ClubInfo[],
+  options: LeagueTableSimulationOptions = {},
 ): TableRow[] {
   const sorted = [...currentLeagueClubs].sort((a, b) => b.prestige - a.prestige);
   const playerClubIndex = sorted.findIndex(c => c.name.toLowerCase() === playerClubName.toLowerCase());
@@ -39,20 +45,23 @@ export function simulateDynamicLeagueTableService(
   // prestige vẫn định hướng đúng (CLB mạnh trung bình đứng cao hơn), nhưng mỗi
   // mùa cho ra 1 thứ tự thật sự khác nhau — cùng tinh thần với wheel standing
   // của player (getStandingWheelPool).
+  const randomSource = options.randomSource ?? resolveRandom;
+  const randomFloat = (min: number, max: number) => randomSource() * (max - min) + min;
+  const randomInt = (min: number, max: number) => Math.floor(randomSource() * (max - min + 1)) + min;
   const jitter = Math.max(2, size * 0.2);
   const tempClubs = otherClubsByPrestige
-    .map((club, i) => ({ club, score: i + resolveRandomFloat(-jitter, jitter) }))
+    .map((club, i) => ({ club, score: i + randomFloat(-jitter, jitter) }))
     .sort((a, b) => a.score - b.score)
     .map((x) => x.club);
 
   const finalTable: TableRow[] = [];
 
   let tempIdx = 0;
-  const played = (size - 1) * 2;
+  const played = options.matches ?? (size - 1) * 2;
   
   // Hạng 1 có khoảng 85-92% số điểm tối đa (thực tế và hấp dẫn hơn)
   const maxPossiblePoints = played * 3;
-  let currentPoints = Math.round(maxPossiblePoints * (0.75 + resolveRandomFloat(0, 0.1)));
+  let currentPoints = Math.round(maxPossiblePoints * (0.75 + randomFloat(0, 0.1)));
 
   const step = Math.max(1.5, currentPoints / (size * 1.25));
 
@@ -72,7 +81,7 @@ export function simulateDynamicLeagueTableService(
     }
 
     const maxDrawn = Math.floor(played * 0.25);
-    const drawn = Math.min(maxDrawn, resolveRandomInt(3, 7));
+    const drawn = Math.min(maxDrawn, randomInt(3, 7));
     const won = Math.max(0, Math.floor((currentPoints - drawn) / 3));
     const lost = Math.max(0, played - won - drawn);
     const points = won * 3 + (played - won - lost);
@@ -87,7 +96,7 @@ export function simulateDynamicLeagueTableService(
       points,
     });
 
-    currentPoints = Math.max(0, Math.round(currentPoints - (step + resolveRandomFloat(0, 2))));
+    currentPoints = Math.max(0, Math.round(currentPoints - (step + randomFloat(0, 2))));
   }
 
   return finalTable;

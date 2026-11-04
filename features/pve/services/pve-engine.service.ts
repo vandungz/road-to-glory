@@ -1,8 +1,11 @@
 import { resolveWeightedOutcome, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
-import { FORMATION_SLOTS } from "@/types/squad";
+import { simulateDynamicLeagueTableService } from "@/features/season/services/table-simulator.service";
 import {
+  PVE_FORMATION_SLOTS,
+  PVE_LINEUP_SIZE,
   PVE_ROUNDS,
   type PveCatalogPlayer,
+  type PveClubInput,
   type PveMatchMoment,
   type PveOpponentPlayer,
   type PveOpponentTeam,
@@ -20,12 +23,6 @@ export interface PveUserPlayerInput {
   position: string;
   peakOvr: number;
   statsTimeline: unknown;
-}
-
-export interface PveClubInput {
-  id: string;
-  name: string;
-  prestige: number;
 }
 
 interface TeamProfile {
@@ -49,6 +46,13 @@ const ROUND_POLICIES: Record<PveRound, RoundPolicy> = {
   quarter_final: { label: "Tứ kết", opponentTarget: 86, difficulty: 1.02, edgeScale: 108 },
   semi_final: { label: "Bán kết", opponentTarget: 90, difficulty: 1.06, edgeScale: 104 },
   final: { label: "Chung kết", opponentTarget: 94, difficulty: 1.1, edgeScale: 100 },
+};
+
+const ROUND_PRESTIGE_MULTIPLIER: Record<PveRound, number> = {
+  round_of_16: 1,
+  quarter_final: 1.25,
+  semi_final: 1.6,
+  final: 2.2,
 };
 
 const MOMENT_POLICIES = [
@@ -124,7 +128,7 @@ function publicOpponentPlayer(player: PveCatalogPlayer): PveOpponentPlayer {
     nationality: player.nationality,
     position: player.position,
     overall: player.overall,
-    eraLabel: `${player.eraStart}${player.eraEnd === player.eraStart ? "" : `–${player.eraEnd}`}`,
+    stats: player.stats,
   };
 }
 
@@ -137,21 +141,29 @@ function isCompatible(slotPosition: string, playerPosition: string): boolean {
 }
 
 function createOpponentTeam(
-  formation: Formation,
   round: PveRound,
   catalog: PveCatalogPlayer[],
   clubs: PveClubInput[],
   randomSource: RandomSource,
+  excludedClubIds: Set<string>,
 ): PveOpponentTeam {
   const policy = ROUND_POLICIES[round];
+  const availableClubs = clubs.filter((club) => !excludedClubIds.has(club.id) && catalog.filter((player) => player.clubId === club.id).length >= PVE_LINEUP_SIZE);
+  if (availableClubs.length === 0) throw new Error("PvE opponent pool is exhausted");
   const club = resolveWeightedOutcome(
-    clubs.map((item) => ({ value: item, weight: Math.max(1, item.prestige * (round === "final" ? 2 : 1)) })),
+    availableClubs.map((item) => ({ value: item, weight: Math.max(1, item.prestige * ROUND_PRESTIGE_MULTIPLIER[round]) })),
     randomSource,
   );
+  const clubPlayers = catalog.filter((player) => player.clubId === club.id);
+  if (clubPlayers.length < PVE_FORMATION_SLOTS[club.formation].length) {
+    throw new Error(`PvE catalog is missing enough players for ${club.name}`);
+  }
   const used = new Set<string>();
-  const players = FORMATION_SLOTS[formation].map((slot) => {
-    const candidates = catalog.filter((player) => !used.has(player.id) && isCompatible(slot.position, player.position));
-    if (candidates.length === 0) throw new Error("PvE player catalog is missing a compatible position");
+  const players = PVE_FORMATION_SLOTS[club.formation].map((slot) => {
+    const compatible = clubPlayers.filter((player) => !used.has(player.id) && isCompatible(slot.position, player.position));
+    // Keep the real club roster intact when the source data has no exact position for a slot.
+    const candidates = compatible.length > 0 ? compatible : clubPlayers.filter((player) => !used.has(player.id));
+    if (candidates.length === 0) throw new Error(`PvE player catalog is missing enough players for ${club.name}`);
     const chosen = resolveWeightedOutcome(
       candidates.map((player) => ({
         value: player,
@@ -163,7 +175,7 @@ function createOpponentTeam(
     return chosen;
   });
   const squadOvr = Math.round(mean(players.map((player) => player.overall), policy.opponentTarget));
-  return { id: `${club.id}-${round}`, name: `${club.name} Legends`, formation, squadOvr, players: players.map(publicOpponentPlayer) };
+  return { id: `${club.id}-${round}`, clubId: club.id, name: club.name, formation: club.formation, clubPrestige: club.prestige, squadOvr, players: players.map(publicOpponentPlayer) };
 }
 
 function opponentProfile(team: PveOpponentTeam, catalog: PveCatalogPlayer[]): TeamProfile {
@@ -180,22 +192,30 @@ function momentStory(moment: number, winner: "user" | "opponent", opponent: PveO
   return moment === 0 ? "Đối thủ bóp nghẹt tuyến giữa bằng những đường chuyền một chạm." : moment === 1 ? `${star?.name ?? "Ngôi sao đối thủ"} tạo ra pha đi bóng làm vỡ khối phòng ngự.` : `${star?.name ?? "Mũi nhọn đối thủ"} kết thúc pha phối hợp bằng cú dứt điểm lạnh lùng.`;
 }
 
-export function calculateGroupStage(profile: TeamProfile, clubs: PveClubInput[], randomSource: RandomSource): PveGroupStage {
-  const passChance = clamp(0.28 + (profile.overall * 0.65 + profile.balance * 0.2 + profile.defense * 0.15 - 72) / 45, 0.15, 0.86);
-  const passed = resolveWeightedOutcome([{ value: true, weight: passChance }, { value: false, weight: 1 - passChance }], randomSource);
-  const remainingClubs = [...clubs];
-  const opponentNames = Array.from({ length: 4 }, () => {
-    const club = resolveWeightedOutcome(remainingClubs.map((item) => ({ value: item, weight: Math.max(1, item.prestige) })), randomSource);
-    remainingClubs.splice(remainingClubs.findIndex((item) => item.id === club.id), 1);
-    return `${club.name} Legends`;
-  });
-  const rank = passed ? (randomSource() < 0.4 ? 1 : 2) : 3;
+export function calculateGroupStage(profile: TeamProfile, catalog: PveCatalogPlayer[], clubs: PveClubInput[], randomSource: RandomSource): PveGroupStage {
+  const tableClubs = [{ id: "user-team", name: "Đội bạn", leagueId: "UCL", prestige: 4, continentalType: "player" }, ...clubs.map((club) => ({ id: club.id, name: club.name, leagueId: "UCL", prestige: club.prestige, continentalType: "champions-league" }))];
+  const userStanding = clamp(Math.round(10 - (profile.overall - 60) / 4), 1, tableClubs.length);
+  const classicRows = simulateDynamicLeagueTableService(userStanding, "Đội bạn", tableClubs, { matches: 8, randomSource });
+  const rows = classicRows.map((row) => ({
+    clubId: row.clubId,
+    clubName: row.name,
+    played: row.played,
+    won: row.won,
+    drawn: row.drawn,
+    lost: row.lost,
+    goalDifference: row.won - row.lost,
+    points: row.points,
+    isUser: row.clubId === "user-team",
+  })).sort((left, right) => right.points - left.points || right.goalDifference - left.goalDifference || left.clubName.localeCompare(right.clubName));
+  const rankedTable = rows.map((row) => row);
+  const rank = rankedTable.findIndex((row) => row.isUser) + 1;
+  const passed = rank > 0 && rank <= 8;
+  const table = rankedTable;
   return {
     passed,
     rank,
-    passChance: Math.round(passChance * 100),
-    opponents: opponentNames,
-    summary: passed ? `Bạn đứng hạng ${rank} và giành vé vào vòng knock-out.` : "Đội hình dừng bước ở vòng bảng sau một chiến dịch nhiều biến động.",
+    table,
+    summary: passed ? `Đội bạn đứng hạng ${rank} và giành vé vào vòng knock-out.` : `Đội bạn đứng hạng ${rank} và dừng bước ở league phase.`,
   };
 }
 
@@ -206,8 +226,11 @@ export function createPveTournamentState(
   clubs: PveClubInput[],
   randomSource: RandomSource,
 ): PveTournamentState {
-  const group = calculateGroupStage(buildUserTeamProfile(players), clubs, randomSource);
-  return { version: 1, formation, status: group.passed ? PVE_ROUNDS[0] : "eliminated", group, rounds: [] };
+  const group = calculateGroupStage(buildUserTeamProfile(players), catalog, clubs, randomSource);
+  const firstRound = PVE_ROUNDS[0];
+  const status: PveStatus = group.passed ? firstRound : "eliminated";
+  const pendingOpponent = group.passed ? createOpponentTeam(firstRound, catalog, clubs, randomSource, new Set()) : undefined;
+  return { version: 3, formation, status, group, rounds: [], pendingOpponent };
 }
 
 export function resolvePveRound(
@@ -220,7 +243,8 @@ export function resolvePveRound(
   if (!PVE_ROUNDS.includes(state.status as PveRound)) throw new Error("PvE tournament is not waiting for a match");
   const round = state.status as PveRound;
   const user = buildUserTeamProfile(players);
-  const opponent = createOpponentTeam(state.formation, round, catalog, clubs, randomSource);
+  const facedClubIds = new Set(state.rounds.map((record) => record.opponent.clubId));
+  const opponent = state.pendingOpponent ?? createOpponentTeam(round, catalog, clubs, randomSource, facedClubIds);
   const computer = opponentProfile(opponent, catalog);
   const moments: PveMatchMoment[] = MOMENT_POLICIES.map((policy, index) => {
     const userMetric = user[policy.userMetric];
@@ -234,13 +258,21 @@ export function resolvePveRound(
   const result: PveRoundRecord = { round, opponent, userScore, opponentScore, result: userScore >= 2 ? "win" : "loss", moments };
   const rounds = [...state.rounds, result];
   const nextRound = PVE_ROUNDS[PVE_ROUNDS.indexOf(round) + 1];
-  return { ...state, status: result.result === "loss" ? "eliminated" : nextRound ?? "champion", rounds };
+  const nextStatus: PveStatus = result.result === "loss" ? "eliminated" : nextRound ?? "champion";
+  const nextPendingOpponent = result.result === "win" && nextRound
+    ? createOpponentTeam(nextRound, catalog, clubs, randomSource, new Set([...facedClubIds, opponent.clubId]))
+    : undefined;
+  return { ...state, status: nextStatus, rounds, pendingOpponent: nextPendingOpponent };
 }
 
 export function isPveTournamentState(value: unknown): value is PveTournamentState {
   if (!value || typeof value !== "object") return false;
   const state = value as Partial<PveTournamentState>;
-  return state.version === 1 && typeof state.formation === "string" && typeof state.status === "string" && !!state.group && Array.isArray(state.rounds);
+  return (state.version === 1 || state.version === 2 || state.version === 3) && typeof state.formation === "string" && typeof state.status === "string" && !!state.group && Array.isArray(state.rounds);
+}
+
+export function isCurrentPveTournamentState(value: unknown): value is PveTournamentState {
+  return isPveTournamentState(value) && value.version === 3;
 }
 
 export function roundLabel(round: PveStatus): string {
