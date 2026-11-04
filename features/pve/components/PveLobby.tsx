@@ -7,6 +7,7 @@ import { roundLabel } from "@/features/pve/services/pve-engine.service";
 function SessionCard({ session }: { session: PveSessionCard }) {
   const isComplete = session.tournamentStatus === "champion";
   const isStarted = session.tournamentStatus !== null;
+  const isReplay = session.tournamentStatus === "eliminated" || isComplete;
   return (
     <Link href={`/pve/${session.gameId}`} className="football-pve-lobby__session">
       <div className="football-pve-lobby__session-copy">
@@ -14,7 +15,7 @@ function SessionCard({ session }: { session: PveSessionCard }) {
         <h2>{session.name}</h2>
         <span className="football-pve-lobby__session-status">{isComplete ? "Đã vô địch" : isStarted ? roundLabel(session.tournamentStatus!) : "Chưa bắt đầu"}</span>
       </div>
-      <span className="football-pve-lobby__session-action"><span>{isStarted ? "Tiếp tục giải" : "Bắt đầu giải"}</span><ArrowRight aria-hidden="true" size={18} /></span>
+      <span className="football-pve-lobby__session-action"><span>{isReplay ? "Chơi lại" : isStarted ? "Tiếp tục giải" : "Bắt đầu giải"}</span><ArrowRight aria-hidden="true" size={18} /></span>
     </Link>
   );
 }
