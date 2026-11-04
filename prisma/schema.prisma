@@ -334,6 +334,8 @@ model Club {
 
 model PvePlayer {
   id          String @id
+  clubId      String @default("")
+  clubName    String @default("")
   name        String
   nationality String
   position    String
@@ -343,6 +345,7 @@ model PvePlayer {
   stats       Json
 
   @@index([position, overall])
+  @@index([clubId, position, overall])
   @@map("pve_players")
 }
 

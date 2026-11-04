@@ -30,7 +30,8 @@
     "check:transfer-economy": "tsx scripts/transfer-economy-check.ts",
     "check:transfer-finance": "tsx scripts/transfer-finance-check.ts",
     "check:shop-balance": "tsx scripts/shop-balance-check.ts",
-    "seed": "tsx prisma/seed.ts"
+    "seed": "tsx prisma/seed.ts",
+    "seed:pve": "tsx scripts/seed-pve-catalog.ts"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
