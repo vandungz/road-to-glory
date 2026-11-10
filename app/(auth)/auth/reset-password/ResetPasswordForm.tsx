@@ -6,7 +6,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { requestPasswordResetAction, updatePasswordAction } from "@/actions/auth.actions";
 
-export function ResetPasswordForm() {
+export function ResetPasswordForm({ canUpdatePassword = false }: { canUpdatePassword?: boolean }) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [sent, setSent] = useState(false);
@@ -17,7 +17,7 @@ export function ResetPasswordForm() {
     event.preventDefault();
     setPending(true); setError(null);
     try {
-      if (password) {
+      if (canUpdatePassword) {
         const result = await updatePasswordAction(password);
         if (!result.success) setError(result.error);
         else setSent(true);
@@ -33,10 +33,9 @@ export function ResetPasswordForm() {
   }
 
   return <section className="football-auth-panel">
-    <span className="football-auth-panel__eyebrow">Account recovery</span>
-    <h2>{password ? "Đặt lại mật khẩu" : "Quên mật khẩu?"}</h2>
-    <p>{password ? "Nhập mật khẩu mới cho tài khoản của bạn." : "Nhập email đã đăng ký. Chúng tôi sẽ gửi một đường dẫn khôi phục."}</p>
-    {sent ? <p className="football-auth-message football-auth-message--warning">Đã gửi hướng dẫn. Kiểm tra hộp thư của bạn.</p> : <form className="football-auth-form" onSubmit={handleSubmit}>{password ? <label className="football-field"><span>Mật khẩu mới</span><input required minLength={8} type="password" value={password} onChange={(event) => setPassword(event.target.value)} /></label> : <label className="football-field"><span>Email</span><input required type="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>}{error && <p className="football-auth-message football-auth-message--error">{error}</p>}<Button type="submit" fullWidth loading={pending}>{password ? "Lưu mật khẩu" : "Gửi liên kết khôi phục"}</Button></form>}
+    <h2>{canUpdatePassword ? "Đặt lại mật khẩu" : "Quên mật khẩu?"}</h2>
+    <p>{canUpdatePassword ? "Nhập mật khẩu mới cho tài khoản của bạn." : "Nhập email đã đăng ký để nhận liên kết khôi phục."}</p>
+    {sent ? <p className="football-auth-message football-auth-message--warning">{canUpdatePassword ? "Đã cập nhật mật khẩu." : "Đã gửi hướng dẫn. Kiểm tra hộp thư của bạn."}</p> : <form className="football-auth-form" onSubmit={handleSubmit}>{canUpdatePassword ? <label className="football-field"><span>Mật khẩu mới</span><input required minLength={8} maxLength={128} type="password" autoComplete="new-password" value={password} onChange={(event) => setPassword(event.target.value)} /></label> : <label className="football-field"><span>Email</span><input required type="email" autoComplete="email" value={email} onChange={(event) => setEmail(event.target.value)} /></label>}{error && <p className="football-auth-message football-auth-message--error" role="alert">{error}</p>}<Button type="submit" fullWidth loading={pending}>{canUpdatePassword ? "Lưu mật khẩu" : "Gửi liên kết khôi phục"}</Button></form>}
     <Link className="football-text-link" href="/login">Quay lại đăng nhập</Link>
   </section>;
 }

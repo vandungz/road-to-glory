@@ -107,10 +107,8 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     return (
       <section className="football-auth-panel football-auth-confirm">
         <div className="football-auth-panel__intro" key={`confirm-${replayToken}`} data-anim>
-          <span className="football-auth-panel__eyebrow">Xác nhận tài khoản</span>
           <h2>Kiểm tra email của bạn</h2>
           <p>Đường dẫn xác nhận đã được gửi tới <strong>{email}</strong>.</p>
-          <p className="football-auth-confirm__meta">Đường dẫn có hiệu lực trong 1 giờ.</p>
         </div>
         {error && <p className="football-auth-message football-auth-message--error" data-anim>{error}</p>}
         <Button fullWidth variant="outline" onClick={handleResend} disabled={isResending || cooldown > 0} loading={isResending}>
@@ -126,7 +124,7 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     <section className="football-auth-panel">
       <div className="football-auth-panel__intro" key={`intro-${mode}-${replayToken}`} data-anim>
         <h2>{isLogin ? "Tiếp tục sự nghiệp" : "Bắt đầu sự nghiệp"}</h2>
-        <p>{isLogin ? "Đăng nhập để mở lại đội hình và những mùa giải đang dở." : "Tạo tài khoản, rồi draft mười một sự nghiệp của riêng bạn."}</p>
+        <p>{isLogin ? "Đăng nhập để tiếp tục đội hình đã lưu." : "Tạo tài khoản để lưu đội hình của bạn."}</p>
       </div>
 
       {initialError === "link_expired" && <p className="football-auth-message football-auth-message--warning">Đường dẫn đã hết hạn. Vui lòng đăng ký lại để nhận đường dẫn mới.</p>}
@@ -144,7 +142,7 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
 
         <div className="football-auth-field" data-anim key={`password-${replayToken}`}>
           <div className="football-auth-field__label-row">
-          <label htmlFor="football-pass">{isLogin ? "Mật khẩu" : "Mật khẩu · tối thiểu 8 ký tự"}</label>
+          <label htmlFor="football-pass">{isLogin ? "Mật khẩu" : "Mật khẩu (ít nhất 8 ký tự)"}</label>
             {isLogin && <Link href="/auth/reset-password">Quên mật khẩu?</Link>}
           </div>
           <div className="football-password-field">

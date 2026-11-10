@@ -16,7 +16,6 @@ export function AuthLayoutClient({ children }: { children: ReactNode }) {
             <div className="football-auth-form-column__body">{children}</div>
             <footer className="football-auth-form-column__footer">
               <span>© Football Life — mùa 2025/26</span>
-              <button type="button" onClick={motion.replay}>Chạy lại chuyển động</button>
             </footer>
           </section>
         </div>
