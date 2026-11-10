@@ -235,6 +235,7 @@ export function transferResult(params: {
 type IssuedTransferOffer = {
   offer: ContractOfferCard;
   wageOption: WageDealOption;
+  fixedRenewal?: boolean;
 };
 
 export function parseIssuedOffer(value: unknown): ContractOfferCard | null {
@@ -282,6 +283,17 @@ export async function assertServerIssuedOffer(params: {
     throw new TransferTransitionError("OFFER_NOT_FOUND", "Thiếu CLB đích đã được server cấp offer");
   }
   const clubId = params.clubId;
+  if (params.kind === "renewal") {
+    const market = await params.tx.careerCommand.findUnique({
+      where: { careerPlayerId_idempotencyKey: { careerPlayerId: params.playerId, idempotencyKey: commandKey(params.playerId, params.seasonId, "market:yes") } },
+      select: { commandType: true, result: true },
+    });
+    const renewal = market?.commandType === "transfer_market" ? parseIssuedOffer(asRecord(market.result).renewal) : null;
+    if (renewal?.kind === "renewal" && renewal.clubId === clubId) {
+      if (params.wageOption !== "standard") throw new TransferTransitionError("INVALID_TERMS", "Đề nghị gia hạn đã có điều khoản cố định");
+      return { offer: renewal, wageOption: "standard", fixedRenewal: true };
+    }
+  }
   const expectedOfferKind: ContractOfferKind = params.kind === "renewal"
     ? "renewal"
     : params.kind === "transfer"
@@ -309,7 +321,8 @@ export async function assertServerIssuedOffer(params: {
     const wageOption = commandInput.wageOption === "lower" || commandInput.wageOption === "higher"
       ? commandInput.wageOption
       : "standard";
-    issuedNegotiationOffer = { offer, wageOption };
+    if (params.kind === "renewal" && params.wageOption !== "standard") throw new TransferTransitionError("INVALID_TERMS", "Đề nghị gia hạn đã có điều khoản cố định");
+    issuedNegotiationOffer = { offer, wageOption, fixedRenewal: params.kind === "renewal" };
     return true;
   });
   if (acceptedNegotiation && issuedNegotiationOffer) return issuedNegotiationOffer;

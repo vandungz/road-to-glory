@@ -56,9 +56,10 @@ export function applyWageDealChance(baseChance: number, option: WageDealOption):
 }
 
 /**
- * Final wage agreement is a real negotiation, separate from the approach
+ * Transfer wage agreement is a real negotiation, separate from the approach
  * roll. It intentionally never reaches 100%: even a good offer can be
  * rejected by the club, while role and club level make the base chance vary.
+ * Accepting a server-issued renewal uses its fixed terms without this roll.
  */
 export function computeWageAgreementChance(params: {
   option: WageDealOption;

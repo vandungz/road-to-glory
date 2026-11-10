@@ -8,7 +8,7 @@ const transferContextSchema = {
 
 export const getTransferMarketSchema = z.object({
   ...transferContextSchema,
-  willingToMove: z.boolean().default(true),
+  willingToMove: z.boolean().default(true).transform(() => true),
 }).strict();
 
 export const searchTransferClubsSchema = z.object({

@@ -254,7 +254,7 @@ export async function loadAuthorityContext(
   const currentOvr = asNumber(snapshot.ovr, player.peakOvr);
   const currentStats = asStats(player);
   const isUnemployed = player.isUnemployed || !currentClubId;
-  const willingToMove = "willingToMove" in input ? input.willingToMove : true;
+  const willingToMove = true;
   const currentClubPrestige = currentClub?.prestige ?? 2;
   const currentClubLeagueTier = currentClub?.leagueTier ?? 1;
   const params: GenerateTransferMarketParams = {

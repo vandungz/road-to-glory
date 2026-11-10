@@ -197,6 +197,10 @@ export function useDraftDrumTransferFlow({
   }
 
   async function handleProactiveRenewal(wageOption?: WageDealOption): Promise<boolean> {
+    if (transferMarket?.renewal) {
+      const result = await handleAcceptMarketOffer(transferMarket.renewal, "standard");
+      return result.resolution === "accepted";
+    }
     if (
       isProcessing ||
       !currentClub ||

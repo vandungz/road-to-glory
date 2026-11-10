@@ -283,6 +283,7 @@ export async function completeTransferAction(input: unknown): Promise<{
   if (!snapshot || typeof snapshot.age !== "number") throw new Error("Thiếu mốc mùa giải hiện tại");
   const currentAge = snapshot.age;
 
+  if (validated.kind === "renewal" && validated.wageOption !== "standard") throw new Error("Đề nghị gia hạn đã có điều khoản cố định");
   const wageMultiplier = validated.wageOption === "lower"
     ? 0.8
     : validated.wageOption === "higher" ? 1.15 : 1;
@@ -293,7 +294,7 @@ export async function completeTransferAction(input: unknown): Promise<{
     leagueTier: destination.league.tier,
     expectedLeagueApps: 20,
   });
-  if (secureRandom() >= wageChance) {
+  if (validated.kind !== "renewal" && secureRandom() >= wageChance) {
     throw new Error("CLB không chấp nhận mức lương này — hãy chọn một phương án khác.");
   }
 

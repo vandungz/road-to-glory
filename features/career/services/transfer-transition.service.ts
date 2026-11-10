@@ -94,7 +94,11 @@ export async function completeTransferCommand(params: {
         })
       : null;
     const negotiationClubId = input.clubId ?? currentClubId;
-    if (input.kind !== "stay" && negotiationClubId) {
+    const issuedOffer = await assertServerIssuedOffer({
+      tx, playerId: player.id, seasonId: season.id, revision: input.expectedRevision,
+      kind: input.kind, clubId: input.clubId, wageOption: input.wageOption,
+    });
+    if (input.kind !== "stay" && !issuedOffer?.fixedRenewal && negotiationClubId) {
       const attempts = wageAttemptState(season.runtimeState, negotiationClubId, transferWorkflow);
       if (attempts.cancelled) {
         return {
@@ -130,15 +134,6 @@ export async function completeTransferCommand(params: {
     if ((input.kind === "transfer" || input.kind === "free_agent") && destination?.id === currentClubId) {
       throw new TransferTransitionError("INVALID_TERMS", "Không thể chuyển đến chính CLB hiện tại");
     }
-    const issuedOffer = await assertServerIssuedOffer({
-      tx,
-      playerId: player.id,
-      seasonId: season.id,
-      revision: input.expectedRevision,
-      kind: input.kind,
-      clubId: input.clubId,
-      wageOption: input.wageOption,
-    });
     if (input.kind === "transfer" && player.isUnemployed) {
       throw new TransferTransitionError("INVALID_TERMS", "Cầu thủ tự do không cần phí chuyển nhượng");
     }
@@ -186,7 +181,7 @@ export async function completeTransferCommand(params: {
             stepUpPrestige: (destination?.prestige ?? currentClub?.prestige ?? 2) - (currentClub?.prestige ?? 2),
             acceptLowerWage: input.kind !== "renewal",
           });
-    const wageAnnual = input.kind === "stay"
+    const wageAnnual = issuedOffer?.fixedRenewal ? issuedOffer.offer.wageAnnual : input.kind === "stay"
       ? Math.max(0, Math.round(wageBase))
       : clampWageAnnual(
           Math.round(wageBase * (input.kind === "renewal"
@@ -195,7 +190,7 @@ export async function completeTransferCommand(params: {
           destination?.prestige ?? currentClub?.prestige ?? 2,
           destination?.league.tier ?? currentClub?.league.tier ?? 1,
         );
-    if (input.kind !== "stay" && issuedOffer) {
+    if (input.kind !== "stay" && issuedOffer && !issuedOffer.fixedRenewal) {
       const wageChance = computeWageAgreementChance({
         option: input.wageOption,
         baseWage: issuedOffer.offer.wageAnnual,
@@ -389,6 +384,7 @@ export async function completeTransferCommand(params: {
         type: input.kind === "stay" ? "transfer_stayed" : "transfer_completed",
         label: input.kind === "stay"
           ? "Tiếp tục ở lại CLB hiện tại"
+          : input.kind === "renewal" ? "Đã gia hạn với " + result.clubName
           : "Đã chốt chuyển đến " + result.clubName,
         payload: {
           commandId,

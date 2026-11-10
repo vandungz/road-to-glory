@@ -59,11 +59,12 @@ export function generateTransferMarketService(
     contractYearsRemaining,
     contractYearsTotal,
     currentWageAnnual,
-    willingToMove = false,
     isUnemployed = false,
     clubs,
     influenceScore,
   } = params;
+  // Always available for offers; retain the input field for older clients only.
+  const willingToMove = true;
 
   function quoteWage(club: ClubMarketInfo, proposedWage: number): number {
     return randomizeWageAnnual({

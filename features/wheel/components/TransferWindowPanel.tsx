@@ -7,8 +7,6 @@ export type ApproachRejectState = Record<string, { chance: number; reason: strin
 
 interface TransferWindowPanelProps {
   market: TransferMarketResult;
-  willingToMove: boolean;
-  setWillingToMove: (v: boolean) => void;
   isProcessing: boolean;
   onAcceptOffer: (offer: ContractOfferCard) => void;
   onRejectAll: () => void;
@@ -85,8 +83,6 @@ function OfferCard({
 
 export function TransferWindowPanel({
   market,
-  willingToMove,
-  setWillingToMove,
   isProcessing,
   onAcceptOffer,
   onRejectAll,
@@ -161,30 +157,6 @@ export function TransferWindowPanel({
         </p>
       )}
 
-      {!isUnemployedMarket && (
-        <label
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 8,
-            fontSize: "0.78rem",
-            cursor: isProcessing ? "not-allowed" : "pointer",
-            userSelect: "none",
-            padding: "8px 10px",
-            border: "1px dashed var(--charcoal)",
-            borderRadius: 3,
-            background: willingToMove ? "rgba(232, 93, 66, 0.08)" : "transparent",
-          }}
-        >
-          <input
-            type="checkbox"
-            checked={willingToMove}
-            disabled={isProcessing}
-            onChange={(e) => setWillingToMove(e.target.checked)}
-          />
-          Muốn chuyển đi (Available) — Phí giải phóng hợp đồng giữ nguyên
-        </label>
-      )}
 
       {renewal && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

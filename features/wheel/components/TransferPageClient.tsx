@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { completeTransferAction, generateTransferMarketAction, resolveProactiveRenewalAction, resolveShortlistApproachAction, searchClubsForApproachAction } from "@/actions/season.actions";
+import { completeTransferAction, generateTransferMarketAction, resolveShortlistApproachAction, searchClubsForApproachAction } from "@/actions/season.actions";
 import {
   completeTransferCommandAction,
   dismissTransferNegotiationCommandAction,
@@ -14,11 +14,13 @@ import {
 } from "@/actions/career-transfer.actions";
 import type { TransferCommandResult } from "@/features/career/contracts/transfer-transition.contract";
 import type { ContractOfferCard, PendingTransferNegotiation, ShortlistClubCard, TransferDealResolution, TransferMarketResult } from "@/features/transfer/services/transfer.service";
-import { computeWageAgreementChance, type WageDealOption } from "@/lib/salary-negotiation";
+import { type WageDealOption } from "@/lib/salary-negotiation";
 import type { ApproachRejectState } from "./TransferWindowPanel";
 import { PersistentTransferSection } from "./PersistentTransferSection";
+import { TransferNegotiationPanel } from "./TransferNegotiationPanel";
 import { Button } from "@/components/ui/Button";
-import { applyTransferFeeDealChance, approachChancePercent, formatEuroThousands, formatTransferFee, type TransferFeeDealOption } from "@/lib/transfer-economy";
+import { applyTransferFeeDealChance, formatEuroThousands, formatTransferFee, type TransferFeeDealOption } from "@/lib/transfer-economy";
+import { getTransferPortraitCue, saveTransferPortraitCue } from "../lib/portrait-reactions";
 
 export interface TransferPageInput {
   gameId: string;
@@ -66,7 +68,6 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
   const [market, setMarket] = useState<TransferMarketResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isProcessing, setIsProcessing] = useState(false);
-  const [willingToMove, setWillingToMove] = useState(true);
   const [approachRejects, setApproachRejects] = useState<ApproachRejectState>({});
   const [approachBanner, setApproachBanner] = useState<string | null>(null);
   const [finalizationError, setFinalizationError] = useState<string | null>(null);
@@ -115,8 +116,9 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
         });
     marketRequest.then((result) => {
       if (active) {
-        setMarket(result);
-        setSelectedOffer(result.pendingNegotiation?.offer ?? null);
+        const pendingRenewal = result.pendingNegotiation?.offer.kind === "renewal" ? result.pendingNegotiation.offer : null;
+        setMarket(pendingRenewal && !result.renewal ? { ...result, renewal: pendingRenewal } : result);
+        setSelectedOffer(result.pendingNegotiation?.offer.kind === "renewal" ? null : result.pendingNegotiation?.offer ?? null);
         setFailedWageOptions(result.pendingNegotiation?.failedWageOptions ?? []);
         setDeal("standard");
       }
@@ -170,7 +172,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
             } : previous);
           } else {
             setFailedWageOptions(result.failedWageOptions);
-            setFinalizationError(result.message);
+            setFinalizationError(null);
             if (offer.kind === "renewal") {
               setMarket((previous) => previous ? { ...previous, renewal: null } : previous);
             }
@@ -196,6 +198,9 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
       if (offer.kind === "renewal") {
         router.push(input.shopHref);
       } else {
+        const from = input.currentClubId ? { id: input.currentClubId, prestige: input.currentClubPrestige } : null;
+        const cue = getTransferPortraitCue(from, { id: offer.clubId, prestige: offer.prestige }, `${input.currentAge}:transfer`);
+        if (cue) saveTransferPortraitCue(input.playerId, cue);
         setSuccess({
           clubName: completion.clubName,
           leagueName: completion.leagueName,
@@ -226,68 +231,13 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
             shortlist: previous.shortlist.filter((item) => item.clubId !== offer.clubId),
           } : previous);
         } else {
-          setFinalizationError(rejected ? message : "Không thể hoàn tất đàm phán — hãy thử lại.");
+          setFinalizationError(rejected ? null : "Không thể hoàn tất đàm phán — hãy thử lại.");
         }
       }
       return cancelled ? "cancelled" : rejected ? "rejected" : "error";
     } finally {
       setIsProcessing(false);
     }
-  }
-
-  async function acceptOffer(offer: ContractOfferCard) {
-    if (offer.kind === "renewal") {
-      setIsProcessing(true);
-      try {
-        const result = input.checkpointVersion >= 2 && input.seasonId
-          ? await resolveTransferNegotiationCommandAction({
-              playerId: input.playerId,
-              seasonId: input.seasonId,
-              expectedRevision: input.revision,
-              kind: "renewal",
-              wageOption: "standard",
-            })
-          : await resolveProactiveRenewalAction({
-              currentClubId: input.currentClubId,
-              currentClubName: input.currentClubName,
-              currentClubLeagueId: input.currentClubLeagueId,
-              currentClubLeagueName: input.currentClubLeagueName,
-              currentClubPrestige: input.currentClubPrestige,
-              currentClubLeagueTier: input.currentClubLeagueTier,
-              currentOvr: input.currentOvr,
-              currentStats: input.currentStats,
-              position: input.position,
-              currentAge: input.currentAge,
-              retireAge: input.retireAge,
-              matchRating: input.matchRating,
-              goals: input.goals,
-              assists: input.assists,
-              cleanSheets: input.cleanSheets,
-              contractYearsRemaining: input.contractYearsRemaining,
-              currentWageAnnual: input.currentWageAnnual,
-              wageOption: "standard",
-            });
-        if (result.accepted) {
-          setFinalizationError(null);
-          setDeal("standard");
-          setFailedWageOptions([]);
-          setSelectedOffer(result.offer);
-        } else {
-          setMarket((previous) => previous ? { ...previous, renewal: null } : previous);
-          setApproachBanner(`Gia hạn bị từ chối — ${result.rejectReason}`);
-        }
-      } catch (error) {
-        setApproachBanner(error instanceof Error ? error.message : "Không thể đàm phán gia hạn.");
-      } finally {
-        setIsProcessing(false);
-      }
-      return;
-    }
-    setFinalizationError(null);
-    setApproachBanner(null);
-    setDeal("standard");
-    setFailedWageOptions([]);
-    setSelectedOffer(offer);
   }
 
   async function persistOfferSelection(offer: ContractOfferCard): Promise<PendingTransferNegotiation | null> {
@@ -376,7 +326,6 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
       setSelectedOffer(result.offer);
       setDeal("standard");
       setFailedWageOptions([]);
-      setApproachBanner(`${club.clubName} đã đồng ý mở đàm phán.`);
       return true;
     } catch (error) {
       setApproachBanner(error instanceof Error ? error.message : "Không thể ngỏ lời với CLB.");
@@ -450,12 +399,24 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
   }
 
   if (selectedOffer) {
-    const wageMood = Math.max(0, 100 - failedWageOptions.length * 50);
-    return <main className="football-transfer-negotiation"><button type="button" className="football-transfer-back" onClick={async () => { setFinalizationError(null); setSelectedOffer(null); await clearPersistedOfferSelection(selectedOffer); }}>← Về danh sách lời đề nghị</button><span className="football-eyebrow">Đàm phán hợp đồng · {selectedOffer.clubName}</span><h1>Chốt điều khoản cuối cùng</h1><p>Chọn mức lương cuối cùng bạn muốn đề xuất cho {selectedOffer.contractYears} mùa giải. Đây là một lần thương lượng thật — không có phương án chắc chắn 100%.</p>{approachBanner && <p className="football-transfer-feedback is-banner" role="status">{approachBanner}</p>}{finalizationError && <p className="football-transfer-feedback is-error" role="alert">{finalizationError}</p>}<div className="football-transfer-negotiation__offer"><div><small>CLB mới</small><strong>{selectedOffer.clubName}</strong></div><div><small>Phí chuyển nhượng</small><strong>{selectedOffer.transferFee ? formatTransferFee(selectedOffer.transferFee) : "Miễn phí"}</strong></div></div><div className="football-transfer-mood" aria-label={`Mức độ vui vẻ của ${selectedOffer.clubName}: ${wageMood}%`}><div><small>Mức độ vui vẻ của CLB</small><strong>{wageMood}%</strong></div><div className="football-transfer-mood__track"><span style={{ width: `${wageMood}%`, backgroundColor: wageMood <= 50 ? "var(--football-accent)" : "var(--football-positive)" }} /></div><p>{wageMood === 100 ? "CLB vẫn đang sẵn sàng thương lượng." : "Một phương án đã bị từ chối. Nếu thanh cạn, thương vụ sẽ bị hủy."}</p></div><div className="football-transfer-wage-options">{(["lower", "standard", "higher"] as WageDealOption[]).map((option) => { const multiplier = option === "lower" ? .8 : option === "higher" ? 1.15 : 1; const wage = Math.round(selectedOffer.wageAnnual * multiplier); const chance = approachChancePercent(computeWageAgreementChance({ option, baseWage: selectedOffer.wageAnnual, clubPrestige: selectedOffer.prestige, leagueTier: selectedOffer.leagueTier, expectedLeagueApps: selectedOffer.expectedLeagueApps })); const failed = failedWageOptions.includes(option); return <button type="button" key={option} disabled={failed || isProcessing} aria-disabled={failed} className={`${deal === option ? "is-active" : ""}${failed ? " is-rejected" : ""}`} onClick={() => { setFinalizationError(null); setDeal(option); }}><span>{failed ? "Đã bị từ chối" : option === "lower" ? "€ Lương an toàn" : option === "higher" ? "€ Yêu cầu cao" : "€ Đề nghị tiêu chuẩn"}</span><strong>{formatEuroThousands(wage)}/năm</strong><small>{failed ? "Không thể chọn lại" : `${option === "lower" ? "Dễ được chấp nhận hơn" : option === "higher" ? "Có thể bị từ chối" : "Cân bằng"} · Cơ hội ${chance}%`}</small></button>; })}</div><Button size="lg" fullWidth loading={isProcessing} disabled={isProcessing || failedWageOptions.includes(deal)} onClick={async () => { const resolution = await commitOffer({ ...selectedOffer, wageAnnual: Math.round(selectedOffer.wageAnnual * (deal === "lower" ? .8 : deal === "higher" ? 1.15 : 1)) }, deal); if (resolution === "rejected") { setFailedWageOptions((previous) => { const next = [...new Set([...previous, deal])]; const nextOption = (["lower", "standard", "higher"] as WageDealOption[]).find((option) => !next.includes(option)); if (nextOption) setDeal(nextOption); return next; }); } }}>Chốt điều khoản & chuyển đến {selectedOffer.clubName} <ArrowRightIcon /></Button></main>;
+    return <TransferNegotiationPanel offer={selectedOffer} selected={deal} failed={failedWageOptions} processing={isProcessing}
+      onBack={async () => { setFinalizationError(null); setSelectedOffer(null); await clearPersistedOfferSelection(selectedOffer); }}
+      onSelect={(option) => { setFinalizationError(null); setDeal(option); }}
+      onSubmit={async () => {
+        const resolution = await commitOffer(selectedOffer, deal);
+        if (resolution === "rejected") setFailedWageOptions((previous) => {
+          const next = [...new Set([...previous, deal])];
+          const nextOption = (["lower", "standard", "higher"] as WageDealOption[]).find((option) => !next.includes(option));
+          if (nextOption) setDeal(nextOption);
+          return next;
+        });
+      }}>
+      {finalizationError && <p className="football-transfer-feedback is-error" role="alert">{finalizationError}</p>}
+    </TransferNegotiationPanel>;
   }
 
   if (isLoading || !market) return <main className="football-transfer-loading"><span className="football-eyebrow">Cửa sổ chuyển nhượng</span><h1>Đang dò tìm cơ hội mới...</h1><p>Đang cập nhật các CLB phù hợp với hồ sơ của bạn.</p></main>;
-  return <PersistentTransferSection market={market} currentClubId={input.currentClubId} currentClubName={input.currentClubName} willingToMove={willingToMove} setWillingToMove={setWillingToMove} isProcessing={isProcessing} onAcceptOffer={async (offer, wageOption) => ({ resolution: await commitOffer(offer, wageOption) })} onRejectAll={() => void stayAtCurrentClub()} onApproachShortlist={approachClub} onProactiveRenewal={() => { if (market.renewal) void acceptOffer(market.renewal); }} onSearchClubs={searchClubs} approachRejects={approachRejects} approachBanner={approachBanner} onSelectOffer={persistOfferSelection} onClearAcceptedOffer={clearPersistedOfferSelection} />;
+  return <PersistentTransferSection market={market} currentClubId={input.currentClubId} currentClubName={input.currentClubName} isProcessing={isProcessing} onAcceptOffer={async (offer, wageOption) => ({ resolution: await commitOffer(offer, wageOption) })} onRejectAll={() => void stayAtCurrentClub()} onApproachShortlist={approachClub} onSearchClubs={searchClubs} approachRejects={approachRejects} approachBanner={approachBanner} onSelectOffer={persistOfferSelection} onClearAcceptedOffer={clearPersistedOfferSelection} />;
 }
 
 function ArrowRightIcon() { return <ArrowRight aria-hidden="true" size={16} />; }

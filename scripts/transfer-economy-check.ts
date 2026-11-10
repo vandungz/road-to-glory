@@ -97,7 +97,7 @@ const clubs = [
   },
 ];
 
-const market = generateTransferMarketService({
+const marketParams: Parameters<typeof generateTransferMarketService>[0] = {
   currentClubId: "current",
   currentClubPrestige: 3,
   currentClubLeagueTier: 1,
@@ -115,7 +115,10 @@ const market = generateTransferMarketService({
   currentWageAnnual: 800,
   willingToMove: true,
   clubs,
-});
+};
+const market = generateTransferMarketService(marketParams);
+const deterministicParams = { ...marketParams, randomSource: () => 0.4, wageRandomSource: () => 0.4 };
+assert.deepEqual(generateTransferMarketService({ ...deterministicParams, willingToMove: false }), generateTransferMarketService({ ...deterministicParams, willingToMove: true }), "Legacy opt-out must not change the always-available transfer market");
 
 assert.equal(market.valuation.positionWeightedRating, specialistValue.positionWeightedRating);
 assert.ok(market.marketValue > 0, "The transfer checkpoint must produce a market value");

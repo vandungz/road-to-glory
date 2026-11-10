@@ -19,6 +19,7 @@ const context = {
 assert.equal(getTransferMarketSchema.safeParse(context).success, true);
 assert.equal(getTransferMarketSchema.parse(context).willingToMove, true);
 assert.equal(getTransferMarketSchema.safeParse({ ...context, willingToMove: false }).success, true);
+assert.equal(getTransferMarketSchema.parse({ ...context, willingToMove: false }).willingToMove, true);
 assert.equal(
   getTransferMarketSchema.safeParse({ ...context, currentOvr: 99 }).success,
   false,
