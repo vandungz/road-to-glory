@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { randomPortraitId } from "@/features/player/lib/player-portraits";
 import { resolveWeightedOutcome, type WeightedItem } from "@/lib/wheel-engine/spin-resolver";
 import { getFlagEmoji } from "@/types/squad";
 import { applyTrait, getTraitPool } from "../lib/traits";
@@ -9,6 +10,7 @@ import {
   getAssistPool,
   getBallonDorPool,
   getBoundedCountPool,
+  getCleanSheetPool,
   getClubCountPool,
   getDomesticCupPool,
   getGoalPool,
@@ -88,6 +90,7 @@ const INITIAL_DRAFT: QuickClubDraft = {
 const INITIAL_FINALE: QuickFinale = {
   goals: null,
   assists: null,
+  cleanSheets: null,
   ballonDorWins: null,
   otherAwardCount: null,
   otherAwardTypes: [],
@@ -142,6 +145,11 @@ function getCareerYearsSpent(state: QuickModeState): number {
   return state.clubs.reduce((sum, club) => sum + club.seasons, 0);
 }
 
+function needsCleanSheetSpin(state: QuickModeState): boolean {
+  // Keep the existing finale step numbers so saved runs resume at the same award.
+  return state.phase === "finale" && state.finaleStep >= 2 && state.finale.cleanSheets == null;
+}
+
 function getCareerSeasonPool(state: QuickModeState): WeightedItem<number>[] {
   const careerLength = state.player.careerLength ?? 1;
   const remainingYears = Math.max(1, careerLength - getCareerYearsSpent(state));
@@ -190,7 +198,8 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
   }, [hydrated, state]);
 
   const setIdentity = useCallback((values: Partial<Pick<QuickPlayer, "name" | "nationality" | "position">>) => {
-    setState((current) => ({ ...current, player: { ...current.player, ...values }, lastResult: null }));
+    const portraitId = randomPortraitId();
+    setState((current) => ({ ...current, player: { ...current.player, ...values, portraitId: current.player.portraitId ?? portraitId }, lastResult: null }));
   }, []);
 
   const reset = useCallback(() => {
@@ -281,6 +290,7 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
     };
     if (state.finaleStep === 0) return { key: "career-goals", label: "Bàn thắng sự nghiệp", description: "Shooting, Dribbling, Pace, IQ, Strength, vị trí và tỷ lệ vô địch theo số mùa sẽ quyết định weight.", items: getGoalPool(player.position, outcomeContext) };
     if (state.finaleStep === 1) return { key: "career-assists", label: "Kiến tạo sự nghiệp", description: "Passing, IQ, Dribbling, Pace, vị trí và tỷ lệ vô địch theo số mùa sẽ quyết định weight.", items: getAssistPool(player.position, outcomeContext) };
+    if (needsCleanSheetSpin(state)) return { key: "career-clean-sheets", label: "Trận giữ sạch lưới", description: "Tổng số trận giữ sạch lưới trong sự nghiệp.", items: getCleanSheetPool(player.position, { ...outcomeContext, careerLength: getCareerYearsSpent(state) || outcomeContext.careerLength }) };
     if (state.finaleStep === 2) return { key: "ballon-dor", label: "Số lần Ballon d'Or", description: "Số lần thắng được cân theo OVR, output đúng vị trí, số mùa và thành tích tập thể.", items: getBallonDorPool({ ...outcomeContext, position: player.position, goals: state.finale.goals, assists: state.finale.assists }).map((item) => ({ ...item, label: `${item.value} LẦN` })) };
     if (state.finaleStep === 3) return { key: "other-awards-gate", label: "Giải cá nhân khác?", description: "Có thể là Golden Boot, Best XI hoặc những giải theo vị trí.", items: [{ value: "yes", label: "CÓ", weight: 52 }, { value: "no", label: "KHÔNG", weight: 48 }] };
     if (state.finaleStep === 4) return { key: "other-awards-count", label: "Có bao nhiêu loại giải?", description: "Sau đó bạn sẽ quay để biết chính xác tên từng giải.", items: getBoundedCountPool(5).filter((item) => item.value > 0) };
@@ -382,6 +392,9 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
         return next;
       }
 
+      if (needsCleanSheetSpin(current)) {
+        return { ...next, finale: { ...current.finale, cleanSheets: result as number } };
+      }
       if (current.finaleStep === 0) next.finale = { ...current.finale, goals: result as QuickFinale["goals"] };
       else if (current.finaleStep === 1) next.finale = { ...current.finale, assists: result as QuickFinale["assists"] };
       else if (current.finaleStep === 2) next.finale = { ...current.finale, ballonDorWins: result as number };
@@ -404,18 +417,20 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
     setIsSpinning(false);
   }, []);
 
+  const stats = applyImprovements(state.player.stats, state.clubDraft.improvements);
+
   return {
     state,
     hydrated,
     activeWheel,
     isSpinning,
     targetIndex,
-    overall: getQuickOverall(state.player.stats),
+    overall: getQuickOverall(stats),
     setIdentity,
     spin,
     completeSpin,
     reset,
-    stats: state.player.stats,
+    stats,
     statKeys: getQuickStatKeys(state.player.position),
     getQuickStatLabel,
     flag: getFlagEmoji(state.player.nationality),

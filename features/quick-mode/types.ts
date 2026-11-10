@@ -39,6 +39,7 @@ export interface QuickTraitResult {
 }
 
 export interface QuickPlayer {
+  portraitId?: string;
   name: string;
   nationality: string;
   position: QuickPosition;
@@ -88,6 +89,7 @@ export interface QuickClubDraft {
 export interface QuickFinale {
   goals: QuickCountValue | null;
   assists: QuickCountValue | null;
+  cleanSheets?: number | null;
   ballonDorWins: number | null;
   otherAwardCount: number | null;
   otherAwardTypes: string[];

@@ -3,10 +3,12 @@
 import Link from "next/link";
 import { RefreshCw, RotateCw } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { ProgressIndicator } from "@/components/ui/ProgressIndicator";
 import { SpinnerWheel } from "@/features/wheel/components/SpinnerWheel";
+import { NationFlag } from "@/components/shared/NationFlag";
+import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
+import { PORTRAIT_IDS } from "@/features/player/lib/player-portraits";
 import { useQuickMode } from "../hooks/useQuickMode";
-import type { QuickClubOption, QuickLeagueOption } from "../types";
+import type { QuickClubOption, QuickLeagueOption, QuickPlayer } from "../types";
 
 interface Props {
   leagues: QuickLeagueOption[];
@@ -14,86 +16,90 @@ interface Props {
   isAuthenticated: boolean;
 }
 
-const SETUP_TOTAL = 12;
+const WHEEL_TITLES: Record<string, string> = {
+  "debut-age": "Tuổi ra mắt",
+  "trait-gate": "Có đặc tính cầu thủ?",
+  trait: "Đặc tính cầu thủ",
+  league: "Giải đấu",
+  club: "Chọn CLB",
+  "ballon-dor": "Số lần đoạt Quả bóng vàng",
+};
 
 function valueLabel(value: unknown) {
   if (typeof value === "object" && value !== null && "name" in value) return String(value.name);
-  if (value === "yes") return "CÓ";
-  if (value === "no") return "KHÔNG";
+  if (value === "yes") return "Có";
+  if (value === "no") return "Không";
   return String(value);
-}
-
-function wheelLabel(item: { label?: string; value: unknown }) {
-  if (typeof item.value === "object" && item.value !== null && "description" in item.value) return item.label ?? valueLabel(item.value);
-  return valueLabel(item.value);
 }
 
 function formatInternationalCups(types: string[]) {
   const counts = types.reduce<Record<string, number>>((result, type) => ({ ...result, [type]: (result[type] ?? 0) + 1 }), {});
-  return Object.entries(counts).map(([type, count]) => count > 1 ? `${count}× ${type}` : type).join(" · ");
+  return Object.entries(counts).map(([type, count]) => count > 1 ? `${count}× ${type}` : type).join(", ");
+}
+
+function PlayerIdentity({ player }: { player: QuickPlayer }) {
+  return <span className="football-quick-player-meta">
+    <span aria-hidden="true"><NationFlag nationality={player.nationality} /></span>
+    <span>{player.nationality}</span>
+    <span>{player.position}</span>
+  </span>;
 }
 
 export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
   const quick = useQuickMode({ leagues, clubs });
   const { state, activeWheel } = quick;
 
+  if (!quick.hydrated) return <p role="status">Đang tải lượt chơi…</p>;
   if (state.phase === "complete") return <QuickSummary quick={quick} isAuthenticated={isAuthenticated} />;
 
   if (!state.player.name.trim()) {
     return (
-      <section className="football-quick-mode" data-anim>
+      <section className="football-quick-mode">
         <div className="football-quick-empty">
-          <span className="football-quick-mode__eyebrow">Quick Mode</span>
-          <h1>Thiết lập cầu thủ trước</h1>
-          <p>Chọn tên, quốc gia và vị trí để bắt đầu hành trình.</p>
-          <Link className="football-button football-button--primary" href="/quick">Về trang setup</Link>
+          <h1>Thiết lập cầu thủ</h1>
+          <Link className="football-button football-button--primary" href="/quick">Về thiết lập</Link>
         </div>
       </section>
     );
   }
 
-  const internationalExtra = state.phase === "career" ? Math.max(0, (state.clubDraft.internationalCups ?? 0) - 1) : 0;
-  const currentProgress = state.phase === "setup"
-    ? state.setupStep
-    : state.phase === "career"
-      ? state.careerStep === 7
-        ? state.careerStep + state.clubDraft.internationalCupTypes.length
-        : state.careerStep >= 8 ? state.careerStep + internationalExtra : state.careerStep
-      : state.finaleStep;
-  const progressTotal = state.phase === "setup" ? SETUP_TOTAL : state.phase === "career" ? 12 + internationalExtra : 6;
-  const readyToSpin = Boolean(activeWheel && quick.hydrated && !quick.isSpinning);
+  const draft = state.clubDraft;
+  const context = state.phase === "career" ? draft.clubName ?? draft.leagueName : null;
+  const phase = state.phase === "setup" ? "Tạo cầu thủ" : state.phase === "career" ? `CLB ${state.careerClubIndex + 1} / ${state.player.clubCount}` : "Kết quả sự nghiệp";
+  const title = draft.improvementTarget ? `Nâng ${quick.getQuickStatLabel(draft.improvementTarget)}`
+    : activeWheel ? WHEEL_TITLES[activeWheel.key] ?? activeWheel.label : "Vòng quay";
+  const hasOptions = Boolean((activeWheel?.spinItems ?? activeWheel?.items)?.length);
 
   return (
-    <section className="football-quick-mode football-quick-play" data-anim>
-      <header className="football-quick-mode__intro football-quick-play__intro">
-        <div>
-          <span className="football-quick-mode__eyebrow">Quick Mode · Hành trình của bạn</span>
-          <h1>{state.player.name}</h1>
-        </div>
-        <div className="football-quick-play__player">
-          <strong>{quick.flag} {state.player.position}</strong>
-          <span>{state.player.nationality}</span>
-        </div>
-      </header>
-
-      <div className="football-quick-play__body">
-        <QuickStatsTracker quick={quick} />
-        <div className="football-quick-play__stage">
-          <div className="football-quick-mode__stage-head">
-            <div>
-              <span className="football-quick-mode__stage-label">{state.phase === "setup" ? "Tạo cầu thủ" : state.phase === "career" ? `Sự nghiệp · CLB ${state.careerClubIndex + 1}` : "Chặng cuối"}</span>
-              <h2>{activeWheel?.label ?? "Chuẩn bị wheel"}</h2>
-            </div>
-            <ProgressIndicator current={currentProgress} total={progressTotal} label="Tiến trình" />
+    <section className="football-quick-mode football-quick-play">
+      <QuickStatsTracker quick={quick} />
+      <div className="football-quick-play__stage">
+        <header className="football-quick-mode__stage-head">
+          <h1>{title}</h1>
+          <div className="football-quick-play__context">
+            <span>{phase}</span>
+            {context && <strong>{context}</strong>}
           </div>
+        </header>
 
-          {activeWheel && <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={quick.completeSpin} stakes={state.phase === "finale" ? "high" : "low"} items={activeWheel.items.map((item) => ({ label: wheelLabel(item), value: item.value, weight: activeWheel.key.startsWith("stat-") ? 1 : item.weight, active: item.active }))} />}
-
+        <div className="football-quick-play__controls">
+          <div className="football-quick-play__wheel">
+            {activeWheel && hasOptions
+              ? <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={quick.completeSpin}
+                  idleLabel={null} stakes={state.phase === "finale" ? "high" : "low"}
+                  items={activeWheel.items.map((item) => ({
+                    label: activeWheel.key === "improvement-stat" ? item.label ?? valueLabel(item.value) : valueLabel(item.value),
+                    value: item.value,
+                    weight: activeWheel.key.startsWith("stat-") ? 1 : item.weight,
+                    active: item.active,
+                  }))} />
+              : <p role="status">Vòng quay này chưa có lựa chọn.</p>}
+          </div>
           <div className="football-quick-mode__action">
-            <Button size="lg" onClick={quick.spin} disabled={!readyToSpin} loading={quick.isSpinning}>
-              <RotateCw aria-hidden="true" size={16} /> {quick.isSpinning ? "Đang quay…" : "Quay wheel"}
+            <Button size="lg" onClick={quick.spin} disabled={!hasOptions || quick.isSpinning} loading={quick.isSpinning} aria-busy={quick.isSpinning}>
+              {!quick.isSpinning && <RotateCw aria-hidden="true" size={16} />}
+              {quick.isSpinning ? "Đang quay…" : "Quay vòng"}
             </Button>
-            {activeWheel && activeWheel.items.length === 0 && <span>Chưa có lựa chọn phù hợp với OVR hiện tại.</span>}
           </div>
         </div>
       </div>
@@ -102,31 +108,42 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
 }
 
 function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }) {
-  const { state } = quick;
-  const trait = state.player.trait;
+  const { state, stats, statKeys } = quick;
+  const { player } = state;
+  const revealedStats = statKeys.filter((key) => stats[key] !== undefined);
   const yearsSpent = state.clubs.reduce((sum, club) => sum + club.seasons, 0);
+  const justFinishedClub = state.phase === "career" ? state.careerStep === 0 : state.phase === "finale" && state.finaleStep === 0;
+  const improvements = justFinishedClub ? state.clubs.at(-1)?.improvements ?? [] : state.clubDraft.improvements;
 
   return (
-    <aside className="football-quick-play__tracker" aria-label="Thông tin và chỉ số cầu thủ">
-      <div className="football-quick-play__tracker-head">
-        <span>Player card</span>
-        <strong>{quick.flag} {state.player.name}</strong>
-        <small>{state.player.nationality} · {state.player.position}</small>
-      </div>
-      <div className="football-quick-play__tracker-ovr"><span>OVR hiện tại</span><strong>{quick.overall}</strong></div>
-      <div className="football-quick-play__stats">
-        <span className="football-quick-play__tracker-label">Chỉ số</span>
-        {quick.statKeys.map((key) => {
-          return (
-            <div key={key}>
-              <span>{quick.getQuickStatLabel(key)}</span>
-              <strong>{state.player.stats[key] ?? "—"}</strong>
-            </div>
-          );
+    <aside className="football-quick-play__tracker" data-nation={player.nationality.replace(/\s+/g, "")} aria-label="Thông tin và chỉ số cầu thủ" tabIndex={0}>
+      <header className="football-quick-play__tracker-head">
+        <div className="football-quick-portrait-identity">
+          <PlayerPortrait portraitId={player.portraitId ?? PORTRAIT_IDS[0]} canToggle />
+          <div><strong>{player.name}</strong><PlayerIdentity player={player} /></div>
+        </div>
+        <div className="football-quick-play__trait" aria-live="polite" aria-atomic="true">
+          {player.trait && <><span>Đặc tính</span><strong>{player.trait.name}</strong></>}
+        </div>
+      </header>
+      {revealedStats.length === statKeys.length && <div className="football-quick-play__tracker-ovr"><span>OVR</span><strong>{quick.overall}</strong></div>}
+      {revealedStats.length > 0 && <dl className="football-quick-play__stats" aria-label="Chỉ số">
+        {revealedStats.map((key) => {
+          const delta = improvements.find((item) => item.stat === key)?.delta ?? 0;
+          const label = quick.getQuickStatLabel(key);
+          return <div key={key}>
+            <dt>{label}</dt>
+            <dd aria-live="polite" aria-atomic="true" aria-label={`${label}: ${stats[key]}${delta > 0 ? `, tăng ${delta}` : ""}`}>
+              {delta > 0 && <span className="football-quick-play__stat-gain">+{delta}</span>}
+              <span>{stats[key]}</span>
+            </dd>
+          </div>;
         })}
-      </div>
-      {trait && <div className="football-quick-play__trait"><span className="football-quick-play__tracker-label">Trait đặc biệt</span><strong>{trait.name}</strong><p>{trait.description}</p><small>{Object.entries(trait.modifiers).map(([key, value]) => `+${value} ${quick.getQuickStatLabel(key as Parameters<typeof quick.getQuickStatLabel>[0])}`).join(" · ")}</small></div>}
-      <div className="football-quick-play__career-meta"><span>Sự nghiệp</span><strong>{yearsSpent} / {state.player.careerLength ?? "—"} năm</strong><small>{state.clubs.length} / {state.player.clubCount ?? "—"} CLB</small></div>
+      </dl>}
+      {player.debutAge !== null && <dl className="football-quick-play__career-meta">
+        <div><dt>Tuổi ra mắt</dt><dd>{player.debutAge}</dd></div>
+        {player.careerLength !== null && <div><dt>{state.phase === "setup" ? "Sự nghiệp" : "Số mùa đã chơi"}</dt><dd>{state.phase === "setup" ? `${player.careerLength} mùa` : `${yearsSpent} / ${player.careerLength}`}</dd></div>}
+      </dl>}
     </aside>
   );
 }
@@ -136,47 +153,46 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
   const namedAwards = state.finale.otherAwardTypes;
 
   return (
-    <section className="football-quick-mode football-quick-summary" data-anim>
-      <div className="football-quick-summary__hero">
-        <span className="football-quick-mode__eyebrow">Sự nghiệp đã hoàn tất</span>
-        <h1>{state.player.name}</h1>
-        <p>{state.player.nationality} · {state.player.position} · debut ở tuổi {state.player.debutAge}</p>
-        <strong className="football-quick-summary__ovr">{quick.overall} OVR</strong>
-      </div>
-      <div className="football-quick-summary__grid">
-        <div><span>Bàn thắng</span><strong>{state.finale.goals}</strong></div>
-        <div><span>Kiến tạo</span><strong>{state.finale.assists}</strong></div>
-        <div><span>Ballon d&apos;Or</span><strong>{state.finale.ballonDorWins ?? 0} lần</strong></div>
-        <div><span>Số CLB</span><strong>{state.clubs.length}</strong></div>
-      </div>
-      <div className="football-quick-summary__journey-head"><span>Hành trình CLB</span><strong>{state.clubs.length} CLB</strong></div>
-      <div className="football-quick-summary__journey" role="list" tabIndex={0} aria-label="Danh sách CLB trong sự nghiệp">
-        {state.clubs.map((club) => (
-          <div key={`${club.clubId}-${club.clubIndex}`} role="listitem">
-            <span>CLB {String(club.clubIndex + 1).padStart(2, "0")} · {club.leagueName}</span>
-            <strong>{club.clubName}</strong>
-            <small>{club.seasons} mùa</small>
+    <section className="football-quick-mode football-quick-summary">
+      <header className="football-quick-summary__hero">
+        <div>
+          <h1>Sự nghiệp đã hoàn tất</h1>
+          <div className="football-quick-summary__identity" data-nation={state.player.nationality.replace(/\s+/g, "")}>
+            <PlayerPortrait portraitId={state.player.portraitId ?? PORTRAIT_IDS[0]} canToggle />
+            <div><strong>{state.player.name}</strong><PlayerIdentity player={state.player} /></div>
           </div>
-        ))}
+        </div>
+        <div className="football-quick-summary__ovr"><span>OVR</span><strong>{quick.overall}</strong></div>
+      </header>
+      <dl className="football-quick-summary__totals">
+        <div><dt>Bàn thắng</dt><dd>{state.finale.goals}</dd></div>
+        <div><dt>Kiến tạo</dt><dd>{state.finale.assists}</dd></div>
+        <div><dt>Trận giữ sạch lưới</dt><dd>{state.finale.cleanSheets ?? "—"}</dd></div>
+        <div><dt>Quả bóng vàng</dt><dd>{state.finale.ballonDorWins ?? 0}</dd></div>
+      </dl>
+      <div className="football-quick-summary__records" role="region" tabIndex={0} aria-label="Chi tiết sự nghiệp">
+        <table className="football-quick-summary__journey">
+          <caption>Hành trình qua các CLB</caption>
+          <thead><tr>
+            <th scope="col">CLB</th><th scope="col">Số mùa</th><th scope="col">VĐQG</th><th scope="col">Cúp quốc nội</th><th scope="col">Cúp quốc tế</th>
+          </tr></thead>
+          <tbody>
+            {state.clubs.map((club) => (
+              <tr key={`${club.clubId}-${club.clubIndex}`}>
+                <th scope="row"><strong>{club.clubName}</strong><small>{club.leagueName}</small></th>
+                <td>{club.seasons}</td>
+                <td>{club.leagueTitles}</td>
+                <td>{club.domesticCups}</td>
+                <td>{club.internationalCups}{club.internationalCupTypes.length > 0 && <small>{formatInternationalCups(club.internationalCupTypes)}</small>}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {namedAwards.length > 0 && <div className="football-quick-summary__awards"><h2>Giải cá nhân khác</h2><p>{namedAwards.join(", ")}</p></div>}
       </div>
-      <div className="football-quick-summary__honours-head"><span>Danh hiệu</span><strong>Thành tích theo CLB</strong></div>
-      <div className="football-quick-summary__honours" role="list" aria-label="Danh hiệu theo từng CLB">
-        {state.clubs.map((club) => (
-          <div key={`${club.clubId}-${club.clubIndex}-honours`} role="listitem">
-            <span>CLB {String(club.clubIndex + 1).padStart(2, "0")} · {club.clubName}</span>
-            <div className="football-quick-summary__honours-grid">
-              <div><small>Giải quốc nội</small><strong>{club.leagueTitles}</strong></div>
-              <div><small>Cúp quốc nội</small><strong>{club.domesticCups}</strong></div>
-              <div><small>Cúp quốc tế</small><strong>{club.internationalCups}</strong></div>
-            </div>
-            {club.internationalCups > 0 && <small className="football-quick-summary__honours-detail">{formatInternationalCups(club.internationalCupTypes)}</small>}
-          </div>
-        ))}
-      </div>
-      {namedAwards.length > 0 && <div className="football-quick-summary__awards"><span>Giải cá nhân khác</span><strong>{namedAwards.join(" · ")}</strong></div>}
       <div className="football-quick-summary__actions">
-        {!isAuthenticated && <div className="football-quick-summary__login-note"><strong>Khám phá Football Life đầy đủ hơn</strong><span>Đăng nhập để mở Classic Mode, lưu career dài hạn và dùng các tính năng dành cho tài khoản. Quick Mode này chỉ là một lượt chơi nhanh trong tab hiện tại, kết quả không được lưu vào tài khoản.</span><Link className="football-button football-button--primary" href="/login?next=/">Đăng nhập / Đăng ký</Link></div>}
-        <Link className="football-button football-button--outline football-quick-summary__replay" href="/quick" onClick={quick.reset}><RefreshCw aria-hidden="true" size={14} /> Chơi Quick Mode mới</Link>
+        {!isAuthenticated && <Link className="football-button football-button--outline" href="/login?next=/">Đăng nhập để chơi Classic</Link>}
+        <Link className="football-button football-button--primary" href="/quick" onClick={quick.reset}><RefreshCw aria-hidden="true" size={14} /> Chơi Quick Mode mới</Link>
       </div>
     </section>
   );

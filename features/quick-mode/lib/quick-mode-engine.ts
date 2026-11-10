@@ -199,10 +199,10 @@ function getAchievementProfile(context: QuickCareerOutcomeContext): QuickAchieve
   };
 }
 
-function getCareerCountWeights(values: (number | "1000+")[], expected: number, prestigeScore: number): WeightedItem<number | "1000+">[] {
+function getCareerCountWeights<T extends QuickCountValue>(values: T[], expected: number, prestigeScore: number): WeightedItem<T>[] {
   const deviation = Math.max(42, expected * 0.42);
   return values.map((value) => {
-    if (value === "1000+") {
+    if (typeof value !== "number") {
       const openEndedWeight = expected > 650 ? (expected - 500) / 10 : 1;
       return { value, weight: Math.max(1, Math.round(openEndedWeight * (1 + prestigeScore * 0.4))) };
     }
@@ -222,12 +222,12 @@ export function getGoalPool(position: QuickPosition, context: QuickCareerOutcome
     + statValue(context.stats, "str") * 0.08
     + statValue(context.stats, "pas") * 0.05;
   const achievement = getAchievementProfile(context);
-  const level = 0.3 + (scoringSkill / 10) * 1.05;
+  const level = getQuickOutputLevel(scoringSkill, context.stats);
   const achievementMultiplier = 1
-    + achievement.leagueRate * 0.12
-    + achievement.domesticCupRate * 0.04
-    + achievement.internationalRate * 0.18;
-  const expected = context.careerLength * 24 * GOAL_ROLE_FACTOR[position] * level * achievementMultiplier;
+    + achievement.leagueRate * 0.25
+    + achievement.domesticCupRate * 0.08
+    + achievement.internationalRate * 0.35;
+  const expected = context.careerLength * 34 * GOAL_ROLE_FACTOR[position] * level * achievementMultiplier;
   const values: (number | "1000+")[] = [0, 25, 50, 75, 100, 150, 200, 300, 400, 500, 700, 1000, "1000+"];
   return getCareerCountWeights(values, expected, achievement.prestigeScore);
 }
@@ -239,14 +239,32 @@ export function getAssistPool(position: QuickPosition, context: QuickCareerOutco
     + statValue(context.stats, "pac") * 0.07
     + statValue(context.stats, "sho") * 0.05;
   const achievement = getAchievementProfile(context);
-  const level = 0.3 + (creativeSkill / 10) * 1.05;
+  const level = getQuickOutputLevel(creativeSkill, context.stats);
   const achievementMultiplier = 1
-    + achievement.leagueRate * 0.1
-    + achievement.domesticCupRate * 0.06
-    + achievement.internationalRate * 0.15;
-  const expected = context.careerLength * 18 * ASSIST_ROLE_FACTOR[position] * level * achievementMultiplier;
+    + achievement.leagueRate * 0.2
+    + achievement.domesticCupRate * 0.1
+    + achievement.internationalRate * 0.3;
+  const expected = context.careerLength * 30 * ASSIST_ROLE_FACTOR[position] * level * achievementMultiplier;
   const values: (number | "1000+")[] = [0, 25, 50, 75, 100, 150, 200, 300, 400, 500, 700, 1000, "1000+"];
   return getCareerCountWeights(values, expected, achievement.prestigeScore);
+}
+
+function getQuickOutputLevel(roleSkill: number, stats: QuickStats): number {
+  return 0.4 + (roleSkill / 10) * 0.95 + (getQuickOverall(stats) / 100) * 0.35;
+}
+
+export function getCleanSheetPool(position: QuickPosition, context: QuickCareerOutcomeContext): WeightedItem<number>[] {
+  const { stats } = context;
+  const seasons = Math.max(1, context.careerLength);
+  const { prestigeScore } = getAchievementProfile(context);
+  const defensiveSkill = statValue(stats, "def") * 0.6 + statValue(stats, "iq") * 0.25 + statValue(stats, "str") * 0.15;
+  const isDefender = position === "CB" || position === "LB" || position === "RB" || position === "CDM";
+  const contribution = position === "GK"
+    ? statValue(stats, "ref") * 0.3 + statValue(stats, "pos") * 0.25 + statValue(stats, "han") * 0.2
+    : defensiveSkill * (isDefender ? 0.6 : 0.25);
+  const expected = seasons * (5 + prestigeScore * 10 + contribution);
+  const values = Array.from({ length: 11 }, (_, index) => index * seasons * 3);
+  return getCareerCountWeights(values, expected, prestigeScore);
 }
 
 export interface QuickBallonDorContext extends QuickCareerOutcomeContext {

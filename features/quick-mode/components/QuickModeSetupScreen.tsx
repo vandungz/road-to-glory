@@ -1,9 +1,12 @@
 "use client";
 
+import { EditorialArt } from "@/components/shared/EditorialArt";
+
+
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
-import { getFlagEmoji } from "@/types/squad";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import { NATIONALITY_POOL } from "@/lib/wheel-engine/weight-pools";
 import { useQuickMode } from "../hooks/useQuickMode";
 import { QUICK_POSITIONS, type QuickClubOption, type QuickLeagueOption, type QuickPosition } from "../types";
@@ -48,34 +51,28 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
     <section className="football-quick-mode" data-anim>
       <header className="football-quick-mode__intro">
         <div>
-          <span className="football-quick-mode__eyebrow">Tạo cầu thủ nhanh</span>
           <h1>Quick Mode</h1>
-          <p>Chọn ba thông tin cơ bản. Phần còn lại để wheel viết tiếp câu chuyện.</p>
+          <p>Tạo cầu thủ và quay vòng quay để mô phỏng sự nghiệp.</p>
         </div>
       </header>
 
       <div className="football-quick-setup">
+        <EditorialArt asset="air-control" className="football-editorial-art--setup" />
         <div className="football-quick-setup__card">
-          <span className="football-quick-setup__eyebrow">Bắt đầu hành trình</span>
           <h2>Cầu thủ của bạn</h2>
-          <p className="football-quick-setup__copy">Tên, quốc gia và vị trí là những lựa chọn duy nhất bạn cần quyết định.</p>
           <div className="football-quick-setup__form">
             <label>
               <span>Tên cầu thủ</span>
               <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ví dụ: Minh Nguyễn" maxLength={40} autoFocus />
             </label>
-            <label htmlFor="quick-nationality">
+            <div className="football-quick-field">
               <span>Quốc gia</span>
-              <select id="quick-nationality" value={nationality} onChange={(event) => setNationality(event.target.value)}>
-                {nationalityOptions.map((country) => <option key={country} value={country}>{getFlagEmoji(country)} {country}</option>)}
-              </select>
-            </label>
-            <label>
+              <FilterSelect label="Quốc gia" value={nationality} onChange={setNationality} searchable options={nationalityOptions.map((country) => ({ value: country, label: country }))} />
+            </div>
+            <div className="football-quick-field">
               <span>Vị trí</span>
-              <select value={position} onChange={(event) => setPosition(event.target.value as QuickPosition)}>
-                {QUICK_POSITIONS.map((item) => <option key={item} value={item}>{item}</option>)}
-              </select>
-            </label>
+              <FilterSelect label="Vị trí" value={position} onChange={(value) => setPosition(value as QuickPosition)} options={QUICK_POSITIONS.map((item) => ({ value: item, label: item }))} />
+            </div>
           </div>
           <div className="football-quick-setup__footer">
             <span>Không cần đăng nhập để chơi.</span>
