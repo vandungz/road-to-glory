@@ -29,10 +29,6 @@ export type PveReadResult =
   | { success: true; state: PveTournamentState | null }
   | { success: false; error: string };
 
-export type PveReplayResult =
-  | { success: true; state: PveTournamentState }
-  | { success: false; error: string };
-
 function readFormation(value: string): Formation {
   return (FORMATIONS as readonly string[]).includes(value) ? value as Formation : "4-3-3";
 }
@@ -173,7 +169,7 @@ export async function playPveRoundAction(input: unknown): Promise<PveActionResul
   return { success: true, state: nextState };
 }
 
-export async function replayPveTournamentAction(input: unknown): Promise<PveReplayResult> {
+export async function replayPveTournamentAction(input: unknown): Promise<PveReadResult> {
   const { gameId } = pveInputSchema.parse(input);
   const owner = await requireGameOwnership(gameId);
   await checkRateLimit(owner.id);
@@ -190,14 +186,12 @@ export async function replayPveTournamentAction(input: unknown): Promise<PveRepl
     return { success: false, error: "Chỉ có thể chơi lại sau khi giải đã kết thúc." };
   }
 
-  const { formation, players, catalog, clubs } = await readPveInputs(gameId);
-  const nextState = createPveTournamentState(formation, players, catalog, clubs, secureRandom);
-  const updated = await prisma.pveTournament.updateMany({
+  await readPveInputs(gameId);
+  const reset = await prisma.pveTournament.deleteMany({
     where: { id: tournament.id, revision: tournament.revision, status: tournament.status },
-    data: { revision: { increment: 1 }, status: nextState.status, state: nextState as unknown as Prisma.InputJsonValue },
   });
-  if (updated.count === 0) return { success: false, error: "Giải PvE vừa được cập nhật. Vui lòng tải lại trang." };
+  if (reset.count === 0) return { success: false, error: "Giải PvE vừa được cập nhật. Vui lòng tải lại trang." };
   revalidatePath(`/pve/${gameId}`);
   revalidatePath("/pve");
-  return { success: true, state: nextState };
+  return { success: true, state: null };
 }

@@ -1,5 +1,6 @@
+import { EditorialRail } from "@/components/shared/EditorialArt";
 import Link from "next/link";
-import { ArrowRight, Shield, Trophy } from "lucide-react";
+import { ArrowRight, Trophy } from "lucide-react";
 import type { PveSessionCard } from "@/types/pve";
 import { PVE_LINEUP_SIZE } from "@/types/pve";
 import { roundLabel } from "@/features/pve/services/pve-engine.service";
@@ -26,12 +27,11 @@ export function PveLobby({ sessions }: { sessions: PveSessionCard[] }) {
       <Link className="football-pve-lobby__back" href="/"><ArrowRight aria-hidden="true" size={14} className="is-back" /> Chọn chế độ</Link>
       <div className="football-pve-lobby__intro">
         <div>
-          <span className="football-pve-lobby__eyebrow">03 · Tournament mode</span>
-          <h1>Chọn đội hình chinh chiến</h1>
-          <p>Mang một Classic squad đã hoàn thành vào giải đấu knock-out. Ba nhịp quyết định mỗi trận, chỉ cần thắng hai.</p>
+          <h1>Chọn đội hình dự giải</h1>
+          <p>Dùng đội hình Classic đã hoàn thành để tham gia giải PvE.</p>
         </div>
-        <div className="football-pve-lobby__mark" aria-hidden="true"><Shield size={28} strokeWidth={1.4} /><span>PvE</span><small>Road to the final</small></div>
       </div>
+      <div className="football-editorial-content football-pve-lobby__content">
       {sessions.length > 0 ? (
         <div className="football-pve-lobby__list" aria-label="Đội hình Classic đã hoàn thành">
           {sessions.map((session) => <SessionCard key={session.gameId} session={session} />)}
@@ -39,6 +39,8 @@ export function PveLobby({ sessions }: { sessions: PveSessionCard[] }) {
       ) : (
         <div className="football-pve-lobby__empty"><Trophy aria-hidden="true" size={24} /><h2>Chưa có đội hình đủ điều kiện</h2><p>Hoàn thành đủ 11 cầu thủ trong Classic trước khi bước vào giải.</p><Link className="football-button football-button--primary" href="/classic">Mở Classic</Link></div>
       )}
+      <EditorialRail asset="free-kick" />
+      </div>
     </section>
   );
 }
