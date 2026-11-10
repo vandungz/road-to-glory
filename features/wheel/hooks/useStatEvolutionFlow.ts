@@ -168,6 +168,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
     result: string | number,
     authoritativeStats?: Record<string, number>,
     authoritativeOvr?: number,
+    onStatsEvolved?: (delta: number) => void,
   ) {
     if (COMPETITION_STEPS.has(subStep)) return;
 
@@ -211,8 +212,11 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
       p.setIsProcessing(false);
     } else if (subStep === "magnitude") {
       const magnitude = typeof result === "number" ? result : 0;
-      const delta = p.yearEvolution.direction === "increase" ? magnitude : -magnitude;
-      const evolutions = [...p.evolvedStatsThisYear, { stat: p.tempSelectedStat!, delta }];
+      const stat = p.tempSelectedStat!;
+      const delta = authoritativeStats
+        ? (authoritativeStats[stat] ?? 0) - (p.currentStats[stat] ?? 0)
+        : p.yearEvolution.direction === "increase" ? magnitude : -magnitude;
+      const evolutions = [...p.evolvedStatsThisYear, { stat, delta }];
       p.setEvolvedStatsThisYear(evolutions);
 
       const nextIdx = p.selectorIndex + 1;
@@ -223,6 +227,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
         p.setIsProcessing(false);
       } else {
         if (p.serverAuthoritativeGrowth) {
+          onStatsEvolved?.(evolutions.reduce((total, evolution) => total + evolution.delta, 0));
           // Each magnitude was committed before its animation started. The
           // latest state is therefore already authoritative and must not be
           // applied a second time through the legacy batch action.
@@ -239,6 +244,7 @@ export function useStatEvolutionFlow(p: StatEvolutionFlowProps) {
             .then((res) => {
               p.setCurrentStats(res.nextStats);
               p.setCurrentOvr(res.nextOvr);
+              onStatsEvolved?.(Object.entries(res.nextStats).reduce((total, [key, value]) => total + value - (p.currentStats[key] ?? value), 0));
               triggerTransferCheck({ overrideOvr: res.nextOvr, overrideStats: res.nextStats });
             })
             .catch(() => {

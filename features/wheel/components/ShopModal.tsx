@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { ShoppingBag, X } from "lucide-react";
+import { X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { formatEuroThousands } from "@/lib/transfer-economy";
@@ -165,15 +165,7 @@ export function ShopModal({
     <div className={`football-shop-content${standalone ? " football-shop-content--standalone" : ""}`}>
       <header className="football-shop-content__header">
         <div className="football-shop-content__heading">
-          <span className="football-eyebrow">
-            {canPurchase ? `Áp dụng cho mùa tuổi ${targetSeason}` : "Cửa hàng theo mùa"}
-          </span>
-          <h3>{standalone ? "Cửa hàng" : "Cửa hàng đầu mùa"}</h3>
-          {standalone && (
-            <p className="football-shop-content__subtitle">
-              Tiền lương và tiền chuyển nhượng đã vào ví. Mỗi vật phẩm mua một lần, và chỉ tác động cho đúng mùa giải đó.
-            </p>
-          )}
+          <h3>Cửa hàng</h3>
         </div>
         <div className="football-shop-content__balance">
           <span>{formatEuroThousands(walletBalance)}</span>
@@ -187,10 +179,6 @@ export function ShopModal({
       </header>
 
       <div className="football-shop-content__body">
-        <div className={`football-shop-content__section-heading${standalone ? " football-shop-content__section-heading--hidden" : ""}`}>
-          <ShoppingBag aria-hidden="true" size={20} strokeWidth={1.6} />
-          <span>Cửa hàng</span>
-        </div>
         <p className="football-shop-content__intro">
           {canPurchase
             ? <>Vật phẩm mua ở đây áp dụng cho <strong>Mùa giải Tuổi {targetSeason}</strong>.</>

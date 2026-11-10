@@ -1,7 +1,6 @@
 "use client";
 
-import type { ComponentProps } from "react";
-import { SeasonStrip } from "./SeasonStrip";
+import { useEffect, useRef, type ComponentProps } from "react";
 import { StoryRail } from "./StoryRail";
 import { CareerActionsPanel } from "./CareerActionsPanel";
 import { SeasonProfile } from "./SeasonProfile";
@@ -9,7 +8,6 @@ import { PaniniSticker } from "./PaniniSticker";
 import { SeasonSideSummary } from "./SeasonSideSummary";
 import { MobileCareerContext } from "./MobileCareerContext";
 import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
-import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
 import { formatEuroThousands } from "@/lib/transfer-economy";
 import type { ModalType } from "../hooks/useDraftDrum";
@@ -23,6 +21,9 @@ type EvolvedStats = ComponentProps<typeof PaniniSticker>["evolvedStatsThisYear"]
 type CurrentStats = ComponentProps<typeof PaniniSticker>["currentStats"];
 
 interface DraftDrumCareerStageProps {
+  portraitId?: ComponentProps<typeof PaniniSticker>["portraitId"];
+  portraitReaction?: ComponentProps<typeof PaniniSticker>["portraitReaction"];
+  onPortraitReactionEnd?: () => void;
   mobileSection: "action" | "story" | "panini";
   setMobileSection: (section: "action" | "story" | "panini") => void;
   rightTab: "panini" | "profile" | "transfer";
@@ -90,13 +91,13 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
     handleCareerSpin, handleNextSeason,
   } = props;
 
+  const dossier = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (props.portraitReaction && rightTab === "panini" && dossier.current) dossier.current.scrollTop = 0;
+  }, [props.portraitReaction, rightTab]);
+
   return (
         <>
-          <SeasonStrip
-            careerSubStep={careerSubStep}
-            isUnemployed={isUnemployed}
-            hasBallonDorEligibility={yearSimResult?.ballonDor.eligible}
-          />
           <main className="football-dashboard__main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
             <TabsList className="football-dashboard__mobile-switcher">
@@ -175,10 +176,12 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                   <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Hợp đồng</TabsTrigger>
                 </TabsList>
 
-                <div className="football-dossier-body">
-                  {rightTab === "panini" ? (
-                    <>
+                <div className="football-dossier-body" ref={dossier}>
+                    <div className="football-panini-panel" hidden={rightTab !== "panini"}>
                     <PaniniSticker
+                      portraitId={props.portraitId}
+                      portraitReaction={props.portraitReaction}
+                      onPortraitReactionEnd={props.onPortraitReactionEnd}
                       playerName={playerName}
                       position={position}
                       playerNationality={playerNationality}
@@ -200,8 +203,8 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                       playerDebutAge={playerDebutAge}
                       playerCareerLength={playerCareerLength}
                     />
-                    </>
-                  ) : rightTab === "profile" ? (
+                    </div>
+                  {rightTab === "panini" ? null : rightTab === "profile" ? (
                     <SeasonProfile
                       seasonRecords={seasonRecords}
                       currentAge={currentAge}
@@ -225,10 +228,6 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                       <DataRow label="Lương hàng năm" value={`${formatEuroThousands(currentWageAnnual)} / năm`} />
                       <DataRow label="Giá trị thị trường" value={formatEuroThousands(marketValue)} className="football-data-row__value--accent" />
                     </div>
-                    <p className="football-contract-summary__note">Mở cửa sổ để xem đề nghị chuyển nhượng, gia hạn hoặc tìm kiếm CLB mới.</p>
-                    <Button fullWidth disabled={careerSubStep !== "transfer" || wheelInteractionLocked} onClick={onOpenTransferModal}>
-                      {careerSubStep === "transfer" ? "Mở cửa sổ chuyển nhượng & hợp đồng" : "Cửa sổ mở ở cuối mùa"}
-                    </Button>
                     </section>
                   )}
                 </div>

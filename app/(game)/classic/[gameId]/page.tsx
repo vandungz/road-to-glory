@@ -36,6 +36,7 @@ export default async function ClassicSquadBoardPage({ params }: Props) {
         select: {
           id: true,
           slotIndex: true,
+          portraitId: true,
           name: true,
           nationality: true,
           position: true,

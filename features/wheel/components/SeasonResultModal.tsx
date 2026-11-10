@@ -49,15 +49,20 @@ export function SeasonResultModal({ type, record, currentContinentalCup, onClose
   }
 
   return (
-    <Modal open title={`Kết quả ${title}`} onClose={onClose} size="sm" className="football-season-result-modal">
+    <Modal open title={`Kết quả ${title}`} onClose={onClose} size="lg" className="football-season-result-modal">
       <ModalHeader onClose={onClose} closeLabel="Đóng kết quả">{title}</ModalHeader>
-      <ModalBody>
+      <ModalBody className={`football-season-result__body${(type === "league" && record.leagueTable?.length) || journey.length ? " football-season-result__body--split" : ""}`}>
+        <section className="football-season-result__summary">
+        <p className="football-season-result__club">{record.clubName}</p>
         <ResultBanner tone={champion ? "honour" : "default"}>{result}</ResultBanner>
         {stats ? <section className="football-modal-section"><span className="football-eyebrow">Thống kê giải đấu</span><StatsList stats={stats} /></section> : <p className="football-modal-note">Thống kê chi tiết sẽ có sau khi kết thúc mùa giải.</p>}
+        </section>
+        <div className="football-season-result__details">
         {type === "league" && record.leagueTable && record.leagueTable.length > 0 && (
           <section className="football-modal-section"><span className="football-eyebrow">Bảng xếp hạng</span><div className="football-mini-table">{record.leagueTable.map((row, index) => { const isPlayer = String(row.name).toLowerCase() === record.clubName.toLowerCase(); return <div key={`${row.name}-${index}`} className={`football-mini-table__row${isPlayer ? " is-player" : ""}`}><span>{index + 1}</span><strong>{row.name}</strong><span>{row.points} điểm</span></div>; })}</div></section>
         )}
         {journey.length > 0 && <section className="football-modal-section"><span className="football-eyebrow">Hành trình</span><div className="football-journey-list">{journey.map((item, index) => <p key={`${item}-${index}`}>{cleanNarrative(item)}</p>)}</div></section>}
+        </div>
       </ModalBody>
       <ModalFooter><Button fullWidth onClick={onClose}>Tiếp tục hành trình</Button></ModalFooter>
     </Modal>

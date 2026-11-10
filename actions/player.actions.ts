@@ -14,6 +14,7 @@ import { computeSeasonWalletIncome, buildWalletLedgerEntries, type WalletLedgerE
 import { computeLegacyScore, computeCurrentFormIndex, computeInfluenceScore } from "@/lib/influence-score";
 import { normalizeClubStints } from "@/features/career/services/career-summary.service";
 import { assertLegacyWritesEnabled } from "@/lib/career/legacy-write-policy";
+import { PLAYER_PROFILE_POSITIONS as POSITIONS, PORTRAIT_IDS, randomPortraitId } from "@/features/player/lib/player-portraits";
 
 // ============================================================
 // HELPERS
@@ -34,8 +35,6 @@ function getCardRarity(peak: number): string {
 // đúng giá trị — chỉ chặn giá trị vô lý/injection, không chặn client "nói dối"
 // trong biên hợp lệ (statsTimeline/hiddenStats vốn đã round-trip qua client).
 // ============================================================
-
-const POSITIONS = ["GK", "LB", "CB", "RB", "CDM", "CM", "CAM", "LW", "RW", "ST", "LM", "RM"] as const;
 
 const statSnapshotSchema = z.object({
   age: z.number().int().min(10).max(60),
@@ -65,6 +64,7 @@ const initCareerPlayerSchema = z.object({
   slotIndex: z.number().int().min(0).max(10),
   position: z.enum(POSITIONS),
   name: z.string().min(1).max(60),
+  portraitId: z.enum(PORTRAIT_IDS).optional(),
   nationality: z.string().min(1).max(60),
   debutAge: z.number().int().min(10).max(35),
   careerLength: z.number().int().min(1).max(30),
@@ -120,7 +120,7 @@ const getCareerPlayerSchema = z.object({
   playerId: z.string().uuid(),
 });
 
-export async function initCareerPlayerAction(input: unknown): Promise<{ id: string; checkpointVersion: number }> {
+export async function initCareerPlayerAction(input: unknown): Promise<{ id: string; checkpointVersion: number; portraitId: string | null }> {
   const params: InitCareerParams = initCareerPlayerSchema.parse(input);
   const owner = await requireGameOwnership(params.gameId);
   await checkRateLimit(owner.id);
@@ -153,6 +153,7 @@ export async function initCareerPlayerAction(input: unknown): Promise<{ id: stri
         gameSessionId: gameId,
         slotIndex,
         name: setup.name,
+        portraitId: params.portraitId ?? randomPortraitId(),
         nationality: setupToken.nationality,
         position: setupToken.position,
         height: setupToken.height,
@@ -189,10 +190,10 @@ export async function initCareerPlayerAction(input: unknown): Promise<{ id: stri
     // Initialisation is idempotent. A refresh or repeated callback must never
     // overwrite a career that has already progressed.
     update: {},
-    select: { id: true, checkpointVersion: true },
+    select: { id: true, checkpointVersion: true, portraitId: true },
   });
 
-  return { id: player.id, checkpointVersion: player.checkpointVersion };
+  return player;
 }
 
 export async function getCareerPlayerAction(input: unknown) {

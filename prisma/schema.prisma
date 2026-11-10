@@ -32,6 +32,7 @@ model CareerPlayer {
 
   // Identity
   name              String
+  portraitId        String?
   nationality       String
   position          String      // GK, LB, CB, RB, CDM, CM, CAM, LW, ST, RW
   height            Int

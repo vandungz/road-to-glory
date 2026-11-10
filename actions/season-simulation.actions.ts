@@ -122,7 +122,7 @@ export async function startPlayerCareerAction(input: unknown): Promise<CareerSet
     dbClub.league.tier,
   );
   const publicSetup: Omit<CareerSetupResult, "setupToken"> = {
-    playerName: setup.playerName,
+    playerName: validated.playerName ?? setup.playerName,
     preferredFoot: setup.preferredFoot,
     debutOvr: setup.debutOvr,
     initStint: setup.initStint,

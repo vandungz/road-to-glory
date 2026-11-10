@@ -54,7 +54,7 @@ function getStageTitle(step: string, cup: string, index: number, total: number, 
     ballon_dor_nomination: "Quả Bóng Vàng — top 10 đề cử",
     ballon_dor_ranking: "Quả Bóng Vàng — xếp hạng chung cuộc",
     season_stats: "Thống kê thành tích mùa giải",
-    transfer: "Thị trường chuyển nhượng và hợp đồng",
+    transfer: "Quyết định mùa tới",
     resolved: "Mùa giải đã hoàn thành",
   };
   if (step === "selector") return `${decrease ? "Chọn chỉ số suy giảm" : "Chọn chỉ số phát triển"} (${index + 1}/${total})`;
@@ -141,7 +141,13 @@ export function CareerActionsPanel({
           </div>
         )}
 
-        {(careerSubStep === "resolved" || careerSubStep === "transfer") && yearSimResult && (
+        {careerSubStep === "transfer" && !isFinalSeason && (
+          <div className="football-career-contract-entry">
+            <p>Chọn ở lại hoặc tìm CLB mới cho mùa giải tiếp theo.</p>
+            <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="football-action-panel__primary">Xem lựa chọn hợp đồng</Button>
+          </div>
+        )}
+        {(careerSubStep === "resolved" || (careerSubStep === "transfer" && isFinalSeason)) && yearSimResult && (
           <div className="football-season-report">
             <div className="football-season-report__heading"><span className="football-eyebrow">Báo cáo thành tích</span><h3>Mùa giải {seasonLabel}</h3></div>
             <div className="football-season-report__stats">
@@ -151,11 +157,7 @@ export function CareerActionsPanel({
               <DataRow label="Match rating" value={<span className="football-data-row__value--accent">{yearSimResult.matchRating}</span>} />
             </div>
             {hasBallonDorWinner && <ResultBanner tone="honour">Quả Bóng Vàng — chiến thắng danh giá</ResultBanner>}
-            {careerSubStep === "transfer" && !isFinalSeason ? (
-              <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="football-action-panel__primary">Mở thị trường chuyển nhượng</Button>
-            ) : (
               <Button size="lg" onClick={!isFinalSeason && careerSubStep === "resolved" && onOpenShop ? onOpenShop : handleNextSeason} disabled={isProcessing} className="football-action-panel__primary">{isFinalSeason ? "Giải nghệ và tổng kết sự nghiệp" : "Tiến vào mùa giải tiếp theo"}</Button>
-            )}
           </div>
         )}
       </div>

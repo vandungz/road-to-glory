@@ -1,5 +1,6 @@
 "use client";
 
+import { EditorialArt } from "@/components/shared/EditorialArt";
 import { useState, type ReactNode } from "react";
 import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
@@ -145,6 +146,8 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
         Mùa giải khép lại
       </ModalHeader>
 
+      <div className="football-season-close__layout">
+        <EditorialArt asset="match-duel" className="football-editorial-art--recap" />
       <ModalBody>
         <section className="football-season-close__metrics" data-count={summaryMetrics.length} aria-label="Kết quả mùa giải">
           {summaryMetrics.map((metric) => <SummaryMetric key={metric.label} {...metric} />)}
@@ -187,6 +190,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
           )}
         </div>
       </ModalBody>
+      </div>
 
       <ModalFooter className="football-season-close__footer">
         <Button size="lg" onClick={onClose}>Tiếp tục phát triển chỉ số</Button>

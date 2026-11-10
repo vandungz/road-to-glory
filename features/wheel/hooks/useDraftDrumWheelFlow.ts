@@ -216,12 +216,13 @@ export function useDraftDrumWheelFlow({
     tempCareerResultRef.current = result;
   }
 
-  function handleCareerSpinComplete() {
+  function handleCareerSpinComplete(onStatsEvolved?: (delta: number) => void) {
     const completedStep = activeSpinStepRef.current ?? careerSubStep;
     const authoritativeNextStep = activeSpinNextStepRef.current ?? undefined;
     activeSpinStepRef.current = null;
     activeSpinNextStepRef.current = null;
     const result = tempCareerResultRef.current;
+    tempCareerResultRef.current = null;
     const pendingStats = pendingCheckpointStatsRef.current;
     pendingCheckpointStatsRef.current = null;
     setCareerSpinning(false); setCareerTargetIndex(-1);
@@ -262,9 +263,11 @@ export function useDraftDrumWheelFlow({
           result,
           pendingStats?.currentStats,
           pendingStats?.currentOvr,
+          onStatsEvolved,
         );
       }
     }
+    return result === null ? null : { step: completedStep, value: result };
   }
 
   return { handleCareerSpin, handleCareerSpinComplete };

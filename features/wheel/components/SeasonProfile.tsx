@@ -1,6 +1,7 @@
 "use client";
 
 import { ChevronRight } from "lucide-react";
+import { FilterSelect } from "@/components/ui/FilterSelect";
 import type { ModalType } from "../hooks/useDraftDrum";
 import type { SeasonRecord } from "@/types/game";
 import { getDomesticCupName, getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
@@ -37,9 +38,8 @@ export function SeasonProfile({ seasonRecords, currentAge, playerDebutAge, selec
         <div className="football-section-header">
           <div><span className="football-section-header__label">Mùa giải</span><h2 className="football-section-header__title">Hồ sơ mùa giải</h2></div>
         </div>
-        <select className="football-season-profile__select" value={selectedAgeForStats} onChange={(event) => setSelectedAgeForStats(parseInt(event.target.value, 10))} aria-label="Chọn mùa giải">
-          {ages.map((age) => <option key={age} value={age}>Mùa {getSeasonYearString(age, playerDebutAge)} · Tuổi {age}{age === currentAge ? " · hiện tại" : ""}</option>)}
-        </select>
+        <FilterSelect label="Chọn mùa giải" value={String(selectedAgeForStats)} onChange={(value) => setSelectedAgeForStats(Number(value))} searchable={ages.length > 8} disabled={ages.length === 0}
+          options={ages.map((age) => ({ value: String(age), label: `Mùa ${getSeasonYearString(age, playerDebutAge)}`, description: `Tuổi ${age}${age === currentAge ? ", hiện tại" : ""}` }))} />
 
         {activeRecord ? (
           <>

@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/Button";
 import type { DraftData } from "../stores/useWheelUiStore";
 import { DraftPlayerDossier } from "./DraftPlayerDossier";
 import { DraftProgressRail } from "./DraftProgressRail";
+import type { ClassicProfile } from "./ClassicProfileSetup";
 
 interface SetupStageProps {
+  profile?: ClassicProfile;
   slotIndex: number;
   activeStep: number;
   isSpinning: boolean;
@@ -37,7 +39,7 @@ function getStepDescription(step: number) {
   return "Nơi bắt đầu sẽ khép lại bản draft của cầu thủ.";
 }
 
-export function SetupStage({ slotIndex, activeStep, isSpinning, wheelItems, targetIndex, handleSetupSpinComplete, tempValue, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
+export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelItems, targetIndex, handleSetupSpinComplete, tempValue, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
   const isComplete = activeStep >= STEP_LABELS.length;
   const chapterLabel = getChapterLabel(activeStep);
 
@@ -49,7 +51,7 @@ export function SetupStage({ slotIndex, activeStep, isSpinning, wheelItems, targ
           <div className="football-draft-setup__heading">
             <span>{isComplete ? "Draft hoàn tất" : `Vòng ${activeStep + 1} · ${chapterLabel}`}</span>
             <h1>{isComplete ? "Bắt đầu sự nghiệp cầu thủ" : STEP_LABELS[activeStep]}</h1>
-            <p>{isComplete ? "Mười ba vòng quay đã tạo nên điểm xuất phát của cầu thủ." : getStepDescription(activeStep)}</p>
+            {!isComplete && <p>{getStepDescription(activeStep)}</p>}
           </div>
 
           {!isComplete ? (
@@ -77,6 +79,7 @@ export function SetupStage({ slotIndex, activeStep, isSpinning, wheelItems, targ
       </div>
 
       <DraftPlayerDossier
+        profile={profile}
         draftData={draftData}
         position={position}
         playerNumber={slotIndex + 1}

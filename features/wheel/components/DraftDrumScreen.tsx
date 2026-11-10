@@ -15,6 +15,11 @@ import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
 import { WheelGameHeader } from "./WheelGameHeader";
 import { getSeasonYearString } from "../lib/simulation-helpers";
 import { Toast } from "@/components/ui/Toast";
+import { ClassicProfileSetup, type ClassicProfile } from "./ClassicProfileSetup";
+import { useWheelUiStore } from "../stores/useWheelUiStore";
+import { getPortraitCue, getStatsPortraitCue, getTransferPortraitCue } from "../lib/portrait-reactions";
+import { usePaniniReaction } from "../hooks/usePaniniReaction";
+import { resolveSavedPortraitId } from "@/features/player/lib/player-portraits";
 
 function consumeReturnQuery(param: "shopReturn" | "transferReturn") {
   const url = new URL(window.location.href);
@@ -30,6 +35,7 @@ interface DraftDrumScreenProps {
   leagues: { id: string; name: string }[];
   clubs: { id: string; name: string; leagueId: string; prestige: number; continentalType: string }[];
   savedPlayerId?: string;
+  savedPortraitId?: string | null;
   savedContinentalCup?: string;
   initialMode?: "setup" | "career" | "retired";
   backHref?: string;
@@ -42,10 +48,11 @@ interface DraftDrumScreenProps {
 export function DraftDrumScreen({ 
   gameId, 
   slotIndex, 
-  position, 
+  position: slotPosition,
   leagues, 
   clubs, 
   savedPlayerId, 
+  savedPortraitId,
   savedContinentalCup, 
   initialMode = "setup",
   backHref = `/${gameId}`,
@@ -55,6 +62,11 @@ export function DraftDrumScreen({
   transferReturnAction,
 }: DraftDrumScreenProps) {
   const router = useRouter();
+  const [profile, setProfile] = useState<ClassicProfile | null | undefined>(savedPlayerId || initialMode !== "setup" ? null : undefined);
+  const [portraitId, setPortraitId] = useState<string | null>(
+    savedPlayerId ? resolveSavedPortraitId(savedPortraitId, savedPlayerId) : null,
+  );
+  const position = profile?.position ?? slotPosition;
   const {
     isMounted,
     isSaving,
@@ -99,10 +111,8 @@ export function DraftDrumScreen({
     yearSimResult,
     transferOffer,
     transferMarket,
-    willingToMove,
     approachRejects,
     approachBanner,
-    proactiveRenewalRejected,
     isUnemployed,
     clubStints,
     nationalCallupResult,
@@ -123,9 +133,7 @@ export function DraftDrumScreen({
     clearPendingTransferOffer,
     handleRejectTransferWindow,
     handleApproachShortlist,
-    handleProactiveRenewal,
     handleSearchClubs,
-    handleSetWillingToMove,
     handleNextSeason,
     handleShopReturn,
     handleTransferReturn,
@@ -139,13 +147,15 @@ export function DraftDrumScreen({
 
   const [isTrophyCabinetOpen, setIsTrophyCabinetOpen] = useState<boolean>(false);
   const [rightTab, setRightTab] = useState<"panini" | "profile" | "transfer">("panini");
+  const portrait = usePaniniReaction(setRightTab, Boolean(activeModal || isTrophyCabinetOpen), isProcessing,
+    isMounted && mode === "career" ? savedPlayerId : undefined);
   const [mobileSection, setMobileSection] = useState<"action" | "story" | "panini">("action");
 
   React.useEffect(() => {
-    if (careerSubStep === "transfer" && transferMarket) {
+    if (careerSubStep === "transfer" && transferMarket && !portrait.pending) {
       setRightTab("transfer");
     }
-  }, [careerSubStep, transferMarket]);
+  }, [careerSubStep, transferMarket, portrait.pending]);
 
   const ballonDorNavigationStartedRef = React.useRef(false);
   React.useEffect(() => {
@@ -204,7 +214,7 @@ export function DraftDrumScreen({
 
   return (
     <div
-      className={`football-dashboard football-wheel-shell${mode === "retired" ? " football-retired-shell" : ""}`}
+      className={`football-dashboard football-wheel-shell${mode === "retired" ? " football-retired-shell" : mode === "career" ? " football-career-shell" : ""}`}
       onClickCapture={(event) => {
         // A wheel spin is a single gameplay transaction. Ignore stray clicks
         // on the dashboard while its server result is being animated; this
@@ -241,8 +251,16 @@ export function DraftDrumScreen({
       />
 
       {/* ── MODE 1: SETUP WHEELS ── */}
-      {mode === "setup" && (
+      {mode === "setup" && profile === undefined && <ClassicProfileSetup slotPosition={slotPosition} onRandom={() => setProfile(null)}
+        onContinue={(nextProfile) => {
+          const draft = useWheelUiStore.getState();
+          draft.resolveStep(0, nextProfile.nationality, nextProfile.position);
+          draft.setStep(1);
+          setProfile(nextProfile);
+        }} />}
+      {mode === "setup" && profile !== undefined && (
         <SetupStage
+          profile={profile ?? undefined}
           slotIndex={slotIndex}
           activeStep={activeStep}
           isSpinning={isSpinning}
@@ -251,7 +269,10 @@ export function DraftDrumScreen({
           handleSetupSpinComplete={handleSetupSpinComplete}
           tempValue={tempValue}
           handleSetupSpin={handleSetupSpin}
-          handleStartCareer={handleStartCareer}
+          handleStartCareer={async () => {
+            const saved = await handleStartCareer(profile ?? undefined);
+            if (saved !== undefined) setPortraitId(saved);
+          }}
           isProcessing={isProcessing}
           startCareerError={startCareerError}
           draftData={draftData}
@@ -263,10 +284,13 @@ export function DraftDrumScreen({
       {/* ── MODE 2: CAREER PLAYING LOOP ── */}
       {mode === "career" && (
         <DraftDrumCareerStage
+          portraitId={portraitId}
+          portraitReaction={portrait.reaction}
+          onPortraitReactionEnd={portrait.clear}
           mobileSection={mobileSection}
           setMobileSection={setMobileSection}
           rightTab={rightTab}
-          setRightTab={setRightTab}
+          setRightTab={(tab) => { if (tab !== "panini" && portrait.reaction) portrait.clear(); setRightTab(tab); }}
           wheelInteractionLocked={wheelInteractionLocked}
           careerSubStep={careerSubStep}
           isUnemployed={isUnemployed}
@@ -313,7 +337,14 @@ export function DraftDrumScreen({
           onOpenModal={(type) => {
             if (!wheelInteractionLocked) setActiveModal(type);
           }}
-          handleCareerSpinComplete={handleCareerSpinComplete}
+          handleCareerSpinComplete={() => {
+            const result = handleCareerSpinComplete((delta) => {
+              if (portraitId) portrait.queue(getStatsPortraitCue(delta, `${currentAge}:stats`));
+            });
+            if (!result || !portraitId) return;
+            const leagueSize = clubs.filter((club) => club.leagueId === currentClub?.leagueId).length || 10;
+            portrait.queue(getPortraitCue(result.step, result.value, `${currentAge}:${result.step}`, leagueSize));
+          }}
           handleCareerSpin={handleCareerSpin}
           handleNextSeason={handleNextSeason}
         />
@@ -332,6 +363,7 @@ export function DraftDrumScreen({
       {/* ── MODE 3: RETIRED ── */}
       {mode === "retired" && (
         <RetiredStage
+          portraitId={portraitId}
           position={position}
           playerNationality={playerNationality}
           peakOvrValue={peakOvrValue}
@@ -377,12 +409,13 @@ export function DraftDrumScreen({
               effectivePositionOvr: currentOvr,
             },
           }}
-          willingToMove={willingToMove}
-          setWillingToMove={handleSetWillingToMove}
           isProcessing={isProcessing}
           onAcceptOffer={async (offer, wageOption) => {
             const result = await handleAcceptMarketOffer(offer, wageOption);
-            if (result.resolution === "accepted") setActiveModal(null);
+            if (result.resolution === "accepted") {
+              portrait.queue(getTransferPortraitCue(currentClub, { id: offer.clubId, prestige: offer.prestige }, `${currentAge}:transfer`));
+              setActiveModal(null);
+            }
             return result;
           }}
           onRejectAll={() => {
@@ -392,13 +425,8 @@ export function DraftDrumScreen({
             const accepted = await handleApproachShortlist(club, wageOption);
             return accepted;
           }}
-          onProactiveRenewal={async (wageOption) => {
-            const accepted = await handleProactiveRenewal(wageOption);
-            return accepted;
-          }}
           onSearchClubs={handleSearchClubs}
           currentClubId={currentClub?.id ?? null}
-          proactiveRenewalRejected={proactiveRenewalRejected}
           approachRejects={approachRejects}
           approachBanner={approachBanner}
           acceptedOffer={transferOffer}
@@ -414,7 +442,7 @@ export function DraftDrumScreen({
           yearSimResult={yearSimResult}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
-          onClose={handleSeasonStatsModalClose}
+          onClose={() => { portrait.release("recap"); handleSeasonStatsModalClose(); }}
         />
       )}
 
@@ -433,7 +461,7 @@ export function DraftDrumScreen({
           record={activeRecord}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
-          onClose={handleCompetitionResultModalClose}
+          onClose={() => { portrait.release(activeModal); handleCompetitionResultModalClose(); }}
         />
       )}
 

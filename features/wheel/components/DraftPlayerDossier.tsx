@@ -1,6 +1,9 @@
 import type { DraftData } from "../stores/useWheelUiStore";
+import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
+import type { ClassicProfile } from "./ClassicProfileSetup";
 
 interface DraftPlayerDossierProps {
+  profile?: ClassicProfile;
   draftData: DraftData;
   position: string;
   playerNumber: number;
@@ -25,14 +28,14 @@ const GK_STATS = [
   ["REF", "ref"], ["SPD", "spd"], ["POS", "pos"],
 ] as const;
 
-export function DraftPlayerDossier({ draftData, position, playerNumber }: DraftPlayerDossierProps) {
+export function DraftPlayerDossier({ profile, draftData, position, playerNumber }: DraftPlayerDossierProps) {
   const stats = position === "GK" ? GK_STATS : FIELD_STATS;
 
   return (
-    <aside className="football-draft-dossier" aria-label="Hồ sơ cầu thủ đang draft">
-      <div className="football-draft-dossier__heading">
-        <span>Hồ sơ sau draft</span>
-        <h2>Cầu thủ số {playerNumber}</h2>
+    <aside className="football-draft-dossier" data-nation={draftData.nationality?.replace(/\s+/g, "")} aria-label="Hồ sơ cầu thủ đang draft">
+      <div className="football-draft-dossier__heading" data-has-profile={Boolean(profile)}>
+        {profile ? <PlayerPortrait portraitId={profile.portraitId} /> : <span>Hồ sơ sau draft</span>}
+        <h2>{profile?.name ?? `Cầu thủ số ${playerNumber}`}</h2>
       </div>
 
       <div className="football-draft-dossier__meta">

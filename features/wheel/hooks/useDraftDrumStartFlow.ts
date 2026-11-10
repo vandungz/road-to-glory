@@ -3,6 +3,7 @@
 import { useCallback, useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { startPlayerCareerAction } from "@/actions/season.actions";
 import { initCareerPlayerAction } from "@/actions/player.actions";
+import { resolveSavedPortraitId } from "@/features/player/lib/player-portraits";
 import type { CareerSubStep, ClubSummary } from "@/types/domain";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import type { ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
@@ -124,7 +125,7 @@ export function useDraftDrumStartFlow({
     setIsProcessing(false);
   }
 
-  async function handleStartCareer() {
+  async function handleStartCareer(profile?: { name: string; portraitId: string }) {
     if (isProcessing) return;
     setIsProcessing(true);
     setStartCareerError(null);
@@ -150,6 +151,7 @@ export function useDraftDrumStartFlow({
         gameId,
         slotIndex,
         position,
+        playerName: profile?.name,
       });
       const selectedClub = clubs.find((c) => c.id === draftData.clubId);
       const initialContinentalCup = selectedClub?.continentalType ?? "none";
@@ -157,6 +159,7 @@ export function useDraftDrumStartFlow({
 
       const initResult = await initCareerPlayerAction({
         gameId, slotIndex, position, name: initPayload.playerName,
+        portraitId: profile?.portraitId,
         nationality: draftData.nationality, debutAge: draftData.debutAge,
         careerLength: draftData.careerLength, debutOvr,
         height: draftData.height, weight: draftData.weight,
@@ -183,6 +186,7 @@ export function useDraftDrumStartFlow({
       statsProps.handleStartCareer(draftData, initPayload, clubs);
       resetSeasonState(); setTransferOffer(null); setTransferMarket(null); setWillingToMove(false);
       setMode("career"); setCareerSubStep("idle");
+      return resolveSavedPortraitId(initResult.portraitId, id);
     } catch (err) {
       setStartCareerError(
         err instanceof Error && err.message

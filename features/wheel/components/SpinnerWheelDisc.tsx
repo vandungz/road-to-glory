@@ -1,6 +1,6 @@
 "use client";
 
-import { motion, type MotionValue } from "framer-motion";
+import { motion, useReducedMotion, type MotionValue } from "framer-motion";
 
 export interface SpinnerWheelDiscProps {
   items: { label: string; value: unknown; weight?: number; active?: boolean }[];
@@ -10,18 +10,19 @@ export interface SpinnerWheelDiscProps {
 }
 
 const SLICE_COLORS = [
-  "#E8502F", "#3D6EA8", "#2F7A5C", "#A97A18",
-  "#635399", "#9C3F6E", "#25736D", "#454E96",
+  "var(--football-wheel-1)", "var(--football-wheel-2)", "var(--football-wheel-3)", "var(--football-wheel-4)",
+  "var(--football-wheel-5)", "var(--football-wheel-6)", "var(--football-wheel-7)", "var(--football-wheel-8)",
 ];
 
 export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: SpinnerWheelDiscProps) {
+  const reducedMotion = useReducedMotion();
   return (
     <div className="football-spinner-wheel__stage">
 
       {/* ── SPINNER WHEEL (ROTATE DIV) ── */}
       <motion.div
         className="football-spinner-wheel__disc"
-        style={{ rotate: rotateValue }}
+        style={{ rotate: reducedMotion ? 0 : rotateValue }}
       >
         <svg viewBox="0 0 200 200" style={{ width: "100%", height: "100%" }}>
           <g>
@@ -57,14 +58,14 @@ export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: 
                       cy="100"
                       r={R}
                       fill={color}
-                      stroke="rgba(244,241,234,0.8)"
+                      stroke="var(--football-wheel-rule)"
                       strokeWidth="0.6"
                     />
                   ) : (
                     <path
                       d={d}
                       fill={color}
-                      stroke="rgba(244,241,234,0.8)"
+                      stroke="var(--football-wheel-rule)"
                       strokeWidth="0.6"
                     />
                   ))}
@@ -94,8 +95,8 @@ export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: 
           </g>
 
           {/* Center pin */}
-          <circle cx="100" cy="100" r="18" fill="#F4F1EA" stroke="#21201D" strokeWidth="1.2" />
-          <circle cx="100" cy="100" r="5" fill="#21201D" />
+          <circle cx="100" cy="100" r="18" fill="var(--football-paper)" stroke="var(--football-ink)" strokeWidth="1.2" />
+          <circle cx="100" cy="100" r="5" fill="var(--football-ink)" />
         </svg>
       </motion.div>
 

@@ -21,6 +21,7 @@ interface Props {
   targetIndex: number;
   onSpinComplete: () => void;
   stakes?: "low" | "mid" | "high";
+  idleLabel?: string | null;
 }
 
 // ============================================================
@@ -92,7 +93,7 @@ interface SpinSnapshot {
 // COMPONENT
 // ============================================================
 
-export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low" }: Props) {
+export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low", idleLabel }: Props) {
   const rotateValue = useMotionValue(0);
   const spinControllerRef = useRef<SpinController | null>(null);
   const [spinSnapshot, setSpinSnapshot] = useState<SpinSnapshot | null>(null);
@@ -302,7 +303,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
         <span
           className="football-spinner-wheel__label-text"
         >
-          {activeLabel || "—"}
+          {!isSpinning && idleLabel !== undefined ? idleLabel : activeLabel || "—"}
         </span>
       </div>
 

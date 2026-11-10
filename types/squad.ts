@@ -65,6 +65,7 @@ export const FORMATION_SLOTS: Record<Formation, SlotConfig[]> = {
 // ============================================================
 
 export interface ClientSafePlayer {
+  portraitId?: string | null;
   id: string;
   slotIndex: number;
   name: string;

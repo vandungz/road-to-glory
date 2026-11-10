@@ -70,7 +70,7 @@ export default async function DraftSlotPage({ params }: Props) {
   // 3. Check for in-progress career player at this slot (exclude retired players)
   const inProgressPlayer = await prisma.careerPlayer.findFirst({
     where: { gameSessionId: gameId, slotIndex, isRetired: false },
-    select: { id: true, currentContinentalCup: true },
+    select: { id: true, position: true, portraitId: true, currentContinentalCup: true },
   });
 
   return (
@@ -79,10 +79,11 @@ export default async function DraftSlotPage({ params }: Props) {
       gameId={gameId}
       slotIndex={slotIndex}
       gameName={session.name}
-      position={slot.position}
+      position={inProgressPlayer?.position ?? slot.position}
       leagues={leagues}
       clubs={clubs}
       savedPlayerId={inProgressPlayer?.id}
+      savedPortraitId={inProgressPlayer?.portraitId}
       savedContinentalCup={inProgressPlayer?.currentContinentalCup}
     />
   );

@@ -37,6 +37,7 @@ export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, pla
     </section>
     <section className="football-story-rail__clubs">
       <span className="football-eyebrow">Các câu lạc bộ</span>
+      <div className="football-story-rail__club-list" role="region" aria-label="Các câu lạc bộ trong sự nghiệp" tabIndex={0}>
       {clubStints.length === 0 ? <p className="football-modal-note">Đang khởi đầu sự nghiệp.</p> : clubStints.map((stint, index) => {
         const isCurrent = index === clubStints.length - 1;
         return <div className={`football-story-rail__club${isCurrent ? " is-current" : ""}`} key={`${stint.clubName}-${index}`}>
@@ -44,6 +45,7 @@ export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, pla
           <div><strong>{stint.clubName}</strong><small>{stint.leagueName ?? ""} · tuổi {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : " · hiện tại"}</small></div>
         </div>;
       })}
+      </div>
     </section>
     <button type="button" className="football-story-rail__honours" onClick={onOpenTrophyCabinet}>
       <span><Trophy size={14} aria-hidden="true" /> Tủ danh hiệu</span>

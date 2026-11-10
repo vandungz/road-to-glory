@@ -36,6 +36,7 @@ export default async function SquadBoardPage({ params }: Props) {
         select: {
           id: true,
           slotIndex: true,
+          portraitId: true,
           name: true,
           nationality: true,
           position: true,

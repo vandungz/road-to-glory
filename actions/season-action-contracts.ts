@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { PLAYER_PROFILE_POSITIONS } from "@/features/player/lib/player-portraits";
 import type { ClubStint, SeasonHistory, StatSnapshot, AchievementRecord } from "@/types/domain";
 
 export interface PlayerUpdateInput {
@@ -164,6 +165,7 @@ export const startPlayerCareerSchema = z.object({
   gameId: z.string().uuid(),
   slotIndex: z.number().int().min(0).max(10),
   nationality: z.string(),
+  playerName: z.string().trim().min(2).max(60).optional(),
   debutAge: z.number().int(),
   /** Optional / ignored — server recomputes from stats. */
   debutOvr: z.number().int().optional(),
@@ -174,7 +176,7 @@ export const startPlayerCareerSchema = z.object({
   clubName: z.string(),
   leagueId: z.string(),
   leagueName: z.string(),
-  position: z.string(),
+  position: z.enum(PLAYER_PROFILE_POSITIONS),
   // Field player stats (null for GK, undefined never sent)
   pac: z.number().int().nullish(),
   sho: z.number().int().nullish(),
@@ -209,7 +211,7 @@ export const generateTransferMarketSchema = z.object({
   contractYearsRemaining: z.number().int().min(0).max(10),
   contractYearsTotal: z.number().int().min(0).max(10),
   currentWageAnnual: z.number().int().min(0),
-  willingToMove: z.boolean().optional().default(false),
+  willingToMove: z.boolean().optional().default(true).transform(() => true),
   isUnemployed: z.boolean().optional().default(false),
   influenceScore: z.number().min(0).max(100).optional(),
 });
