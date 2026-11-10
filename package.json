@@ -7,6 +7,9 @@
     "build": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "eslint",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "check:auth-recovery": "tsx --tsconfig tests/tsconfig.json tests/auth-recovery.test.tsx",
     "check:checkpoint-contract": "tsx scripts/checkpoint-contract-check.ts",
     "check:season-projection": "tsx scripts/season-projection-check.ts",
     "check:season-stat-rates": "tsx scripts/season-stat-rates-check.ts",
@@ -24,6 +27,7 @@
     "check:transfer-authority": "tsx scripts/transfer-authority-check.ts",
     "check:transfer-workflow": "tsx scripts/transfer-workflow-state-check.ts",
     "check:transfer-command-result": "tsx scripts/transfer-command-result-check.ts",
+    "check:renewal-acceptance": "tsx scripts/renewal-acceptance-check.ts",
     "audit:career-persistence": "tsx scripts/career-persistence-audit.ts",
     "backfill:career-projection": "tsx scripts/backfill-career-projection.ts",
     "backfill:awards": "tsx scripts/backfill-awards.ts",
@@ -54,6 +58,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3",
+    "@playwright/test": "^1.64.1",
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
@@ -63,6 +68,7 @@
     "eslint": "^9",
     "eslint-config-next": "15.5.20",
     "prisma": "^7.8.0",
+    "puppeteer-core": "^25.16.0",
     "tailwindcss": "^4",
     "tsx": "^4.22.4",
     "typescript": "^5"

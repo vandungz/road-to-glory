@@ -1,5 +1,4 @@
-"use client";
-
+import { notFound } from "next/navigation";
 import { DraftDrumScreen } from "@/features/wheel/components/DraftDrumScreen";
 
 const MOCK_LEAGUES = [
@@ -13,6 +12,7 @@ const MOCK_CLUBS = [
 ];
 
 export default function DevDraftPreviewPage() {
+  if (process.env.NODE_ENV === "production") notFound();
   return (
     <DraftDrumScreen
       gameId="dev-game"
@@ -20,7 +20,6 @@ export default function DevDraftPreviewPage() {
       position="ST"
       leagues={MOCK_LEAGUES}
       clubs={MOCK_CLUBS}
-      initialMode="career"
     />
   );
 }

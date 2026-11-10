@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { AppShell } from "@/components/shared/AppShell";
 import { PersistentTransferSection } from "@/features/wheel/components/PersistentTransferSection";
 import type { TransferMarketResult } from "@/features/transfer/services/transfer.service";
 
@@ -104,7 +105,6 @@ const MOCK: TransferMarketResult = {
 };
 
 export default function TransferWindowPreviewPage() {
-  const [willingToMove, setWillingToMove] = useState(false);
   const [log, setLog] = useState("—");
 
   if (process.env.NODE_ENV === "production") {
@@ -112,70 +112,23 @@ export default function TransferWindowPreviewPage() {
   }
 
   return (
-    <div
-      style={{
-        minHeight: "100vh",
-        backgroundColor: "var(--football-sunken)",
-        padding: "32px 24px",
-        display: "flex",
-        justifyContent: "center",
-      }}
-    >
-      <div
-        style={{
-          width: "100%",
-          maxWidth: 1180,
-          backgroundColor: "var(--football-paper)",
-          border: "1px solid var(--football-rule)",
-          display: "flex",
-          flexDirection: "column",
-        }}
-      >
-        <div style={{ borderBottom: "1px solid var(--football-rule)", padding: "18px 30px" }}>
-          <p
-            style={{
-              fontFamily: "var(--font-stamp)",
-              fontSize: "0.58rem",
-              color: "var(--coral)",
-              fontWeight: 700,
-              letterSpacing: "0.15em",
-              textTransform: "uppercase",
-              margin: 0,
-            }}
-          >
-            DEV PREVIEW · TRANSFER WINDOW
-          </p>
-          <h3
-            style={{
-              fontFamily: "var(--font-headline)",
-              fontSize: "1.3rem",
-              fontWeight: 900,
-              textTransform: "uppercase",
-              margin: "4px 0 0",
-            }}
-          >
-            Thị Trường Chuyển Nhượng
-          </h3>
-        </div>
-
+    <AppShell className="football-transfer-shell" backHref="/dev/design-preview" backLabel="Sự nghiệp" headerMeta={<span role="status">Last action: {log}</span>}>
         <PersistentTransferSection
           market={MOCK}
           currentClubId="c1"
           currentClubName="Feyenoord"
-          willingToMove={willingToMove}
-          setWillingToMove={setWillingToMove}
           isProcessing={false}
           approachRejects={{}}
           approachBanner={null}
           onAcceptOffer={(o) => { setLog(`Offer ${o.kind}: ${o.clubName}`); return { resolution: "accepted" }; }}
           onRejectAll={() => setLog("Reject all / stay")}
           onApproachShortlist={(c) => { setLog(`Approach ${c.clubName} (${Math.round((c.acceptChance ?? 0) * 100)}%)`); }}
-          onProactiveRenewal={() => setLog("Renewal")}
-          onSearchClubs={async () => ({ clubs: MOCK.shortlist, totalCount: MOCK.shortlist.length, leagues: [{ id: "eredivisie", name: "Eredivisie", tier: 1 }, { id: "bundesliga", name: "Bundesliga", tier: 1 }] })}
+          onSearchClubs={async ({query,leagueId,prestigeMin}) => {
+            const clubs = MOCK.shortlist.filter((c) => (!query || c.clubName.toLowerCase().includes(query.toLowerCase())) && (!leagueId || c.leagueId === leagueId) && (!prestigeMin || c.prestige === prestigeMin));
+            return { clubs, totalCount: clubs.length, leagues: [{ id: "eredivisie", name: "Eredivisie", tier: 1 }, { id: "bundesliga", name: "Bundesliga", tier: 1 }] };
+          }}
         />
 
-        <p style={{ margin: 0, borderTop: "1px solid var(--football-rule)", padding: "12px 30px", color: "var(--football-ink-3)", fontSize: "0.75rem" }}>Last action: {log}</p>
-      </div>
-    </div>
+    </AppShell>
   );
 }
