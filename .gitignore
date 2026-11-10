@@ -12,6 +12,17 @@
 
 # testing
 /coverage
+/output/playwright/
+/playwright-report/
+/test-results/
+/.playwright-mcp/
+/.hallmark/before/
+/.hallmark/after/
+/.hallmark/scaffold/
+/.hallmark/shots/
+/.hallmark/*.png
+/.hallmark/*.html
+/*-baseline.log
 
 # next.js
 /.next/
@@ -43,3 +54,5 @@ yarn-error.log*
 next-env.d.ts
 
 /app/generated/prisma
+/graphify-out/
+/.hallmark/
