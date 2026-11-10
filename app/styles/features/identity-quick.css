@@ -1,0 +1,18 @@
+.football-quick-mode-shell { height: auto; min-height: 100svh; overflow: visible; }
+.football-quick-mode-shell .football-app-shell__main { overflow: visible; padding-block: 32px; }
+.football-quick-mode { min-height: calc(100svh - 200px); overflow: visible; gap: 24px; }
+.football-quick-mode__intro { padding-bottom: 24px; border-bottom: 0; }
+.football-quick-mode__intro p { font-size: 16px; max-width: 640px; }
+.football-quick-mode h1 { font-size: 56px; line-height: 1.1; }
+.football-quick-mode h2 { line-height: 1.2; }
+.football-quick-setup { place-items: start center; padding-block: 16px 40px; }
+.football-quick-setup__card { width: min(100%, 900px); padding: 40px; border: 0; border-radius: var(--football-radius-panel); }
+.football-quick-setup__card h2 { font-size: 36px; }
+.football-quick-setup__copy { max-width: none; margin-bottom: 32px; }
+.football-quick-setup__form { grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(0, 1fr)); gap: 16px; }
+.football-quick-setup__form label { gap: 12px; }
+.football-quick-setup__form label span { color: var(--football-ink-2); font-size: 13px; }
+.football-quick-setup__form input, .football-quick-setup__form select { min-height: 52px; border-radius: var(--football-radius); background: var(--football-surface); font-size: 16px; }
+.football-quick-setup__footer { margin-top: 32px; padding-top: 24px; border-top: 1px solid var(--football-rule); }
+.football-quick-setup__footer > span { font-size: 13px; }
+.football-quick-setup__form input, .football-quick-setup__form select { border-color: var(--football-ink-3); }

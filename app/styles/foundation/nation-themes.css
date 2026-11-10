@@ -1,0 +1,91 @@
+/* Identity colours are cosmetic interpretations of the existing flag catalog. */
+:root {
+  --nation-palette-1: #176344;
+  --nation-palette-2: #F1C83A;
+  --nation-palette-3: #27668B;
+  --nation-palette-4: #B2D8EA;
+  --nation-palette-5: #263E7A;
+  --nation-palette-6: #C03936;
+  --nation-palette-7: #B32737;
+  --nation-palette-8: #FFFDF8;
+  --nation-palette-9: #292824;
+  --nation-palette-10: #EBC343;
+  --nation-palette-11: #AA2638;
+  --nation-palette-12: #EDC241;
+  --nation-palette-13: #20654B;
+  --nation-palette-14: #B52E38;
+  --nation-palette-15: #9F2C36;
+  --nation-palette-16: #236A48;
+  --nation-palette-17: #276649;
+  --nation-palette-18: #E9C443;
+  --nation-palette-19: #A9481F;
+  --nation-palette-20: #2D7252;
+  --nation-palette-21: #17634A;
+  --nation-palette-22: #243F78;
+  --nation-palette-23: #F1CE44;
+  --nation-palette-24: #24518A;
+  --nation-palette-25: #F2CD44;
+  --nation-palette-26: #792E47;
+  --nation-palette-27: #293E84;
+  --nation-palette-28: #B63342;
+  --nation-palette-29: #B42C2C;
+  --nation-palette-30: #F1CF42;
+}
+:root, [data-nation] {
+  --nation-primary: var(--football-accent-ink);
+  --nation-secondary: var(--football-ink);
+  --nation-on-primary: var(--football-primary-text);
+  --nation-paper: color-mix(in srgb, var(--nation-primary) 8%, var(--football-surface));
+  --nation-ink: var(--football-ink);
+}
+[data-nation="Brazil"] { --nation-primary: var(--nation-palette-1); --nation-secondary: var(--nation-palette-2); }
+[data-nation="Argentina"], [data-nation="Uruguay"] { --nation-primary: var(--nation-palette-3); --nation-secondary: var(--nation-palette-4); }
+[data-nation="France"], [data-nation="Netherlands"], [data-nation="USA"], [data-nation="Norway"], [data-nation="Croatia"], [data-nation="Panama"], [data-nation="Paraguay"], [data-nation="CzechRepublic"] { --nation-primary: var(--nation-palette-5); --nation-secondary: var(--nation-palette-6); }
+[data-nation="England"], [data-nation="Canada"], [data-nation="Switzerland"], [data-nation="Turkey"], [data-nation="Tunisia"], [data-nation="Japan"], [data-nation="Denmark"], [data-nation="Poland"] { --nation-primary: var(--nation-palette-7); --nation-secondary: var(--nation-palette-8); }
+[data-nation="Germany"], [data-nation="Belgium"] { --nation-primary: var(--nation-palette-9); --nation-secondary: var(--nation-palette-10); }
+[data-nation="Spain"] { --nation-primary: var(--nation-palette-11); --nation-secondary: var(--nation-palette-12); }
+[data-nation="Italy"], [data-nation="Mexico"], [data-nation="Iran"] { --nation-primary: var(--nation-palette-13); --nation-secondary: var(--nation-palette-14); }
+[data-nation="Portugal"], [data-nation="Morocco"] { --nation-primary: var(--nation-palette-15); --nation-secondary: var(--nation-palette-16); }
+[data-nation="Senegal"], [data-nation="Ghana"], [data-nation="SouthAfrica"] { --nation-primary: var(--nation-palette-17); --nation-secondary: var(--nation-palette-18); }
+[data-nation="IvoryCoast"] { --nation-primary: var(--nation-palette-19); --nation-secondary: var(--nation-palette-20); }
+[data-nation="Algeria"], [data-nation="SaudiArabia"], [data-nation="Nigeria"] { --nation-primary: var(--nation-palette-21); --nation-secondary: var(--nation-palette-8); }
+[data-nation="Ecuador"] { --nation-primary: var(--nation-palette-22); --nation-secondary: var(--nation-palette-23); }
+[data-nation="BosniaandHerzegovina"], [data-nation="Sweden"], [data-nation="Ukraine"] { --nation-primary: var(--nation-palette-24); --nation-secondary: var(--nation-palette-25); }
+[data-nation="Qatar"] { --nation-primary: var(--nation-palette-26); --nation-secondary: var(--nation-palette-8); }
+[data-nation="Haiti"], [data-nation="CapeVerde"] { --nation-primary: var(--nation-palette-27); --nation-secondary: var(--nation-palette-28); }
+[data-nation="Vietnam"] { --nation-primary: var(--nation-palette-29); --nation-secondary: var(--nation-palette-30); }
+
+.football-panini-sticker, .football-player-sticker { border-radius: var(--football-radius); border-color: var(--football-rule); overflow: hidden; background: var(--football-surface); }
+.football-nation-flag { display: inline-block; width: 28px; height: 20px; vertical-align: middle; object-fit: cover; border-radius: 4px; }
+.football-nation-flag__fallback { font-family: var(--font-body); font-size: 12px; }
+.football-panini-sticker__top, .football-player-sticker__top { background: var(--nation-paper); color: var(--nation-primary); border-color: var(--nation-primary); }
+.football-career-dialog__sidebar > * { flex-shrink: 0; }
+.football-panini-sticker__portrait, .football-player-sticker__portrait {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: flex-end;
+  gap: 8px;
+  min-height: 180px;
+  height: auto;
+  padding: 16px;
+  background: var(--nation-primary);
+  color: var(--nation-on-primary);
+  border-radius: var(--football-radius);
+}
+.football-panini-sticker__portrait > strong, .football-player-sticker__portrait > strong { position: static; padding: 0; z-index: 1; color: var(--nation-on-primary); font-size: 88px; font-variant-numeric: tabular-nums; }
+.football-panini-sticker__portrait > div, .football-player-sticker__silhouette { display: none; }
+.football-panini-sticker__portrait-label, .football-player-sticker__portrait > small { position: static; transform: none; color: var(--nation-on-primary); font-size: 13px; }
+.football-player-sticker__portrait > span { color: var(--nation-on-primary); }
+.football-panini-sticker__identity, .football-player-sticker__identity { border-color: var(--nation-primary); }
+.football-panini-sticker__identity > strong, .football-player-sticker__identity h3 { color: var(--nation-primary); white-space: normal; overflow-wrap: anywhere; }
+.football-panini-sticker__stats { border-color: var(--football-rule); background: var(--nation-paper); }
+.football-panini-sticker__flag { border: 3px solid var(--nation-secondary); }
+.football-draft-dossier { border-top: 4px solid var(--nation-primary); }
+.football-squad-board-shell .football-pitch-player { border-top: 4px solid var(--nation-primary); background: var(--nation-paper); }
+.football-squad-board-shell .football-pitch-player__top, .football-squad-board-shell .football-pitch-player__name { color: var(--nation-primary); background: var(--nation-paper); }
+.football-squad-sheet__row[data-nation] .football-squad-sheet__nation { color: var(--nation-primary); font-weight: 600; }
+.football-hall-card { border-radius: var(--football-radius-panel); background: var(--nation-primary); color: var(--nation-on-primary); }
+.football-hall-card__top, .football-hall-card__foot, .football-hall-card__portrait small { color: var(--nation-on-primary); }
+.football-hall-card__portrait { border-radius: var(--football-radius); background: color-mix(in srgb, var(--nation-primary) 80%, var(--football-inverse)); color: var(--nation-on-primary); }
+.football-hall-card__portrait strong { font-variant-numeric: tabular-nums; }

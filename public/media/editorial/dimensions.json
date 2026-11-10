@@ -1,0 +1,34 @@
+{
+  "heritage-run": {
+    "width": 625,
+    "height": 877
+  },
+  "air-control": {
+    "width": 540,
+    "height": 940
+  },
+  "volley-control": {
+    "width": 551,
+    "height": 861
+  },
+  "pitch-overview": {
+    "width": 1000,
+    "height": 714
+  },
+  "free-kick": {
+    "width": 1000,
+    "height": 851
+  },
+  "match-duel": {
+    "width": 763,
+    "height": 545
+  },
+  "heritage-touch": {
+    "width": 565,
+    "height": 852
+  },
+  "contract-signing": {
+    "width": 1254,
+    "height": 1254
+  }
+}

@@ -1,0 +1,108 @@
+/* Hallmark · shape: app workspace · genre: playful · theme: brand · signature: career records and wheel */
+/* Hallmark · pre-emit critique: use the viewport, keep artwork still, and compare clubs in aligned rows. */
+.football-dashboard.football-career-shell { height: 100dvh; min-height: 0; display: flex; flex-direction: column; }
+.football-career-shell > .football-wheel-header { flex-shrink: 0; }
+.football-career-shell .football-dashboard__main { flex: 1; height: auto; min-height: 0; padding: 16px !important; overflow: hidden; }
+.football-career-shell .football-dashboard__grid { height: 100% !important; min-height: 0; }
+.football-career-shell :is(.football-dashboard__story, .football-dashboard__actions, .football-dashboard__dossier) { height: 100% !important; max-height: 100% !important; min-height: 0; overflow: hidden !important; }
+.football-career-shell .football-dashboard__actions { display: flex; padding: 24px !important; }
+.football-career-shell .football-action-panel { width: 100%; height: 100%; min-height: 0; overflow: hidden; }
+.football-career-shell .football-action-panel__header { flex-shrink: 0; padding-bottom: 16px; }
+.football-career-shell .football-action-panel__body { flex: 1; min-height: 0; overflow-y: auto; }
+.football-career-shell .football-wheel-stage { min-height: 0; gap: 16px; justify-content: center; }
+.football-career-shell .football-story-rail { display: flex; min-height: 0; flex-direction: column; }
+.football-career-shell .football-story-rail__header { flex-shrink: 0; padding-bottom: 16px; }
+.football-career-shell .football-story-rail__summary { flex-shrink: 0; padding-top: 16px; }
+.football-career-shell .football-story-rail__clubs { display: flex; flex: 1; min-height: 0; flex-direction: column; margin-top: 16px; }
+.football-career-shell .football-story-rail__clubs > span { flex-shrink: 0; }
+.football-career-shell .football-story-rail__club-list { min-height: 0; padding: 4px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.football-story-rail__club-list:focus-visible, .football-transfer-offers:focus-visible, .football-transfer-targets:focus-visible { outline: var(--football-outline); outline-offset: -2px; }
+.football-career-shell .football-story-rail__honours { flex-shrink: 0; margin-top: 16px; }
+.football-career-shell .football-dossier-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.football-career-shell .football-panini-sticker { flex-shrink: 0; }
+
+.football-season-result-modal { width: min(880px, calc(100% - 32px)); max-width: 880px; }
+.football-season-result__body { min-height: 0; display: grid; gap: 24px; }
+.football-season-result__body--split { grid-template-columns: minmax(220px, .85fr) minmax(0, 1.4fr); }
+.football-season-result__summary, .football-season-result__details { min-width: 0; }
+.football-season-result__club { margin: 0 0 16px; color: var(--football-ink-2); }
+.football-season-result-modal .football-mini-table__row { min-height: 44px; grid-template-columns: 32px minmax(0, 1fr) 80px; }
+.football-season-result-modal .football-modal-section { margin-top: 16px; }
+.football-season-result-modal .football-modal-footer .football-button { width: auto; min-width: 200px; margin-left: auto; }
+
+.football-season-close-modal { height: min(760px, calc(100dvh - 48px)); max-height: calc(100dvh - 48px); }
+.football-season-close__layout { flex: 1; grid-template-rows: minmax(0, 1fr); overflow: hidden; }
+.football-season-close__layout .football-modal-body { min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.football-editorial-art--recap { height: 100%; max-height: 480px; min-height: 0; }
+
+.football-app-shell.football-transfer-shell { height: 100dvh; min-height: 0; overflow: clip; }
+.football-transfer-shell > :is(.football-app-shell__header, .football-app-shell__footer) { flex-shrink: 0; }
+.football-transfer-shell .football-app-shell__main { display: flex; min-height: 0; padding-block: 16px; }
+.football-transfer-shell .football-app-shell__main > :is(.football-transfer-window, .football-transfer-negotiation, .football-transfer-success, .football-transfer-loading) { width: 100%; min-height: 0; flex: 1; }
+.football-transfer-shell .football-transfer-window { display: flex; flex-direction: column; overflow: hidden; }
+.football-transfer-shell .football-transfer-window__overview { display: grid; grid-template-columns: minmax(180px, .85fr) minmax(0, 3fr); align-items: center; gap: 24px; flex-shrink: 0; padding: 16px 24px; border-bottom: 1px solid var(--football-rule); }
+.football-transfer-shell .football-transfer-window__header { min-width: 0; padding: 0; }
+.football-transfer-shell .football-transfer-window__header h1 { font-size: 28px; }
+.football-transfer-shell .football-transfer-window__header p { display: none; }
+.football-transfer-shell .football-transfer-window__context { min-width: 0; padding: 0; background: transparent; border: 0; }
+.football-transfer-shell .football-transfer-window__context strong { font-size: 18px; overflow-wrap: anywhere; }
+.football-transfer-shell .football-transfer-tabs { flex-shrink: 0; padding-inline: 24px; }
+.football-transfer-shell .football-transfer-tabs button { min-height: 44px; }
+.football-transfer-shell .football-transfer-window__body { display: flex; flex: 1; min-height: 0; overflow: hidden; }
+.football-transfer-shell .football-transfer-panel { display: flex; flex: 1; min-height: 0; flex-direction: column; padding: 16px 24px; overflow: hidden; }
+.football-transfer-shell .football-transfer-panel__heading { flex-shrink: 0; margin-bottom: 16px; }
+.football-transfer-shell .football-transfer-panel__heading h2 { font-size: 24px; }
+.football-transfer-shell .football-transfer-panel__heading p { margin: 0; }
+.football-transfer-shell .football-transfer-panel__heading .football-eyebrow { display: none; }
+.football-transfer-shell .football-transfer-search, .football-transfer-shell .football-transfer-pagination { flex-shrink: 0; }
+.football-transfer-shell .football-transfer-search { margin-bottom: 16px; }
+.football-transfer-shell .football-transfer-search label input { border: 0 !important; border-radius: 0; min-width: 0; background: transparent; }
+.football-transfer-shell :is(.football-transfer-offers, .football-transfer-targets) { display: flex; flex: 1; min-height: 0; flex-direction: column; gap: 0; padding: 4px; overflow-y: auto; overscroll-behavior: contain; scrollbar-gutter: stable; }
+.football-transfer-shell .football-transfer-window__footer { flex-shrink: 0; padding: 12px 24px; }
+.football-transfer-shell .football-transfer-negotiation { overflow-y: auto; padding: 24px; }
+.football-transfer-shell .football-transfer-renewal { overflow-y: auto; }
+
+.football-transfer-club-row { display: grid; grid-template-columns: minmax(180px, 1.1fr) minmax(0, 2fr) minmax(160px, .9fr); min-height: 0; align-items: center; gap: 24px; flex-shrink: 0; border: 0; border-bottom: 1px solid var(--football-rule); border-radius: 0; padding: 20px 8px; background: transparent; }
+.football-transfer-club-row__identity h3 { margin: 0 0 8px; font-family: var(--font-headline); font-size: 24px; line-height: 1.2; }
+.football-transfer-club-row__identity p { margin: 0; color: var(--football-ink-2); font-size: 12px; }
+.football-transfer-club-row__identity small { display: block; margin-top: 8px; color: var(--football-ink-2); font-size: 12px; }
+.football-transfer-club-row__facts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px 24px; margin: 0; }
+.football-transfer-club-row__facts dt { color: var(--football-ink-2); font-size: 12px; }
+.football-transfer-club-row__facts dd { margin: 4px 0 0; font-family: var(--font-headline); font-size: 20px; }
+.football-transfer-club-row__actions { display: flex; min-width: 0; flex-direction: column; gap: 8px; }
+.football-transfer-club-row__actions .football-button { width: 100%; min-width: 0; min-height: 44px; margin-top: 0; font-size: 13px; }
+.football-transfer-club-row__actions .football-button:not(:disabled):active { background: var(--football-accent-ink); }
+.football-transfer-club-row__actions select { width: 100%; min-width: 0; min-height: 44px; }
+.football-transfer-club-row.is-rejected { opacity: 1; }
+@media (max-height: 800px) and (min-width: 1024px) {
+ .football-career-shell .football-dashboard__actions { padding: 16px !important; }
+ .football-career-shell .football-action-panel__header h2 { font-size: 28px; }
+ .football-career-shell .football-wheel-stage { gap: 8px; }
+ .football-career-shell .football-spinner-wheel__stage { width: min(100%, 32dvh); }
+ .football-career-shell .football-action-panel .football-spinner-wheel__label { min-height: 44px; padding: 4px 12px; }
+ .football-career-shell .football-action-panel .football-spinner-wheel__label-text { font-size: 24px; }
+ .football-transfer-shell .football-transfer-panel__heading p { margin-bottom: 0; }
+ .football-transfer-shell > .football-app-shell__footer { display: none; }
+}
+@media (min-width: 1024px) and (max-width: 1199px) {
+ .football-transfer-club-row { grid-template-columns: minmax(150px, 1fr) minmax(0, 1.4fr) 180px; gap: 16px; }
+ .football-transfer-club-row__identity h3 { font-size: 20px; }
+ .football-transfer-club-row__facts { gap: 12px; }
+ .football-transfer-shell .football-transfer-window__context { grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px 16px; }
+ .football-transfer-shell .football-transfer-window__context label { grid-column: 1 / -1; }
+}
+
+.football-transfer-window__overview > .football-transfer-window__header { border-bottom: 0; }
+.football-transfer-window__context { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.football-transfer-club-row:last-child { border-bottom: 0; }
+.football-transfer-search { gap: 12px; }
+.football-transfer-search-status { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; margin-bottom: 8px; font-size: 12px; color: var(--football-ink-2); }
+.football-transfer-search-status .football-text-button { font-size: 12px; }
+.football-transfer-panel > .football-transfer-targets { flex: 1; min-height: 0; }
+.football-transfer-back { border-bottom: 0; }
+@media (max-height: 800px) and (min-width: 1024px) {
+ .football-transfer-shell .football-transfer-panel { padding-block: 12px; }
+ .football-transfer-shell .football-transfer-panel__heading { margin-bottom: 12px; }
+ .football-transfer-shell .football-transfer-search { margin-bottom: 8px; }
+ .football-transfer-shell .football-transfer-search-status { min-height: 28px; margin-bottom: 4px; }
+}

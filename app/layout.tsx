@@ -1,7 +1,12 @@
 import type { Metadata } from "next";
-import { Oswald, Lora, Special_Elite } from "next/font/google";
+import { Oswald, Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
+import "./styles/features/career-workspace.css";
+import "./styles/foundation/filters.css";
+import "./styles/features/contract-negotiation.css";
+import "./styles/features/player-portraits.css";
 import { AppProviders } from "./providers";
+import { DesktopNotice } from "@/components/shared/DesktopNotice";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -10,18 +15,10 @@ const oswald = Oswald({
   display: "swap",
 });
 
-const lora = Lora({
-  subsets: ["latin"],
-  weight: ["400", "500", "600"],
-  style: ["normal", "italic"],
-  variable: "--font-lora",
-  display: "swap",
-});
-
-const specialElite = Special_Elite({
-  subsets: ["latin"],
-  weight: "400",
-  variable: "--font-special-elite",
+const bodyFont = Be_Vietnam_Pro({
+  subsets: ["latin", "vietnamese"],
+  weight: ["400", "500", "600", "700"],
+  variable: "--font-vietnam",
   display: "swap",
 });
 
@@ -38,9 +35,12 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="vi" suppressHydrationWarning className={`${oswald.variable} ${lora.variable} ${specialElite.variable}`}>
+    <html lang="vi" suppressHydrationWarning className={`${oswald.variable} ${bodyFont.variable}`}>
       <body className="antialiased">
-        <AppProviders>{children}</AppProviders>
+        <DesktopNotice />
+        <div className="football-desktop-content">
+          <AppProviders>{children}</AppProviders>
+        </div>
       </body>
     </html>
   );

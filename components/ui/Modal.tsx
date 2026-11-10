@@ -64,7 +64,7 @@ export function Modal({
   }, [onClose]);
 
   useEffect(() => {
-    if (!open) return;
+    if (!open || !isMounted) return;
 
     restoreFocusRef.current = document.activeElement instanceof HTMLElement
       ? document.activeElement
@@ -78,6 +78,8 @@ export function Modal({
     };
 
     const handleKeyDown = (event: KeyboardEvent) => {
+      // The desktop notice hides portals without unmounting the game session.
+      if (!panelRef.current?.getClientRects().length) return;
       if (event.key === "Escape") {
         event.preventDefault();
         onCloseRef.current();
@@ -88,7 +90,7 @@ export function Modal({
 
       const focusable = Array.from(
         panelRef.current.querySelectorAll<HTMLElement>(FOCUSABLE_SELECTOR),
-      );
+      ).filter((element) => element.getClientRects().length > 0);
       if (focusable.length === 0) {
         event.preventDefault();
         panelRef.current.focus();
@@ -97,10 +99,11 @@ export function Modal({
 
       const first = focusable[0];
       const last = focusable[focusable.length - 1];
-      if (event.shiftKey && document.activeElement === first) {
+      const focusIsOutside = !panelRef.current.contains(document.activeElement);
+      if (event.shiftKey && (document.activeElement === first || focusIsOutside)) {
         event.preventDefault();
         last.focus();
-      } else if (!event.shiftKey && document.activeElement === last) {
+      } else if (!event.shiftKey && (document.activeElement === last || focusIsOutside)) {
         event.preventDefault();
         first.focus();
       }
@@ -115,7 +118,7 @@ export function Modal({
       document.body.style.overflow = previousOverflow;
       restoreFocusRef.current?.focus();
     };
-  }, [open]);
+  }, [open, isMounted]);
 
   if (!isMounted || !open || typeof document === "undefined") return null;
 

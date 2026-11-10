@@ -1,0 +1,284 @@
+/* Hallmark · shape: app screen · genre: playful · theme: brand · redesign: restyle
+ * signature: nationality player cards · nav: kept · states: existing · v2.0.0 */
+/* Hallmark · pre-emit critique: dense game records need readable labels and visible actions. */
+
+.football-wheel-shell :where(button, a, input, select):focus-visible,
+.football-transfer-window :where(button, a, input, select):focus-visible {
+  outline: 3px solid var(--football-focus);
+  outline-offset: 3px;
+}
+.football-wheel-shell .football-wheel-header__icon-button:active:not(:disabled),
+.football-transfer-back:active:not(:disabled) { background: var(--football-sunken); }
+.football-wheel-shell :where(h1, h2),
+.football-transfer-window :where(h1, h2) { text-wrap: balance; min-width: 0; overflow-wrap: break-word; }
+.football-dashboard.football-wheel-shell { height: auto; max-height: none; overflow: visible; }
+
+.football-wheel-shell > .football-wheel-header {
+  padding-inline: max(24px, calc((100% - var(--football-max-width)) / 2 + 24px));
+  min-height: 76px;
+}
+.football-wheel-shell .football-wheel-header__wordmark { font-size: 22px; }
+.football-wheel-header__back,
+.football-wheel-header__context small,
+.football-wheel-header__mode { font-size: 12px; }
+.football-wheel-header__context strong { font-size: 16px; }
+.football-wheel-shell .football-wheel-header__icon-button {
+  border-radius: var(--football-radius-control);
+}
+.football-wheel-shell .football-season-strip {
+  height: auto;
+  max-height: none;
+  padding-inline: max(24px, calc((100% - var(--football-max-width)) / 2 + 24px)) !important;
+  background: var(--football-paper);
+}
+.football-wheel-shell .football-season-strip__inner {
+  min-height: 56px;
+  gap: 24px;
+  overflow: visible;
+  flex-wrap: wrap;
+}
+.football-wheel-shell .football-season-strip__stage {
+  min-height: 48px;
+  padding-inline: 8px !important;
+}
+.football-wheel-shell .football-season-strip__stage.is-active {
+  border-bottom-color: var(--football-accent-ink) !important;
+}
+.football-wheel-shell .football-season-strip__label { font-size: 13px; }
+.football-wheel-shell .football-season-strip__stage-number {
+  min-width: 24px;
+  height: 24px;
+  border-radius: var(--football-radius-control);
+  background: var(--football-surface);
+  font-size: 12px;
+}
+.football-wheel-shell .football-dashboard__main {
+  width: 100%;
+  height: auto;
+  max-height: none;
+  min-height: calc(100dvh - 132px);
+  overflow: visible;
+  padding: 24px !important;
+}
+.football-wheel-shell .football-dashboard__grid {
+  grid-template-columns: minmax(180px, .8fr) minmax(0, 1.8fr) minmax(260px, 1fr) !important;
+  gap: 16px !important;
+  height: auto !important;
+  overflow: visible !important;
+  align-items: stretch;
+}
+.football-wheel-shell .football-dashboard__story,
+.football-wheel-shell .football-dashboard__actions,
+.football-wheel-shell .football-dashboard__dossier {
+  min-height: 0;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+  border: 0 !important;
+  border-radius: var(--football-radius-panel) !important;
+}
+.football-wheel-shell .football-dashboard__story { background: var(--football-sunken); }
+.football-wheel-shell .football-dashboard__actions {
+  min-height: 620px;
+  padding: 24px !important;
+  background: var(--football-surface);
+}
+.football-wheel-shell .football-dashboard__dossier { background: var(--football-surface); }
+.football-wheel-shell .football-dossier-body { overflow: visible; padding: 20px; gap: 24px; }
+.football-wheel-shell .football-story-rail { padding: 24px 16px !important; }
+.football-wheel-shell .football-story-rail__header h2 { font-size: 24px; line-height: 1.2; }
+.football-wheel-shell .football-story-rail__summary { gap: 16px; }
+.football-wheel-shell .football-story-rail__summary > div:nth-child(2) { padding-left: 16px; }
+.football-wheel-shell .football-story-rail__summary span,
+.football-wheel-shell .football-story-rail__summary small { white-space: normal; font-size: 12px; }
+.football-wheel-shell .football-story-rail__summary strong { font-size: 40px; }
+.football-wheel-shell .football-story-rail__club strong { font-size: 18px; overflow-wrap: anywhere; }
+.football-wheel-shell .football-story-rail__club small { font-size: 12px; line-height: 1.6; }
+.football-wheel-shell .football-story-rail__honours {
+  min-height: 56px;
+  margin-top: 32px;
+  padding-block: 16px;
+}
+.football-wheel-shell .football-story-rail__honours > span { font-family: var(--font-body); font-size: 13px; }
+.football-wheel-shell .football-story-rail__honours > strong { font-size: 28px; }
+.football-wheel-shell .football-action-panel__header { padding-bottom: 24px; }
+.football-wheel-shell .football-action-panel__header h2 { font-size: clamp(28px, 2.5vw, 38px); line-height: 1.18; }
+.football-wheel-shell .football-wheel-stage { gap: 24px; }
+.football-wheel-shell .football-spinner-wheel__stage { width: min(100%, 380px); }
+.football-wheel-shell .football-spinner-wheel__disc { width: 100%; height: auto; aspect-ratio: 1; }
+.football-wheel-shell .football-action-panel .football-spinner-wheel__label { border-radius: var(--football-radius); }
+.football-wheel-shell .football-action-panel .football-spinner-wheel__label-text { line-height: 1.2; }
+.football-wheel-shell .football-action-panel__primary { min-height: 52px; }
+.football-season-side-summary dt { font-size: 13px; }
+.football-season-side-summary dd { font-size: 18px; }
+.football-contract-summary__rows .football-data-row { align-items: start; padding-block: 12px; }
+.football-contract-summary .football-button { line-height: 1.5; padding-block: 12px; }
+
+.football-draft-setup {
+  width: min(100% - 48px, calc(var(--football-max-width) - 48px));
+  min-height: calc(100dvh - 124px);
+  margin: 24px auto;
+  gap: 24px;
+  grid-template-columns: minmax(0, 1fr) minmax(280px, 28%);
+}
+.football-draft-setup__main {
+  overflow: clip;
+  border-radius: var(--football-radius-panel);
+  background: var(--football-surface);
+}
+.football-draft-progress { padding: 24px; }
+.football-draft-progress__chapters { font-size: 13px; }
+.football-draft-progress__chapters span { white-space: normal; }
+.football-draft-progress__ticks i { height: 5px; border-radius: var(--football-radius-control); }
+.football-draft-progress__footer > span { font-size: 12px; }
+.football-draft-setup__action { gap: 24px; padding: 32px; background: var(--football-surface); }
+.football-draft-setup__heading h1 { font-size: 40px; line-height: 1.2; }
+.football-draft-setup__heading p { font-size: 16px; }
+.football-draft-setup__heading > span,
+.football-draft-setup__cta > span { font-size: 13px; }
+.football-draft-dossier { border: 0; border-radius: var(--football-radius-panel); }
+.football-draft-dossier__heading h2 { font-size: 28px; }
+.football-draft-dossier__row { gap: 16px; padding-block: 12px; }
+.football-draft-dossier__row span { font-size: 13px; }
+.football-draft-dossier__row strong { font-size: 16px; }
+
+.football-squad-board-shell { height: auto; min-height: 100dvh; }
+.football-squad-board-shell .football-app-shell__main {
+  width: min(100% - 48px, calc(var(--football-max-width) - 48px));
+  margin-inline: auto;
+  padding: 0 0 32px;
+  overflow: visible;
+}
+.football-squad-board__head { padding-block: 24px; }
+.football-squad-board-shell .football-squad-board__title-row h1 {
+  font-size: 42px;
+  overflow: visible;
+  white-space: normal;
+  overflow-wrap: anywhere;
+}
+.football-squad-board-shell .football-squad-dashboard__body { gap: 32px; }
+.football-squad-board-shell .football-squad-dashboard__pitch .football-pitch {
+  min-height: 600px;
+  border-radius: var(--football-radius-panel);
+}
+.football-squad-board-shell .football-squad-summary { padding-block: 24px; border-top-color: var(--football-rule); }
+.football-squad-summary__score strong { font-size: 52px; }
+.football-squad-summary__message p { font-size: 14px; }
+.football-squad-board-shell .football-squad-summary { flex-wrap: wrap; gap: 20px; }
+.football-squad-summary__message { flex-basis: 200px; }
+.football-squad-summary__action, .football-squad-summary__pve-entry { flex-basis: 100%; flex-wrap: wrap; gap: 16px; margin-left: 0; }
+.football-squad-summary__action .football-button { flex: 0 0 auto; white-space: nowrap; }
+.football-squad-summary__score small { color: var(--football-ink-3); }
+.football-squad-board-shell .football-squad-sheet__row { min-height: 48px; }
+.football-squad-board-shell .football-squad-sheet__row--head { min-height: 32px; }
+.football-squad-board-shell .football-squad-sheet__player { font-size: 17px; }
+.football-squad-board-shell .football-squad-sheet__ovr { font-size: 22px; }
+.football-squad-sheet__table { overflow: visible; }
+.football-squad-sheet__row.is-active .football-squad-sheet__player i,
+.football-pitch-token__status i { display: none; }
+.football-squad-dashboard__next-action { flex-wrap: wrap; }
+
+.football-shop-page {
+  min-height: 0;
+  border: 0;
+  border-radius: var(--football-radius-panel);
+  padding: 32px;
+  background: var(--football-surface);
+}
+.football-shop-content { height: auto; overflow: visible; }
+.football-shop-content__body { overflow: visible; }
+.football-shop-content--standalone .football-shop-content__header { padding-bottom: 24px; }
+.football-shop-content--standalone .football-shop-content__subtitle { font-size: 16px; }
+.football-shop-content__balance {
+  border-radius: var(--football-radius);
+  padding: 16px 24px;
+  background: var(--football-sunken);
+}
+.football-shop-content--standalone .football-shop-item { gap: 24px; padding-block: 24px; }
+.football-shop-content--standalone .football-shop-item__title { font-size: 24px; }
+.football-shop-item__price { font-size: 24px; }
+.football-shop-item__action { gap: 24px; }
+.football-shop-item--locked { opacity: 1; }
+.football-shop-content__footer { padding-top: 24px; flex-wrap: wrap; }
+
+/* A dialog scrolls its catalogue while keeping its header and actions separate. */
+.football-shop-modal { padding: 24px; }
+.football-shop-modal .football-shop-content { max-height: calc(100dvh - 112px); overflow: hidden; }
+.football-shop-modal .football-shop-content__header { flex-shrink: 0; padding-bottom: 16px; }
+.football-shop-modal .football-shop-content__body { overflow-y: auto; }
+.football-shop-modal .football-shop-content__footer { flex-shrink: 0; border-top: 1px solid var(--football-rule); padding-top: 16px; }
+
+.football-transfer-shell:has(.football-transfer-negotiation, .football-transfer-success, .football-transfer-loading) {
+  height: auto;
+  overflow: visible;
+}
+.football-transfer-shell .football-app-shell__main > .football-transfer-window,
+.football-transfer-shell .football-app-shell__main > .football-transfer-success,
+.football-transfer-shell .football-app-shell__main > .football-transfer-negotiation,
+.football-transfer-shell .football-app-shell__main > .football-transfer-loading {
+  border: 0;
+  border-radius: var(--football-radius-panel);
+  background: var(--football-surface);
+}
+.football-transfer-window__header { padding: 32px; }
+.football-transfer-window__header h1 { font-size: 44px; line-height: 1.15; }
+.football-transfer-window__context { padding: 24px 32px; background: var(--football-sunken); }
+.football-transfer-window__context strong { font-size: 20px; }
+.football-transfer-window__context label { font-size: 13px; line-height: 1.5; }
+.football-transfer-tabs { padding-inline: 32px; }
+.football-transfer-tabs button { min-height: 56px; font-family: var(--font-body); font-size: 14px; }
+.football-transfer-panel { padding: 24px 32px 32px; }
+.football-transfer-panel__heading h2 { font-size: 28px; }
+.football-transfer-panel__heading p { font-size: 14px; }
+.football-transfer-offers, .football-transfer-targets { gap: 24px; }
+.football-transfer-offer,
+.football-transfer-target {
+  border: 0;
+  border-radius: var(--football-radius);
+  background: var(--football-paper);
+  padding: 24px;
+}
+.football-transfer-offer { border-top: 4px solid var(--football-accent); }
+.football-transfer-offer.is-renewal { border-top-color: var(--football-positive); }
+.football-transfer-offer h3 { font-size: 32px; }
+.football-transfer-offer__details strong { font-size: 18px; }
+.football-transfer-target__heading h3 { font-size: 24px; }
+.football-transfer-target__meta b { font-size: 18px; }
+.football-transfer-search label,
+.football-transfer-search select,
+.football-transfer-target__actions select { min-height: 44px; border-radius: var(--football-radius); font-size: 14px; }
+.football-transfer-window__footer { padding: 24px 32px; }
+.football-transfer-wage-options { gap: 16px; margin-block: 16px 24px; }
+.football-transfer-wage-options button { min-height: 132px; padding: 16px; border-radius: var(--football-radius); }
+.football-transfer-wage-options strong { font-size: 28px; }
+.football-transfer-mood { border: 0; padding: 16px 0; }
+.football-transfer-mood__track { height: 8px; border-radius: var(--football-radius-control); }
+.football-transfer-success__facts strong,
+.football-transfer-negotiation__offer strong { font-size: 28px; }
+
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .football-wheel-shell .football-dashboard__grid {
+    grid-template-columns: 180px minmax(0, 1fr) 260px !important;
+    gap: 12px !important;
+  }
+  .football-wheel-shell .football-dashboard__actions { padding: 16px !important; }
+  .football-wheel-shell .football-story-rail { padding: 16px !important; }
+  .football-wheel-shell .football-story-rail__summary { grid-template-columns: minmax(0, 1fr); }
+  .football-wheel-shell .football-story-rail__summary > div:nth-child(2) { border-left: 0; padding-left: 0; }
+  .football-wheel-shell .football-wheel-header__identity,
+  .football-wheel-shell .football-wheel-header__right,
+  .football-wheel-shell .football-wheel-header__context { gap: 12px; }
+  .football-wheel-shell .football-season-strip__inner { gap: 12px; }
+  .football-wheel-shell .football-dossier-body { padding: 16px; }
+  .football-wheel-shell .football-action-panel__header h2 { font-size: 28px; }
+  .football-squad-board-shell .football-squad-summary { display: flex; }
+  .football-squad-board-shell .football-squad-sheet__heading { display: flex; }
+  .football-squad-board-shell .football-squad-dashboard__pitch { flex-basis: auto; }
+  .football-squad-board-shell .football-squad-dashboard__pitch .football-pitch { flex-basis: auto; min-height: 520px; }
+  .football-transfer-window__context { gap: 16px; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  .football-transfer-window__context label { grid-column: 1 / -1; }
+  .football-transfer-offer__details { grid-template-columns: minmax(0, 1fr); }
+}
+
+.football-wheel-shell .football-story-rail__honours { min-height: 48px; padding-block: 0; }
+.football-panini-sticker__stats { padding-bottom: 8px; }

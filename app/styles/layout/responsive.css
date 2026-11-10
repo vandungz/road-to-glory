@@ -5,10 +5,10 @@
 .football-dashboard__dossier > .football-tab-list { display: flex !important; gap: 0 !important; border: 0 !important; border-bottom: 1px solid var(--football-rule) !important; border-radius: 0 !important; padding: 0 !important; background: transparent !important; box-shadow: none !important; }
 .football-dashboard__dossier > .football-tab-list button { min-height: 44px; border: 0 !important; border-bottom: 2px solid transparent !important; border-radius: 0 !important; background: transparent !important; box-shadow: none !important; color: var(--football-ink-3) !important; font-size: 12px !important; }
 .football-dashboard__dossier > .football-tab-list button.is-active, .football-dashboard__dossier > .football-tab-list button[aria-selected="true"], .football-dashboard__dossier > .football-tab-list button:hover { border-bottom-color: var(--football-accent) !important; color: var(--football-ink) !important; }
-.football-modal-panel--inverse .football-button--outline { color: var(--football-paper); box-shadow: inset 0 0 0 1px rgba(244, 241, 234, .7); }
-.football-modal-panel--inverse .football-button--outline:hover:not(:disabled) { background: rgba(244, 241, 234, .1); }
+.football-modal-panel--inverse .football-button--outline { color: var(--football-paper); box-shadow: inset 0 0 0 1px var(--football-legacy-59); }
+.football-modal-panel--inverse .football-button--outline:hover:not(:disabled) { background: var(--football-legacy-60); }
 .football-dashboard__mobile-switcher { position: fixed !important; right: 0; bottom: 0; left: 0; z-index: 30; display: none !important; gap: 0 !important; margin: 0 !important; padding: 8px 12px; border-top: 1px solid var(--football-rule); background: var(--football-surface); }
-.football-dashboard__mobile-switcher button { min-height: 44px; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; color: var(--football-ink-2) !important; font-family: var(--font-headline) !important; font-size: 12px !important; letter-spacing: 0.06em; text-transform: uppercase; }
+.football-dashboard__mobile-switcher button { min-height: 44px; border: 0 !important; border-radius: 0 !important; box-shadow: none !important; background: transparent !important; color: var(--football-ink-2) !important; font-family: var(--font-headline) !important; font-size: 12px !important; letter-spacing: 0; text-transform: none; }
 .football-dashboard__mobile-switcher button:first-child { color: var(--football-accent-ink) !important; }
 .football-season-strip { border-bottom: 1px solid var(--football-rule) !important; padding: 0 28px !important; background: var(--football-surface) !important; box-shadow: none !important; }
 .football-season-strip > div { max-width: none !important; min-height: 44px; }
@@ -21,7 +21,7 @@
 .football-season-profile__inner { display: flex; flex-direction: column; gap: 18px; padding: 0 !important; }
 .football-season-profile__select { min-height: 44px; border: 1px solid var(--football-rule-strong); border-radius: var(--football-radius); padding: 0 12px; background: var(--football-surface); color: var(--football-ink); font-family: var(--font-body); font-size: 14px; }
 .football-season-profile__club { display: flex; flex-direction: column; gap: 3px; border-bottom: 1px solid var(--football-rule); padding-bottom: 14px; }
-.football-season-profile__club span { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.1em; text-transform: uppercase; }
+.football-season-profile__club span { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; }
 .football-season-profile__club strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 20px; font-weight: 600; }
 .football-season-profile__club small { color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; }
 .football-season-profile__rows { border-top: 1px solid var(--football-rule); }
@@ -29,26 +29,26 @@
 button.football-season-profile__row { cursor: pointer; }
 button.football-season-profile__row:hover:not(:disabled) { color: var(--football-accent-ink); }
 .football-season-profile__row > span:first-child { overflow: hidden; font-family: var(--font-headline); font-size: 14px; text-overflow: ellipsis; white-space: nowrap; }
-.football-season-profile__row > span:last-child { display: inline-flex; align-items: center; gap: 4px; color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 10px; letter-spacing: 0.05em; text-transform: uppercase; white-space: nowrap; }
+.football-season-profile__row > span:last-child { display: inline-flex; align-items: center; gap: 4px; color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; white-space: nowrap; }
 .football-season-profile__row.is-champion > span:last-child, .football-season-profile__row.is-national > span:last-child { color: var(--football-accent-ink); }
 .football-season-profile__row.is-inactive { color: var(--football-disabled); }
 .football-panini-sticker { display: flex; min-height: 0; flex-direction: column; gap: 0; padding: 9px !important; background: var(--football-sunken) !important; border: 0 !important; border-radius: 2px !important; box-shadow: inset 0 0 0 1px var(--football-ink); }
-.football-panini-sticker__top { display: flex; align-items: baseline; justify-content: space-between; border: 0; padding: 7px 10px; background: var(--football-accent); color: rgba(255, 253, 248, .85); font-family: var(--font-stamp); font-size: 9px; letter-spacing: 0.14em; text-transform: uppercase; }
-.football-panini-sticker__top strong { color: var(--football-surface); font-family: var(--font-headline); font-size: 12px; letter-spacing: .08em; }
-.football-panini-sticker__portrait { position: relative; display: flex; height: 156px; min-height: 156px; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; background: repeating-linear-gradient(135deg, #e4e0d4 0 6px, #edeae0 6px 12px); }
+.football-panini-sticker__top { display: flex; align-items: baseline; justify-content: space-between; border: 0; padding: 7px 10px; background: var(--football-accent); color: var(--football-legacy-61); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; }
+.football-panini-sticker__top strong { color: var(--football-surface); font-family: var(--font-headline); font-size: 12px; letter-spacing: 0; }
+.football-panini-sticker__portrait { position: relative; display: flex; height: 156px; min-height: 156px; flex-direction: column; align-items: center; justify-content: flex-end; overflow: hidden; background: repeating-linear-gradient(135deg, var(--football-legacy-10) 0 6px, var(--football-legacy-11) 6px 12px); }
 .football-panini-sticker__portrait > strong { align-self: flex-start; padding: 10px; color: var(--football-ink); font-family: var(--font-headline); font-size: 34px; font-weight: 600; line-height: 1; }
-.football-panini-sticker__portrait > div { width: 62px; height: 74px; border-radius: 50% 50% 0 0; background: #d6d1c3; }
-.football-panini-sticker__portrait-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; white-space: nowrap; }
-.football-panini-sticker__flag { position: absolute; top: 12px; right: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 9.5px; letter-spacing: .1em; text-transform: uppercase; }
+.football-panini-sticker__portrait > div { width: 62px; height: 74px; border-radius: 50% 50% 0 0; background: var(--football-legacy-12); }
+.football-panini-sticker__portrait-label { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; white-space: nowrap; }
+.football-panini-sticker__flag { position: absolute; top: 12px; right: 10px; display: inline-flex; align-items: center; justify-content: center; color: var(--football-ink-2); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; }
 .football-panini-sticker__flag img { display: block; width: 18px; height: 12px; object-fit: cover; }
 .football-panini-sticker__identity { display: flex; flex-direction: column; gap: 3px; border: 0; padding: 10px 10px 12px; background: var(--football-surface); text-align: center; }
-.football-panini-sticker__identity strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; letter-spacing: .02em; text-transform: none; }
+.football-panini-sticker__identity strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; letter-spacing: 0; text-transform: none; }
 .football-panini-sticker__identity span { color: var(--football-ink-2); font-family: var(--font-body); font-size: 13px; }
 .football-panini-sticker__stats { display: grid; grid-template-columns: repeat(6, 1fr); gap: 2px; border-top: 1px solid var(--football-rule); border-bottom: 0; padding-top: 9px; padding-bottom: 0; text-align: center; }
 .football-panini-sticker__stats div { display: flex; flex-direction: column; gap: 3px; }
-.football-panini-sticker__stats span, .football-panini-sticker__row span, .football-panini-sticker__footer { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 8.5px; letter-spacing: 0.06em; text-transform: uppercase; }
+.football-panini-sticker__stats span, .football-panini-sticker__row span, .football-panini-sticker__footer { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; }
 .football-panini-sticker__stats strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 15px; font-weight: 500; font-variant-numeric: tabular-nums; }
-.football-panini-sticker__stats em { display: block; color: var(--football-positive); font-family: var(--font-stamp); font-size: 9px; font-style: normal; }
+.football-panini-sticker__stats em { display: block; color: var(--football-positive); font-family: var(--font-stamp); font-size: 12px; font-style: normal; }
 .football-panini-sticker__row { display: flex; justify-content: space-between; border-bottom: 1px solid var(--football-rule); padding-bottom: 8px; }
 .football-panini-sticker__row strong { color: var(--football-accent-ink); font-family: var(--font-headline); font-size: 15px; }
 .football-panini-sticker__footer { display: flex; justify-content: space-between; padding-top: 4px; }
@@ -254,9 +254,9 @@ button.football-season-profile__row:hover:not(:disabled) { color: var(--football
   .mobile-career-context__club span,
   .mobile-career-context__season span {
     font-family: var(--font-stamp);
-    font-size: 0.54rem;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0;
+    text-transform: none;
   }
 
   .mobile-career-context__eyebrow {
@@ -269,7 +269,7 @@ button.football-season-profile__row:hover:not(:disabled) { color: var(--football
 
   .mobile-career-context__status {
     flex: 0 0 auto;
-    color: #266b3e;
+    color: var(--football-legacy-62);
   }
 
   .mobile-career-context__status.is-processing {

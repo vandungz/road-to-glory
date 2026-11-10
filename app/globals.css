@@ -1,7 +1,13 @@
-@import url("https://fonts.googleapis.com/css2?family=Oswald:wght@400;500;600;700&family=Lora:ital,wght@0,400;0,500;0,600;1,400&family=Special+Elite&display=swap");
+/* Hallmark · shape: app screen · genre: playful · theme: brand · redesign: restyle
+ * display: Oswald · body: Be Vietnam Pro · nav: kept · signature: nationality player cards
+ * states: existing loading, error, empty, full · axes: light/display-condensed/warm · v2.0.0 */
+/* Hallmark · pre-emit critique: readable sports album; weakest: tiny metadata, enlarged and untracked. */
+/* Hallmark · waive 24b · existing app screen layouts are preserved at user request · Legacy football component spacing stays intact; the new identity layers use the shared 4px scale. */
+/* Hallmark · waive 71 · current-step and journal metadata in a game workspace · headings label compact panels; rules and 16px padding separate records rather than opening document sections. */
 @import "tailwindcss";
 /* Import order is intentional: tokens -> feature surfaces -> responsive overrides. */
 @import "./styles/foundation/tokens.css";
+@import "./styles/foundation/legacy-palette.css";
 @import "./styles/features/awards-transfer-wheel.css";
 @import "./styles/features/shop-and-squad.css";
 @import "./styles/foundation/shared-primitives.css";
@@ -12,3 +18,11 @@
 @import "./styles/features/quick-mode.css";
 @import "./styles/features/pve.css";
 @import "./styles/foundation/animations.css";
+@import "./styles/foundation/nation-themes.css";
+@import "./styles/foundation/identity-system.css";
+@import "./styles/features/identity-entry.css";
+@import "./styles/features/identity-game.css";
+@import "./styles/features/identity-career.css";
+@import "./styles/features/identity-quick.css";
+@import "./styles/features/editorial-media.css";
+@import "./styles/layout/desktop-policy.css";

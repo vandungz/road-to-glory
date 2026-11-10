@@ -1,0 +1,99 @@
+html, body { overflow-x: clip; }
+html { scroll-padding-top: 80px; }
+body { font-size: 16px; }
+h1, h2, h3 { min-width: 0; overflow-wrap: break-word; text-wrap: balance; }
+button, input, select, textarea { font: inherit; }
+button, a { -webkit-tap-highlight-color: transparent; }
+button:not(:disabled), a { touch-action: manipulation; }
+:where(button, a, input, select, textarea, [tabindex]):focus-visible {
+  outline: var(--football-outline);
+  outline-offset: 4px;
+  transition: none;
+}
+::selection { color: var(--football-surface); background: var(--football-accent-ink); }
+input, textarea { caret-color: var(--football-accent-ink); }
+
+.football-app-shell { min-height: 100svh; }
+.football-app-shell .football-app-shell__header {
+  min-height: 80px;
+  padding-inline: max(32px, calc((100% - var(--football-max-width)) / 2));
+  border-bottom-color: var(--football-rule);
+  background: var(--football-surface);
+}
+.football-app-shell__wordmark > span { font-size: 26px; letter-spacing: -.025em; }
+.football-app-shell__wordmark small { font-family: var(--font-body); font-size: 12px; }
+.football-app-shell__wordmark > i { display: none; }
+.football-app-shell .football-app-shell__main {
+  width: calc(100% - 64px);
+  max-width: var(--football-max-width);
+  margin-inline: auto;
+}
+.football-app-shell__back, .football-app-shell__logout { font-family: var(--font-body); font-size: 13px; }
+.football-app-shell .football-app-shell__footer {
+  min-height: 56px;
+  padding-inline: max(32px, calc((100% - var(--football-max-width)) / 2));
+}
+.football-app-shell__footer > span, .football-app-shell__replay { color: var(--football-ink-3); font-family: var(--font-body); font-size: 12px; }
+
+.football-button, .btn-primary, .btn-secondary {
+  border-radius: var(--football-radius-control);
+  font-family: var(--font-body);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0;
+  line-height: 1.4;
+  text-transform: none;
+  text-decoration: none;
+  padding: 12px 24px;
+  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+}
+.football-button--primary, .btn-primary { background: var(--football-accent-ink); color: var(--football-primary-text); }
+.football-button--primary:hover:not(:disabled), .btn-primary:hover:not(:disabled) { background: var(--football-ink); }
+.football-button:not(:disabled):active, .btn-primary:not(:disabled):active { transform: translateY(1px); }
+.football-button:disabled, .btn-primary:disabled, .btn-secondary:disabled {
+  background: var(--football-sunken);
+  color: var(--football-ink-2);
+  opacity: .6;
+  cursor: not-allowed;
+}
+.football-icon-button { border-radius: var(--football-radius-control); }
+.football-badge, .badge-status { min-height: 28px; padding: 4px 12px; border-radius: var(--football-radius-control); font-family: var(--font-body); font-size: 12px; }
+.football-badge--positive { background: color-mix(in srgb, var(--football-positive) 10%, var(--football-surface)); }
+.football-badge--warning { background: color-mix(in srgb, var(--football-warning) 10%, var(--football-surface)); }
+.football-badge--negative { background: color-mix(in srgb, var(--football-negative) 10%, var(--football-surface)); }
+.football-input, .input-retro, .select-retro { min-height: 48px; border-radius: var(--football-radius); font-size: 16px; }
+.football-field__label, .football-data-row__label { font-family: var(--font-body); font-size: 13px; }
+.football-data-row { min-height: 44px; align-items: center; }
+.football-data-row__value { font-size: 18px; }
+.football-modal-panel { border: 0; border-radius: var(--football-radius-panel); }
+.football-modal-header { gap: 16px; padding: 24px; }
+.football-modal-header__title { font-size: 28px; }
+.football-modal-body { padding: 24px; }
+.football-modal-footer { gap: 12px; padding: 20px 24px; }
+.football-modal-panel--inverse { color: var(--football-paper); }
+.football-modal-panel--inverse .football-icon-button { color: var(--football-paper); }
+.football-tab-list { gap: 8px; }
+.football-tab { min-height: 44px; padding-inline: 16px; font-family: var(--font-body); font-size: 13px; }
+.football-stat__value { font-variant-numeric: tabular-nums; font-size: 32px; }
+.football-progress__track { gap: 4px; }
+.football-progress__track span { min-height: 6px; border-radius: var(--football-radius-control); }
+.football-progress__labels { font-family: var(--font-body); font-size: 12px; }
+.football-spinner-wheel__disc { box-shadow: none; }
+.football-spinner-wheel__label { border-radius: var(--football-radius-control); }
+.football-spinner-wheel__label-text { font-family: var(--font-headline); font-size: 24px; }
+
+/* Legacy inline metadata remains present, but follows the shared type hierarchy. */
+[style*="var(--font-stamp)"] { font-family: var(--font-body) !important; letter-spacing: 0 !important; text-transform: none !important; }
+[style*="var(--font-stamp)"]:not(svg *) { font-size: max(12px, .75rem) !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
+  [data-anim] { opacity: 1 !important; transform: none !important; }
+}
+
+:is(.football-shop-shell, .football-transfer-shell) .football-app-shell__header { z-index: 20; }
+:is(.football-shop-shell, .football-transfer-shell) .football-app-shell__header,
+.football-career-dialog__seasons th,
+.football-pve-league-table__row--head { position: sticky; top: 0; }
+
+.football-input, .input-retro, .select-retro { border: 1px solid var(--football-ink-3); box-shadow: none; }

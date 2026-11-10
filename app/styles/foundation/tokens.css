@@ -11,11 +11,11 @@
   --football-inverse: #1C1B18;
   --football-ink: #21201D;
   --football-ink-2: #5E5B52;
-  --football-ink-3: #8E8A7E;
+  --football-ink-3: #666155;
   --football-rule: #DEDACE;
   --football-rule-strong: #C9C4B4;
   --football-accent: #E8502F;
-  --football-accent-ink: #C7401F;
+  --football-accent-ink: #B9361C;
   --football-positive: #2F6B45;
   --football-warning: #B0761C;
   --football-negative: #B23A2B;
@@ -25,8 +25,15 @@
   --football-focus: #E8502F;
   --football-shadow-overlay: 0 24px 56px -18px rgba(28, 27, 24, 0.55);
   --football-scrim: rgba(28, 27, 24, 0.55);
-  --football-radius: 2px;
-  --football-radius-sheet: 12px;
+  --football-radius: 12px;
+  --football-radius-sheet: 20px;
+
+  --football-radius-panel: 20px;
+  --football-radius-control: 999px;
+  --football-max-width: 1440px;
+  --football-outline: 3px solid var(--football-focus);
+  --football-primary-text: #FFFDF8;
+  --football-wheel-rule: rgba(244, 241, 234, 0.8);
 
   /* Wheel palette */
   --football-wheel-1: #E8502F;
@@ -53,9 +60,9 @@
   --ink-light: var(--football-ink-3);
 
   /* Typography */
-  --font-headline: "Oswald", "Impact", sans-serif;
-  --font-body: "Lora", "Georgia", serif;
-  --font-stamp: "Special Elite", "Courier New", monospace;
+  --font-headline: var(--font-oswald), "Impact", sans-serif;
+  --font-body: var(--font-vietnam), "Arial", sans-serif;
+  --font-stamp: var(--font-body);
 
   /* Spacing & Shape */
   --border-width: 1px;
@@ -104,17 +111,17 @@ body {
 @theme inline {
   --color-background: var(--cream);
   --color-foreground: var(--charcoal);
-  --color-cream: #F5F2EB;
-  --color-cream-dark: #EDE9DF;
-  --color-cream-border: #D8D3C4;
-  --color-charcoal: #27272a;
-  --color-coral: #FF5A43;
-  --color-coral-hover: #E84A33;
-  --color-ink-gray: #71717a;
+  --color-cream: var(--football-legacy-52);
+  --color-cream-dark: var(--football-legacy-53);
+  --color-cream-border: var(--football-legacy-54);
+  --color-charcoal: var(--football-legacy-55);
+  --color-coral: var(--football-legacy-56);
+  --color-coral-hover: var(--football-legacy-57);
+  --color-ink-gray: var(--football-legacy-58);
 
-  --font-headline: "Oswald", "Impact", sans-serif;
-  --font-body: "Lora", "Georgia", serif;
-  --font-stamp: "Special Elite", "Courier New", monospace;
+  --font-headline: var(--font-oswald), "Impact", sans-serif;
+  --font-body: var(--font-vietnam), "Arial", sans-serif;
+  --font-stamp: var(--font-body);
 }
 
 /* ============================================================
@@ -123,8 +130,8 @@ body {
 
 .font-headline {
   font-family: var(--font-headline);
-  letter-spacing: 0.02em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
 }
 
 .font-stamp {
@@ -147,8 +154,8 @@ body {
   font-family: var(--font-headline);
   font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   border: none;
   border-radius: var(--football-radius);
   box-shadow: none;
@@ -184,8 +191,8 @@ body {
   font-family: var(--font-headline);
   font-size: 0.95rem;
   font-weight: 600;
-  letter-spacing: 0.07em;
-  text-transform: uppercase;
+  letter-spacing: 0;
+  text-transform: none;
   border: 1px solid var(--football-rule-strong);
   border-radius: var(--football-radius);
   box-shadow: none;
@@ -219,7 +226,7 @@ body {
 }
 
 .card-retro:hover {
-  background-color: #FFFCF5;
+  background-color: var(--football-legacy-37);
 }
 
 /* ============================================================
@@ -241,8 +248,8 @@ body {
 }
 
 .input-retro:focus {
-  border-color: var(--football-accent);
-  box-shadow: inset 0 0 0 1px var(--football-accent);
+  outline: 2px solid var(--football-focus);
+  outline-offset: 2px;
 }
 
 .input-retro::placeholder {
@@ -269,8 +276,8 @@ body {
 }
 
 .select-retro:focus {
-  border-color: var(--football-accent);
-  box-shadow: inset 0 0 0 1px var(--football-accent);
+  outline: 2px solid var(--football-focus);
+  outline-offset: 2px;
 }
 
 /* ============================================================
@@ -292,9 +299,9 @@ body {
   align-items: center;
   padding: 3px 8px;
   font-family: var(--font-stamp);
-  font-size: 0.68rem;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0;
+  text-transform: none;
   border: none;
   border-radius: var(--football-radius);
 }
