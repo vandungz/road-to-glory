@@ -71,7 +71,7 @@ export function CreateGameDialog() {
                   id="squad-name"
                   name="name"
                   type="text"
-                  placeholder="Ví dụ: Những chiến binh"
+                  placeholder="Tên đội hình của bạn"
                   maxLength={50}
                   required
                   disabled={isPending}

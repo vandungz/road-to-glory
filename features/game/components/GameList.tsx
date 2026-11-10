@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { ChevronRight } from "lucide-react";
-import { motion } from "framer-motion";
 import type { GameSessionSummary } from "@/types/game";
 
 function formatDate(date: Date): string {
@@ -24,7 +23,7 @@ function SessionMeta({ session, active = false }: { session: GameSessionSummary;
 
 function ActiveSession({ session }: { session: GameSessionSummary }) {
   return (
-    <motion.article className="football-classic-lobby__active" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+    <article className="football-classic-lobby__active">
       <Link href={`/classic/${session.id}`} className="football-classic-lobby__active-link" aria-label={`Tiếp tục draft đội hình ${session.name}`}>
         <div className="football-classic-lobby__active-copy">
           <h2>{session.name}</h2>
@@ -38,14 +37,14 @@ function ActiveSession({ session }: { session: GameSessionSummary }) {
           <ChevronRight aria-hidden="true" size={18} strokeWidth={1.5} />
         </div>
       </Link>
-    </motion.article>
+    </article>
   );
 }
 
-function SessionRow({ session, index }: { session: GameSessionSummary; index: number }) {
+function SessionRow({ session }: { session: GameSessionSummary }) {
   const completed = session.status === "completed";
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.2, delay: index * 0.04 }}>
+    <div>
       <Link href={`/classic/${session.id}`} className="football-classic-lobby__row" aria-label={`Mở đội hình ${session.name}`}>
         <div className="football-classic-lobby__row-copy">
           <h3>{session.name}</h3>
@@ -56,7 +55,7 @@ function SessionRow({ session, index }: { session: GameSessionSummary; index: nu
         <span className="football-classic-lobby__ovr"><strong>{session.squadRating ?? "—"}</strong><small>Squad OVR</small></span>
         <ChevronRight className="football-classic-lobby__chevron" aria-hidden="true" size={18} strokeWidth={1.5} />
       </Link>
-    </motion.div>
+    </div>
   );
 }
 
@@ -75,7 +74,9 @@ export function GameList({ sessions }: { sessions: GameSessionSummary[] }) {
       {otherSessions.length > 0 && (
         <section className="football-classic-lobby__other" aria-labelledby="other-squads-title">
           <div className="football-classic-lobby__other-heading"><span id="other-squads-title">Đội hình khác</span><small>{otherSessions.length} đội hình · xếp mới nhất</small></div>
-          {otherSessions.map((session, index) => <SessionRow key={session.id} session={session} index={index} />)}
+          <div className="football-classic-lobby__other-list" role="region" aria-label="Danh sách đội hình khác" tabIndex={0}>
+            {otherSessions.map((session) => <SessionRow key={session.id} session={session} />)}
+          </div>
         </section>
       )}
     </div>

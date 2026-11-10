@@ -51,7 +51,7 @@ function FilledSlot({ player, onClick }: { player: ClientSafePlayer; onClick: ()
     ...(flag ? { "--player-flag": `url(${flag})` } : {}),
   } as React.CSSProperties;
   return (
-    <button type="button" className="football-pitch-player" onClick={onClick} style={style} aria-label={`${player.name} — ${player.position}`}>
+    <button type="button" className="football-pitch-player" data-nation={player.nationality.replace(/\s+/g, "")} onClick={onClick} style={style} aria-label={`${player.name} — ${player.position}`}>
       <span className="football-pitch-player__top"><span>{player.position}</span><strong>{player.peakOvr}</strong></span>
       <span className="football-pitch-player__name">{shortName}</span>
     </button>

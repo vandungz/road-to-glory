@@ -1,5 +1,8 @@
 "use client";
 
+import { EditorialArt } from "@/components/shared/EditorialArt";
+
+
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
@@ -24,7 +27,6 @@ function ModeMeta({ mode, status, tone = "" }: { mode: string; status: string; t
   return (
     <div className="football-home-mode__meta">
       <span>Chế độ {mode}</span>
-      <i aria-hidden="true" />
       <span className={tone}>{status}</span>
     </div>
   );
@@ -34,8 +36,7 @@ function ModeArt() {
   return (
     <div className="football-home-mode__art" aria-hidden="true">
       <span className="football-home-mode__art-mark">CLASSIC</span>
-      <span>Build a squad. Write a career.</span>
-      <small>Football Life · full career mode</small>
+      <EditorialArt asset="heritage-run" priority />
     </div>
   );
 }
@@ -60,8 +61,8 @@ export function Homepage({ sessions, isAuthenticated }: HomepageProps) {
   return (
     <div className="football-homepage" key={motionKey}>
       <div className="football-homepage__head" data-anim>
-        <span className="football-homepage__eyebrow">{isAuthenticated ? "Football Life lobby" : "Guest lobby"}</span>
         <h1>Hôm nay bạn chơi gì?</h1>
+        <span className="football-homepage__context">{isAuthenticated ? "Đã đăng nhập" : "Chế độ khách"}</span>
       </div>
 
       <div className="football-homepage__modes">
@@ -70,7 +71,7 @@ export function Homepage({ sessions, isAuthenticated }: HomepageProps) {
             <div className="football-home-mode__copy">
               <ModeMeta mode="01" status="Đang mở" tone="is-open" />
               <h2 id="classic-mode-title">Classic</h2>
-              <p>Mười ba vòng quay tạo ra một cầu thủ, mười sáu mùa quyết định anh ta trở thành ai.</p>
+              <p>Draft 11 cầu thủ và theo dõi từng sự nghiệp qua các mùa giải.</p>
             </div>
 
             <div className="football-home-mode__stats">
@@ -96,21 +97,18 @@ export function Homepage({ sessions, isAuthenticated }: HomepageProps) {
         <section className="football-homepage__discover" data-anim aria-labelledby="discover-title">
           <div className="football-homepage__discover-head">
             <div>
-              <span className="football-homepage__eyebrow">Khám phá</span>
-              <h2 id="discover-title">Chơi theo nhịp của bạn</h2>
+              <h2 id="discover-title">Chế độ khác</h2>
             </div>
-            <span>Hai mode khác nhau · một hành trình bóng đá</span>
           </div>
 
           <div className="football-homepage__discover-grid">
             <section className="football-home-mode football-home-mode--quick" aria-labelledby="quick-mode-title">
               <div className="football-home-mode__copy">
-                <ModeMeta mode="02" status="Guest · Đang mở" tone="is-open" />
+                <ModeMeta mode="02" status="Không cần tài khoản" tone="is-open" />
                 <h2 id="quick-mode-title">Quick Mode</h2>
-                <p>Một career nhẹ hơn để quay wheel nhanh — không cần login và không lưu kết quả vào tài khoản.</p>
+                <p>Chơi nhanh không cần đăng nhập. Kết quả không lưu vào tài khoản.</p>
               </div>
               <div className="football-home-mode__quick-cta">
-                <span>Guest friendly · chơi ngay</span>
                 <Link className="football-button football-button--primary" href="/quick">Chơi Quick Mode mới</Link>
               </div>
             </section>
@@ -119,10 +117,9 @@ export function Homepage({ sessions, isAuthenticated }: HomepageProps) {
               <div className="football-home-mode__copy">
                 <ModeMeta mode="03" status="Đang mở" tone="is-open" />
                 <h2 id="pve-mode-title">PvE — Road to Glory</h2>
-                <p>Đưa một đội hình Classic đã hoàn thành vào giải đấu huyền thoại. Vượt qua vòng bảng, rồi thắng hai trên ba nhịp để đi tiếp.</p>
+                <p>Dùng đội hình Classic đã hoàn thành để thi đấu vòng bảng và vòng loại trực tiếp.</p>
               </div>
               <div className="football-home-mode__locked-action">
-                <span>Dùng squad Classic · đối thủ bốc từ catalog cầu thủ thực tế</span>
                 <Link className="football-button football-button--primary" href="/pve">Vào PvE Tournament</Link>
               </div>
             </section>

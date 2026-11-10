@@ -48,9 +48,10 @@ function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps)
       onMouseLeave={() => onHover(null)}
       disabled={!isInteractive}
       style={style}
+      data-nation={player?.nationality.replace(/\s+/g, "")}
       aria-label={player ? `Mở hồ sơ ${player.name}` : state === "active" ? `Tiếp tục draft vị trí ${slot.position}` : state === "empty" ? `Draft vị trí ${slot.position}` : `Vị trí ${slot.position} chưa có cầu thủ`}
     >
-      <span className="football-squad-sheet__position">{slot.position}</span>
+      <span className="football-squad-sheet__position">{player?.position ?? slot.position}</span>
       <span className="football-squad-sheet__nation">{nationCode(player?.nationality)}</span>
       <span className="football-squad-sheet__player">
         {state === "active" ? <><i aria-hidden="true" />Đang dở — quay tiếp</> : state === "empty" ? <><Plus aria-hidden="true" size={13} strokeWidth={2.2} />Draft cầu thủ</> : state === "locked" ? "Chưa có cầu thủ" : player?.name}
