@@ -225,10 +225,8 @@ button.football-squad-sheet__row:hover:not(:disabled) { background: var(--footba
 .football-squad-sheet__player { display: flex; min-width: 0; align-items: center; gap: 9px; overflow: hidden; color: var(--football-ink); font-family: var(--font-headline); font-size: 15.5px; font-weight: 500; text-overflow: ellipsis; white-space: nowrap; }
 .football-squad-sheet__ovr { color: var(--football-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; text-align: right; box-shadow: inset 0 -2px 0 0 var(--rarity-accent); }
 .football-squad-sheet__chevron { color: var(--football-rule-strong); }
-.football-squad-sheet__row.is-active { background: var(--football-legacy-32); box-shadow: inset 3px 0 0 var(--football-accent); }
-.football-squad-sheet__row.is-active .football-squad-sheet__position { padding-left: 8px; }
+.football-squad-sheet__row.is-active { background: var(--football-legacy-32); }
 .football-squad-sheet__row.is-active .football-squad-sheet__player { color: var(--football-accent-ink); font-weight: 600; }
-.football-squad-sheet__row.is-active .football-squad-sheet__player i { width: 5px; height: 5px; flex: 0 0 auto; border-radius: 50%; background: var(--football-accent); animation: football-pulse 1800ms ease-in-out infinite; }
 .football-squad-sheet__row.is-empty .football-squad-sheet__position, .football-squad-sheet__row.is-empty .football-squad-sheet__nation, .football-squad-sheet__row.is-empty .football-squad-sheet__ovr { color: var(--football-disabled); }
 .football-squad-sheet__row.is-empty .football-squad-sheet__player { color: var(--football-accent-ink); font-weight: 600; }
 .football-squad-sheet__row.is-empty .football-squad-sheet__player svg { flex: 0 0 auto; }
@@ -252,7 +250,7 @@ button.football-squad-sheet__row:hover:not(:disabled) { background: var(--footba
 .football-pitch-player__top strong { color: var(--football-ink); font-family: var(--font-headline); font-size: 17px; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1; }
 .football-pitch-player__name { overflow: hidden; color: var(--football-ink); font-family: var(--font-headline); font-size: 12.5px; font-weight: 500; line-height: 1.2; text-overflow: ellipsis; white-space: nowrap; }
 
-@media (max-width: 1199px) {
+@media (width < 1024px) {
   .football-squad-board-shell { height: auto; min-height: 100vh; }
   .football-squad-board-shell .football-app-shell__main { overflow: visible; }
   .football-squad-dashboard { flex: 0 0 auto; }

@@ -37,7 +37,7 @@
 .football-squad-board-shell .football-squad-sheet__row.is-hovered::before { opacity: .16; }
 .football-squad-board-shell .football-squad-sheet__row > * { position: relative; z-index: 1; }
 
-@media (max-width: 1199px) {
+@media (width < 1024px) {
   .football-squad-board-shell .football-squad-dashboard { display: flex; min-height: 0; flex: 0 0 auto; flex-direction: column; gap: 0; }
   .football-squad-board-shell .football-squad-dashboard__body { display: flex; min-height: 0; flex: 0 0 auto; flex-direction: column; gap: 0; padding-bottom: 0; }
   .football-squad-board-shell .football-squad-dashboard__pitch { width: 100%; max-width: none; margin: 0; flex: 0 0 250px; }

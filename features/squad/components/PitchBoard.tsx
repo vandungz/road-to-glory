@@ -36,7 +36,7 @@ function SlotButton({ position, state, onClick }: { position: string; state: Exc
       disabled={!isInteractive}
       aria-label={state === "active" ? `Tiếp tục draft cầu thủ ${position}` : state === "empty" ? `Thêm cầu thủ ${position}` : `Vị trí ${position} chưa có cầu thủ`}
     >
-      {state === "active" ? <><span>{position}</span><span className="football-pitch-token__status"><i aria-hidden="true" />Đang dở</span></> : state === "empty" ? <><span>{position}</span><span className="football-pitch-token__status"><Plus aria-hidden="true" size={10} />Draft</span></> : <span>{position}</span>}
+      {state === "active" ? <><span>{position}</span><span className="football-pitch-token__status">Đang dở</span></> : state === "empty" ? <><span>{position}</span><span className="football-pitch-token__status"><Plus aria-hidden="true" size={10} />Draft</span></> : <span>{position}</span>}
     </button>
   );
 }

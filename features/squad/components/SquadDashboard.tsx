@@ -41,6 +41,7 @@ export function SquadDashboard({
   const playerMap = new Map(startingXI.map((player) => [player.slotIndex, player]));
   const activeSlot = slots.find((slot) => getSlotStateForIndex(slot.index, playerMap.get(slot.index), inProgressSlots, status) === "active");
   const nextEmptySlot = slots.find((slot) => getSlotStateForIndex(slot.index, playerMap.get(slot.index), inProgressSlots, status) === "empty");
+  const nextDraftSlot = activeSlot ?? nextEmptySlot;
   const currentSquadOvr = startingXI.length > 0
     ? Math.round(startingXI.reduce((sum, player) => sum + player.peakOvr, 0) / startingXI.length)
     : 0;
@@ -57,14 +58,7 @@ export function SquadDashboard({
 
   return (
     <div className="football-squad-dashboard">
-      <SquadBoardPageHead
-        sessionName={sessionName}
-        mobileMeta={`${startingXI.length} / 11 · ovr tb ${displaySquadOvr || "—"}`}
-        slots={slots}
-        players={startingXI}
-        inProgressSlots={inProgressSlots}
-        status={status}
-      />
+      <SquadBoardPageHead sessionName={sessionName} formation={formation} playerCount={startingXI.length} slotCount={slots.length} />
 
       <div className="football-squad-dashboard__body">
         <section className="football-squad-dashboard__pitch">
@@ -87,6 +81,11 @@ export function SquadDashboard({
             status={status}
             playerCount={startingXI.length}
             squadOvr={displaySquadOvr}
+            draftAction={status !== "completed" && nextDraftSlot && startingXI.length < 11 && (
+              <button type="button" className="football-button football-button--primary" onClick={() => draftSlot(nextDraftSlot.index)}>
+                {activeSlot ? "Tiếp tục draft" : "Draft"} {nextDraftSlot.position}
+              </button>
+            )}
           />
           <SquadSheet
             slots={slots}
@@ -97,15 +96,6 @@ export function SquadDashboard({
             onSlotHover={setHoveredSlot}
             onSlotClick={handleSlotClick}
           />
-          {status !== "completed" && (activeSlot || nextEmptySlot) && startingXI.length < 11 && (
-            <div className="football-squad-dashboard__next-action">
-              <button type="button" className="football-button football-button--primary" onClick={() => draftSlot((activeSlot ?? nextEmptySlot)!.index)}>
-                {activeSlot ? `Quay tiếp ${activeSlot.position}` : `Draft ${nextEmptySlot!.position}`}
-                <span aria-hidden="true">›</span>
-              </button>
-              <span>{activeSlot ? "vị trí đang dở · mở lại đúng bước" : "vị trí trống tiếp theo · vòng quay 13 bước"}</span>
-            </div>
-          )}
         </div>
       </div>
 

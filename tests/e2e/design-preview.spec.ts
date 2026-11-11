@@ -108,11 +108,12 @@ test("national player cards preserve identity and render across desktop sizes", 
 
 test("squad completion action remains readable at every desktop width", async ({ page }) => {
   await page.goto("/dev/design-preview");
-  const button = page.getByRole("button", { name: "Hoàn thành sự nghiệp", exact: true });
+  const button = page.getByRole("button", { name: "Chốt đội hình", exact: true });
   for (const width of [1024, 1280, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
     const box = await button.boundingBox();
-    expect(box!.width).toBeGreaterThan(180);
+    await expect(button).toBeInViewport();
+    expect(await button.evaluate((element) => element.scrollWidth)).toBeLessThanOrEqual(Math.ceil(box!.width));
     expect(box!.height).toBeLessThanOrEqual(64);
     await expectNoHorizontalOverflow(page);
   }

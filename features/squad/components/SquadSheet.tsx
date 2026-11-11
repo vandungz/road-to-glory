@@ -54,7 +54,7 @@ function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps)
       <span className="football-squad-sheet__position">{player?.position ?? slot.position}</span>
       <span className="football-squad-sheet__nation">{nationCode(player?.nationality)}</span>
       <span className="football-squad-sheet__player">
-        {state === "active" ? <><i aria-hidden="true" />Đang dở — quay tiếp</> : state === "empty" ? <><Plus aria-hidden="true" size={13} strokeWidth={2.2} />Draft cầu thủ</> : state === "locked" ? "Chưa có cầu thủ" : player?.name}
+        {state === "active" ? "Tiếp tục draft" : state === "empty" ? <><Plus aria-hidden="true" size={13} strokeWidth={2.2} />Draft cầu thủ</> : state === "locked" ? "Chưa có cầu thủ" : player?.name}
       </span>
       <span className="football-squad-sheet__ovr">{player?.peakOvr ?? "—"}</span>
       <ChevronRight className="football-squad-sheet__chevron" aria-hidden="true" size={15} strokeWidth={1.6} />
@@ -74,18 +74,16 @@ interface Props {
 
 export function SquadSheet({ slots, players, inProgressSlots, status, hoveredSlot, onSlotHover, onSlotClick }: Props) {
   const playerMap = new Map(players.map((player) => [player.slotIndex, player]));
-  const playerCount = players.length;
 
   return (
     <section className="football-squad-sheet" aria-labelledby="starting-xi-title">
       <div className="football-squad-sheet__heading">
         <h2 id="starting-xi-title">Đội hình xuất phát</h2>
-        <span>{playerCount} / 11</span>
       </div>
-      <div className="football-squad-sheet__table" role="table" aria-label="Đội hình xuất phát">
-        <div className="football-squad-sheet__row football-squad-sheet__row--head" role="row">
-          <span>Vị trí</span><span className="football-squad-sheet__nation">QT</span><span>Cầu thủ</span><span>OVR</span><span />
-        </div>
+      <div className="football-squad-sheet__row football-squad-sheet__row--head" aria-hidden="true">
+        <span>Vị trí</span><span className="football-squad-sheet__nation">QT</span><span>Cầu thủ</span><span>OVR</span><span />
+      </div>
+      <div className="football-squad-sheet__table" role="region" aria-label="Danh sách cầu thủ xuất phát" tabIndex={0}>
         {slots.map((slot) => {
           const player = playerMap.get(slot.index);
           const state = getSlotStateForIndex(slot.index, player, inProgressSlots, status);

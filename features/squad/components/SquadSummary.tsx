@@ -11,13 +11,13 @@ interface Props {
   status: string;
   playerCount: number;
   squadOvr: number;
+  draftAction?: React.ReactNode;
 }
 
-export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
+export function SquadSummary({ gameId, status, playerCount, squadOvr, draftAction }: Props) {
   const router = useRouter();
   const isCompleted = status === "completed";
   const isFull = playerCount === 11;
-  const missingCount = Math.max(0, 11 - playerCount);
 
   async function finishCareer() {
     if (!window.confirm("Hoàn thành sự nghiệp? Bạn vẫn có thể thay hoặc xóa cầu thủ sau đó để chỉnh sửa đội hình.")) return;
@@ -27,39 +27,19 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr }: Props) {
 
   return (
     <section className="football-squad-summary">
-      <div className="football-squad-summary__metric">
-        <div className="football-squad-summary__score">
-          <strong>{squadOvr || "—"}</strong>
-          <div>
-            <span>{isFull || isCompleted ? "Squad OVR" : "OVR trung bình"}</span>
-            <small>{isCompleted ? "khép lại · 11 / 11" : isFull ? "đã chốt · 11 / 11" : `${playerCount} cầu thủ hiện có`}</small>
-          </div>
-        </div>
+      <div className="football-squad-summary__score">
+        <strong>{squadOvr || "—"}</strong>
+        <span>{isFull || isCompleted ? "OVR đội hình" : "OVR trung bình"}</span>
       </div>
-      <span className="football-squad-summary__rule" aria-hidden="true" />
-      <div className="football-squad-summary__message">
-        {isCompleted ? (
-          <p>Đội hình đã chốt. Bấm một dòng để đọc hồ sơ hoặc thay/xóa cầu thủ để chỉnh sửa lại.</p>
-        ) : isFull ? (
-          <p>Đội hình đã đủ. Chốt sự nghiệp để khép đội hình này lại và đưa nó vào danh sách đã hoàn thành.</p>
-        ) : (
-          <p>Squad OVR chính thức được chốt khi đủ 11 vị trí. Còn thiếu <strong>{missingCount} cầu thủ</strong>.</p>
-        )}
-      </div>
+      {draftAction}
       {!isCompleted && isFull && (
-        <div className="football-squad-summary__action">
-          <Button onClick={() => void finishCareer()}>Hoàn thành sự nghiệp</Button>
-          <span>hỏi xác nhận một lần · đội hình vẫn có thể chỉnh sửa sau này</span>
-        </div>
+        <Button onClick={() => void finishCareer()}>Chốt đội hình</Button>
       )}
       {isCompleted && (
-        <div className="football-squad-summary__pve-entry">
-          <Link href={`/pve/${gameId}`} className="football-button football-button--outline">
-            <span>Đưa đội hình vào PvE Tournament</span>
-            <ArrowRight aria-hidden="true" size={16} />
-          </Link>
-          <span>chinh chiến qua vòng bảng và bốn vòng knock-out</span>
-        </div>
+        <Link href={`/pve/${gameId}`} className="football-button football-button--outline">
+          Vào giải PvE
+          <ArrowRight aria-hidden="true" size={16} />
+        </Link>
       )}
     </section>
   );
