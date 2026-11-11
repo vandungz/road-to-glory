@@ -76,7 +76,7 @@ export async function middleware(request: NextRequest) {
   } = await supabase.auth.getUser();
 
   const isAuthRoute = pathname === "/login" || pathname.startsWith("/auth/");
-  const isPublicGameRoute = pathname === "/" || pathname === "/quick" || pathname === "/quick/play";
+  const isPublicGameRoute = ["/", "/quick", "/quick/play", "/settings", "/profile"].includes(pathname);
   const isDevPreview = process.env.NODE_ENV !== "production" && pathname.startsWith("/dev");
 
   if (!user && !isAuthRoute && !isPublicGameRoute && !isDevPreview) {

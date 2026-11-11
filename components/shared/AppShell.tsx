@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
+import { AccountNavigation } from "./AccountNavigation";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -10,8 +11,8 @@ interface AppShellProps {
   headerIdentityMeta?: React.ReactNode;
   backHref?: string;
   backLabel?: string;
-  footerAction?: React.ReactNode;
   className?: string;
+  keepGameOpen?: boolean;
 }
 
 export function AppShell({
@@ -21,8 +22,8 @@ export function AppShell({
   headerIdentityMeta,
   backHref,
   backLabel = "Quay lại",
-  footerAction,
   className,
+  keepGameOpen,
 }: AppShellProps) {
   return (
     <div className={cn("football-app-shell", className)}>
@@ -36,8 +37,6 @@ export function AppShell({
           )}
           <Link className="football-app-shell__wordmark" href="/">
             <span>Road to Glory</span>
-            <i aria-hidden="true" />
-            <small>Football Life</small>
           </Link>
           {headerIdentityMeta && (
             <span className="football-app-shell__identity-meta">{headerIdentityMeta}</span>
@@ -46,7 +45,7 @@ export function AppShell({
 
         <div className="football-app-shell__context">
           {headerMeta}
-          {userEmail && <span className="football-app-shell__email">{userEmail}</span>}
+          <AccountNavigation newTab={keepGameOpen} />
           {userEmail && <LogoutButton />}
         </div>
       </header>
@@ -55,7 +54,6 @@ export function AppShell({
 
       <footer className="football-app-shell__footer">
         <span>Football Life © Road to Glory — mùa 2025/26</span>
-        {footerAction ?? <span aria-hidden="true" />}
       </footer>
     </div>
   );

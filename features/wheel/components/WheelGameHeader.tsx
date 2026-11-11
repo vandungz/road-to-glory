@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { ArrowLeft, ShoppingBag, Trophy } from "lucide-react";
+import { AccountNavigation } from "@/components/shared/AccountNavigation";
 
 interface WheelGameHeaderProps {
   backHref: string;
@@ -61,7 +62,7 @@ export function WheelGameHeader({
           {mode === "setup" ? (
             <>
               <span><small>Đội hình</small><strong>{gameName || "Đội hình mới"}</strong></span>
-              <span><small>Vị trí</small><strong>{position} · slot {slotIndex + 1}</strong></span>
+              <span><small>Ô {slotIndex + 1}</small><strong>{position}</strong></span>
             </>
           ) : (
             <>
@@ -92,6 +93,7 @@ export function WheelGameHeader({
             </div>
           </>
         )}
+        <AccountNavigation newTab />
       </div>
     </header>
   );

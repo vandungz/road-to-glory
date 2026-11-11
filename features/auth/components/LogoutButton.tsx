@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import { logoutAction } from "@/actions/auth.actions";
 
@@ -22,6 +23,7 @@ export function LogoutButton() {
       size="sm"
       className="football-app-shell__logout"
     >
+      <LogOut aria-hidden="true" size={16} />
       {isPending ? "Đang thoát" : "Đăng xuất"}
     </Button>
   );

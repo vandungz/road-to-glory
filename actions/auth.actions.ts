@@ -177,3 +177,18 @@ export async function logoutAction(): Promise<AuthActionResult> {
     return genericAuthError();
   }
 }
+
+export async function updateDisplayNameAction(input: unknown): Promise<AuthActionResult> {
+  const name = z.string().trim().min(1).max(40).safeParse(input);
+  if (!name.success) return { success: false, error: "Tên hiển thị phải có từ 1 đến 40 ký tự." };
+
+  try {
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return { success: false, error: "Phiên đăng nhập đã hết. Hãy đăng nhập lại." };
+    const { error } = await supabase.auth.updateUser({ data: { display_name: name.data } });
+    return error ? { success: false, error: "Không thể lưu tên. Vui lòng thử lại." } : { success: true };
+  } catch {
+    return { success: false, error: "Không thể lưu tên. Vui lòng thử lại." };
+  }
+}

@@ -6,9 +6,8 @@ export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
   const origin = getCanonicalSiteUrl(new Headers(request.headers));
   const code = searchParams.get("code");
-  const nextPath = searchParams.get("next") === "/auth/reset-password"
-    ? "/auth/reset-password"
-    : "/";
+  const next = searchParams.get("next");
+  const nextPath = next === "/auth/reset-password" || next === "/profile" ? next : "/";
 
   if (code) {
     const supabase = await createClient();

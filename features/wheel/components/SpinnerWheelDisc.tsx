@@ -1,6 +1,7 @@
 "use client";
 
-import { motion, useReducedMotion, type MotionValue } from "framer-motion";
+import { motion, type MotionValue } from "framer-motion";
+import { useGameReducedMotion } from "@/features/settings/game-motion";
 
 export interface SpinnerWheelDiscProps {
   items: { label: string; value: unknown; weight?: number; active?: boolean }[];
@@ -15,7 +16,7 @@ const SLICE_COLORS = [
 ];
 
 export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: SpinnerWheelDiscProps) {
-  const reducedMotion = useReducedMotion();
+  const reducedMotion = useGameReducedMotion();
   return (
     <div className="football-spinner-wheel__stage">
 

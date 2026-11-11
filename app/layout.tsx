@@ -5,6 +5,7 @@ import "./styles/features/career-workspace.css";
 import "./styles/foundation/filters.css";
 import "./styles/features/contract-negotiation.css";
 import "./styles/features/player-portraits.css";
+import "./styles/features/account.css";
 import { AppProviders } from "./providers";
 import { DesktopNotice } from "@/components/shared/DesktopNotice";
 

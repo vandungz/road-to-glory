@@ -71,6 +71,7 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
 
   return (
     <AppShell
+      keepGameOpen
       className="football-shop-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
       backLabel="Sự nghiệp"

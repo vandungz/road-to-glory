@@ -17,6 +17,7 @@ export default async function QuickModePage() {
 
   return (
     <AppShell
+      keepGameOpen
       className="football-quick-mode-shell"
       userEmail={user?.email}
       backHref="/"

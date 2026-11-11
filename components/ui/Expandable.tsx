@@ -1,7 +1,8 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useGameReducedMotion } from "@/features/settings/game-motion";
 import { cn } from "@/lib/utils";
 
 interface ExpandableProps {
@@ -13,7 +14,7 @@ interface ExpandableProps {
 
 /** Shared animated region for accordion and detail disclosures. */
 export function Expandable({ open, children, className, id }: ExpandableProps) {
-  const prefersReducedMotion = useReducedMotion();
+  const prefersReducedMotion = useGameReducedMotion();
 
   return (
     <AnimatePresence initial={false}>

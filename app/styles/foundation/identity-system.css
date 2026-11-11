@@ -15,14 +15,16 @@ input, textarea { caret-color: var(--football-accent-ink); }
 
 .football-app-shell { min-height: 100svh; }
 .football-app-shell .football-app-shell__header {
-  min-height: 80px;
+  min-height: 64px;
   padding-inline: max(32px, calc((100% - var(--football-max-width)) / 2));
   border-bottom-color: var(--football-rule);
   background: var(--football-surface);
 }
-.football-app-shell__wordmark > span { font-size: 26px; letter-spacing: -.025em; }
-.football-app-shell__wordmark small { font-family: var(--font-body); font-size: 12px; }
-.football-app-shell__wordmark > i { display: none; }
+.football-app-shell__wordmark > span { font-size: 24px; letter-spacing: -.025em; white-space: nowrap; }
+.football-app-shell__identity-meta { padding-inline-start: 12px; border-inline-start: 1px solid var(--football-rule); color: var(--football-ink-2); font: 13px var(--font-body); }
+.football-app-shell__email { max-width: 26ch; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.football-app-shell .football-app-shell__logout { flex-shrink: 0; gap: 8px; padding-inline: 12px; }
+.football-app-shell__back + .football-app-shell__wordmark { padding-inline-start: 16px; border-inline-start: 1px solid var(--football-rule); }
 .football-app-shell .football-app-shell__main {
   width: calc(100% - 64px);
   max-width: var(--football-max-width);
@@ -33,7 +35,7 @@ input, textarea { caret-color: var(--football-accent-ink); }
   min-height: 56px;
   padding-inline: max(32px, calc((100% - var(--football-max-width)) / 2));
 }
-.football-app-shell__footer > span, .football-app-shell__replay { color: var(--football-ink-3); font-family: var(--font-body); font-size: 12px; }
+.football-app-shell__footer > span { color: var(--football-ink-3); font-family: var(--font-body); font-size: 12px; }
 
 .football-button, .btn-primary, .btn-secondary {
   border-radius: var(--football-radius-control);

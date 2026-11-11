@@ -77,9 +77,11 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     setError(null);
     setIsPending(true);
     try {
+      const callbackUrl = new URL("/auth/callback", window.location.origin);
+      if (nextPath === "/profile") callbackUrl.searchParams.set("next", nextPath);
       const { error: authError } = await createClient().auth.signInWithOAuth({
         provider: "google",
-        options: { redirectTo: `${window.location.origin}/auth/callback` },
+        options: { redirectTo: callbackUrl.href },
       });
       if (authError) setError("Không thể đăng nhập với Google.");
     } catch {

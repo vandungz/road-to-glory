@@ -1,6 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/shared/AppShell";
-import { ReplayMotionButton } from "@/components/shared/ReplayMotionButton";
 import { Homepage } from "@/features/game/components/Homepage";
 import { getGameSessionsForUser } from "@/features/game/services/game-session.service";
 
@@ -15,7 +14,6 @@ export default async function LobbyPage() {
     <AppShell
       className="football-homepage-shell"
       userEmail={user?.email}
-      footerAction={<ReplayMotionButton />}
     >
       <Homepage sessions={sessions} isAuthenticated={Boolean(user)} />
     </AppShell>

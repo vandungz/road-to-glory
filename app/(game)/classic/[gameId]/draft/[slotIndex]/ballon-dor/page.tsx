@@ -83,6 +83,7 @@ export default async function BallonDorResultPage({ params }: Props) {
 
   return (
     <AppShell
+      keepGameOpen
       className="football-ballon-dor-page-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
       backLabel="Sự nghiệp"
