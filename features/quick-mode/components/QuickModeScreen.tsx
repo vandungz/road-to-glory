@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/Button";
 import { SpinnerWheel } from "@/features/wheel/components/SpinnerWheel";
 import { NationFlag } from "@/components/shared/NationFlag";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
-import { PORTRAIT_IDS } from "@/features/player/lib/player-portraits";
 import { useQuickMode } from "../hooks/useQuickMode";
 import type { QuickClubOption, QuickLeagueOption, QuickPlayer } from "../types";
 
@@ -119,7 +118,7 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
     <aside className="football-quick-play__tracker" data-nation={player.nationality.replace(/\s+/g, "")} aria-label="Thông tin và chỉ số cầu thủ" tabIndex={0}>
       <header className="football-quick-play__tracker-head">
         <div className="football-quick-portrait-identity">
-          <PlayerPortrait portraitId={player.portraitId ?? PORTRAIT_IDS[0]} canToggle />
+          <PlayerPortrait portraitId={player.portraitId} loop />
           <div><strong>{player.name}</strong><PlayerIdentity player={player} /></div>
         </div>
         <div className="football-quick-play__trait" aria-live="polite" aria-atomic="true">
@@ -155,16 +154,17 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
   return (
     <section className="football-quick-mode football-quick-summary">
       <header className="football-quick-summary__hero">
-        <div>
-          <h1>Sự nghiệp đã hoàn tất</h1>
-          <div className="football-quick-summary__identity" data-nation={state.player.nationality.replace(/\s+/g, "")}>
-            <PlayerPortrait portraitId={state.player.portraitId ?? PORTRAIT_IDS[0]} canToggle />
+        <div className="football-quick-summary__identity" data-nation={state.player.nationality.replace(/\s+/g, "")}>
+          <PlayerPortrait portraitId={state.player.portraitId} animate={false} />
+          <div>
+            <h1>Sự nghiệp đã hoàn tất</h1>
             <div><strong>{state.player.name}</strong><PlayerIdentity player={state.player} /></div>
           </div>
         </div>
         <div className="football-quick-summary__ovr"><span>OVR</span><strong>{quick.overall}</strong></div>
       </header>
       <dl className="football-quick-summary__totals">
+        <div><dt>Số trận ra sân</dt><dd>{state.finale.appearances ?? "—"}</dd></div>
         <div><dt>Bàn thắng</dt><dd>{state.finale.goals}</dd></div>
         <div><dt>Kiến tạo</dt><dd>{state.finale.assists}</dd></div>
         <div><dt>Trận giữ sạch lưới</dt><dd>{state.finale.cleanSheets ?? "—"}</dd></div>

@@ -206,10 +206,10 @@
 }
 .football-quick-summary__hero { display: flex; justify-content: space-between; gap: 20px; align-items: center; }
 .football-quick-mode .football-quick-summary__hero h1 { min-width: 0; margin: 0 0 8px; font-size: clamp(28px, 3vw, 44px); line-height: 1.15; overflow-wrap: break-word; }
-.football-quick-summary__identity { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 16px; overflow-wrap: anywhere; }
-.football-quick-summary__ovr { display: flex; align-items: baseline; gap: 8px; color: var(--football-accent-ink); }
+.football-quick-summary__identity { display: flex; flex: 1; min-width: 0; align-items: center; gap: 8px 16px; overflow-wrap: anywhere; }
+.football-quick-summary__ovr { display: flex; flex-shrink: 0; align-items: baseline; gap: 8px; color: var(--football-accent-ink); }
 .football-quick-summary__ovr strong { font-family: var(--font-headline); font-size: 40px; }
-.football-quick-summary__totals { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 12px; padding-block: 12px; border-block: 1px solid var(--football-rule); }
+.football-quick-summary__totals { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 12px; padding-block: 12px; border-block: 1px solid var(--football-rule); }
 .football-quick-summary dt { color: var(--football-ink-2); font-size: 13px; }
 .football-quick-summary dd { font-family: var(--font-headline); font-size: 24px; }
 .football-quick-summary__records { min-height: 0; overflow: auto; overscroll-behavior: contain; padding: 4px 12px 4px 4px; }

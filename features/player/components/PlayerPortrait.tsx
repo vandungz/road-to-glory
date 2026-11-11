@@ -1,54 +1,51 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Pause, Play } from "lucide-react";
+import { useGameReducedMotion } from "@/features/settings/game-motion";
 import { isPortraitId, type PortraitReaction } from "../lib/player-portraits";
 
-export function PlayerPortrait({ portraitId, animate = true, reaction, onReactionEnd, canToggle = false, loop = canToggle }: {
+export function PlayerPortrait({ portraitId, animate = true, reaction, onReactionEnd, loop = false }: {
   portraitId?: string | null;
   animate?: boolean;
   reaction?: PortraitReaction | null;
   onReactionEnd?: () => void;
-  canToggle?: boolean;
   loop?: boolean;
 }) {
   const element = useRef<HTMLSpanElement>(null);
   const idle = useRef<HTMLVideoElement>(null);
   const overlay = useRef<HTMLVideoElement>(null);
-  const [canPlay, setCanPlay] = useState(false);
+  const [visible, setVisible] = useState(false);
+  const reducedMotion = useGameReducedMotion();
   const [playingSource, setPlayingSource] = useState<string>();
   const [liveKey, setLiveKey] = useState<string>();
-  const [paused, setPaused] = useState(false);
   const valid = isPortraitId(portraitId);
   const directory = `/media/player-portraits/${portraitId}`;
   const source = `${directory}/idle.webm`;
   const reactionSource = reaction ? `${directory}/${reaction.pose}.webm` : null;
   const reactionKey = reaction?.key;
+  const canPlay = animate && valid && visible && !reducedMotion;
   const live = Boolean(reactionKey && liveKey === reactionKey && canPlay);
 
   useEffect(() => {
     if (!animate || !valid || !element.current) return;
-    const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
-    let visible = false;
-    const sync = () => setCanPlay(visible && !document.hidden && !motion.matches);
+    let intersects = false;
+    const sync = () => setVisible(intersects && !document.hidden);
     const observer = new IntersectionObserver(([entry]) => {
-      visible = entry.isIntersecting;
+      intersects = entry.isIntersecting;
       sync();
     });
     observer.observe(element.current);
-    motion.addEventListener("change", sync);
     document.addEventListener("visibilitychange", sync);
     return () => {
       observer.disconnect();
-      motion.removeEventListener("change", sync);
       document.removeEventListener("visibilitychange", sync);
     };
   }, [animate, valid]);
 
   useEffect(() => {
-    if (animate && canPlay && !paused) void idle.current?.play().catch(() => {});
+    if (animate && canPlay) void idle.current?.play().catch(() => {});
     else idle.current?.pause();
-  }, [animate, canPlay, paused, source]);
+  }, [animate, canPlay, source]);
 
   useEffect(() => {
     const player = overlay.current;
@@ -65,7 +62,7 @@ export function PlayerPortrait({ portraitId, animate = true, reaction, onReactio
   return <span className="football-player-portrait" ref={element} data-pose={live ? reaction?.pose : "idle"}>
     {/* eslint-disable-next-line @next/next/no-img-element */}
     <img src={`${directory}/default.webp`} alt="" width={320} height={400} loading="lazy" />
-    {animate && ((loop && !canToggle) || (canPlay && !paused)) && <video ref={idle} src={source}
+    {animate && !reducedMotion && (loop || canPlay) && <video ref={idle} src={source}
       muted playsInline loop={loop} preload="none" tabIndex={-1} aria-hidden="true"
       data-playing={canPlay && playingSource === source}
       onPlaying={() => setPlayingSource(source)}
@@ -77,10 +74,5 @@ export function PlayerPortrait({ portraitId, animate = true, reaction, onReactio
           if (reactionKey && event.currentTarget.dataset.reactionKey === reactionKey) onReactionEnd();
         }} />
     </span>}
-    {animate && canPlay && canToggle && <button type="button" className="football-player-portrait__toggle"
-      aria-label={paused ? "Phát chuyển động chân dung" : "Dừng chuyển động chân dung"}
-      onClick={() => { setPlayingSource(undefined); setPaused(!paused); }}>
-      {paused ? <Play size={14} aria-hidden="true" /> : <Pause size={14} aria-hidden="true" />}
-    </button>}
   </span>;
 }

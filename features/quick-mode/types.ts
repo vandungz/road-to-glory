@@ -87,6 +87,7 @@ export interface QuickClubDraft {
 }
 
 export interface QuickFinale {
+  appearances?: number | null;
   goals: QuickCountValue | null;
   assists: QuickCountValue | null;
   cleanSheets?: number | null;

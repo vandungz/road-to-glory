@@ -1,7 +1,7 @@
 import { test, expect, expectNoHorizontalOverflow, startQuickRun } from "./helpers";
 import { QUICK_MODE_STORAGE_KEY } from "../../features/quick-mode/lib/quick-mode-storage";
 import { DEBUT_AGE_POOL } from "../../lib/wheel-engine/weight-pools";
-import { getAssistPool, getCleanSheetPool, getClubCountPool, getGoalPool, getQuickOverall } from "../../features/quick-mode/lib/quick-mode-engine";
+import { getAppearancePool, getAssistPool, getCleanSheetPool, getClubCountPool, getGoalPool, getQuickOverall } from "../../features/quick-mode/lib/quick-mode-engine";
 import { getQuickModeOptions } from "../../features/quick-mode/lib/quick-mode-options";
 import type { QuickModeState } from "../../features/quick-mode/types";
 
@@ -120,6 +120,8 @@ test("Quick Mode fits the desktop viewport and retains the trait in the player r
   const records = page.getByRole("region", { name: "Chi tiết sự nghiệp" });
   const replay = page.getByRole("link", { name: "Chơi Quick Mode mới", exact: true });
   await expect(page.locator(".football-quick-summary__totals dt").filter({ hasText: "Trận giữ sạch lưới" }).locator("+ dd")).toHaveText("—");
+  const appearancesTotal = page.getByText("Số trận ra sân", { exact: true }).locator("+ dd");
+  await expect(appearancesTotal).toHaveText("—");
   await expect(page.getByText("Tuổi ra mắt", { exact: true })).toHaveCount(0);
   await expect(records.getByRole("rowheader")).toHaveCount(maxClubs);
   await expect(records.getByText(club.name, { exact: true })).toHaveCount(1);
@@ -137,6 +139,9 @@ test("Quick Mode fits the desktop viewport and retains the trait in the player r
   state.phase = "finale";
   state.finaleStep = 3;
   await load();
+  const appearancesHeading = page.getByRole("heading", { name: "Số trận ra sân", exact: true });
+  await expect(appearancesHeading).toBeVisible();
+  await spin.click();
   await expect(page.getByRole("heading", { name: "Trận giữ sạch lưới", exact: true })).toBeVisible();
   await page.evaluate(() => { Math.random = () => 0.45; });
   await spin.click();
@@ -182,7 +187,7 @@ test("Quick Mode shows each stat gain before the club closes and applies it only
   await spin.click();
   await expect(page.getByRole("heading", { name: "Nâng Shooting", exact: true })).toBeVisible();
   await spin.click();
-  await expect(page.getByRole("heading", { name: "Bàn thắng sự nghiệp", exact: true })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Số trận ra sân", exact: true })).toBeVisible();
   await expect(pace).toHaveAttribute("aria-label", "Pace: 6, tăng 1");
   await expect(rail.locator("dd[aria-label^='Shooting:']")).toHaveAttribute("aria-label", "Shooting: 6, tăng 1");
   await expect(ovr).toHaveText(String(getQuickOverall({ ...baseStats, pac: 6, sho: 6 })));
@@ -197,6 +202,11 @@ test("Quick Mode weights favor high G/A for elite careers and reward defensive r
     / pool.reduce((sum, item) => sum + item.weight, 0);
 
   const goals = getGoalPool("ST", elite);
+  const appearances = getAppearancePool(elite);
+  expect(appearances.at(0)?.value).toBe(16 * elite.careerLength);
+  expect(appearances.at(-1)?.value).toBe(56 * elite.careerLength);
+  expect(average(appearances)).toBeGreaterThan(average(getAppearancePool(noTitles)));
+  expect(getAppearancePool(elite, 500).every(({ value }) => value >= 500)).toBe(true);
   expect(average(goals)).toBeGreaterThan(550);
   expect(average(goals)).toBeGreaterThan(average(getGoalPool("ST", noTitles)));
   expect(average(goals)).toBeGreaterThan(average(getGoalPool("ST", { ...elite, stats: { ...stats, sho: 5 } })));
@@ -212,6 +222,9 @@ test("Quick Mode weights favor high G/A for elite careers and reward defensive r
 test("a complete guest career reaches summary, survives reload and can restart", async ({ page }, testInfo) => {
   test.setTimeout(360_000);
   await startQuickRun(page);
+  const portrait = page.locator(".football-player-portrait");
+  const portraitSrc = await portrait.locator("img").getAttribute("src");
+  expect(portraitSrc).toMatch(/\/p0[1-6]\/default\.webp$/);
   // Deterministic browser-only random draws keep this regression repeatable.
   await page.evaluate(() => { Math.random = () => 0.01; });
   const phases = new Set<string>();
@@ -224,18 +237,52 @@ test("a complete guest career reaches summary, survives reload and can restart",
     await expect.poll(() => page.evaluate((key) => sessionStorage.getItem(key), QUICK_MODE_STORAGE_KEY)).not.toBe(before);
   }
   expect([...phases]).toEqual(["setup", "career", "finale", "complete"]);
-  const cleanSheets = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)!).finale.cleanSheets, QUICK_MODE_STORAGE_KEY);
-  expect(typeof cleanSheets).toBe("number");
+  const { appearances, cleanSheets } = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)!).finale, QUICK_MODE_STORAGE_KEY);
+  expect(appearances).toBeGreaterThan(0);
+  expect(cleanSheets).toBeLessThanOrEqual(appearances);
+  const appearancesTotal = page.getByText("Số trận ra sân", { exact: true }).locator("+ dd");
+  await expect(appearancesTotal).toHaveText(String(appearances));
   const cleanSheetTotal = page.locator(".football-quick-summary__totals dt").filter({ hasText: "Trận giữ sạch lưới" }).locator("+ dd");
   await expect(cleanSheetTotal).toHaveText(String(cleanSheets));
   await expect(page.getByText("Sự nghiệp đã hoàn tất", { exact: true })).toBeVisible();
+  await expect(portrait.locator("img")).toHaveAttribute("src", portraitSrc!);
+  await expect(portrait.locator("video")).toHaveCount(0);
   await expect(page.getByRole("table", { name: "Hành trình qua các CLB" }).getByRole("rowheader")).toHaveCount(1);
   await page.reload();
   await expect(page.getByText("Sự nghiệp đã hoàn tất", { exact: true })).toBeVisible();
+  await expect(appearancesTotal).toHaveText(String(appearances));
   await expect(cleanSheetTotal).toHaveText(String(cleanSheets));
+  await expect(portrait.locator("img")).toHaveAttribute("src", portraitSrc!);
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("quick-summary.png"), fullPage: true });
   await page.getByRole("link", { name: "Chơi Quick Mode mới", exact: true }).click();
   await expect(page).toHaveURL(/\/quick$/);
   await expect(page.getByRole("textbox", { name: "Tên cầu thủ" })).toHaveValue("");
+  await expect(portrait).toHaveCount(0);
+});
+
+test("a legacy Quick save keeps its portrait when reopening setup and resuming", async ({ page }) => {
+  await startQuickRun(page);
+  await page.getByRole("button", { name: "Quay vòng", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Độ dài sự nghiệp", exact: true })).toBeVisible();
+  await page.evaluate((key) => {
+    const state = JSON.parse(sessionStorage.getItem(key)!);
+    delete state.player.portraitId;
+    sessionStorage.setItem(key, JSON.stringify(state));
+  }, QUICK_MODE_STORAGE_KEY);
+  await page.reload();
+  const image = page.locator(".football-player-portrait img");
+  await expect(image).toBeAttached();
+  const source = await image.getAttribute("src");
+  expect(source).toMatch(/\/p0[1-6]\/default\.webp$/);
+  await page.getByRole("link", { name: "Về thiết lập", exact: true }).click();
+  await expect(image).toHaveAttribute("src", source!);
+  await expect(page.locator(".football-player-portrait video")).toHaveCount(0);
+  const name = page.getByRole("textbox", { name: "Tên cầu thủ" });
+  await name.clear();
+  await expect(name).toHaveValue("");
+  await name.fill("Nguyễn Minh");
+  await page.getByRole("button", { name: "Tiếp tục hành trình", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Độ dài sự nghiệp", exact: true })).toBeVisible();
+  await expect(image).toHaveAttribute("src", source!);
 });

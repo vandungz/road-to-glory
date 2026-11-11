@@ -199,8 +199,7 @@ function getAchievementProfile(context: QuickCareerOutcomeContext): QuickAchieve
   };
 }
 
-function getCareerCountWeights<T extends QuickCountValue>(values: T[], expected: number, prestigeScore: number): WeightedItem<T>[] {
-  const deviation = Math.max(42, expected * 0.42);
+function getCareerCountWeights<T extends QuickCountValue>(values: T[], expected: number, prestigeScore: number, deviation = Math.max(42, expected * 0.42)): WeightedItem<T>[] {
   return values.map((value) => {
     if (typeof value !== "number") {
       const openEndedWeight = expected > 650 ? (expected - 500) / 10 : 1;
@@ -212,6 +211,14 @@ function getCareerCountWeights<T extends QuickCountValue>(values: T[], expected:
     const highOutputBias = 1 + prestigeScore * Math.max(0, relativeOutput - 0.8) * 0.35;
     return { value, weight: Math.max(1, Math.round(baseWeight * highOutputBias)) };
   });
+}
+
+export function getAppearancePool(context: QuickCareerOutcomeContext, recordedCleanSheets = 0): WeightedItem<number>[] {
+  const seasons = Math.max(1, context.careerLength);
+  const { prestigeScore } = getAchievementProfile(context);
+  const expected = seasons * (24 + getQuickOverall(context.stats) * 0.18 + prestigeScore * 8);
+  const values = Array.from({ length: 11 }, (_, index) => Math.max(recordedCleanSheets, (16 + index * 4) * seasons));
+  return getCareerCountWeights([...new Set(values)], expected, prestigeScore, seasons * 7);
 }
 
 export function getGoalPool(position: QuickPosition, context: QuickCareerOutcomeContext): WeightedItem<number | "1000+">[] {

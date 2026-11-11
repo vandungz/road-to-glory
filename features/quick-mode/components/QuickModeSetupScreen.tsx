@@ -1,13 +1,12 @@
 "use client";
 
 import { EditorialArt } from "@/components/shared/EditorialArt";
-
-
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { NATIONALITY_POOL } from "@/lib/wheel-engine/weight-pools";
+import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
 import { useQuickMode } from "../hooks/useQuickMode";
 import { QUICK_POSITIONS, type QuickClubOption, type QuickLeagueOption, type QuickPosition } from "../types";
 
@@ -24,13 +23,15 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
   const [nationality, setNationality] = useState("England");
   const [position, setPosition] = useState<QuickPosition>("ST");
   const [starting, setStarting] = useState(false);
+  const initialized = useRef(false);
 
   useEffect(() => {
-    if (!quick.hydrated || name) return;
-    setName(quick.state.player.name);
+    if (!quick.hydrated || initialized.current) return;
+    initialized.current = true;
+    setName((current) => current || quick.state.player.name);
     setNationality(quick.state.player.nationality || "England");
     setPosition(quick.state.player.position);
-  }, [name, quick.hydrated, quick.state.player.nationality, quick.state.player.name, quick.state.player.position]);
+  }, [quick.hydrated, quick.state.player.nationality, quick.state.player.name, quick.state.player.position]);
 
   useEffect(() => {
     if (starting && quick.hydrated && name.trim().length >= 2) router.push("/quick/play");
@@ -59,7 +60,10 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
       <div className="football-quick-setup">
         <EditorialArt asset="air-control" className="football-editorial-art--setup" />
         <div className="football-quick-setup__card">
-          <h2>Cầu thủ của bạn</h2>
+          <div className="football-quick-setup__identity" data-nation={nationality.replace(/\s+/g, "")}>
+            {quick.state.phase !== "complete" && <PlayerPortrait portraitId={quick.state.player.portraitId} animate={false} />}
+            <h2>Cầu thủ của bạn</h2>
+          </div>
           <div className="football-quick-setup__form">
             <label>
               <span>Tên cầu thủ</span>

@@ -1,3 +1,4 @@
+import { resolveSavedPortraitId } from "@/features/player/lib/player-portraits";
 import type { QuickModeState } from "../types";
 
 export const QUICK_MODE_STORAGE_KEY = "football-life:quick-mode:v5";
@@ -29,7 +30,12 @@ export function loadQuickModeState(): QuickModeState | null {
     const raw = window.sessionStorage.getItem(QUICK_MODE_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as QuickModeState;
-    return parsed?.version === 5 ? normalizeInternationalCupTypes(parsed) : null;
+    if (parsed?.version !== 5) return null;
+    const state = normalizeInternationalCupTypes(parsed);
+    const { player } = state;
+    if (!player.name.trim()) return state;
+    const identity = JSON.stringify([player.name, player.nationality, player.position]);
+    return { ...state, player: { ...player, portraitId: resolveSavedPortraitId(player.portraitId, identity) } };
   } catch {
     return null;
   }

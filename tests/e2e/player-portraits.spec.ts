@@ -123,14 +123,19 @@ test("Quick keeps the same animated default after reload and respects reduced mo
   const source = await video.getAttribute("src");
   expect(source).toMatch(/\/p0[1-6]\/idle\.webm$/);
   await page.screenshot({ path: testInfo.outputPath("quick-portrait.png") });
-  await portrait.getByRole("button", { name: "Dừng chuyển động chân dung" }).click();
-  await expect(video).toHaveCount(0);
-  await portrait.getByRole("button", { name: "Phát chuyển động chân dung" }).click();
-  await expect(video).toHaveAttribute("data-playing", "true");
+  await expect(portrait.getByRole("button")).toHaveCount(0);
+  await expect(video).toHaveCount(1);
+  await expect(video).toHaveJSProperty("loop", true);
+  const idleNode = await video.elementHandle();
+  await page.getByRole("button", { name: "Quay vòng", exact: true }).click();
+  await expect(page.getByRole("heading", { name: "Độ dài sự nghiệp", exact: true })).toBeVisible();
+  expect(await video.evaluate((element, previous) => element === previous, idleNode)).toBe(true);
+  await expect(portrait).toHaveAttribute("data-pose", "idle");
   await page.reload();
   await expect(video).toHaveAttribute("src", source!);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(video).toHaveCount(0);
+  await expect(video).toBeHidden();
+  await expect(video).toHaveJSProperty("paused", true);
   await expect(portrait.locator("img")).toBeVisible();
 });
 
