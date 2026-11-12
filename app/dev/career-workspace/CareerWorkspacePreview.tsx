@@ -8,6 +8,7 @@ import { SeasonRecapModal } from "@/features/wheel/components/SeasonRecapModal";
 import { getPortraitCue, getStatsPortraitCue } from "@/features/wheel/lib/portrait-reactions";
 import { usePaniniReaction } from "@/features/wheel/hooks/usePaniniReaction";
 import { record, result } from "../design-preview/RecapPreview";
+import { restoreArchivedCompetitionRecord } from "@/features/wheel/lib/season-record-hydration";
 import type { SeasonRecord } from "@/types/game";
 
 const club = { id: "brighton", name: "Brighton & Hove Albion", leagueId: "ENG1", leagueName: "Premier League", prestige: 4, continentalType: "none" };
@@ -17,10 +18,20 @@ const season: SeasonRecord = {
   domesticCupJourney: ["Vòng 1/16: thắng 2–0", "Vòng 1/8: thắng 1–0", "Tứ kết: thắng 3–1", "Bán kết: thua 0–1"],
 };
 
-export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showPortrait = false, reactionStep }: { cup: boolean; manyClubs: boolean; transfer?: boolean; showPortrait?: boolean; reactionStep?: string }) {
+const archivedSeason = restoreArchivedCompetitionRecord({
+  ...season, age: 34, leagueStats: result.leagueStats, domesticCupStats: result.domesticCupStats,
+  continentalCup: { type: "UCL", result: "Quarter-Finals" },
+  nationalTeam: { type: "", callup: "called_up", result: "Group Stage" },
+  nationalStats: { apps: 2, goals: 0, assists: 1, cleanSheets: 1, rating: 7.87 },
+}, "England", 18, {
+  continentalCupJourney: ["Vòng 1/8: thắng 2–0", "Tứ kết: thua 0–1"],
+  nationalTeamJourney: ["Vòng bảng: hòa 1–1 trước Pháp", "Vòng bảng: thua 0–2 trước Đức"],
+});
+
+export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showPortrait = false, reactionStep, initialResult }: { cup: boolean; manyClubs: boolean; transfer?: boolean; showPortrait?: boolean; reactionStep?: string; initialResult?: "league" | "national" }) {
   const [rightTab, setRightTab] = useState<"panini" | "profile" | "transfer">("panini");
-  const [selectedAge, setSelectedAge] = useState(35);
-  const [modal, setModal] = useState<"league" | "cup" | "recap" | null>(null);
+  const [selectedAge, setSelectedAge] = useState(initialResult === "national" ? 34 : 35);
+  const [modal, setModal] = useState<"league" | "cup" | "continental" | "national" | "recap" | null>(initialResult ?? null);
   const [processing, setProcessing] = useState(false);
   const portraitId = showPortrait ? "p03" : null;
   const portrait = usePaniniReaction(setRightTab, Boolean(modal), processing, reactionStep === "transfer-reaction" ? "preview" : undefined);
@@ -53,6 +64,7 @@ export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showP
       return;
     }
     if (showPortrait) portrait.queue(getPortraitCue(cup ? "domestic_cup" : "standing", cup ? "Semi-Finals" : 1, key));
+    setSelectedAge(35);
     setModal(competition);
   }
 
@@ -79,16 +91,19 @@ export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showP
       currentStats={{ pac: 72, sho: 78, pas: 70, dri: 74, def: 42, phy: 73 }} position="ST" playerName="Cầu thủ thử nghiệm"
       portraitId={portraitId} portraitReaction={portrait.reaction} onPortraitReactionEnd={portrait.clear}
       playerNationality="England" playerDebutAge={18} playerCareerLength={18}
-      seasonRecords={{ 35: season }} selectedAgeForStats={selectedAge} setSelectedAgeForStats={setSelectedAge}
+      seasonRecords={{ 34: archivedSeason, 35: season }} selectedAgeForStats={selectedAge} setSelectedAgeForStats={setSelectedAge}
       clubStints={stints} peakOvrValue={75} yearSimResult={result} yearEvolution={{ count: null, direction: null }}
       evolvedStatsThisYear={[]} careerWheelItems={[{ label: "Vô địch", value: 1 }, { label: "Á quân", value: 2 }, { label: "Hạng 3", value: 3 }, { label: "Hạng 4", value: 4 }]}
       careerTargetIndex={0} careerSpinning={processing} isProcessing={processing} seasonTicketResolved={true}
       standingResult={modalSeason.standing} domesticCupResult="Semi-Finals" continentalCupResult={null} nationalCallupResult={null} nationalTournamentResult={null}
       hasBallonDorWinner={false} selectorIndex={0} tempSelectedStat={null} contractYearsTotal={2} contractYearsRemaining={1}
       currentWageAnnual={6000} marketValue={1300} onOpenTrophyCabinet={() => setModal("recap")} onOpenTransferModal={() => window.location.assign("/dev/transfer-window-preview")}
-      onOpenModal={() => setModal(competition)} handleCareerSpinComplete={() => {}} handleCareerSpin={spin} handleNextSeason={() => {}}
+      onOpenModal={(type) => {
+        if (type === "league" || type === "cup" || type === "continental" || type === "national") setModal(type);
+      }} handleCareerSpinComplete={() => {}} handleCareerSpin={spin} handleNextSeason={() => {}}
     />
-    {(modal === "league" || modal === "cup") && <SeasonResultModal type={modal} record={modalSeason} currentContinentalCup="none" playerDebutAge={18} onClose={close} />}
+    {modal && modal !== "recap" && <SeasonResultModal type={modal} record={selectedAge === 34 ? archivedSeason : modalSeason}
+      currentContinentalCup="none" playerDebutAge={18} playerNationality="England" isArchived={selectedAge === 34} onClose={close} />}
     {modal === "recap" && <SeasonRecapModal record={season} yearSimResult={result} currentContinentalCup="none" playerDebutAge={18} onClose={close} />}
   </div>;
 }

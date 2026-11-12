@@ -35,16 +35,64 @@ test("career fills the viewport without a phase strip and club history scrolls i
   }
 });
 
-test("competition dialogs are wide and retain result details and continuation", async ({ page }) => {
+test("competition dialogs are wide and retain result details and continuation", async ({ page }, testInfo) => {
   for (const cup of [false, true]) {
     await page.goto(`/dev/career-workspace${cup ? "?step=cup" : ""}`);
     await page.getByRole("button", { name: "Quay bánh xe", exact: true }).click();
     const dialog = page.getByRole("dialog");
     expect((await dialog.boundingBox())!.width).toBeGreaterThanOrEqual(800);
     await expect(dialog.getByText(cup ? "Hành trình" : "Bảng xếp hạng", { exact: true })).toBeVisible();
-    if (!cup) await expect(dialog.locator(".football-mini-table__row")).toHaveCount(20);
+    if (!cup) await expect(dialog.locator(".football-season-result__rank-row")).toHaveCount(20);
+    else await page.screenshot({ path: testInfo.outputPath("domestic-cup.png") });
     await dialog.getByRole("button", { name: "Tiếp tục hành trình", exact: true }).click();
     await expect(dialog).toBeHidden();
+  }
+});
+
+test("archived competition results keep the media and stats visible while only the table scrolls", async ({ page }, testInfo) => {
+  for (const viewport of [{ width: 1024, height: 600 }, { width: 1440, height: 900 }]) {
+    await page.setViewportSize(viewport);
+    await page.goto("/dev/career-workspace");
+    await page.getByRole("tab", { name: "Mùa giải", exact: true }).click();
+    await page.getByRole("combobox", { name: "Chọn mùa giải" }).click();
+    await page.getByRole("option", { name: /Tuổi 34/ }).click();
+
+    await page.getByRole("button", { name: /FIFA World Cup/ }).click();
+    const national = page.getByRole("dialog", { name: "FIFA World Cup" });
+    await expect(national.getByText("England", { exact: true })).toBeVisible();
+    await expect(national.getByText("Brighton & Hove Albion")).toHaveCount(0);
+    await expect(national.getByText("Vòng bảng: hòa 1–1 trước Pháp")).toBeVisible();
+    await expect(national.getByText("7.87")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`national-${viewport.width}.png`) });
+    await national.getByRole("button", { name: "Đóng", exact: true }).click();
+
+    await page.getByRole("button", { name: /UEFA Champions League/ }).click();
+    const continental = page.getByRole("dialog", { name: "UEFA Champions League" });
+    await expect(continental.getByText("Tứ kết: thua 0–1")).toBeVisible();
+    await page.screenshot({ path: testInfo.outputPath(`continental-${viewport.width}.png`) });
+    await page.keyboard.press("Escape");
+
+    await page.getByRole("button", { name: /Premier League.*Hạng|Premier League.*Top/ }).click();
+    const league = page.getByRole("dialog", { name: "Premier League" });
+    const table = league.getByRole("region", { name: "Bảng xếp hạng" });
+    const summary = league.getByRole("region", { name: "Kết quả và thống kê" });
+    const media = summary.locator(".football-editorial-art");
+    const footer = league.locator(".football-modal-footer");
+    await expect(media).toHaveJSProperty("complete", true);
+    const artBefore = (await media.boundingBox())!;
+    const statsBefore = (await summary.locator("dl").boundingBox())!;
+    const footerBefore = (await footer.boundingBox())!;
+    expect(artBefore.height).toBeGreaterThan(160);
+    expect(statsBefore.y + statsBefore.height).toBeLessThanOrEqual(footerBefore.y);
+    await table.focus();
+    await page.keyboard.press("End");
+    await expect.poll(() => table.evaluate((node) => node.scrollTop)).toBeGreaterThan(0);
+    expect(await media.boundingBox()).toEqual(artBefore);
+    expect(await summary.locator("dl").boundingBox()).toEqual(statsBefore);
+    expect(await footer.boundingBox()).toEqual(footerBefore);
+    expect(await league.locator(".football-season-result__body").evaluate((node) => node.scrollTop)).toBe(0);
+    await page.screenshot({ path: testInfo.outputPath(`league-${viewport.width}.png`) });
+    await page.keyboard.press("Escape");
   }
 });
 
