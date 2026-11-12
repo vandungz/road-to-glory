@@ -21,14 +21,95 @@
 .football-career-shell .football-dossier-body { flex: 1; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
 .football-career-shell .football-panini-sticker { flex-shrink: 0; }
 
-.football-season-result-modal { width: min(880px, calc(100% - 32px)); max-width: 880px; }
-.football-season-result__body { min-height: 0; display: grid; gap: 24px; }
-.football-season-result__body--split { grid-template-columns: minmax(220px, .85fr) minmax(0, 1.4fr); }
-.football-season-result__summary, .football-season-result__details { min-width: 0; }
-.football-season-result__club { margin: 0 0 16px; color: var(--football-ink-2); }
-.football-season-result-modal .football-mini-table__row { min-height: 44px; grid-template-columns: 32px minmax(0, 1fr) 80px; }
-.football-season-result-modal .football-modal-section { margin-top: 16px; }
-.football-season-result-modal .football-modal-footer .football-button { width: auto; min-width: 200px; margin-left: auto; }
+.football-modal-panel.football-season-result-modal {
+  max-width: 1120px;
+  height: min(760px, calc(100dvh - 40px));
+  max-height: calc(100dvh - 40px);
+}
+
+.football-season-result-modal .football-modal-header__title { text-wrap: balance; }
+
+.football-season-result-modal .football-season-result__body {
+  display: grid;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.2fr);
+  grid-template-rows: minmax(0, 1fr);
+  overflow: hidden;
+  padding: 0;
+}
+
+.football-season-result__summary {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  gap: 12px;
+  min-width: 0;
+  padding: 24px 32px;
+  border-inline-end: 1px solid var(--football-rule);
+}
+
+.football-season-result__team {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--football-ink-2);
+  font-size: 14px;
+}
+
+.football-season-result__outcome {
+  margin: 2px 0 0;
+  font-family: var(--font-headline);
+  font-size: clamp(25px, 4dvh, 38px);
+  font-weight: 600;
+  line-height: 1.15;
+}
+
+.football-season-result__outcome[data-champion="true"] { color: var(--football-honour); }
+.football-season-result__summary .football-season-result__art { width: 100%; height: 100%; min-height: 0; object-fit: contain; }
+
+.football-season-result__label {
+  margin: 0 0 8px;
+  color: var(--football-ink-2);
+  font-size: 13px;
+}
+
+.football-season-result__stats {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  margin: 0;
+  border-top: 1px solid var(--football-rule);
+}
+
+.football-season-result__stats > div { padding: 4px 8px 4px 0; }
+.football-season-result__stats dt { color: var(--football-ink-2); font-size: 12px; }
+.football-season-result__stats dd { margin: 0; font: 500 20px/1.2 var(--font-headline); font-variant-numeric: tabular-nums; }
+
+.football-season-result__details {
+  min-width: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+  padding: 24px 32px;
+}
+
+.football-season-result__details:focus-visible { outline-offset: -3px; }
+.football-season-result__details h3 { margin: 0 0 12px; font: 600 22px/1.2 var(--font-headline); }
+.football-season-result__table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.football-season-result__table :is(th, td) { padding: 12px 8px; border-bottom: 1px solid var(--football-rule); text-align: left; }
+.football-season-result__table th { font-weight: 500; }
+.football-season-result__table thead { color: var(--football-ink-2); font-size: 12px; }
+.football-season-result__table :is(th, td):last-child { text-align: right; font-variant-numeric: tabular-nums; }
+.football-season-result__rank-row[data-player-club="true"] { color: var(--football-accent-ink); background: var(--football-paper); }
+.football-season-result__journey { margin: 0; padding: 0; list-style: none; }
+.football-season-result__journey li { padding: 12px 0; border-top: 1px solid var(--football-rule); }
+.football-season-result-modal .football-modal-footer .football-button { width: auto; min-width: 180px; }
+
+@media (max-height: 700px) {
+  .football-season-result-modal .football-modal-header,
+  .football-season-result-modal .football-modal-footer { min-height: 64px; padding-block: 8px; }
+  .football-season-result-modal .football-modal-footer .football-button { min-height: 44px; }
+  .football-season-result__summary, .football-season-result__details { padding: 12px 24px; }
+}
+
 
 .football-season-close-modal { height: min(760px, calc(100dvh - 48px)); max-height: calc(100dvh - 48px); }
 .football-season-close__layout { flex: 1; grid-template-rows: minmax(0, 1fr); overflow: hidden; }

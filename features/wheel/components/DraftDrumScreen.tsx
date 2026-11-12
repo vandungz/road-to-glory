@@ -345,7 +345,10 @@ export function DraftDrumScreen({
             const leagueSize = clubs.filter((club) => club.leagueId === currentClub?.leagueId).length || 10;
             portrait.queue(getPortraitCue(result.step, result.value, `${currentAge}:${result.step}`, leagueSize));
           }}
-          handleCareerSpin={handleCareerSpin}
+          handleCareerSpin={() => {
+            setSelectedAgeForStats(currentAge);
+            void handleCareerSpin();
+          }}
           handleNextSeason={handleNextSeason}
         />
       )}
@@ -461,6 +464,8 @@ export function DraftDrumScreen({
           record={activeRecord}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
+          playerNationality={playerNationality}
+          isArchived={selectedAgeForStats !== currentAge}
           onClose={() => { portrait.release(activeModal); handleCompetitionResultModalClose(); }}
         />
       )}
