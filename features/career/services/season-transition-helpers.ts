@@ -1,6 +1,7 @@
 import type { Prisma } from "@/app/generated/prisma/client";
 import type { CareerSeasonAdvanceDto } from "@/features/career/contracts/season-transition.contract";
 import { calculateContinentalQualification } from "@/features/wheel/lib/simulation-helpers";
+import { readSeasonCompetitionDetails } from "@/features/wheel/lib/season-record-hydration";
 
 export type SeasonTransitionErrorCode =
   | "FORBIDDEN"
@@ -216,6 +217,7 @@ export function completedSeasonRecord(
   const hasNationalTeam = Object.keys(nationalTeam).length > 0 || season.age % 2 === 0;
   const record: Record<string, unknown> = {
     ...existing,
+    ...readSeasonCompetitionDetails(runtime),
     age: season.age,
     ...(season.clubId ? { clubId: season.clubId } : {}),
     clubName: season.clubName ?? existing.clubName ?? "Không CLB",
@@ -256,6 +258,7 @@ export function completedSeasonRecord(
   if (hasNationalTeam) {
     record.nationalTeam = {
       ...nationalTeam,
+      ...(typeof runtime.nationalTournamentType === "string" ? { type: runtime.nationalTournamentType } : {}),
       ...(typeof runtime.nationalCallupResult === "string"
         ? { callup: runtime.nationalCallupResult }
         : {}),

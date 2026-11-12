@@ -1,4 +1,10 @@
 import assert from "node:assert/strict";
+import type { Prisma } from "@/app/generated/prisma/client";
+import type { CheckpointJson } from "@/features/career/services/checkpoint-helpers";
+import { attachCompetitionDetails } from "@/features/career/services/checkpoint-competition.service";
+import { completedSeasonRecord } from "@/features/career/services/season-transition-helpers";
+import { readSeasonCompetitionDetails, restoreArchivedCompetitionRecord } from "@/features/wheel/lib/season-record-hydration";
+import type { SeasonRecord } from "@/types/game";
 import {
   resolveWheelCommandSchema,
 } from "@/features/career/contracts/checkpoint.contract";
@@ -100,6 +106,7 @@ const resolverContext = {
       leagueId: "league-1",
       leagueName: "Test League",
       leagueTier: 1,
+      leagueCountry: "England",
       prestige: 3,
       continentalType: "none",
     },
@@ -206,4 +213,55 @@ assert.equal(
   "resolved",
   "The final season must close growth directly without opening transfer",
 );
-console.log("checkpoint contract/resolver checks passed");
+async function checkCompetitionPersistence() {
+  const club = resolverContext.currentClub;
+  const opponent = { ...club, id: "club-2", name: "Second Club" };
+  const tx = {
+    club: { findMany: async () => [club, opponent] },
+    nationalTeam: { findMany: async () => [
+      { id: "nation-2", name: "France", nationality: "France", confederation: "UEFA", tier: 1 },
+    ] },
+  } as unknown as Prisma.TransactionClient;
+  const season = { ...resolverContext.season, age: 22 };
+  const context = { ...resolverContext, season };
+  const results = [
+    ["standing", 2, "leagueTable"],
+    ["domestic_cup", "Quarter-Finals", "domesticCupJourney"],
+    ["continental_cup", "Round of 16", "continentalCupJourney"],
+    ["national_tournament", "Group Stage", "nationalTeamJourney"],
+  ] as const;
+  let runtime: CheckpointJson | undefined = {
+    continentalCupType: "UCL", standingResult: 2, domesticCupResult: "Quarter-Finals",
+    continentalCupResult: "Round of 16", nationalCallupResult: "called_up", nationalTournamentResult: "Group Stage",
+  };
+  const displayedDetails = {};
+  for (const [stepKey, outcome, key] of results) {
+    const detail = await attachCompetitionDetails(tx, context, stepKey, {
+      outcome, nextStep: "season_stats", seasonRuntimeState: runtime,
+    });
+    const publicDetails = readSeasonCompetitionDetails(detail.publicResult);
+    assert.ok(publicDetails[key]?.length, `missing checkpoint details for ${stepKey}`);
+    Object.assign(displayedDetails, publicDetails);
+    runtime = detail.seasonRuntimeState;
+  }
+  const laterWheel = resolveServerCareerWheel({ ...context, season: { ...season, runtimeState: runtime } }, "dir_increase");
+  const archived = completedSeasonRecord({}, laterWheel.seasonRuntimeState, {
+    age: season.age, clubId: club.id, clubName: club.name, leagueId: club.leagueId, leagueName: club.leagueName,
+  }, "UCL", 70);
+  assert.deepEqual(readSeasonCompetitionDetails(archived), displayedDetails);
+  assert.deepEqual(archived.nationalTeam, { type: "UEFA Euro", callup: "called_up", result: "Group Stage" });
+
+  const oldRecord = { ...archived, nationalTeam: { type: "", callup: "called_up", result: "Group Stage" } } as unknown as SeasonRecord;
+  delete oldRecord.leagueTable;
+  delete oldRecord.nationalTeamJourney;
+  const restored = restoreArchivedCompetitionRecord(oldRecord, "England", 21);
+  assert.equal(restored.nationalTeam?.type, "UEFA Euro");
+  assert.equal(restored.nationalTeam?.callup, "Được triệu tập");
+  assert.equal(restored.nationalTeamJourney, undefined);
+  assert.equal(restored.leagueTable, undefined);
+}
+
+void checkCompetitionPersistence().then(() => console.log("checkpoint contract/resolver checks passed")).catch((error) => {
+  console.error(error);
+  process.exitCode = 1;
+});

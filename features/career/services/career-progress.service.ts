@@ -48,6 +48,7 @@ function publicCurrentClub(value: unknown, isUnemployed: boolean) {
 const PUBLIC_RUNTIME_KEYS = [
   "yearSimResult", "continentalCupType", "standingResult", "domesticCupResult", "continentalCupResult",
   "nationalCallupResult", "nationalTournamentResult", "selectedStatsList", "selectorIndex",
+  "nationalTournamentType", "leagueTable", "domesticCupJourney", "continentalCupJourney", "nationalTeamJourney",
   "yearEvolutionDirection", "ballonDorNominationWeight", "ballonDorRankWeights",
   "ballonDorRank", "evolvedStatsThisYear", "evolutionCount", "lastWheel",
 ] as const;

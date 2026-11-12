@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
-import { hydrateCurrentSeasonRecord } from "../lib/season-record-hydration";
+import { hydrateCurrentSeasonRecord, restoreArchivedCompetitionRecord } from "../lib/season-record-hydration";
 import { shouldResumeSeasonStatsModal } from "../lib/career-resume-state";
 import { getCareerPlayerAction } from "@/actions/player.actions";
 import { AWARD_MODEL_VERSION } from "@/types/awards";
@@ -144,9 +144,13 @@ export function useDraftDrumHydration({
           statsProps.setAchievements(playerRecord.achievements ?? { ballonDor: 0, trophies: [], seasonAwards: [] });
 
           const restoredSeasonRecords: Record<number, SeasonRecord> = {};
+          const seasonRuntimeByAge = new Map(progress?.seasons.map((season) => [season.age, season.runtimeState]));
           if (playerRecord.seasonHistory) {
             for (const [k, v] of Object.entries(playerRecord.seasonHistory)) {
-              restoredSeasonRecords[parseInt(k)] = v;
+              const age = Number(k);
+              restoredSeasonRecords[age] = restoreArchivedCompetitionRecord(
+                { ...v, age }, playerRecord.nationality, playerRecord.debutAge, seasonRuntimeByAge.get(age),
+              );
             }
           }
 

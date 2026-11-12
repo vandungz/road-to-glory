@@ -68,6 +68,7 @@ export interface WheelCheckpointResolverContext {
     leagueId: string;
     leagueName: string;
     leagueTier: number;
+    leagueCountry: string;
     prestige: number;
     continentalType: string;
   } | null;
@@ -88,6 +89,7 @@ export interface WheelResolution {
 
 export type ServerWheelResolver = (
   context: WheelCheckpointResolverContext,
+  tx: Prisma.TransactionClient,
 ) => Promise<WheelResolution> | WheelResolution;
 
 export const CAREER_PROJECTION_STEPS = new Set([

@@ -8,6 +8,7 @@ import {
   generateLeagueTableAction,
   generateCupJourneyAction,
 } from "@/actions/season.actions";
+import { readSeasonCompetitionDetails } from "../lib/season-record-hydration";
 import type { ModalType } from "./useDraftDrum";
 import type { CareerSubStep, CurrentClub, HiddenStats } from "@/types/domain";
 import type { SeasonRecord } from "@/types/game";
@@ -189,17 +190,19 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
     subStep: string,
     result: string | number,
     authoritativeNextStep?: CareerSubStep,
+    publicResult?: unknown,
   ) {
+    const details = readSeasonCompetitionDetails(publicResult);
     pendingAfterCompetitionModalRef.current = null;
     if (subStep === "standing") {
       const standingVal = result as number;
       p.setStandingResult(standingVal);
-      generateLeagueTableAction({
+      (p.commitSeasonStats ? Promise.resolve(details.leagueTable) : generateLeagueTableAction({
         leagueId: p.currentClub.leagueId,
         playerClubId: p.currentClub.id,
         playerClubName: p.currentClub.name,
         playerStanding: standingVal,
-      }).then((mockTable) => {
+      })).then((mockTable) => {
         updateCurrentSeasonRecord((record) => ({ ...record, standing: standingVal, leagueTable: mockTable }));
         showCompetitionResultModal("league", () => {
           p.setCareerSubStep("domestic_cup");
@@ -239,12 +242,12 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         );
       };
 
-      generateCupJourneyAction({
+      (p.commitSeasonStats ? Promise.resolve(details.domesticCupJourney) : generateCupJourneyAction({
         type: "domestic",
         result: cupVal,
         playerClubId: p.currentClub.id,
         playerClubPrestige: p.currentClub.prestige ?? 3,
-      }).then((journey) => {
+      })).then((journey) => {
         updateCurrentSeasonRecord((record) => ({ ...record, domesticCup: cupVal, domesticCupJourney: journey }));
         advanceFromDomesticCup();
       }).catch(() => {
@@ -277,14 +280,14 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         );
       };
 
-      generateCupJourneyAction({
+      (p.commitSeasonStats ? Promise.resolve(details.continentalCupJourney) : generateCupJourneyAction({
         type: "continental",
         result: contVal,
         playerClubId: p.currentClub.id,
         playerClubPrestige: p.currentClub.prestige ?? 3,
         cupName: cupLabel,
         cupType: p.currentContinentalCup,
-      }).then((journey) => {
+      })).then((journey) => {
         updateCurrentSeasonRecord((record) => ({
           ...record,
           continentalCup: record.continentalCup
@@ -308,7 +311,9 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       p.setNationalCallupResult(callupVal);
       p.setSeasonRecords((prev) => {
         const rec = { ...prev[p.currentAge] };
-        if (rec.nationalTeam) rec.nationalTeam.callup = callupVal === "called_up" ? "Được triệu tập" : "Không được gọi";
+        if (rec.nationalTeam) rec.nationalTeam = {
+          ...rec.nationalTeam, callup: callupVal === "called_up" ? "Được triệu tập" : "Không được gọi",
+        };
         return { ...prev, [p.currentAge]: rec };
       });
       if (callupVal === "called_up") {
@@ -324,17 +329,17 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       const tourney = getNationalTournamentName(
         p.playerNationality, p.currentAge, p.playerDebutAge, getNationalContinentalCup,
       );
-      generateCupJourneyAction({
+      (p.commitSeasonStats ? Promise.resolve(details.nationalTeamJourney) : generateCupJourneyAction({
         type: "national",
         result: tournamentVal,
         playerClubId: p.currentClub.id,
         playerClubPrestige: p.currentClub.prestige ?? 3,
         cupName: tourney,
         playerNationality: p.playerNationality,
-      }).then((journey) => {
+      })).then((journey) => {
         p.setSeasonRecords((prev) => {
           const rec = { ...prev[p.currentAge] };
-          if (rec.nationalTeam) rec.nationalTeam.result = tournamentVal;
+          if (rec.nationalTeam) rec.nationalTeam = { ...rec.nationalTeam, type: tourney, result: tournamentVal };
           rec.nationalTeamJourney = journey;
           return { ...prev, [p.currentAge]: rec };
         });

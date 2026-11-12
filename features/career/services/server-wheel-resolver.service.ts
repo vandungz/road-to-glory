@@ -195,8 +195,10 @@ function updateRuntimeState(
   stepKey: string,
   result: string | number,
   runtime: RuntimeState,
+  persistedRuntime: unknown,
 ): CheckpointJson {
   const next: RuntimeState = {
+    ...asRecord(persistedRuntime),
     ...runtime,
     lastWheel: { stepKey, result },
   };
@@ -287,7 +289,7 @@ export function resolveServerCareerWheel(
     throw new Error("Server wheel resolver returned an invalid outcome");
   }
   const nextStep = getNextStep(stepKey, result, context, runtime);
-  const nextRuntime = updateRuntimeState(stepKey, result, runtime);
+  const nextRuntime = updateRuntimeState(stepKey, result, runtime, context.season.runtimeState);
   const growthUpdate = resolveGrowthStatsUpdate(stepKey, result, context, runtime, statsTimeline);
   return {
     outcome: result,

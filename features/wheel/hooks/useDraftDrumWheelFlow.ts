@@ -1,6 +1,6 @@
 "use client";
 
-import type { Dispatch, MutableRefObject, SetStateAction } from "react";
+import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { isCareerRevisionConflict } from "@/features/career/hooks/useCareerCheckpointSync";
 import type { CareerSubStep, HiddenStats, CurrentClub } from "@/types/domain";
@@ -121,6 +121,8 @@ export function useDraftDrumWheelFlow({
   setIsBallonDorTransitioning,
   applyAuthoritativeSeasonTicket,
 }: DraftDrumWheelFlowProps) {
+  const competitionDetailsRef = useRef<unknown>(null);
+
   async function handleCareerSpin() {
     if (isProcessing || careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved"
       || careerSubStep === "season_stats" || activeModal !== null || isBallonDorTransitioning
@@ -170,6 +172,7 @@ export function useDraftDrumWheelFlow({
         activeSpinStepRef.current = stepKey;
         activeSpinNextStepRef.current = (checkpoint.currentStep ?? null) as CareerSubStep | null;
         tempCareerResultRef.current = result;
+        competitionDetailsRef.current = checkpoint.publicResult;
       } catch (error) {
         activeSpinStepRef.current = null;
         activeSpinNextStepRef.current = null;
@@ -221,6 +224,8 @@ export function useDraftDrumWheelFlow({
     const authoritativeNextStep = activeSpinNextStepRef.current ?? undefined;
     activeSpinStepRef.current = null;
     activeSpinNextStepRef.current = null;
+    const competitionDetails = competitionDetailsRef.current;
+    competitionDetailsRef.current = null;
     const result = tempCareerResultRef.current;
     tempCareerResultRef.current = null;
     const pendingStats = pendingCheckpointStatsRef.current;
@@ -254,7 +259,7 @@ export function useDraftDrumWheelFlow({
     }
     if (COMPETITION_STEPS.has(completedStep)) {
       if (result !== null) {
-        competitionFlow.handleSpinComplete(completedStep, result, authoritativeNextStep);
+        competitionFlow.handleSpinComplete(completedStep, result, authoritativeNextStep, competitionDetails);
       }
     } else {
       if (result !== null) {

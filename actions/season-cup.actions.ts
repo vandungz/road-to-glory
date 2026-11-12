@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { generateDomesticCupJourneyService, generateContinentalCupJourneyService, generateNationalTeamJourneyService } from "@/features/season/services/cup-journey.service";
+import { continentalOpponentTypes, tournamentConfederation } from "@/features/season/services/competition-opponents";
 import { evolvePlayerStatsService, type StatsEvolutionResult } from "@/features/player/services/stats-evolution.service";
 import { generateCupJourneySchema, evolvePlayerStatsSchema } from "./season-action-contracts";
 
@@ -73,22 +74,7 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
 
   if (validated.type === "continental") {
     const cupType = validated.cupType ?? "none";
-    let allowedTypes: string[];
-    if (["UCL", "UEL", "UECL"].includes(cupType)) {
-      allowedTypes = ["UCL", "UEL", "UECL"];
-    } else if (cupType === "Libertadores" || cupType === "Sudamericana") {
-      allowedTypes = ["Libertadores", "Sudamericana"];
-    } else if (cupType === "AFC_CL") {
-      allowedTypes = ["AFC_CL"];
-    } else if (cupType === "CONCACAF_CC") {
-      allowedTypes = ["CONCACAF_CC"];
-    } else if (cupType === "CAF_CL") {
-      allowedTypes = ["CAF_CL"];
-    } else {
-      allowedTypes = ["UCL", "UEL", "UECL"];
-    }
-
-    const opponents = await getCachedContinentalOpponents(allowedTypes);
+    const opponents = await getCachedContinentalOpponents(continentalOpponentTypes(cupType));
 
     return generateContinentalCupJourneyService({
       result: validated.result,
@@ -100,14 +86,7 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
   }
 
   const tourneyName = validated.cupName ?? "FIFA World Cup";
-  const confederationMap: Record<string, string> = {
-    "UEFA Euro": "UEFA",
-    "Copa América": "CONMEBOL",
-    "AFC Asian Cup": "AFC",
-    "CAF Africa Cup of Nations": "CAF",
-    "CONCACAF Gold Cup": "CONCACAF",
-  };
-  const confederation = confederationMap[tourneyName];
+  const confederation = tournamentConfederation(tourneyName);
   const opponents = await getCachedNationalTeams(confederation);
 
   return generateNationalTeamJourneyService({

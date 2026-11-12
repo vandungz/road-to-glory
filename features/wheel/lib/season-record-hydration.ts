@@ -17,6 +17,35 @@ function asNumber(value: unknown): number | null {
   return typeof value === "number" && Number.isFinite(value) ? value : null;
 }
 
+export function readSeasonCompetitionDetails(value: unknown): Pick<SeasonRecord, "leagueTable" | "domesticCupJourney" | "continentalCupJourney" | "nationalTeamJourney"> {
+  const runtime = asRecord(value);
+  const details: ReturnType<typeof readSeasonCompetitionDetails> = {};
+  if (Array.isArray(runtime.leagueTable)) details.leagueTable = runtime.leagueTable as SeasonRecord["leagueTable"];
+  for (const key of ["domesticCupJourney", "continentalCupJourney", "nationalTeamJourney"] as const) {
+    const journey = runtime[key];
+    if (Array.isArray(journey)) details[key] = journey.filter((item): item is string => typeof item === "string");
+  }
+  return details;
+}
+
+export function restoreArchivedCompetitionRecord(
+  existing: SeasonRecord, nationality: string, debutAge: number, runtimeState?: unknown,
+): SeasonRecord {
+  const runtime = asRecord(runtimeState);
+  const saved = existing.nationalTeam;
+  const callup = asString(runtime.nationalCallupResult) ?? saved?.callup;
+  const result = asString(runtime.nationalTournamentResult) ?? saved?.result ?? null;
+  const nationalTeam = saved || callup || result ? {
+    type: asString(runtime.nationalTournamentType)?.trim() || saved?.type?.trim()
+      || getNationalTournamentName(nationality, existing.age, debutAge, getNationalContinentalCup),
+    callup: callup === "called_up" ? "Được triệu tập"
+      : callup === "missed" ? "Không được gọi"
+        : callup || (result ? "Được triệu tập" : "Chờ gọi"),
+    result,
+  } : null;
+  return { ...existing, ...readSeasonCompetitionDetails(runtime), nationalTeam };
+}
+
 /**
  * Rebuilds the in-progress UI record from the server's public runtime state.
  * Completed seasons still come from seasonHistory; this helper only fills the
@@ -108,18 +137,9 @@ export function hydrateCurrentSeasonRecord(params: {
     });
   }
 
-  if (record.nationalTeam) {
-    const callup = asString(runtime.nationalCallupResult);
-    const result = asString(runtime.nationalTournamentResult);
-    record.nationalTeam = {
-      ...record.nationalTeam,
-      ...(callup ? { callup: callup === "called_up" ? "Được triệu tập" : "Không được gọi" } : {}),
-      ...(result ? { result } : {}),
-    };
-  }
   if (asNumber(runtime.ballonDorRank) !== null) {
     record.ballonDorResult = asNumber(runtime.ballonDorRank);
   }
 
-  return record;
+  return restoreArchivedCompetitionRecord(record, params.nationality, params.debutAge, runtime);
 }

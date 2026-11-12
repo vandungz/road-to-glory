@@ -13,6 +13,7 @@ import {
   resolveServerCareerWheel,
 } from "@/features/career/services/server-wheel-resolver.service";
 import { getWheelTypeForStep } from "@/features/career/contracts/wheel-step.contract";
+import { attachCompetitionDetails } from "@/features/career/services/checkpoint-competition.service";
 import { withCareerCommandLogging } from "@/lib/observability/career-command-log";
 
 const startCareerSeasonSchema = z.object({
@@ -62,7 +63,9 @@ export async function resolveWheelCheckpointAction(input: unknown): Promise<Whee
     () => resolveWheelCheckpointCommand({
       input: params,
       userId,
-      resolve: (context) => resolveServerCareerWheel(context, params.stepKey),
+      resolve: (context, tx) => attachCompetitionDetails(
+        tx, context, params.stepKey, resolveServerCareerWheel(context, params.stepKey),
+      ),
     }),
   );
 }

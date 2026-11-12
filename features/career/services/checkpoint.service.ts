@@ -274,7 +274,7 @@ export async function resolveWheelCheckpointCommand(params: {
             leagueId: true,
             prestige: true,
             continentalType: true,
-            league: { select: { name: true, tier: true } },
+            league: { select: { name: true, tier: true, country: true } },
           },
         })
       : null;
@@ -293,12 +293,13 @@ export async function resolveWheelCheckpointCommand(params: {
             leagueId: clubRow.leagueId,
             leagueName: clubRow.league.name,
             leagueTier: clubRow.league.tier,
+            leagueCountry: clubRow.league.country,
             prestige: clubRow.prestige,
             continentalType: clubRow.continentalType,
           }
         : null,
       leagueSize,
-    });
+    }, tx);
     if (!resolution.nextStep || resolution.nextStep.length > 80 || !CAREER_PROJECTION_STEPS.has(resolution.nextStep)) {
       throw new CheckpointCommandError("INVALID_STEP", "Resolver trả về bước tiếp theo không hợp lệ");
     }
