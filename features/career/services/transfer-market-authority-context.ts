@@ -45,6 +45,7 @@ const playerSelect = {
   nationality: true,
   peakOvr: true,
   statsTimeline: true,
+  seasonHistory: true,
   clubStints: true,
   currentWageAnnual: true,
   contractYearsTotal: true,
@@ -251,6 +252,7 @@ export async function loadAuthorityContext(
   const snapshot = asRecord(asArray(player.statsTimeline).at(-1));
   const runtime = asRecord(season.runtimeState);
   const simulated = asRecord(runtime.yearSimResult);
+  const history = asRecord(player.seasonHistory);
   const currentOvr = asNumber(snapshot.ovr, player.peakOvr);
   const currentStats = asStats(player);
   const isUnemployed = player.isUnemployed || !currentClubId;
@@ -271,6 +273,20 @@ export async function loadAuthorityContext(
     goals: Math.max(0, Math.round(asNumber(simulated.goals, 0))),
     assists: Math.max(0, Math.round(asNumber(simulated.assists, 0))),
     cleanSheets: Math.max(0, Math.round(asNumber(simulated.cleanSheets, 0))),
+    currentSeasonApps: typeof simulated.apps === "number" ? simulated.apps : undefined,
+    previousSeasons: [player.currentAge - 1, player.currentAge - 2].map((age) => {
+      const record = asRecord(history[String(age)]);
+      const matchRating = asNumber(record.matchRating, NaN);
+      const apps = asNumber(record.apps, NaN);
+      if (!Number.isFinite(matchRating) || apps === 0) return null;
+      return {
+        matchRating,
+        apps: Number.isFinite(apps) ? apps : undefined,
+        goals: typeof record.goals === "number" ? record.goals : undefined,
+        assists: typeof record.assists === "number" ? record.assists : undefined,
+        cleanSheets: typeof record.cleanSheets === "number" ? record.cleanSheets : undefined,
+      };
+    }),
     position: player.position,
     contractYearsRemaining: player.contractYearsRemaining,
     contractYearsTotal: player.contractYearsTotal,

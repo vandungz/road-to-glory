@@ -1,5 +1,5 @@
 import { resolveRandom } from "@/lib/wheel-engine/spin-resolver";
-import { estimateAppsRatio } from "@/lib/club-fit";
+import { estimateAppsRatio, getClubThreshold } from "@/lib/club-fit";
 import {
   MAX_INBOUND_OFFERS,
   clubCanAffordBuyout,
@@ -11,6 +11,7 @@ import {
   computePositionValueSnapshot,
   contractCoversRemainingCareer,
   expectedAppsAtClub,
+  expectedPrestigeFromOvr,
   isDistressSale,
   proposeContractYears,
   proposeWageAnnual,
@@ -31,6 +32,7 @@ import {
   scoreClubInterest,
   pickInboundClubs,
 } from "./transfer-market-scoring";
+import { quoteInboundTerms, recentTransferForm } from "./transfer-inbound-terms";
 export { buildOfferCard, reasonForMove } from "./transfer-market-scoring";
 
 export type TransferOfferResult = {
@@ -194,21 +196,14 @@ export function generateTransferMarketService(
 
   // --- Inbound ---
   const eligible = clubs.filter((c) => (currentClubId ? c.id !== currentClubId : true));
+  const inboundForm = recentTransferForm({ ...params, apps: params.currentSeasonApps }, params.previousSeasons);
+  const kind = contractYearsRemaining <= 0 || unemployed ? "free_agent" : "transfer";
+  const feeFloor = kind === "transfer" ? mandatoryBuyout : 0;
+  const scoutingBoost = Math.max(0, inboundForm.matchRating - 6.6) * 5;
   const scored = eligible
+    .filter((club) => clubCanAffordBuyout(club.prestige, club.leagueTier, feeFloor))
     .map((club) => {
-      const transferFee = computeClubTransferFee({
-        marketValue,
-        mandatoryBuyout,
-        prestige: club.prestige,
-        leagueTier: club.leagueTier,
-        leaguePrestige: club.leaguePrestige,
-        expectedAppsRatio: estimateAppsRatio(effPositionOvr, club.prestige),
-        clubIdentity: club.id,
-      });
-      return {
-        club,
-        transferFee,
-        score: scoreClubInterest({
+      const score = scoreClubInterest({
         club,
         currentOvr,
         position: params.position,
@@ -216,81 +211,59 @@ export function generateTransferMarketService(
         potential: params.potential,
         playerNation: params.playerNation,
         currentPrestige: effectivePrestige,
-        matchRating,
-        goals: params.goals,
-        assists: params.assists,
-        cleanSheets: params.cleanSheets,
+        ...inboundForm,
         age: currentAge,
         remaining: contractYearsRemaining,
         distress,
-        willingToMove: willingToMove || unemployed,
-        transferFee,
+        willingToMove,
+        transferFee: feeFloor,
         influenceScore,
-        randomSource,
-        }),
-      };
+      });
+      const roleGap = getClubThreshold(club.prestige) - effPositionOvr - scoutingBoost;
+      const shortfall = Math.max(0, roleGap - 5);
+      return { club, score: score - shortfall * (2 + shortfall / 3) };
     })
-    .filter((x) => x.score >= 0)
     .sort((a, b) => b.score - a.score);
 
-  let windowChance = unemployed ? 0.35 : 0.22;
-  if (matchRating >= 7.5) windowChance += 0.18;
-  if (matchRating < 6.3) windowChance += 0.12;
-  const expectedPrestige = Math.min(5, Math.max(1, Math.round((effPositionOvr - 50) / 8)));
-  if (expectedPrestige > effectivePrestige) windowChance += 0.14;
+  let windowChance = 0.27 + (inboundForm.matchRating - 6.5) * 0.16;
+  if (expectedPrestigeFromOvr(effPositionOvr) > effectivePrestige) windowChance += 0.12;
   if (contractYearsRemaining <= 1) windowChance += 0.1;
   if (contractYearsRemaining >= 3 && !distress) windowChance -= 0.08;
-  if (willingToMove || unemployed) windowChance += 0.1;
-  windowChance = Math.min(0.55, Math.max(0.08, windowChance));
+  windowChance = Math.min(0.72, Math.max(0.12, windowChance));
 
   const inbound: ContractOfferCard[] = [];
-  const rollInbound = randomSource() < windowChance || distress || unemployed;
+  const rollInbound = unemployed || distress || randomSource() < windowChance;
   if (rollInbound && scored.length > 0) {
-    const take = Math.min(MAX_INBOUND_OFFERS, scored.length);
-    const picked = pickInboundClubs(scored, take, randomSource);
-
+    const years = proposeContractYears({ currentAge, retireAge, matchRating: inboundForm.matchRating });
+    const picked = pickInboundClubs(scored, MAX_INBOUND_OFFERS, randomSource);
     for (const club of picked) {
-      const years = proposeContractYears({ currentAge, retireAge, matchRating });
-      if (years <= 0) continue;
-      const fee = computeClubTransferFee({
+      const terms = quoteInboundTerms({
+        club,
+        effectiveOvr: effPositionOvr,
+        matchRating: inboundForm.matchRating,
         marketValue,
-        mandatoryBuyout,
-        prestige: club.prestige,
-        leagueTier: club.leagueTier,
-        leaguePrestige: club.leaguePrestige,
-        expectedAppsRatio: estimateAppsRatio(effPositionOvr, club.prestige),
-        clubIdentity: club.id,
+        feeFloor,
+        feeRoll: feeFloor > 0 ? randomSource() : 0,
+        wageRoll: params.wageRandomSource?.(club.id) ?? randomSource(),
       });
-      const wage = quoteWage(club, proposeWageAnnual({
+      inbound.push(buildOfferCard({
+        kind,
+        club,
+        fee: terms.transferFee,
+        wage: terms.wageAnnual,
+        years,
         ovr: effPositionOvr,
-        age: currentAge,
-        currentWage: currentWageAnnual,
-        prestige: club.prestige,
-        leagueTier: club.leagueTier,
-        matchRating,
-        stepUpPrestige: club.prestige - effectivePrestige,
-        acceptLowerWage: willingToMove || unemployed,
+        expectedLeagueApps: terms.expectedLeagueApps,
+        reason: unemployed
+          ? "Cầu thủ tự do — tìm CLB mới"
+          : reasonForMove({
+              matchRating: inboundForm.matchRating,
+              currentPrestige: effectivePrestige,
+              destPrestige: club.prestige,
+              distress,
+              remaining: contractYearsRemaining,
+            }),
       }));
-      const kind = contractYearsRemaining <= 0 || unemployed ? "free_agent" : "transfer";
-      inbound.push(
-        buildOfferCard({
-          kind,
-          club,
-          fee: kind === "free_agent" ? 0 : fee,
-          wage,
-          years,
-          ovr: effPositionOvr,
-          reason: unemployed
-            ? "Cầu thủ tự do — tìm CLB mới"
-            : reasonForMove({
-                matchRating,
-                currentPrestige: effectivePrestige,
-                destPrestige: club.prestige,
-                distress,
-                remaining: contractYearsRemaining,
-              }),
-        }),
-      );
     }
   }
 
@@ -360,7 +333,6 @@ export function generateTransferMarketService(
         willingToMove: willingToMove || unemployed,
         transferFee,
         influenceScore,
-        randomize: false,
       });
       return {
         club,

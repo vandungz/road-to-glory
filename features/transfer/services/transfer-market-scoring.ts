@@ -6,7 +6,7 @@ import {
   expectedAppsAtClub,
   leagueCompetitivenessScore,
 } from "@/lib/transfer-economy";
-import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
+import { resolveWeightedOutcome, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 import type {
   ClubMarketInfo,
   ContractOfferCard,
@@ -46,8 +46,6 @@ export function scoreClubInterest(params: {
   willingToMove: boolean;
   transferFee: number;
   influenceScore?: number;
- randomize?: boolean;
-  randomSource?: RandomSource;
 }): number {
   const {
     club,
@@ -89,7 +87,7 @@ export function scoreClubInterest(params: {
     assists,
     cleanSheets,
     playerNation,
-    clubLeagueCountry: club.leagueName ?? "",
+    clubLeagueCountry: club.leagueCountry ?? undefined,
     clubPrestige: club.prestige,
     influenceScore,
   });
@@ -110,42 +108,41 @@ export function scoreClubInterest(params: {
   if (remaining >= 3 && !distress && matchRating < 7.2) score *= 0.5;
   if (willingToMove) score += 12;
 
-  if (params.randomize !== false) score += (params.randomSource ?? resolveRandom)() * 6;
- return score;
+  return score;
 }
 
 export function pickInboundClubs(
   scored: Array<{ club: ClubMarketInfo; score: number }>,
   count: number,
-  randomSource: RandomSource = resolveRandom,
+  randomSource: RandomSource,
 ): ClubMarketInfo[] {
   const selected: ClubMarketInfo[] = [];
-  const remaining = scored.slice(0, Math.min(14, scored.length));
+  const remaining = [...scored];
 
   while (selected.length < count && remaining.length > 0) {
     const selectedLeagueIds = new Set(selected.map((club) => club.leagueId));
     const selectedConfederations = new Set(
       selected.map((club) => club.confederation).filter(Boolean),
     );
-    const weights = remaining.map(({ club, score }) => {
+    const selectedPrestiges = new Set(selected.map((club) => club.prestige));
+    const buckets = new Map<number, Array<{ value: ClubMarketInfo; weight: number }>>();
+    for (const { club, score } of remaining) {
       const leagueFactor = selectedLeagueIds.has(club.leagueId) ? 0.4 : 1;
       const confederationFactor = club.confederation && selectedConfederations.has(club.confederation)
         ? 0.8
         : 1;
-      return Math.max(1, score) * leagueFactor * confederationFactor;
-    });
-    const totalWeight = weights.reduce((sum, weight) => sum + weight, 0);
-    let roll = randomSource() * totalWeight;
-    let pickedIndex = 0;
-    for (let index = 0; index < weights.length; index += 1) {
-      roll -= weights[index];
-      if (roll <= 0) {
-        pickedIndex = index;
-        break;
-      }
+      const bucket = buckets.get(club.prestige) ?? [];
+      bucket.push({ value: club, weight: Math.exp(score / 22) * leagueFactor * confederationFactor });
+      buckets.set(club.prestige, bucket);
     }
-    selected.push(remaining[pickedIndex].club);
-    remaining.splice(pickedIndex, 1);
+    // A prestige band's chance depends on its strongest available fit, not the number of seeded clubs.
+    const bucket = resolveWeightedOutcome(Array.from(buckets, ([prestige, options]) => ({
+      value: options,
+      weight: Math.max(...options.map(({ weight }) => weight)) * (selectedPrestiges.has(prestige) ? 0.55 : 1),
+    })), randomSource);
+    const club = resolveWeightedOutcome(bucket, randomSource);
+    selected.push(club);
+    remaining.splice(remaining.findIndex((candidate) => candidate.club.id === club.id), 1);
   }
 
   return selected;
@@ -159,6 +156,7 @@ export function buildOfferCard(params: {
   years: number;
   ovr: number;
   reason: string;
+  expectedLeagueApps?: number;
 }): ContractOfferCard {
   const { club } = params;
   return {
@@ -172,7 +170,7 @@ export function buildOfferCard(params: {
     transferFee: params.fee,
     wageAnnual: params.wage,
     contractYears: params.years,
-    expectedLeagueApps: expectedAppsAtClub(params.ovr, club.prestige, club.leagueSize ?? 20),
+    expectedLeagueApps: params.expectedLeagueApps ?? expectedAppsAtClub(params.ovr, club.prestige, club.leagueSize ?? 20),
     reason: params.reason,
     canAffordBuyout: true,
   };

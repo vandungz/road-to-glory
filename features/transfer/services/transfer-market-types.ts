@@ -101,6 +101,9 @@ export interface GenerateTransferMarketParams {
   goals: number;
   assists: number;
   cleanSheets: number;
+  currentSeasonApps?: number;
+  /** Completed seasons, newest first. Missing records retain their age offset. */
+  previousSeasons?: Array<Partial<TransferSeasonForm> | null>;
   position: string;
   contractYearsRemaining: number;
   contractYearsTotal: number;
@@ -114,4 +117,12 @@ export interface GenerateTransferMarketParams {
   randomSource?: RandomSource;
   /** Stable server-owned quote source; keeps one club's wage unchanged across search/replay. */
   wageRandomSource?: (clubId: string) => number;
+}
+
+export interface TransferSeasonForm {
+  matchRating: number;
+  goals: number;
+  assists: number;
+  cleanSheets: number;
+  apps?: number;
 }
