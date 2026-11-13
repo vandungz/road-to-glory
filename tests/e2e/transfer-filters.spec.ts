@@ -67,3 +67,32 @@ test("fee choices show complete labels, update the quote and close within the vi
     expect(await page.evaluate(() => scrollY)).toBe(0);
   }
 });
+
+test("search keeps the last rows visible through a slow response and recovers from failure", async ({ page }, testInfo) => {
+  const input = page.getByRole("searchbox", { name: "Tên CLB", exact: true });
+  const results = page.getByRole("region", { name: "Danh sách CLB tìm kiếm" });
+  const status = page.locator(".football-transfer-search-status");
+  await expect(results).toHaveAttribute("aria-busy", "false");
+
+  await input.fill("Ajax");
+  await expect(results).toHaveAttribute("aria-busy", "true");
+  await expect(results.getByRole("heading", { name: "St. Pauli" })).toBeVisible();
+  await expect(results.getByRole("button", { name: "Ngỏ lời" })).toBeDisabled();
+  const activity = results.locator(".football-activity-line");
+  await expect(activity).toBeVisible();
+  expect(await activity.evaluate((node) => getComputedStyle(node, "::before").animationDuration)).toBe("1.1s");
+  await page.emulateMedia({ reducedMotion: "reduce" });
+  await expect.poll(() => activity.evaluate((node) => getComputedStyle(node, "::before").animationDuration)).toBe("0s");
+  await page.screenshot({ path: testInfo.outputPath("transfer-search-pending.png") });
+  await expect(results).toHaveAttribute("aria-busy", "false");
+  await expect(results.getByRole("heading", { name: "St. Pauli" })).toHaveCount(0);
+  await expect(results.getByRole("button", { name: "Ngỏ lời" })).toBeEnabled();
+
+  await input.fill("St. Pauli");
+  await expect(status.getByText("Không thể tải danh sách.")).toBeVisible();
+  await expect(results.getByRole("heading", { name: "Ajax" })).toBeVisible();
+  await expect(results.getByRole("button", { name: "Ngỏ lời" })).toBeDisabled();
+  await status.getByRole("button", { name: "Thử lại" }).click();
+  await expect(results.getByRole("heading", { name: "St. Pauli" })).toBeVisible();
+  await expect(results.getByRole("heading", { name: "Ajax" })).toHaveCount(0);
+});

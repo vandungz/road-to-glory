@@ -134,8 +134,7 @@ test("Quick keeps the same animated default after reload and respects reduced mo
   await page.reload();
   await expect(video).toHaveAttribute("src", source!);
   await page.emulateMedia({ reducedMotion: "reduce" });
-  await expect(video).toBeHidden();
-  await expect(video).toHaveJSProperty("paused", true);
+  await expect(video).toHaveCount(0);
   await expect(portrait.locator("img")).toBeVisible();
 });
 

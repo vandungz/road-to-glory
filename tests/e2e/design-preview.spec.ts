@@ -47,8 +47,17 @@ test("shop states render and a failed purchase remains recoverable without write
     expect(layout.bottom).toBeLessThanOrEqual(viewport.height);
     expect(layout.overflow).toBe("auto");
   }
-  await dialog.getByRole("button", { name: "Mua", exact: true }).first().click();
-  await expect(dialog.getByRole("alert")).toHaveText("Dữ liệu thử nghiệm: không thực hiện giao dịch.");
+  const buy = dialog.getByRole("button", { name: "Mua", exact: true }).first();
+  await buy.scrollIntoViewIfNeeded();
+  const before = await buy.boundingBox();
+  await buy.click();
+  await expect(buy).toHaveAttribute("aria-busy", "true");
+  await expect(buy).toBeDisabled();
+  await expect(buy.locator(".football-button__pending")).toBeVisible();
+  const pending = await buy.boundingBox();
+  expect(pending?.width).toBe(before?.width);
+  expect(pending?.height).toBe(before?.height);
+  await expect(dialog.getByRole("alert")).toHaveText("Giao dịch thất bại");
   await expect(dialog.getByRole("button", { name: "Mua", exact: true }).first()).toBeEnabled();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("shop-error.png"), fullPage: true });
@@ -85,12 +94,13 @@ test("national player cards preserve identity and render across desktop sizes", 
   for (const width of [1024, 1280, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });
     await expectNoHorizontalOverflow(page);
-    for (const selector of [".football-panini-sticker__portrait", ".football-player-sticker__portrait"]) {
-      const portrait = page.locator(selector).first();
-      const number = await portrait.locator("strong").boundingBox();
-      const label = await portrait.locator(".football-panini-sticker__portrait-label, small").boundingBox();
-      expect(label!.y).toBeGreaterThanOrEqual(number!.y + number!.height);
-    }
+    const paniniOvr = page.locator(".football-panini-sticker__ovr").first();
+    await expect(paniniOvr).toBeVisible();
+    await expect(paniniOvr.locator("strong")).toHaveText(/^[0-9]+$/);
+    const archivePortrait = page.locator(".football-player-sticker__portrait").first();
+    const number = (await archivePortrait.locator("strong").boundingBox())!;
+    const label = (await archivePortrait.locator("small").boundingBox())!;
+    expect(label.y).toBeGreaterThanOrEqual(number.y + number.height);
   }
   const themes = await page.locator(".football-panini-sticker").first().evaluate((card, countries) => {
     const original = card.getAttribute("data-nation")!;

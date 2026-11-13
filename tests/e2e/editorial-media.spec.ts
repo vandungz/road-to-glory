@@ -18,7 +18,7 @@ test("all editorial assets decode and fit supported desktop sizes", async ({ pag
   await page.goto("/dev/design-preview");
   await page.getByRole("tab", { name: "Media", exact: true }).click();
   const images = page.locator(".football-editorial-art");
-  await expect(images).toHaveCount(8);
+  await expect(images).toHaveCount(9);
   for (const image of await images.all()) {
     await image.scrollIntoViewIfNeeded();
     await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
@@ -67,6 +67,7 @@ test("season recap gives artwork a side column and keeps actions visible", async
 });
 
 test("management screens keep records directly below compact headings and art beside records", async ({ page }, testInfo) => {
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await page.goto("/dev/design-preview");
   for (const width of [1024, 1280, 1440, 1920]) {
     await page.setViewportSize({ width, height: 1000 });

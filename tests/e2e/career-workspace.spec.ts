@@ -143,3 +143,32 @@ test("transfer stays in one viewport with scrollable offer/search lists and unch
     await page.screenshot({ path: testInfo.outputPath(`transfer-${viewport.width}.png`), fullPage: true });
   }
 });
+
+test("Ballon d’Or nomination shows its odds and gives each outcome a direct next action", async ({ page }, testInfo) => {
+  await page.setViewportSize({ width: 1024, height: 600 });
+  for (const { step, chance, result, action, next } of [
+    { step: "ballon-no", chance: 1, result: "Chưa được đề cử năm này", action: "Tiếp tục phát triển chỉ số", next: /Tăng trưởng chỉ số/i },
+    { step: "ballon-yes", chance: 40, result: "Được đề cử Top 10", action: "Sang vòng xếp hạng", next: /Xếp hạng Ballon/ },
+  ]) {
+    await page.goto(`/dev/career-workspace?step=${step}`);
+    await expect(page.getByText(`Cơ hội vào top 10: ${chance}%`)).toBeVisible();
+    await page.getByRole("button", { name: "Quay vòng danh hiệu" }).click();
+    const dialog = page.getByRole("dialog");
+    await expect(dialog.getByText(result, { exact: true })).toBeVisible();
+    const trophy = dialog.locator(".football-ballon-nomination__art");
+    if (step === "ballon-yes") {
+      await expect.poll(() => trophy.evaluate((image: HTMLImageElement) => image.naturalWidth)).toBe(640);
+      expect((await trophy.boundingBox())!.height).toBeGreaterThanOrEqual(230);
+    } else {
+      await expect(trophy).toHaveCount(0);
+      const box = (await dialog.boundingBox())!;
+      expect(box.width).toBeLessThanOrEqual(420);
+      expect(box.height).toBeLessThan(240);
+    }
+    await expect(dialog.getByRole("button", { name: action })).toBeInViewport({ ratio: 1 });
+    await page.screenshot({ path: testInfo.outputPath(`${step}.png`), animations: "disabled" });
+    await dialog.getByRole("button", { name: action }).click();
+    await expect(page.getByRole("heading", { name: next })).toBeVisible();
+    await expectNoHorizontalOverflow(page);
+  }
+});

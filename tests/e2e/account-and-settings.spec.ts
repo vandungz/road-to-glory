@@ -9,14 +9,16 @@ test("guest can reach profile and settings without losing access to Quick Mode",
   await expect(page.getByRole("heading", { name: "Hồ sơ" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Đăng nhập", exact: true })).toHaveAttribute("href", "/login?next=/profile");
   await expect(page.getByRole("textbox", { name: "Tên hiển thị" })).toHaveCount(0);
-  await expect(account.getByRole("link", { name: "Hồ sơ" })).toHaveAttribute("aria-current", "page");
+  await expect(account).toHaveCount(0);
   await expect(page.getByRole("contentinfo")).toBeInViewport({ ratio: 1 });
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("profile-guest.png") });
 
+  await page.getByRole("link", { name: "Trang chủ" }).click();
   await account.getByRole("link", { name: "Cài đặt" }).click();
   await expect(page.getByRole("heading", { name: "Cài đặt" })).toBeVisible();
   await expect(page.getByRole("radio", { name: "Theo hệ thống" })).toBeChecked();
+  await expect(page.getByRole("radio", { name: "Luôn giảm chuyển động" })).toBeInViewport({ ratio: 1 });
   await expect(page.getByRole("contentinfo")).toBeInViewport({ ratio: 1 });
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("settings.png") });
@@ -25,9 +27,9 @@ test("guest can reach profile and settings without losing access to Quick Mode",
 test("settings in another tab reduce wheel motion and preserve the current Quick run", async ({ page }) => {
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await startQuickRun(page);
-  const settingsLink = page.getByRole("navigation", { name: "Tài khoản và cài đặt" }).getByRole("link", { name: "Cài đặt" });
-  const [settings] = await Promise.all([page.waitForEvent("popup"), settingsLink.click()]);
-  await settings.waitForLoadState("load");
+  await expect(page.getByRole("navigation", { name: "Tài khoản và cài đặt" })).toHaveCount(0);
+  const settings = await page.context().newPage();
+  await settings.goto("/settings");
   const reduce = settings.getByRole("radio", { name: "Luôn giảm chuyển động" });
   await reduce.focus();
   await settings.keyboard.press("Space");
