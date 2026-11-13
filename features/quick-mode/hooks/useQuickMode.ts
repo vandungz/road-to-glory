@@ -53,8 +53,6 @@ interface UseQuickModeProps {
 
 export interface ActiveWheel {
   key: string;
-  label: string;
-  description: string;
   items: QuickWheelItem[];
   spinItems?: WeightedItem<unknown>[];
 }
@@ -217,70 +215,66 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
     const { player, clubDraft } = state;
 
     if (state.phase === "setup") {
-      if (state.setupStep === 0) return { key: "debut-age", label: "Tuổi debut", description: "Tuổi bạn bước vào bóng đá chuyên nghiệp.", items: DEBUT_AGE_POOL };
-      if (state.setupStep === 1) return { key: "career-length", label: "Độ dài sự nghiệp", description: "Bạn sẽ chơi chuyên nghiệp trong 10–25 mùa.", items: getQuickCareerLengthPool() };
+      if (state.setupStep === 0) return { key: "debut-age", items: DEBUT_AGE_POOL };
+      if (state.setupStep === 1) return { key: "career-length", items: getQuickCareerLengthPool() };
       if (state.setupStep >= 2 && state.setupStep <= 8) {
         const key = getQuickStatKeys(player.position)[state.setupStep - 2];
         if (!key) return null;
-        return { key: `stat-${key}`, label: getQuickStatLabel(key), description: "Mỗi chỉ số được quay độc lập từ 1 đến 10.", items: getStatPool() };
+        return { key: `stat-${key}`, items: getStatPool() };
       }
-      if (state.setupStep === 9) return { key: "trait-gate", label: "Trait đặc biệt", description: "Một nét riêng có thể cộng thêm vào vài chỉ số.", items: getTraitGatePool() };
+      if (state.setupStep === 9) return { key: "trait-gate", items: getTraitGatePool() };
       if (state.setupStep === 10) {
         const traitItems = getTraitItems(player.position);
         return {
           key: "trait",
-          label: "Trait lấy cảm hứng",
-          description: "Ô xám là trait không phù hợp vị trí; wheel chỉ chọn các trait đang sáng.",
           items: traitItems,
           spinItems: traitItems.filter((item) => item.active !== false).map(({ value, weight }) => ({ value, weight })),
         };
       }
-      return { key: "club-count", label: "Số CLB trong sự nghiệp", description: "Bạn sẽ khoác áo bao nhiêu CLB.", items: getClubCountPool() };
+      return { key: "club-count", items: getClubCountPool() };
     }
 
     if (state.phase === "career") {
       if (state.careerStep === 0) {
         const usedLeagues = new Set(state.clubs.map((club) => club.leagueId));
         const pool = leagues.filter((league) => !usedLeagues.has(league.id) && isQuickLeagueEligible(league, player.stats, clubs));
-        return { key: "league", label: `CLB ${state.careerClubIndex + 1} · Chọn giải`, description: `Các giải hiển thị theo OVR hiện tại: ${getQuickOverall(player.stats)}.`, items: pool.map((league) => ({ value: league, label: league.name, weight: Math.max(1, league.prestige) })) };
+        return { key: "league", items: pool.map((league) => ({ value: league, label: league.name, weight: Math.max(1, league.prestige) })) };
       }
       if (state.careerStep === 1) {
         const pool = clubs.filter((club) => club.leagueId === clubDraft.leagueId && !state.clubs.some((used) => used.clubId === club.id) && isQuickClubEligible(club, player.stats));
-        return { key: "club", label: `CLB ${state.careerClubIndex + 1} · Chọn đội`, description: `Chọn trong nhóm phù hợp với OVR ${getQuickOverall(player.stats)}.`, items: pool.map((club) => ({ value: club, label: club.name, weight: Math.max(1, club.prestige) })) };
+        return { key: "club", items: pool.map((club) => ({ value: club, label: club.name, weight: Math.max(1, club.prestige) })) };
       }
       if (state.careerStep === 2) {
-        const remainingYears = Math.max(1, (player.careerLength ?? 1) - getCareerYearsSpent(state));
-        return { key: "club-seasons", label: "Số mùa tại CLB", description: `Còn ${remainingYears} năm trong sự nghiệp; các mùa còn lại sẽ được phân bổ cho các CLB tiếp theo.`, items: getCareerSeasonPool(state) };
+        return { key: "club-seasons", items: getCareerSeasonPool(state) };
       }
-      if (state.careerStep === 3) return { key: "league-titles", label: "Vô địch giải quốc nội", description: "Weight dựa trên prestige CLB, OVR và stats hiện tại của player.", items: getLeagueTitlePool(clubDraft.seasons ?? 1, clubDraft.prestige ?? 1, player.stats) };
-      if (state.careerStep === 4) return { key: "domestic-cups", label: "Cúp quốc nội", description: "Weight dựa trên prestige CLB, OVR và stats hiện tại của player.", items: getDomesticCupPool(clubDraft.seasons ?? 1, clubDraft.prestige ?? 1, player.stats) };
+      if (state.careerStep === 3) return { key: "league-titles", items: getLeagueTitlePool(clubDraft.seasons ?? 1, clubDraft.prestige ?? 1, player.stats) };
+      if (state.careerStep === 4) return { key: "domestic-cups", items: getDomesticCupPool(clubDraft.seasons ?? 1, clubDraft.prestige ?? 1, player.stats) };
       if (state.careerStep === 5) {
         const yesWeight = (clubDraft.prestige ?? 1) >= 4 ? 55 : 25;
-        return { key: "international-gate", label: "Có vô địch cúp quốc tế?", description: "Nếu có, tiếp tục quay số lượng rồi chọn loại cúp cho từng danh hiệu.", items: [{ value: "yes", label: "CÓ", weight: yesWeight }, { value: "no", label: "KHÔNG", weight: 100 - yesWeight }] };
+        return { key: "international-gate", items: [{ value: "yes", label: "CÓ", weight: yesWeight }, { value: "no", label: "KHÔNG", weight: 100 - yesWeight }] };
       }
       if (state.careerStep === 6) {
         const maxInternationalCups = Math.max(1, clubDraft.seasons ?? 1);
-        return { key: "international-cups", label: "Có bao nhiêu cúp quốc tế?", description: `Tối đa ${maxInternationalCups}, theo số mùa tại CLB.`, items: getInternationalCountPool(maxInternationalCups) };
+        return { key: "international-cups", items: getInternationalCountPool(maxInternationalCups) };
       }
       if (state.careerStep === 7) {
         const confederation = leagues.find((league) => league.id === clubDraft.leagueId)?.confederation ?? "UEFA";
         const forceHighest = (clubDraft.leagueTitles ?? 0) >= (clubDraft.seasons ?? 1);
-        const cupNumber = clubDraft.internationalCupTypes.length + 1;
-        return { key: "international-cup-type", label: `Loại cúp quốc tế ${cupNumber}/${clubDraft.internationalCups ?? 0}`, description: forceHighest ? "Bạn vô địch giải quốc nội ở mọi mùa: cúp quốc tế được tự động giới hạn ở hạng cao nhất khu vực." : "Mỗi danh hiệu quốc tế có một wheel chọn loại cúp theo khu vực.", items: getInternationalCupTypePool(confederation, clubDraft.prestige ?? 1, forceHighest) };
+        return { key: "international-cup-type", items: getInternationalCupTypePool(confederation, clubDraft.prestige ?? 1, forceHighest) };
       }
-      if (state.careerStep === 8) return { key: "improvement-gate", label: "Có tiến bộ tại CLB?", description: "Nếu có, tiếp tục quay số lượng stat và giá trị mới của từng stat.", items: getImprovementGatePool(getQuickOverall(player.stats)) };
+      if (state.careerStep === 8) return { key: "improvement-gate", items: getImprovementGatePool(getQuickOverall(player.stats)) };
       if (state.careerStep === 9) {
         const availableCount = Math.min(6, getImprovementStatPool(state).length);
-        return { key: "improvement-count", label: "Có bao nhiêu chỉ số tiến bộ?", description: "Mỗi chỉ số sẽ có một wheel giá trị riêng; các lựa chọn có xác suất bằng nhau.", items: getImprovementCountPool(availableCount) };
+        return { key: "improvement-count", items: getImprovementCountPool(availableCount) };
       }
       if (state.careerStep === 10) {
         const available = getImprovementStatPool(state);
-        return { key: "improvement-stat", label: `Chọn chỉ số ${state.clubDraft.improvements.length + 1}`, description: "Chọn stat tiếp theo sẽ tăng trong giai đoạn này.", items: available.map((key) => ({ value: key, label: getQuickStatLabel(key), weight: 1 })) };
+        return { key: "improvement-stat", items: available.map((key) => ({ value: key, label: getQuickStatLabel(key), weight: 1 })) };
       }
       const target = state.clubDraft.improvementTarget;
       const currentValue = target ? state.player.stats[target] ?? 5 : 5;
       const valueWheel = getImprovementValueWheel(currentValue);
-      return { key: "improvement-value", label: `${target ? getQuickStatLabel(target) : "Stat"} · Giá trị mới`, description: `Hiện tại ${currentValue}. Các mức 1–${currentValue} bị khóa; chỉ mức cao hơn có thể trúng.`, items: valueWheel.items, spinItems: valueWheel.spinItems };
+      return { key: "improvement-value", items: valueWheel.items, spinItems: valueWheel.spinItems };
     }
 
     const outcomeContext = {
@@ -291,22 +285,20 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
       internationalCups: state.clubs.reduce((sum, club) => sum + club.internationalCups, 0),
     };
     const seasonsPlayed = getCareerYearsSpent(state) || outcomeContext.careerLength;
-    if (state.finale.appearances == null) return { key: "career-appearances", label: "Số trận ra sân", description: "Tổng số trận ra sân trong sự nghiệp.", items: getAppearancePool({ ...outcomeContext, careerLength: seasonsPlayed }, state.finale.cleanSheets ?? 0) };
-    if (state.finaleStep === 0) return { key: "career-goals", label: "Bàn thắng sự nghiệp", description: "Shooting, Dribbling, Pace, IQ, Strength, vị trí và tỷ lệ vô địch theo số mùa sẽ quyết định weight.", items: getGoalPool(player.position, outcomeContext) };
-    if (state.finaleStep === 1) return { key: "career-assists", label: "Kiến tạo sự nghiệp", description: "Passing, IQ, Dribbling, Pace, vị trí và tỷ lệ vô địch theo số mùa sẽ quyết định weight.", items: getAssistPool(player.position, outcomeContext) };
+    if (state.finale.appearances == null) return { key: "career-appearances", items: getAppearancePool({ ...outcomeContext, careerLength: seasonsPlayed }, state.finale.cleanSheets ?? 0) };
+    if (state.finaleStep === 0) return { key: "career-goals", items: getGoalPool(player.position, outcomeContext) };
+    if (state.finaleStep === 1) return { key: "career-assists", items: getAssistPool(player.position, outcomeContext) };
     if (needsCleanSheetSpin(state)) {
       const appearances = state.finale.appearances;
       const items = getCleanSheetPool(player.position, { ...outcomeContext, careerLength: seasonsPlayed });
-      return { key: "career-clean-sheets", label: "Trận giữ sạch lưới", description: "Tổng số trận giữ sạch lưới trong sự nghiệp.", items: items.filter(({ value }) => value <= appearances) };
+      return { key: "career-clean-sheets", items: items.filter(({ value }) => value <= appearances) };
     }
-    if (state.finaleStep === 2) return { key: "ballon-dor", label: "Số lần Ballon d'Or", description: "Số lần thắng được cân theo OVR, output đúng vị trí, số mùa và thành tích tập thể.", items: getBallonDorPool({ ...outcomeContext, position: player.position, goals: state.finale.goals, assists: state.finale.assists }).map((item) => ({ ...item, label: `${item.value} LẦN` })) };
-    if (state.finaleStep === 3) return { key: "other-awards-gate", label: "Giải cá nhân khác?", description: "Có thể là Golden Boot, Best XI hoặc những giải theo vị trí.", items: [{ value: "yes", label: "CÓ", weight: 52 }, { value: "no", label: "KHÔNG", weight: 48 }] };
-    if (state.finaleStep === 4) return { key: "other-awards-count", label: "Có bao nhiêu loại giải?", description: "Sau đó bạn sẽ quay để biết chính xác tên từng giải.", items: getBoundedCountPool(5).filter((item) => item.value > 0) };
+    if (state.finaleStep === 2) return { key: "ballon-dor", items: getBallonDorPool({ ...outcomeContext, position: player.position, goals: state.finale.goals, assists: state.finale.assists }) };
+    if (state.finaleStep === 3) return { key: "other-awards-gate", items: [{ value: "yes", label: "CÓ", weight: 52 }, { value: "no", label: "KHÔNG", weight: 48 }] };
+    if (state.finaleStep === 4) return { key: "other-awards-count", items: getBoundedCountPool(5).filter((item) => item.value > 0) };
     const awardItems = getIndividualAwardPool(player.position, state.finale.otherAwardTypes, state.finale.goals, state.finale.assists);
     return {
       key: "other-award-type",
-      label: `Giải cá nhân ${state.finale.otherAwardTypes.length + 1}`,
-      description: "Ô xám không phù hợp vị trí sẽ không được chọn; tên giải sẽ được thêm vào bản tổng kết.",
       items: awardItems,
       spinItems: awardItems.filter((item) => item.active !== false).map(({ value, weight }) => ({ value, weight })),
     };

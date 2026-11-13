@@ -1,5 +1,7 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
+
 import { revalidatePath } from "next/cache";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { prisma } from "@/lib/prisma";
@@ -48,7 +50,7 @@ async function readPveInputs(gameId: string): Promise<{
     where: { id: gameId },
     select: { formation: true, status: true },
   });
-  if (!session || session.status !== "completed") throw new Error("Chỉ có thể đưa đội hình Classic đã hoàn thành vào PvE.");
+  if (!session || session.status !== "completed") throw new Error((await getTranslations("pve"))("needsComplete"));
 
   const [players, catalog] = await Promise.all([
     prisma.careerPlayer.findMany({
@@ -59,9 +61,9 @@ async function readPveInputs(gameId: string): Promise<{
     prisma.pvePlayer.findMany({ where: { clubId: { not: "" } }, orderBy: { id: "asc" } }),
   ]);
   const clubs = PVE_CLUBS;
-  if (players.length !== PVE_LINEUP_SIZE) throw new Error("Đội hình Classic cần đủ 11 cầu thủ đã hoàn thành.");
+  if (players.length !== PVE_LINEUP_SIZE) throw new Error((await getTranslations("pve"))("needsEleven"));
   const playableClubs = clubs.filter((club) => catalog.filter((player) => player.clubId === club.id).length >= PVE_LINEUP_SIZE);
-  if (catalog.length < PVE_LINEUP_SIZE || playableClubs.length < 4) throw new Error("Dữ liệu PvE chưa được seed đủ CLB có đội hình 11 người.");
+  if (catalog.length < PVE_LINEUP_SIZE || playableClubs.length < 4) throw new Error((await getTranslations("pve"))("catalogUnavailable"));
 
   return {
     formation: readFormation(session.formation),
@@ -88,9 +90,9 @@ function isUniqueConstraintError(error: unknown): boolean {
 
 async function readExistingTournament(gameId: string): Promise<PveActionResult> {
   const existing = await prisma.pveTournament.findUnique({ where: { gameSessionId: gameId }, select: { state: true } });
-  if (!existing) return { success: false, error: "Không thể tạo giải PvE. Vui lòng thử lại." };
+  if (!existing) return { success: false, error: (await getTranslations("pve"))("createError") };
   const state = stateFromDatabase(existing.state);
-  if (!isCurrentPveTournamentState(state)) return { success: false, error: "Giải PvE cũ cần được khởi tạo lại." };
+  if (!isCurrentPveTournamentState(state)) return { success: false, error: (await getTranslations("pve"))("reopen") };
   return { success: true, state };
 }
 
@@ -149,9 +151,9 @@ export async function playPveRoundAction(input: unknown): Promise<PveActionResul
     where: { gameSessionId: gameId },
     select: { id: true, status: true, revision: true, state: true },
   });
-  if (!tournament) return { success: false, error: "Giải PvE chưa được khởi tạo." };
+  if (!tournament) return { success: false, error: (await getTranslations("pve"))("notStartedError") };
   const state = stateFromDatabase(tournament.state);
-  if (!isCurrentPveTournamentState(state)) return { success: false, error: "Giải PvE cũ đã hết hiệu lực. Hãy mở lại giải để bốc thăm dữ liệu mới." };
+  if (!isCurrentPveTournamentState(state)) return { success: false, error: (await getTranslations("pve"))("reopen") };
   if (tournament.status !== state.status) throw new Error("PvE tournament status mismatch.");
   const { players, catalog, clubs } = await readPveInputs(gameId);
   const nextState = resolvePveRound(state, players, catalog, clubs, secureRandom);
@@ -161,7 +163,7 @@ export async function playPveRoundAction(input: unknown): Promise<PveActionResul
   });
   if (updated.count === 0) {
     const current = await prisma.pveTournament.findUnique({ where: { id: tournament.id }, select: { state: true } });
-    if (!current) return { success: false, error: "Không thể đọc lại kết quả PvE." };
+    if (!current) return { success: false, error: (await getTranslations("pve"))("readError") };
     return { success: true, state: stateFromDatabase(current.state) };
   }
   revalidatePath(`/pve/${gameId}`);
@@ -178,19 +180,19 @@ export async function replayPveTournamentAction(input: unknown): Promise<PveRead
     where: { gameSessionId: gameId },
     select: { id: true, revision: true, status: true, state: true },
   });
-  if (!tournament) return { success: false, error: "Giải PvE chưa được khởi tạo." };
+  if (!tournament) return { success: false, error: (await getTranslations("pve"))("notStartedError") };
 
   const state = stateFromDatabase(tournament.state);
-  if (!isCurrentPveTournamentState(state)) return { success: false, error: "Giải PvE cũ đã hết hiệu lực. Hãy mở lại giải để tạo lại dữ liệu mới." };
+  if (!isCurrentPveTournamentState(state)) return { success: false, error: (await getTranslations("pve"))("reopen") };
   if (state.status !== "eliminated" && state.status !== "champion") {
-    return { success: false, error: "Chỉ có thể chơi lại sau khi giải đã kết thúc." };
+    return { success: false, error: (await getTranslations("pve"))("replayEarly") };
   }
 
   await readPveInputs(gameId);
   const reset = await prisma.pveTournament.deleteMany({
     where: { id: tournament.id, revision: tournament.revision, status: tournament.status },
   });
-  if (reset.count === 0) return { success: false, error: "Giải PvE vừa được cập nhật. Vui lòng tải lại trang." };
+  if (reset.count === 0) return { success: false, error: (await getTranslations("pve"))("reload") };
   revalidatePath(`/pve/${gameId}`);
   revalidatePath("/pve");
   return { success: true, state: null };

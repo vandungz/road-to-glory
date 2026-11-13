@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
@@ -13,10 +14,10 @@ import { QUICK_POSITIONS, type QuickClubOption, type QuickLeagueOption, type Qui
 interface Props {
   leagues: QuickLeagueOption[];
   clubs: QuickClubOption[];
-  isAuthenticated: boolean;
 }
 
 export function QuickModeSetupScreen({ leagues, clubs }: Props) {
+  const ui = useTranslations("ui");
   const router = useRouter();
   const quick = useQuickMode({ leagues, clubs });
   const [name, setName] = useState("");
@@ -49,11 +50,11 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
   }
 
   return (
-    <section className="football-quick-mode" data-anim>
+    <section className="football-quick-mode">
       <header className="football-quick-mode__intro">
         <div>
           <h1>Quick Mode</h1>
-          <p>Tạo cầu thủ và quay vòng quay để mô phỏng sự nghiệp.</p>
+          <p>{ui("createAPlayerAndSpinToSimulateACareer")}</p>
         </div>
       </header>
 
@@ -62,26 +63,26 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
         <div className="football-quick-setup__card">
           <div className="football-quick-setup__identity" data-nation={nationality.replace(/\s+/g, "")}>
             {quick.state.phase !== "complete" && <PlayerPortrait portraitId={quick.state.player.portraitId} animate={false} />}
-            <h2>Cầu thủ của bạn</h2>
+            <h2>{ui("yourPlayer")}</h2>
           </div>
           <div className="football-quick-setup__form">
             <label>
-              <span>Tên cầu thủ</span>
-              <input value={name} onChange={(event) => setName(event.target.value)} placeholder="Ví dụ: Minh Nguyễn" maxLength={40} autoFocus />
+              <span>{ui("playerName")}</span>
+              <input value={name} onChange={(event) => setName(event.target.value)} placeholder={ui("egSamTaylor")} maxLength={40} autoFocus />
             </label>
             <div className="football-quick-field">
-              <span>Quốc gia</span>
-              <FilterSelect label="Quốc gia" value={nationality} onChange={setNationality} searchable options={nationalityOptions.map((country) => ({ value: country, label: country }))} />
+              <span>{ui("country")}</span>
+              <FilterSelect label={ui("country")} value={nationality} onChange={setNationality} searchable options={nationalityOptions.map((country) => ({ value: country, label: country }))} />
             </div>
             <div className="football-quick-field">
-              <span>Vị trí</span>
-              <FilterSelect label="Vị trí" value={position} onChange={(value) => setPosition(value as QuickPosition)} options={QUICK_POSITIONS.map((item) => ({ value: item, label: item }))} />
+              <span>{ui("position")}</span>
+              <FilterSelect label={ui("position")} value={position} onChange={(value) => setPosition(value as QuickPosition)} options={QUICK_POSITIONS.map((item) => ({ value: item, label: item }))} />
             </div>
           </div>
           <div className="football-quick-setup__footer">
-            <span>Không cần đăng nhập để chơi.</span>
+            <span>{ui("playWithoutAnAccount")}</span>
             <Button size="lg" onClick={begin} disabled={!canStart || starting} loading={starting}>
-              {hasExistingRun && quick.state.phase !== "complete" ? "Tiếp tục hành trình" : "Bắt đầu hành trình"}
+              {hasExistingRun && quick.state.phase !== "complete" ? ui("continue") : ui("startCareer")}
             </Button>
           </div>
         </div>
