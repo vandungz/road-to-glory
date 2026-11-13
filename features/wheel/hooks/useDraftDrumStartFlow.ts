@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useCallback, useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { startPlayerCareerAction } from "@/actions/season.actions";
 import { initCareerPlayerAction } from "@/actions/player.actions";
@@ -7,7 +9,7 @@ import { resolveSavedPortraitId } from "@/features/player/lib/player-portraits";
 import type { CareerSubStep, ClubSummary } from "@/types/domain";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import type { ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
-import type { ApproachRejectState } from "../components/TransferWindowPanel";
+import type { ApproachRejectState } from "@/features/transfer/services/transfer.service";
 import type { useSetupStage } from "./useSetupStage";
 import type { useCareerStats } from "./useCareerStats";
 import type { useCareerCheckpointSync } from "@/features/career/hooks/useCareerCheckpointSync";
@@ -94,6 +96,7 @@ export function useDraftDrumStartFlow({
   state,
   refs,
 }: DraftDrumStartFlowProps) {
+  const t = useTranslations("career");
   const {
     setYearEvolution, setSelectorIndex, setSelectedStatsList, setTempSelectedStat,
     setEvolvedStatsThisYear, setStandingResult, setDomesticCupResult,
@@ -143,7 +146,8 @@ export function useDraftDrumStartFlow({
         draftData.clubName,
       ];
       if (requiredDraftFields.some((value) => value === null || value === undefined || value === "")) {
-        throw new Error("Bản draft chưa hoàn tất. Hãy quay đủ các vòng trước khi bắt đầu sự nghiệp.");
+        setStartCareerError(t("draftIncomplete"));
+        return;
       }
 
       const initPayload = await startPlayerCareerAction({
@@ -187,12 +191,8 @@ export function useDraftDrumStartFlow({
       resetSeasonState(); setTransferOffer(null); setTransferMarket(null); setWillingToMove(false);
       setMode("career"); setCareerSubStep("idle");
       return resolveSavedPortraitId(initResult.portraitId, id);
-    } catch (err) {
-      setStartCareerError(
-        err instanceof Error && err.message
-          ? err.message
-          : "Không thể bắt đầu sự nghiệp lúc này. Vui lòng thử lại.",
-      );
+    } catch {
+      setStartCareerError(t("draftError"));
     } finally {
       setIsProcessing(false);
     }
@@ -210,7 +210,7 @@ export function useDraftDrumStartFlow({
           applyAuthoritativeSeasonTicket(started.seasonContinentalCup);
         }
       } catch {
-        setApproachBanner("Không thể bắt đầu mùa giải — hãy thử lại");
+        setApproachBanner(t("seasonStartError"));
         setIsProcessing(false);
         return;
       }
@@ -223,6 +223,8 @@ export function useDraftDrumStartFlow({
     if (statsProps.isUnemployed || !currentClub) {
       const stub = emptyUnemployedSeasonResult();
       setYearSimResult(stub);
+      setBallonDorNominationWeight(stub.ballonDor.nominationWeight);
+      setBallonDorRankWeights(stub.ballonDor.rankWeights);
       setStandingResult(null);
       setDomesticCupResult(null);
       setContinentalCupResult(null);
@@ -254,7 +256,7 @@ export function useDraftDrumStartFlow({
           matchRating: 6.0,
         },
       }));
-      setCareerSubStep(serverStep ?? "dir_increase");
+      setCareerSubStep(serverStep ?? "ballon_dor_nomination");
       setIsProcessing(false);
       return;
     }
@@ -265,7 +267,7 @@ export function useDraftDrumStartFlow({
   // stable orchestration dependencies; individual setters are not meaningful
   // season-start boundaries.
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [applyAuthoritativeSeasonTicket, checkpointSync, currentAge, currentClub, isProcessing, statsProps]);
+  }, [applyAuthoritativeSeasonTicket, checkpointSync, currentAge, currentClub, isProcessing, statsProps, t]);
 
   useEffect(() => {
     // The season transition updates currentAge before the async transition

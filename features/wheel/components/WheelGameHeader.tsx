@@ -1,6 +1,6 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft, ShoppingBag, Trophy } from "lucide-react";
-import { AccountNavigation } from "@/components/shared/AccountNavigation";
 
 interface WheelGameHeaderProps {
   backHref: string;
@@ -31,23 +31,24 @@ export function WheelGameHeader({
   onOpenTrophyCabinet,
   isBusy = false,
 }: WheelGameHeaderProps) {
+  const ui = useTranslations("ui");
   return (
     <header className="football-wheel-header">
       <div className="football-wheel-header__identity">
         {isBusy ? (
-          <button className="football-wheel-header__back" type="button" disabled aria-label="Bản đồ đội hình (đang quay)">
+          <button className="football-wheel-header__back" type="button" disabled aria-label={ui("squadBoardSpinInProgress")}>
             <ArrowLeft aria-hidden="true" size={14} />
-            <span>Bản đồ đội hình</span>
+            <span>{ui("squadBoard")}</span>
           </button>
         ) : (
           <Link className="football-wheel-header__back" href={backHref}>
             <ArrowLeft aria-hidden="true" size={14} />
-            <span>Bản đồ đội hình</span>
+            <span>{ui("squadBoard")}</span>
           </Link>
         )}
         <i className="football-wheel-header__separator" aria-hidden="true" />
         {isBusy ? (
-          <button className="football-wheel-header__wordmark" type="button" disabled aria-label="Road to Glory (đang quay)">
+          <button className="football-wheel-header__wordmark" type="button" disabled aria-label={ui("roadToGlorySpinInProgress")}>
             <span>Road to Glory</span>
           </button>
         ) : (
@@ -61,14 +62,14 @@ export function WheelGameHeader({
         <div className="football-wheel-header__context">
           {mode === "setup" ? (
             <>
-              <span><small>Đội hình</small><strong>{gameName || "Đội hình mới"}</strong></span>
-              <span><small>Ô {slotIndex + 1}</small><strong>{position}</strong></span>
+              <span><small>{ui("squads")}</small><strong>{gameName || ui("newSquad")}</strong></span>
+              <span><small>{ui("slot")} {slotIndex + 1}</small><strong>{position}</strong></span>
             </>
           ) : (
             <>
-              <span><small>Mùa</small><strong>{seasonLabel ?? "—"}</strong></span>
-              <span><small>Tuổi</small><strong>{age ?? "—"}</strong></span>
-              <span><small>CLB</small><strong>{currentClubName || "Tự do"}</strong></span>
+              <span><small>{ui("season")}</small><strong>{seasonLabel ?? "—"}</strong></span>
+              <span><small>{ui("age")}</small><strong>{age ?? "—"}</strong></span>
+              <span><small>{ui("club")}</small><strong>{currentClubName || ui("freeAgent")}</strong></span>
               <span><small>OVR</small><strong className="football-wheel-header__overall">{overall ?? "—"}</strong></span>
             </>
           )}
@@ -79,21 +80,20 @@ export function WheelGameHeader({
             <i className="football-wheel-header__separator" aria-hidden="true" />
             <div className="football-wheel-header__actions">
               {shopHref && !isBusy ? (
-                <Link className="football-wheel-header__icon-button" href={shopHref} aria-label="Cửa hàng">
+                <Link className="football-wheel-header__icon-button" href={shopHref} aria-label={ui("shop")}>
                   <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.6} />
                 </Link>
               ) : (
-                <button className="football-wheel-header__icon-button" type="button" disabled aria-label="Cửa hàng (đang khóa)">
+                <button className="football-wheel-header__icon-button" type="button" disabled aria-label={ui("shopLocked")}>
                   <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.6} />
                 </button>
               )}
-              <button className="football-wheel-header__icon-button" type="button" onClick={isBusy ? undefined : onOpenTrophyCabinet} disabled={isBusy} aria-label={isBusy ? "Tủ danh hiệu (đang quay)" : "Tủ danh hiệu"}>
+              <button className="football-wheel-header__icon-button" type="button" onClick={isBusy ? undefined : onOpenTrophyCabinet} disabled={isBusy} aria-label={isBusy ? ui("trophyCabinetSpinInProgress") : ui("trophyCabinet")}>
                 <Trophy aria-hidden="true" size={19} strokeWidth={1.6} />
               </button>
             </div>
           </>
         )}
-        <AccountNavigation newTab />
       </div>
     </header>
   );

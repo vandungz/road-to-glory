@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React from "react";
 import { ChevronRight, Trophy } from "lucide-react";
 import type { SeasonRecord } from "@/types/game";
@@ -8,6 +9,7 @@ interface ClubStintItem { clubName: string; leagueName?: string; startAge: numbe
 interface StoryRailProps { clubStints?: ClubStintItem[]; seasonRecords?: Record<number, SeasonRecord>; currentAge: number; playerDebutAge: number; currentOvr: number; peakOvrValue?: number; onOpenTrophyCabinet?: () => void; className?: string; style?: React.CSSProperties; }
 
 export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, playerDebutAge, currentOvr, peakOvrValue, onOpenTrophyCabinet, className = "hidden lg:flex", style = {} }: StoryRailProps) {
+  const ui = useTranslations("ui");
   let totalTrophies = 0;
   let ballonDorCount = 0;
   Object.values(seasonRecords).forEach((record) => {
@@ -30,27 +32,27 @@ export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, pla
   });
   const totalSeasons = Math.max(1, currentAge - playerDebutAge + 1);
   return <aside className={`football-story-rail ${className}`.trim()} style={style}>
-    <header className="football-story-rail__header"><span className="football-eyebrow">Nhật ký sự nghiệp</span><h2>{totalSeasons} mùa đã đi qua</h2></header>
-    <section className="football-story-rail__summary" aria-label="Tóm tắt sự nghiệp">
-      <div><span>OVR đỉnh cao</span><strong>{peakOvrValue ?? currentOvr}</strong></div>
-      <div><span>Danh hiệu</span><strong>{totalTrophies}</strong></div>
+    <header className="football-story-rail__header"><span className="football-eyebrow">{ui("careerJournal")}</span><h2>{ui("careerSeasonCount", { count: totalSeasons })}</h2></header>
+    <section className="football-story-rail__summary" aria-label={ui("careerOverview")}>
+      <div><span>{ui("peakOvr")}</span><strong>{peakOvrValue ?? currentOvr}</strong></div>
+      <div><span>{ui("honours")}</span><strong>{totalTrophies}</strong></div>
     </section>
     <section className="football-story-rail__clubs">
-      <span className="football-eyebrow">Các câu lạc bộ</span>
-      <div className="football-story-rail__club-list" role="region" aria-label="Các câu lạc bộ trong sự nghiệp" tabIndex={0}>
-      {clubStints.length === 0 ? <p className="football-modal-note">Đang khởi đầu sự nghiệp.</p> : clubStints.map((stint, index) => {
+      <span className="football-eyebrow">{ui("clubs")}</span>
+      <div className="football-story-rail__club-list" role="region" aria-label={ui("careerClubs")} tabIndex={0}>
+      {clubStints.length === 0 ? <p className="football-modal-note">{ui("noClubHistoryYet")}</p> : clubStints.map((stint, index) => {
         const isCurrent = index === clubStints.length - 1;
         return <div className={`football-story-rail__club${isCurrent ? " is-current" : ""}`} key={`${stint.clubName}-${index}`}>
           <i aria-hidden="true" />
-          <div><strong>{stint.clubName}</strong><small>{stint.leagueName ?? ""} · tuổi {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : " · hiện tại"}</small></div>
+          <div><strong>{stint.clubName}</strong><small>{stint.leagueName ?? ""} {ui("age2")} {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : ui("current")}</small></div>
         </div>;
       })}
       </div>
     </section>
     <button type="button" className="football-story-rail__honours" onClick={onOpenTrophyCabinet}>
-      <span><Trophy size={14} aria-hidden="true" /> Tủ danh hiệu</span>
+      <span><Trophy size={14} aria-hidden="true" /> {ui("trophyCabinet")}</span>
       <strong>{totalTrophies}</strong><ChevronRight size={14} aria-hidden="true" />
-      {ballonDorCount > 0 && <small>{ballonDorCount} QBV</small>}
+      {ballonDorCount > 0 && <small>{ballonDorCount} Ballon d’Or</small>}
     </button>
   </aside>;
 }

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, type ComponentProps } from "react";
 import { StoryRail } from "./StoryRail";
 import { CareerActionsPanel } from "./CareerActionsPanel";
@@ -76,6 +77,7 @@ interface DraftDrumCareerStageProps {
 }
  
 export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
+  const ui = useTranslations("ui");
   const {
     mobileSection, setMobileSection, rightTab, setRightTab, wheelInteractionLocked,
     careerSubStep, isUnemployed, currentAge, currentOvr, currentClub,
@@ -98,12 +100,12 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
 
   return (
         <>
-          <main className="football-dashboard__main" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
+          <main className="football-dashboard__main" data-mount="page" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
             <TabsList className="football-dashboard__mobile-switcher">
-              <TabsTrigger value="action" active={mobileSection === "action"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thao tác</TabsTrigger>
-              <TabsTrigger value="story" active={mobileSection === "story"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Nhật ký</TabsTrigger>
-              <TabsTrigger value="panini" active={mobileSection === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>Thẻ</TabsTrigger>
+              <TabsTrigger value="action" active={mobileSection === "action"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>{ui("actions")}</TabsTrigger>
+              <TabsTrigger value="story" active={mobileSection === "story"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>{ui("journal")}</TabsTrigger>
+              <TabsTrigger value="panini" active={mobileSection === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setMobileSection(value as "action" | "story" | "panini")}>{ui("card")}</TabsTrigger>
             </TabsList>
 
             <MobileCareerContext
@@ -171,13 +173,13 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                 
                 {/* TAB SWITCH HEADER */}
                 <TabsList className="football-tab-list">
-                  <TabsTrigger value="panini" active={rightTab === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Thẻ cầu thủ</TabsTrigger>
-                  <TabsTrigger value="profile" active={rightTab === "profile"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Mùa giải</TabsTrigger>
-                  <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>Hợp đồng</TabsTrigger>
+                  <TabsTrigger value="panini" active={rightTab === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("playerCard")}</TabsTrigger>
+                  <TabsTrigger value="profile" active={rightTab === "profile"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("season2")}</TabsTrigger>
+                  <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("contract")}</TabsTrigger>
                 </TabsList>
 
                 <div className="football-dossier-body" ref={dossier}>
-                    <div className="football-panini-panel" hidden={rightTab !== "panini"}>
+                    <div className="football-panini-panel" data-mount="panel" hidden={rightTab !== "panini"}>
                     <PaniniSticker
                       portraitId={props.portraitId}
                       portraitReaction={props.portraitReaction}
@@ -217,16 +219,16 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                       }}
                     />
                   ) : (
-                    <section className="football-contract-summary">
+                    <section className="football-contract-summary" data-mount="detail">
                     <div className="football-contract-summary__heading">
-                      <span className="football-eyebrow">Tổng quan chuyển nhượng</span>
-                      <h2>Thông tin hợp đồng & thị trường</h2>
+                      <span className="football-eyebrow">{ui("transferOverview")}</span>
+                      <h2>{ui("contractAndMarketValue")}</h2>
                     </div>
                     <div className="football-contract-summary__rows">
-                      <DataRow label="CLB hiện tại" value={currentClub?.name || "Tự do (Thất nghiệp)"} />
-                      <DataRow label="Thời hạn hợp đồng" value={isUnemployed ? "Tự do" : `${contractYearsRemaining}/${contractYearsTotal} năm còn lại`} />
-                      <DataRow label="Lương hàng năm" value={`${formatEuroThousands(currentWageAnnual)} / năm`} />
-                      <DataRow label="Giá trị thị trường" value={formatEuroThousands(marketValue)} className="football-data-row__value--accent" />
+                      <DataRow label={ui("currentClub3")} value={currentClub?.name || ui("freeAgent3")} />
+                      <DataRow label={ui("contractTerm")} value={isUnemployed ? ui("freeAgent") : ui("yearsLeft", { v0: String(contractYearsRemaining), v1: String(contractYearsTotal) })} />
+                      <DataRow label={ui("annualWage")} value={ui("yr2", { v0: String(formatEuroThousands(currentWageAnnual)) })} />
+                      <DataRow label={ui("marketValue")} value={formatEuroThousands(marketValue)} className="football-data-row__value--accent" />
                     </div>
                     </section>
                   )}

@@ -33,6 +33,7 @@ export interface BallonDorEvaluationInput {
   continentalType?: string | null;
   nationalResult?: string | null;
   nationalType?: string | null;
+  shortlistScoreRatio?: number;
 }
 
 export interface BallonDorEvaluationBreakdown {
@@ -132,7 +133,7 @@ const POSITION_PROFILES: Record<string, BallonPositionProfile> = {
 };
 
 const DEFAULT_PROFILE = POSITION_PROFILES.CM;
-const ELIGIBILITY_SCORE = 58;
+const CONTENDER_SCORE = 58;
 const MAX_EVALUATION_SCORE = 122;
 
 function clamp(value: number, min: number, max: number): number {
@@ -243,9 +244,9 @@ function distributeWeights(values: number[]): number[] {
 }
 
 function getRankWeights(score: number): number[] {
-  const lowScore = [4, 6, 8, 10, 12, 13, 13, 12, 11, 11];
+  const lowScore = [1, 2, 3, 5, 7, 9, 12, 15, 20, 24];
   const highScore = [30, 20, 14, 10, 7, 5, 4, 4, 3, 3];
-  const t = clamp((score - ELIGIBILITY_SCORE) / (MAX_EVALUATION_SCORE - ELIGIBILITY_SCORE), 0, 1);
+  const t = clamp(score / MAX_EVALUATION_SCORE, 0, 1) ** 1.6;
   return distributeWeights(lowScore.map((value, index) => value + (highScore[index] - value) * t));
 }
 
@@ -256,7 +257,7 @@ export function evaluateBallonDor(input: BallonDorEvaluationInput): BallonDorEli
   const expectedMatches = Math.max(1, Math.round(finite(input.expectedMatches, 0)));
   const apps = clamp(Math.round(finite(input.apps, 0)), 0, expectedMatches);
   const effectivePositionRating = getEffectivePositionRating(position, input.currentStats, ovr);
-  const ovrScore = ovr < 85 ? 0 : 4 + scoreRange(ovr, 85, 100, 14);
+  const ovrScore = scoreRange(ovr, 65, 85, 4) + scoreRange(ovr, 85, 100, 14);
   const positionScore = scoreRange(effectivePositionRating, 65, 100, 16);
   const roleOutputScore = getRoleOutputScore({ ...input, apps, expectedMatches }, profile);
   const performanceScore = scoreRange(finite(input.matchRating, 0), 6.5, 8.8, 18);
@@ -267,10 +268,11 @@ export function evaluateBallonDor(input: BallonDorEvaluationInput): BallonDorEli
     (ovrScore + positionScore + roleOutputScore + performanceScore + availabilityScore + teamSuccessScore + hiddenStatsScore) * 10,
   ) / 10;
   const minimumApps = Math.max(15, Math.ceil(expectedMatches * 0.45));
-  const eligible = ovr >= 85
-    && apps >= minimumApps
-    && finite(input.matchRating, 0) >= 7.0
-    && score >= ELIGIBILITY_SCORE;
+  const ovrFactor = clamp(ovr / 85, 0, 1);
+  const availabilityFactor = clamp(apps / minimumApps, 0, 1);
+  const ratingFactor = clamp(finite(input.matchRating, 0) / 7, 0, 1);
+  const shortlistFactor = clamp(finite(input.shortlistScoreRatio, 1), 0, 1);
+  const adjustedScore = score * ovrFactor * availabilityFactor * ratingFactor * shortlistFactor;
   const evaluation: BallonDorEvaluationBreakdown = {
     score,
     ovrScore: Math.round(ovrScore * 10) / 10,
@@ -284,15 +286,16 @@ export function evaluateBallonDor(input: BallonDorEvaluationInput): BallonDorEli
     role: profile.role,
   };
 
-  if (!eligible) return { eligible: false, nominationWeight: 0, rankWeights: [], evaluation };
+  if (apps === 0) return { eligible: false, nominationWeight: 0, rankWeights: [], evaluation };
 
   const nominationWeight = Math.round(
-    8 + scoreRange(score, ELIGIBILITY_SCORE, MAX_EVALUATION_SCORE, 84),
+    1 + scoreRange(adjustedScore, 0, CONTENDER_SCORE, 7)
+      + scoreRange(adjustedScore, CONTENDER_SCORE, MAX_EVALUATION_SCORE, 84),
   );
   return {
     eligible: true,
-    nominationWeight: clamp(nominationWeight, 8, 92),
-    rankWeights: getRankWeights(score),
+    nominationWeight,
+    rankWeights: getRankWeights(adjustedScore),
     evaluation,
   };
 }

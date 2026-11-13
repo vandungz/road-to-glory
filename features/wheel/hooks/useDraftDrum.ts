@@ -10,11 +10,8 @@ import { useCareerCheckpointSync } from "@/features/career/hooks/useCareerCheckp
 import { useWheelUiStore } from "../stores/useWheelUiStore";
 import { getStepLabels } from "@/types/game";
 import { type SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
-import {
-  isShopItemActiveForSeason,
-} from "@/lib/shop-catalog";
-import type { ApproachRejectState } from "../components/TransferWindowPanel";
-import type { ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
+import { isShopItemActiveForSeason } from "@/lib/shop-catalog";
+import type { ApproachRejectState, ContractOfferCard, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { CareerSubStep, ClubSummary, LeagueSummary } from "@/types/domain";
 import { useDraftDrumHydration } from "./useDraftDrumHydration";
 import { useDraftDrumTransferFlow } from "./useDraftDrumTransferFlow";
@@ -25,8 +22,6 @@ import { useDraftDrumStartFlow } from "./useDraftDrumStartFlow";
 import { useDraftDrumNavigation } from "./useDraftDrumNavigation";
 import { emptyUnemployedSeasonResult } from "./empty-unemployed-season-result";
 import { getPriorClubStanding } from "../lib/previous-season-standing";
-
-
 
 export type ModalType = "league" | "cup" | "continental" | "national" | "ballon_dor_nomination" | "season_stats" | "season_recap" | "transfer" | "shop" | null;
 
@@ -110,7 +105,7 @@ export function useDraftDrum(
   const [transferOffer, setTransferOffer] = useState<ContractOfferCard | null>(null);
   const [transferMarket, setTransferMarket] = useState<TransferMarketResult | null>(null);
   const [willingToMove, setWillingToMove] = useState(false);
-  const [showShortlist, setShowShortlist] = useState(false);
+  const [, setShowShortlist] = useState(false);
   const [approachRejects, setApproachRejects] = useState<ApproachRejectState>({});
   const [approachBanner, setApproachBanner] = useState<string | null>(null);
   const [proactiveRenewalRejectedAge, setProactiveRenewalRejectedAge] = useState<number | null>(null);
@@ -148,13 +143,14 @@ export function useDraftDrum(
     eliteDevelopmentActive,
   });
 
+  const recapNextStep = checkpointSync.state.currentStep === "dir_increase" ? "dir_increase" : "ballon_dor_nomination";
   const competitionFlow = useCompetitionFlow({
     playerId,
     currentAge, currentOvr, position, currentClub: currentClub!, currentContinentalCup,
     playerNationality, playerDebutAge, hiddenStats, currentStats,
     standingResult, domesticCupResult, continentalCupResult,
-    nationalCallupResult, yearSimResult,
-    setStandingResult, setDomesticCupResult, setContinentalCupResult,
+    nationalCallupResult,
+    recapNextStep, setStandingResult, setDomesticCupResult, setContinentalCupResult,
     setNationalCallupResult, setNationalTournamentResult,
     setCareerSubStep, setIsProcessing, setActiveModal, setYearSimResult,
     setApproachBanner,
@@ -250,7 +246,7 @@ export function useDraftDrum(
     setIsProcessing,
     setSelectedAgeForStats,
   });
-  const { isFinalCareerSeason, shopTargetSeason, persistCurrentProgress, handlePurchaseShopItem } = persistence;
+  const { isFinalCareerSeason, shopTargetSeason, persistCurrentProgress } = persistence;
 
   const transferFlow = useDraftDrumTransferFlow({
     statsProps,
@@ -448,21 +444,20 @@ export function useDraftDrum(
   });
   const {
     handleNextSeason,
-    handleContinueFromShop,
     handleShopReturn,
     handleTransferReturn,
   } = navigation;
 
   return {
-    isMounted, isSaving: statsProps.isSaving, mode, setMode,
+    isMounted, isSaving: statsProps.isSaving, mode,
     wheelItems: setupProps.wheelItems, targetIndex: setupProps.targetIndex,
     tempValue: setupProps.tempValue, activeStep: setupProps.activeStep,
     isSpinning: setupProps.isSpinning, draftData: setupProps.draftData,
     playerName, hiddenStats, statsTimeline, clubStints,
     playerNationality, playerDebutAge, playerCareerLength,
     currentAge, currentOvr, currentStats, currentClub, currentContinentalCup,
-    priorClubStanding, seasonRecords, selectedAgeForStats, setSelectedAgeForStats,
-    activeModal, setActiveModal, careerSubStep, setCareerSubStep,
+    seasonRecords, selectedAgeForStats, setSelectedAgeForStats,
+    activeModal, setActiveModal, careerSubStep,
     isProcessing, isBallonDorTransitioning,
     seasonTicketResolved: !checkpointSync.isEnabled || checkpointSync.state.seasonContinentalCup !== null,
     startCareerError,
@@ -470,9 +465,8 @@ export function useDraftDrum(
     yearEvolution, evolvedStatsThisYear,
     standingResult, domesticCupResult, continentalCupResult,
     nationalCallupResult, nationalTournamentResult,
-    yearSimResult, transferOffer, transferMarket, willingToMove, showShortlist,
-    approachRejects, approachBanner,
-    proactiveRenewalRejected: proactiveRenewalRejectedAge === currentAge,
+    yearSimResult, transferOffer, transferMarket,
+    approachRejects, approachBanner, clearApproachBanner: () => setApproachBanner(null),
     hasBallonDorWinner,
     ballonDorResult,
     isUnemployed: statsProps.isUnemployed,
@@ -480,29 +474,21 @@ export function useDraftDrum(
     contractYearsRemaining: statsProps.contractYearsRemaining,
     currentWageAnnual: statsProps.currentWageAnnual,
     marketValue: statsProps.marketValue,
-    walletBalance: statsProps.walletBalance,
-    influenceScore: statsProps.influenceScore,
-    shopInventory: statsProps.shopInventory,
     shopTargetSeason,
-    handlePurchaseShopItem,
     careerTotalStats: statsProps.careerTotalStats,
     peakOvrValue: statsProps.peakOvrValue,
-    activeRecord: statsProps.activeRecord,
     handleSetupSpin: setupProps.handleSetupSpin,
     handleSetupSpinComplete: setupProps.handleSetupSpinComplete,
     handleStartCareer, handleStartSeason,
     handleCareerSpin: wheelFlow.handleCareerSpin,
     handleCareerSpinComplete: wheelFlow.handleCareerSpinComplete,
-    retrySeasonStats: competitionFlow.retrySeasonStats,
-    handleAcceptTransfer: transferFlow.handleAcceptTransfer,
+    recapNextStep, retrySeasonStats: competitionFlow.retrySeasonStats,
     handleAcceptMarketOffer: transferFlow.handleAcceptMarketOffer,
     clearPendingTransferOffer: transferFlow.clearPendingTransferOffer,
     handleRejectTransferWindow: transferFlow.handleRejectTransferWindow,
     handleApproachShortlist: transferFlow.handleApproachShortlist,
-    handleProactiveRenewal: transferFlow.handleProactiveRenewal,
     handleSearchClubs: transferFlow.handleSearchClubs,
-    handleSetWillingToMove: transferFlow.handleSetWillingToMove,
-    setShowShortlist, handleNextSeason, handleContinueFromShop, handleShopReturn, handleTransferReturn,
+    handleNextSeason, handleShopReturn, handleTransferReturn,
     persistCurrentProgress,
     handleSeasonStatsModalClose: competitionFlow.handleSeasonStatsModalClose,
     handleCompetitionResultModalClose: competitionFlow.handleCompetitionResultModalClose,

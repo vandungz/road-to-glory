@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+import { useCompetitionResult } from "./useCompetitionResult";
 import { NationFlag } from "@/components/shared/NationFlag";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
 import { isPortraitId } from "@/features/player/lib/player-portraits";
@@ -31,7 +33,21 @@ function seasonYear(age: number, debutAge: number) {
   return `${start}/${String((start + 1) % 100).padStart(2, "0")}`;
 }
 
+const reactionKeys: Record<string, string> = {
+  "Được triệu tập lên tuyển": "calledUp",
+  "Không được triệu tập lên tuyển": "missed",
+  "Bị loại": "eliminated",
+  "Tăng chỉ số": "increase",
+  "Giảm chỉ số": "decrease",
+  "Đến CLB có danh tiếng tương đương hoặc cao hơn": "transferUp",
+  "Đến CLB có danh tiếng thấp hơn": "transferDown",
+};
+
 export function PaniniSticker({ playerName, position, playerNationality, currentOvr, currentAge, playerDebutAge, currentStats, evolvedStatsThisYear, portraitId, portraitReaction, onPortraitReactionEnd }: PaniniStickerProps) {
+  const t = useTranslations("wheel");
+  const resultLabel = useCompetitionResult();
+  const reaction = portraitReaction?.label;
+  const reactionKey = reaction && reactionKeys[reaction];
   const stats = ["GK"].includes(position)
     ? [["DIV", "div"], ["HAN", "han"], ["KIC", "kic"], ["REF", "ref"], ["SPD", "spd"], ["POS", "pos"]]
     : [["PAC", "pac"], ["SHO", "sho"], ["PAS", "pas"], ["DRI", "dri"], ["DEF", "def"], ["PHY", "phy"]];
@@ -45,7 +61,7 @@ export function PaniniSticker({ playerName, position, playerNationality, current
       </div>
       {isPortraitId(portraitId) && <div className="football-panini-sticker__media">
         <PlayerPortrait portraitId={portraitId} reaction={portraitReaction} onReactionEnd={onPortraitReactionEnd} loop />
-        <span className="sr-only" role="status">{portraitReaction?.label}</span>
+        <span className="sr-only" role="status">{reactionKey ? t(reactionKey) : reaction ? resultLabel(reaction) : null}</span>
       </div>}
       <div className="football-panini-sticker__identity">
         <strong>{playerName}</strong>

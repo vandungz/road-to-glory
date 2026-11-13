@@ -1,5 +1,7 @@
 "use client";
 
+import { useTransferCopy } from "./useTransferCopy";
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -15,9 +17,10 @@ import {
 import type { TransferCommandResult } from "@/features/career/contracts/transfer-transition.contract";
 import type { ContractOfferCard, PendingTransferNegotiation, ShortlistClubCard, TransferDealResolution, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import { type WageDealOption } from "@/lib/salary-negotiation";
-import type { ApproachRejectState } from "./TransferWindowPanel";
+import type { ApproachRejectState } from "@/features/transfer/services/transfer.service";
 import { PersistentTransferSection } from "./PersistentTransferSection";
 import { TransferNegotiationPanel } from "./TransferNegotiationPanel";
+import { ErrorState, RouteLoading } from "@/components/ui/States";
 import { Button } from "@/components/ui/Button";
 import { applyTransferFeeDealChance, formatEuroThousands, formatTransferFee, type TransferFeeDealOption } from "@/lib/transfer-economy";
 import { getTransferPortraitCue, saveTransferPortraitCue } from "../lib/portrait-reactions";
@@ -64,9 +67,13 @@ interface TransferSuccess {
 }
 
 export function TransferPageClient({ input }: { input: TransferPageInput }) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("transfer");
+  const copy = useTransferCopy();
   const router = useRouter();
   const [market, setMarket] = useState<TransferMarketResult | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [marketAttempt, setMarketAttempt] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
   const [approachRejects, setApproachRejects] = useState<ApproachRejectState>({});
   const [approachBanner, setApproachBanner] = useState<string | null>(null);
@@ -123,17 +130,17 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
         setDeal("standard");
       }
     }).catch(() => {
-      if (active) setApproachBanner("Không thể mở cửa sổ chuyển nhượng — thử tải lại trang.");
+      if (active) setMarket(null);
     }).finally(() => {
       if (active) setIsLoading(false);
     });
     return () => { active = false; };
-  }, [input]);
+  }, [input, marketAttempt]);
 
   async function commitOffer(offer: ContractOfferCard, wageOption?: WageDealOption): Promise<TransferDealResolution> {
     if (isProcessing) return "error";
     if (input.checkpointVersion >= 2 && !input.seasonId) {
-      setApproachBanner("Thiếu mùa giải hiện tại — hãy tải lại trang.");
+      setApproachBanner(t("missingSeason"));
       return "error";
     }
     setIsProcessing(true);
@@ -183,7 +190,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
         }
         completion = result.transfer;
       } else {
-        completion = await completeTransferAction({
+        const result = await completeTransferAction({
             gameId: input.gameId,
             playerId: input.playerId,
             slotIndex: input.slotIndex,
@@ -194,6 +201,8 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
             transferFee: offer.transferFee,
             wageOption: selectedWageOption,
           });
+        if (result.status === "rejected") return "rejected";
+        completion = result;
       }
       if (offer.kind === "renewal") {
         router.push(input.shopHref);
@@ -213,28 +222,10 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
       }
       setFailedWageOptions([]);
       return "accepted";
-    } catch (error) {
-      const message = error instanceof Error ? error.message : "Không thể hoàn tất chuyển nhượng.";
-      const normalizedMessage = message.toLocaleLowerCase("vi-VN");
-      const cancelled = normalizedMessage.includes("thương vụ") || normalizedMessage.includes("đã bị hủy");
-      const rejected = normalizedMessage.includes("mức lương") || normalizedMessage.includes("lương");
-      if (offer.kind === "renewal") {
-        setApproachBanner(message);
-        if (rejected || cancelled) setMarket((previous) => previous ? { ...previous, renewal: null } : previous);
-      } else {
-        if (cancelled) {
-          setCancelledOffer(offer);
-          setSelectedOffer(null);
-          setMarket((previous) => previous ? {
-            ...previous,
-            inbound: previous.inbound.filter((item) => item.clubId !== offer.clubId),
-            shortlist: previous.shortlist.filter((item) => item.clubId !== offer.clubId),
-          } : previous);
-        } else {
-          setFinalizationError(rejected ? null : "Không thể hoàn tất đàm phán — hãy thử lại.");
-        }
-      }
-      return cancelled ? "cancelled" : rejected ? "rejected" : "error";
+    } catch {
+      if (offer.kind === "renewal") setApproachBanner(t("completionError"));
+      else setFinalizationError(t("negotiationError"));
+      return "error";
     } finally {
       setIsProcessing(false);
     }
@@ -250,8 +241,8 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
         expectedRevision: input.revision,
         clubId: offer.clubId,
       });
-    } catch (error) {
-      setApproachBanner(error instanceof Error ? error.message : "Không thể lưu lời đề nghị đang chọn.");
+    } catch {
+      setApproachBanner(t("selectionError"));
       return null;
     } finally {
       setIsProcessing(false);
@@ -319,7 +310,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
           });
       if (!result.accepted) {
         setApproachRejects((previous) => ({ ...previous, [club.clubId]: { chance: result.acceptChance, reason: result.rejectReason } }));
-        setApproachBanner(`${club.clubName} đã từ chối — ${result.rejectReason}`);
+        setApproachBanner(t("declinedOffer", { club: club.clubName, reason: copy(result.rejectReason) }));
         return false;
       }
       setFinalizationError(null);
@@ -327,8 +318,8 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
       setDeal("standard");
       setFailedWageOptions([]);
       return true;
-    } catch (error) {
-      setApproachBanner(error instanceof Error ? error.message : "Không thể ngỏ lời với CLB.");
+    } catch {
+      setApproachBanner(t("approachError"));
       return false;
     } finally {
       setIsProcessing(false);
@@ -369,7 +360,10 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
     setIsProcessing(true);
     try {
       if (input.checkpointVersion >= 2) {
-        if (!input.seasonId) throw new Error("Thiếu mùa giải hiện tại");
+        if (!input.seasonId) {
+          setApproachBanner(t("missingSeason"));
+          return;
+        }
         const result = await completeTransferCommandAction({
           playerId: input.playerId,
           seasonId: input.seasonId,
@@ -378,24 +372,24 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
           kind: "stay",
         });
         if (result.status !== "accepted") {
-          setApproachBanner(result.message);
+          setApproachBanner(t(result.code));
           return;
         }
       }
       router.push(input.shopHref);
-    } catch (error) {
-      setApproachBanner(error instanceof Error ? error.message : "Không thể chốt lựa chọn hiện tại.");
+    } catch {
+      setApproachBanner(t("decisionError"));
     } finally {
       setIsProcessing(false);
     }
   }
 
   if (success) {
-    return <main className="football-transfer-success"><span className="football-eyebrow">Kết quả chuyển nhượng · mùa {success.age}</span><h1>{input.playerName} đến {success.clubName}</h1><p>{success.leagueName} · Một chương mới trong sự nghiệp đã bắt đầu.</p><div className="football-transfer-success__facts"><span><small>Phí chuyển nhượng</small><strong>{success.fee ? formatTransferFee(success.fee) : "Miễn phí"}</strong></span><span><small>Hợp đồng</small><strong>{success.contractYears} mùa</strong></span><span><small>Lương hàng năm</small><strong>{formatEuroThousands(success.wageAnnual)}</strong></span></div><Button size="lg" onClick={() => router.push(input.shopHref)}>Mở cửa hàng trước khi vào mùa mới <ArrowRightIcon /></Button></main>;
+    return <main className="football-transfer-success"><span className="football-eyebrow">{ui("transferResultSeason")} {success.age}</span><h1>{input.playerName} {ui("to")} {success.clubName}</h1><p>{success.leagueName} {ui("contractSigned")}</p><div className="football-transfer-success__facts"><span><small>{ui("transferFee")}</small><strong>{success.fee ? formatTransferFee(success.fee) : ui("freeTransfer")}</strong></span><span><small>{ui("contract")}</small><strong>{success.contractYears} {ui("seasons")}</strong></span><span><small>{ui("annualWage")}</small><strong>{formatEuroThousands(success.wageAnnual)}</strong></span></div><Button size="lg" onClick={() => router.push(input.shopHref)}>{ui("openShopBeforeTheNextSeason")} <ArrowRightIcon /></Button></main>;
   }
 
   if (cancelledOffer) {
-    return <main className="football-transfer-negotiation football-transfer-negotiation--cancelled"><span className="football-eyebrow">Đàm phán kết thúc</span><h1>Thương vụ với {cancelledOffer.clubName} đã bị hủy</h1><p>CLB đã từ chối hai phương án lương. Offer này không còn hiệu lực và CLB sẽ không xuất hiện lại trong danh sách mùa này.</p><Button size="lg" onClick={() => setCancelledOffer(null)}>Quay lại danh sách CLB</Button></main>;
+    return <main className="football-transfer-negotiation football-transfer-negotiation--cancelled"><span className="football-eyebrow">{ui("talksEnded")}</span><h1>{t("moveCancelled", { club: cancelledOffer.clubName })}</h1><p>{ui("theClubRejectedTwoWageProposalsAndWithdrewItsOfferForThisSeason")}</p><Button size="lg" onClick={() => setCancelledOffer(null)}>{ui("backToClubs")}</Button></main>;
   }
 
   if (selectedOffer) {
@@ -415,7 +409,16 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
     </TransferNegotiationPanel>;
   }
 
-  if (isLoading || !market) return <main className="football-transfer-loading"><span className="football-eyebrow">Cửa sổ chuyển nhượng</span><h1>Đang dò tìm cơ hội mới...</h1><p>Đang cập nhật các CLB phù hợp với hồ sơ của bạn.</p></main>;
+  if (isLoading || !market) return <div className="football-transfer-loading">
+    {isLoading ? <RouteLoading title={ui("transferMarket")} label={ui("loadingOffers")} layout="records" /> : (
+      <ErrorState title={ui("couldNotOpenTheTransferMarket")}>
+        <Button variant="outline" onClick={() => {
+          setIsLoading(true);
+          setMarketAttempt((attempt) => attempt + 1);
+        }}>{ui("retry")}</Button>
+      </ErrorState>
+    )}
+  </div>;
   return <PersistentTransferSection market={market} currentClubId={input.currentClubId} currentClubName={input.currentClubName} isProcessing={isProcessing} onAcceptOffer={async (offer, wageOption) => ({ resolution: await commitOffer(offer, wageOption) })} onRejectAll={() => void stayAtCurrentClub()} onApproachShortlist={approachClub} onSearchClubs={searchClubs} approachRejects={approachRejects} approachBanner={approachBanner} onSelectOffer={persistOfferSelection} onClearAcceptedOffer={clearPersistedOfferSelection} />;
 }
 

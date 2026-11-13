@@ -326,10 +326,17 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     snapshots.push({ ...snapshot(input, "league_best_xi", xiEntries), status: "resolved", entries: xiEntries.map((entry) => Object.fromEntries(Object.entries(entry).filter(([field]) => field !== "ovr" && field !== "teamSuccess")) as AwardRankingEntry), resolution: { candidateUniverseSize: xiEntries.length, resolver: AWARD_RESOLUTION_VERSION } });
   }
 
-  const ballonEntries = rankedEntries("ballon_dor", candidates, source, TOP_TEN_LIMIT);
-  const playerBallonEntry = ballonEntries.find((entry) => entry.isCareerPlayer);
+  const ballonCandidates = rankedEntries("ballon_dor", candidates, source, candidates.length);
+  const playerBallonEntry = ballonCandidates.find((entry) => entry.isCareerPlayer);
+  const rivals = ballonCandidates.filter((entry) => !entry.isCareerPlayer);
+  const cutoff = rivals[TOP_TEN_LIMIT - 1]?.score;
+  // Keep nine opponents and the player's metrics for the final wheel placement.
+  const ballonEntries = playerBallonEntry
+    ? [...rivals.slice(0, TOP_TEN_LIMIT - 1), playerBallonEntry].sort((a, b) => a.rank - b.rank)
+    : rivals.slice(0, TOP_TEN_LIMIT);
   const player = input.player;
   const evaluation = evaluateBallonDor({
+    shortlistScoreRatio: playerBallonEntry && cutoff ? playerBallonEntry.score / cutoff : 1,
     ovr: player.ovr,
     position: player.position,
     currentStats: player.currentStats,
@@ -351,7 +358,6 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     nationalType: player.nationalType,
   });
   snapshots.push(snapshot(input, "ballon_dor", ballonEntries, "global-candidate-universe"));
-  const eligibleBallon = Boolean(evaluation.eligible && playerBallonEntry && playerBallonEntry.rank <= TOP_TEN_LIMIT);
   return {
     modelVersion: AWARD_MODEL_VERSION,
     resolutionVersion: AWARD_RESOLUTION_VERSION,
@@ -359,9 +365,9 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     snapshots,
     honours,
     ballonDor: {
-      eligible: eligibleBallon,
-      nominationWeight: eligibleBallon ? evaluation.nominationWeight : 0,
-      rankWeights: eligibleBallon ? evaluation.rankWeights : [],
+      eligible: evaluation.eligible,
+      nominationWeight: evaluation.nominationWeight,
+      rankWeights: evaluation.rankWeights,
       evaluation: evaluation.evaluation as unknown as Record<string, unknown>,
       snapshotKey: `${input.seasonId ?? "season"}:ballon_dor:global-candidate-universe`,
     },

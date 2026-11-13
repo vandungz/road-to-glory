@@ -251,13 +251,14 @@ export async function resolveShortlistApproachAction(input: unknown): Promise<Re
 
 /** Persist the selected destination after the transfer UI has resolved an offer. */
 export async function completeTransferAction(input: unknown): Promise<{
+  status: "accepted";
   clubName: string;
   leagueName: string;
   fee: number;
   contractYears: number;
   wageAnnual: number;
   age: number;
-}> {
+} | { status: "rejected" }> {
   const validated = completeTransferSchema.parse(input);
   const owner = await verifyGameOwnership(validated.gameId);
   await checkRateLimit(owner.id);
@@ -295,7 +296,7 @@ export async function completeTransferAction(input: unknown): Promise<{
     expectedLeagueApps: 20,
   });
   if (validated.kind !== "renewal" && secureRandom() >= wageChance) {
-    throw new Error("CLB không chấp nhận mức lương này — hãy chọn một phương án khác.");
+    return { status: "rejected" };
   }
 
   const stints = [...((player.clubStints as unknown as ClubStint[]) ?? [])];
@@ -336,7 +337,7 @@ export async function completeTransferAction(input: unknown): Promise<{
     },
   });
   revalidatePath(`/classic/${validated.gameId}/draft/${validated.slotIndex}`);
-  return { clubName: destination.name, leagueName: destination.league.name, fee: validated.transferFee, contractYears: validated.contractYears, wageAnnual: validated.wageAnnual, age: currentAge + 1 };
+  return { status: "accepted", clubName: destination.name, leagueName: destination.league.name, fee: validated.transferFee, contractYears: validated.contractYears, wageAnnual: validated.wageAnnual, age: currentAge + 1 };
 }
 
 /** @deprecated Prefer generateTransferMarketAction */

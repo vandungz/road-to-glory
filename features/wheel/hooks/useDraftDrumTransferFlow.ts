@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {
   dismissTransferNegotiationCommandAction,
@@ -13,12 +15,11 @@ import {
 } from "@/actions/season.actions";
 import {
   applyTransferFeeDealChance,
-  approachChancePercent,
   computeEffectivePositionOvr,
   type TransferFeeDealOption,
 } from "@/lib/transfer-economy";
 import type { WageDealOption } from "@/lib/salary-negotiation";
-import type { ApproachRejectState } from "../components/TransferWindowPanel";
+import type { ApproachRejectState } from "@/features/transfer/services/transfer.service";
 import type {
   ContractOfferCard,
   ShortlistClubCard,
@@ -28,6 +29,7 @@ import type { CareerSubStep, ClubSummary } from "@/types/domain";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import type { useCareerStats } from "./useCareerStats";
 import type { useCareerCheckpointSync } from "@/features/career/hooks/useCareerCheckpointSync";
+import { useTransferCopy } from "../components/useTransferCopy";
 import { useDraftDrumTransferCommit } from "./useDraftDrumTransferCommit";
 
 type StatsController = ReturnType<typeof useCareerStats>;
@@ -100,6 +102,8 @@ export function useDraftDrumTransferFlow({
   setCareerSubStep,
   setProactiveRenewalRejectedAge,
 }: DraftDrumTransferFlowProps) {
+  const t = useTranslations("transfer");
+  const copy = useTransferCopy();
   const commitFlow = useDraftDrumTransferCommit({
     statsProps,
     checkpointSync,
@@ -171,7 +175,7 @@ export function useDraftDrumTransferFlow({
       }
 
       if (res.accepted) {
-        setApproachBanner(`${club.clubName} đồng ý ký (${approachChancePercent(res.acceptChance)}%)`);
+        setApproachBanner(t("approachAccepted", { club: club.clubName }));
         // The approach only issues an offer. The user must still negotiate the
         // salary on the next screen; completing here made that step falsely
         // look like a guaranteed confirmation.
@@ -182,14 +186,12 @@ export function useDraftDrumTransferFlow({
           ...prev,
           [club.clubId]: { chance: res.acceptChance, reason: res.rejectReason },
         }));
-        setApproachBanner(
-          `${club.clubName} đã từ chối (Tỷ lệ đàm phán ${approachChancePercent(res.acceptChance)}%) — ${res.rejectReason}`,
-        );
+        setApproachBanner(t("declinedOffer", { club: club.clubName, reason: copy(res.rejectReason) }));
         return false;
       }
     } catch {
       if (checkpointSync.isEnabled) await checkpointSync.resync();
-      setApproachBanner("Không thể ngỏ lời — thử lại");
+      setApproachBanner(t("approachError"));
       return false;
     } finally {
       setIsProcessing(false);
@@ -249,17 +251,17 @@ export function useDraftDrumTransferFlow({
       }
 
       if (res.accepted) {
-        setApproachBanner(`Gia hạn thành công với ${currentClub.name}!`);
+        setApproachBanner(t("renewalOffered", { club: currentClub.name }));
         setTransferOffer(res.offer);
         return true;
       } else {
         setProactiveRenewalRejectedAge(currentAge);
-        setApproachBanner(`Gia hạn không thành công — ${res.rejectReason}`);
+        setApproachBanner(t("renewalRejected", { reason: copy(res.rejectReason) }));
         return false;
       }
     } catch {
       if (checkpointSync.isEnabled) await checkpointSync.resync();
-      setApproachBanner("Không thể gửi đề nghị gia hạn — thử lại");
+      setApproachBanner(t("renewalFailed"));
       return false;
     } finally {
       proactiveRenewalInFlightRef.current = false;
@@ -280,7 +282,7 @@ export function useDraftDrumTransferFlow({
             offerKind: offer.kind,
           });
         } catch {
-          setApproachBanner("Không thể đóng đề nghị gia hạn — hãy tải lại cửa sổ chuyển nhượng.");
+          setApproachBanner(t("renewalDismissError"));
         }
       }
     }

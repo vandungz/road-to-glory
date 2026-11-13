@@ -1,10 +1,12 @@
 "use client";
 
+import { useAwardCopy } from "./useAwardCopy";
+import { useTranslations } from "next-intl";
 import type { CompetitionStats, SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { isDeprecatedAwardKey } from "@/types/awards";
-import { getContinentalCupLabel, getDomesticCupName } from "../lib/simulation-helpers";
-import { getCompetitionResultLabel } from "../lib/competition-result-labels";
+import { useCompetitionNames } from "./useCompetitionNames";
+import { useCompetitionResult } from "./useCompetitionResult";
 import { Badge } from "@/components/ui/Badge";
 import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
@@ -20,6 +22,7 @@ interface Props {
 }
 
 function CompetitionRow({ label, stats, result }: { label: string; stats?: CompetitionStats; result?: string }) {
+  const ui = useTranslations("ui");
   if (!stats || stats.apps === 0) return null;
   return (
     <div className="football-competition-row">
@@ -28,16 +31,13 @@ function CompetitionRow({ label, stats, result }: { label: string; stats?: Compe
         {result && <span>{result}</span>}
       </div>
       <small>
-        {stats.apps} trận · {stats.goals} bàn · {stats.assists} kiến tạo
-        {stats.cleanSheets > 0 ? ` · ${stats.cleanSheets} sạch lưới` : ""} · Rating {stats.rating.toFixed(2)}
+        {stats.apps} {ui("apps")} {stats.goals} {ui("goals")} {stats.assists} {ui("assists")}
+        {stats.cleanSheets > 0 ? ui("cleanSheets", { v0: String(stats.cleanSheets) }) : ""} · Rating {stats.rating.toFixed(2)}
       </small>
     </div>
   );
 }
 
-function cupResult(result: string | null | undefined): string {
-  return getCompetitionResultLabel(result, "");
-}
 
 function isRemovedAwardLabel(label: string): boolean {
   const normalized = label.toLowerCase();
@@ -45,6 +45,11 @@ function isRemovedAwardLabel(label: string): boolean {
 }
 
 export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup, onClose }: Props) {
+  const ui = useTranslations("ui");
+  const awardCopy = useAwardCopy();
+  const formatResult = useCompetitionResult();
+  const names = useCompetitionNames();
+  const cupResult = (result: string | null | undefined) => formatResult(result, "");
   const awards = yearSimResult.events.filter((event) => (
     event.type === "individual_award" && !isRemovedAwardLabel(event.label)
   ));
@@ -56,50 +61,50 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
   ));
 
   return (
-    <Modal open title="Thống kê mùa giải" onClose={onClose} size="sm">
-      <ModalHeader onClose={onClose} closeLabel="Đóng thống kê mùa giải">
-        Thống kê mùa giải
+    <Modal open title={ui("seasonStats")} onClose={onClose} size="sm">
+      <ModalHeader onClose={onClose} closeLabel={ui("closeSeasonStats")}>
+        {ui("seasonStats")}
       </ModalHeader>
 
       <ModalBody>
         <div className="football-season-stats">
           <div className="football-season-stats__heading">
-            <span>Hồ sơ mùa giải</span>
-            <strong>{record.clubName}</strong>
-            <small>{record.leagueName}</small>
+            <span>{ui("seasonRecord")}</span>
+            <strong>{names.clubName(record.clubName)}</strong>
+            <small>{names.leagueName(record.leagueName)}</small>
           </div>
 
           <section>
-            <h3 className="football-modal-section-label">Tổng mùa giải</h3>
+            <h3 className="football-modal-section-label">{ui("seasonTotals")}</h3>
             <div className="football-data-list">
-              <DataRow label="Số trận ra sân" value={yearSimResult.apps} />
-              <DataRow label="Bàn thắng" value={yearSimResult.goals} />
-              <DataRow label="Kiến tạo" value={yearSimResult.assists} />
-              {yearSimResult.cleanSheets > 0 && <DataRow label="Trận giữ sạch lưới" value={yearSimResult.cleanSheets} />}
-              <DataRow label="Điểm đánh giá trung bình" value={yearSimResult.matchRating.toFixed(2)} />
+              <DataRow label={ui("appearances")} value={yearSimResult.apps} />
+              <DataRow label={ui("goals2")} value={yearSimResult.goals} />
+              <DataRow label={ui("assists2")} value={yearSimResult.assists} />
+              {yearSimResult.cleanSheets > 0 && <DataRow label={ui("cleanSheets2")} value={yearSimResult.cleanSheets} />}
+              <DataRow label={ui("averageRating")} value={yearSimResult.matchRating.toFixed(2)} />
             </div>
           </section>
 
           <section>
-            <h3 className="football-modal-section-label">Theo từng giải</h3>
+            <h3 className="football-modal-section-label">{ui("byCompetition")}</h3>
             <div className="football-competition-list">
               <CompetitionRow
-                label={record.leagueName || "Giải VĐQG"}
+                label={names.leagueName(record.leagueName)}
                 stats={yearSimResult.leagueStats}
-                result={record.standing != null ? `Hạng #${record.standing}` : undefined}
+                result={record.standing != null ? ui("message", { v0: String(record.standing) }) : undefined}
               />
               <CompetitionRow
-                label={getDomesticCupName(record.leagueName, record.leagueId)}
+                label={names.domesticCupName(record.leagueName, record.leagueId)}
                 stats={yearSimResult.domesticCupStats}
                 result={cupResult(record.domesticCup)}
               />
               <CompetitionRow
-                label={getContinentalCupLabel(record.continentalCup?.type ?? currentContinentalCup)}
+                label={names.continentalCupName(record.continentalCup?.type ?? currentContinentalCup)}
                 stats={yearSimResult.continentalStats}
                 result={cupResult(record.continentalCup?.result)}
               />
               <CompetitionRow
-                label={record.nationalTeam?.type ?? "Đội tuyển quốc gia"}
+                label={record.nationalTeam?.type ?? ui("nationalTeam")}
                 stats={yearSimResult.nationalStats}
                 result={cupResult(record.nationalTeam?.result)}
               />
@@ -108,16 +113,16 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
 
           {hasAwards && (
             <section className="football-awards-section">
-              <h3 className="football-modal-section-label">Danh hiệu cá nhân</h3>
-              {awards.map((award, index) => <Badge key={index} tone="accent">{award.label}</Badge>)}
+              <h3 className="football-modal-section-label">{ui("individualAwards")}</h3>
+              {awards.map((award, index) => <Badge key={index} tone="accent">{awardCopy(award.label)}</Badge>)}
               {yearSimResult.ballonDor.eligible && (
-                <div className="football-honour-note">Đủ điều kiện dự tranh Quả Bóng Vàng — quay để xem kết quả.</div>
+                <div className="football-honour-note">{ui("spinToSeeYourBallonDorResult")}</div>
               )}
             </section>
           )}
           {rankingSnapshots.length > 0 ? (
             <section className="football-awards-section" aria-labelledby="award-ranking-title">
-              <h3 id="award-ranking-title" className="football-modal-section-label">Bảng xếp hạng ứng viên</h3>
+              <h3 id="award-ranking-title" className="football-modal-section-label">{ui("nomineeStandings")}</h3>
               {rankingSnapshots.map((snapshot) => snapshot.awardKey === "league_best_xi"
                 ? <AwardBestXiPitch key={snapshot.snapshotKey} snapshot={snapshot} />
                 : null)}
@@ -128,7 +133,7 @@ export function SeasonStatsModal({ record, yearSimResult, currentContinentalCup,
       </ModalBody>
 
       <ModalFooter>
-        <Button onClick={onClose}>Tiếp tục phát triển chỉ số</Button>
+        <Button onClick={onClose}>{ui("continueToPlayerDevelopment")}</Button>
       </ModalFooter>
     </Modal>
   );

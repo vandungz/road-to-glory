@@ -1,5 +1,7 @@
 "use client";
 
+import { useAwardCopy } from "./useAwardCopy";
+import { useTranslations } from "next-intl";
 import { Trophy } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { SeasonRecord } from "@/types/game";
@@ -20,20 +22,24 @@ interface TrophyItem {
   category: HonourDisplayCategory;
   type: "league" | "cup" | "continental" | "award" | "national";
   title: string;
-  season: string;
+  age: number;
   clubName: string;
   result?: HonourResult;
 }
 
 const TYPE_LABELS: Record<TrophyItem["type"], string> = {
-  league: "Giải VĐQG",
-  cup: "Cúp quốc gia",
-  continental: "Cúp lục địa",
-  award: "Danh hiệu cá nhân",
-  national: "Đội tuyển quốc gia",
+  league: "domesticLeague",
+  cup: "domesticCup",
+  continental: "continentalCup",
+  award: "individualAwards",
+  national: "nationalTeam",
 };
 
 export function TrophyCabinetModal({ seasonRecords, playerName, playerNationality, onClose }: Props) {
+  const ui = useTranslations("ui");
+  const awardCopy = useAwardCopy();
+  const t = useTranslations("awards");
+  const career = useTranslations("career");
   const [activeTab, setActiveTab] = useState<HonourDisplayCategory>("club");
   const trophyList = useMemo(() => {
     const trophies: TrophyItem[] = [];
@@ -47,8 +53,7 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
     Object.keys(seasonRecords).map(Number).sort((a, b) => a - b).forEach((age) => {
       const rec = seasonRecords[age];
       if (!rec) return;
-      const season = `Tuổi ${age}`;
-      const clubName = rec.clubName || "CLB";
+      const clubName = rec.clubName;
       const context = {
         leagueId: rec.leagueId,
         leagueName: rec.leagueName,
@@ -59,19 +64,19 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
       const canonicalKeys = new Set(visibleHonours.map((honour) => `${honour.awardKey}:${normalizeHonourResult(honour.result)}`));
       if ((rec.standing === 1 || rec.standing === 2) && !canonicalKeys.has(`league_title:${rec.standing === 2 ? "runner_up" : "winner"}`)) {
         const result = rec.standing === 2 ? "runner_up" as const : "winner" as const;
-        add({ id: `${age}:league_title:${result}`, category: "club", type: "league", title: getHonourResultLabel(getSpecificHonourLabel("league_title", "Vô địch giải quốc gia", context), result), season, clubName, result });
+        add({ id: `${age}:league_title:${result}`, category: "club", type: "league", title: getHonourResultLabel(getSpecificHonourLabel("league_title", "Vô địch giải quốc gia", context), result), age, clubName, result });
       }
       if ((rec.domesticCup === "Winner" || rec.domesticCup === "Runner-Up") && !canonicalKeys.has(`domestic_cup_title:${rec.domesticCup === "Runner-Up" ? "runner_up" : "winner"}`)) {
         const result = rec.domesticCup === "Runner-Up" ? "runner_up" as const : "winner" as const;
-        add({ id: `${age}:domestic_cup_title:${result}`, category: "club", type: "cup", title: getHonourResultLabel(getSpecificHonourLabel("domestic_cup_title", "Vô địch Cúp quốc gia", context), result), season, clubName, result });
+        add({ id: `${age}:domestic_cup_title:${result}`, category: "club", type: "cup", title: getHonourResultLabel(getSpecificHonourLabel("domestic_cup_title", "Vô địch Cúp quốc gia", context), result), age, clubName, result });
       }
       if ((rec.continentalCup?.result === "Winner" || rec.continentalCup?.result === "Runner-Up") && !canonicalKeys.has(`continental_title:${rec.continentalCup.result === "Runner-Up" ? "runner_up" : "winner"}`)) {
         const result = rec.continentalCup.result === "Runner-Up" ? "runner_up" as const : "winner" as const;
-        add({ id: `${age}:continental_title:${result}`, category: "club", type: "continental", title: getHonourResultLabel(getSpecificHonourLabel("continental_title", "Vô địch cúp châu lục", context), result), season, clubName, result });
+        add({ id: `${age}:continental_title:${result}`, category: "club", type: "continental", title: getHonourResultLabel(getSpecificHonourLabel("continental_title", "Vô địch cúp châu lục", context), result), age, clubName, result });
       }
       if ((rec.nationalTeam?.result === "Winner" || rec.nationalTeam?.result === "Runner-Up") && !canonicalKeys.has(`national_team_title:${rec.nationalTeam.result === "Runner-Up" ? "runner_up" : "winner"}`)) {
         const result = rec.nationalTeam.result === "Runner-Up" ? "runner_up" as const : "winner" as const;
-        add({ id: `${age}:national_team_title:${result}`, category: "club", type: "national", title: getHonourResultLabel(getSpecificHonourLabel("national_team_title", "Vô địch giải quốc tế", context), result), season, clubName: playerNationality || "Đội tuyển quốc gia", result });
+        add({ id: `${age}:national_team_title:${result}`, category: "club", type: "national", title: getHonourResultLabel(getSpecificHonourLabel("national_team_title", "Vô địch giải quốc tế", context), result), age, clubName: playerNationality, result });
       }
 
       visibleHonours.forEach((honour) => {
@@ -93,8 +98,8 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
           category,
           type,
           title: `${title}${rankLabel}`,
-          season,
-          clubName: type === "national" ? playerNationality || "Đội tuyển quốc gia" : clubName,
+          age,
+          clubName: type === "national" ? playerNationality : clubName,
           result,
         });
       });
@@ -102,7 +107,7 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
       // Only a season-scoped winner is valid here. Never use the cumulative
       // achievements.ballonDor counter as a per-season award signal.
       if (rec.ballonDorResult === 1 && !canonicalKeys.has("ballon_dor:winner")) {
-        add({ id: `${age}:ballon_dor`, category: "individual", type: "award", title: "Quả Bóng Vàng (Ballon d'Or)", season, clubName });
+        add({ id: `${age}:ballon_dor`, category: "individual", type: "award", title: "Quả Bóng Vàng (Ballon d'Or)", age, clubName });
       }
     });
     return trophies;
@@ -113,9 +118,9 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
   const individualCount = trophyList.filter((trophy) => trophy.category === "individual").length;
 
   return (
-    <Modal open title={`Tủ danh hiệu của ${playerName}`} onClose={onClose} size="md" variant="inverse" className="football-trophy-modal">
-      <ModalHeader onClose={onClose} closeLabel="Đóng tủ danh hiệu">Tổng thành tích ({trophyList.length})</ModalHeader>
-      <div className="football-trophy-tabs" role="tablist" aria-label="Phân loại danh hiệu">
+    <Modal open title={ui("sTrophyCabinet", { v0: String(playerName) })} onClose={onClose} size="md" variant="inverse" className="football-trophy-modal">
+      <ModalHeader onClose={onClose} closeLabel={ui("closeTrophyCabinet")}>{t("totalHonours", { count: trophyList.length })}</ModalHeader>
+      <div className="football-trophy-tabs" role="tablist" aria-label={ui("honourCategories")}>
         {(["club", "individual"] as const).map((tab) => {
           const isActive = activeTab === tab;
           const count = tab === "club" ? clubCount : individualCount;
@@ -130,7 +135,7 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
               className={isActive ? "is-active" : undefined}
               onClick={() => setActiveTab(tab)}
             >
-              <span>{tab === "club" ? "Danh hiệu CLB" : "Danh hiệu cá nhân"}</span>
+              <span>{tab === "club" ? ui("clubHonours") : ui("individualAwards")}</span>
               <strong>{count}</strong>
             </button>
           );
@@ -138,18 +143,18 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
       </div>
       <ModalBody id="trophy-panel" role="tabpanel" aria-labelledby={`trophy-tab-${activeTab}`} className="football-trophy-modal__body">
         {visibleTrophies.length === 0 ? (
-          <div className="football-empty-state football-empty-state--inverse"><Trophy size={28} aria-hidden="true" /><p>Chưa mở khóa danh hiệu nào.</p><span>Hãy tiếp tục các mùa giải để xây dựng di sản.</span></div>
+          <div className="football-empty-state football-empty-state--inverse"><Trophy size={28} aria-hidden="true" /><p>{ui("noHonoursYet")}</p><span>{ui("honoursWillAppearHereAfterEachSeason")}</span></div>
         ) : (
           visibleTrophies.map((trophy) => (
             <div className={`football-trophy-row${trophy.result === "runner_up" ? " is-runner-up" : ""}`} key={trophy.id}>
               <div className="football-trophy-row__mark"><Trophy size={18} aria-hidden="true" /></div>
-              <div className="football-trophy-row__copy"><span>{TYPE_LABELS[trophy.type]}</span><strong>{trophy.title}</strong><small>{trophy.clubName}</small></div>
-              <time>{trophy.season}</time>
+              <div className="football-trophy-row__copy"><span>{ui(TYPE_LABELS[trophy.type])}</span><strong>{awardCopy(trophy.title)}</strong><small>{trophy.clubName && trophy.clubName !== "Không CLB" ? trophy.clubName : trophy.type === "national" ? ui("nationalTeam") : career("noClub")}</small></div>
+              <time>{career("ageOption", { age: trophy.age })}</time>
             </div>
           ))
         )}
       </ModalBody>
-      <ModalFooter><Button variant="outline" fullWidth onClick={onClose}>Đóng tủ danh hiệu</Button></ModalFooter>
+      <ModalFooter><Button variant="outline" fullWidth onClick={onClose}>{ui("closeTrophyCabinet")}</Button></ModalFooter>
     </Modal>
   );
 }

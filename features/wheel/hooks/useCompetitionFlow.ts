@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
 import { getContinentalCupLabel, getNationalTournamentName } from "../lib/simulation-helpers";
 import {
@@ -30,7 +31,7 @@ interface CompetitionFlowProps {
   domesticCupResult: string | null;
   continentalCupResult: string | null;
   nationalCallupResult: string | null;
-  yearSimResult: SimulatedSeasonResult | null;
+  recapNextStep: "ballon_dor_nomination" | "dir_increase";
   setStandingResult: (v: number | null) => void;
   setDomesticCupResult: (v: string | null) => void;
   setContinentalCupResult: (v: string | null) => void;
@@ -51,6 +52,7 @@ interface CompetitionFlowProps {
 }
 
 export function useCompetitionFlow(p: CompetitionFlowProps) {
+  const t = useTranslations("career");
   const pendingAfterCompetitionModalRef = useRef<(() => void) | null>(null);
   const pendingSeasonStatsRetryRef = useRef<(() => void) | null>(null);
 
@@ -127,7 +129,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
         // V2 owns the authoritative step. A failed commit must never advance
         // the local UI to a wheel the server has not committed yet.
         p.setCareerSubStep("season_stats");
-        p.setApproachBanner?.("Chưa chốt được thống kê mùa giải. Hãy thử lại.");
+        p.setApproachBanner?.(t("seasonStatsError"));
       } else {
         p.setCareerSubStep("dir_increase");
       }
@@ -145,11 +147,8 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
   function handleSeasonStatsModalClose() {
     pendingAfterCompetitionModalRef.current = null;
     p.setActiveModal(null);
-    if (p.yearSimResult?.ballonDor.eligible) {
-      p.setCareerSubStep("ballon_dor_nomination");
-    } else {
-      p.setCareerSubStep("dir_increase");
-    }
+    // Saved seasons that already advanced past the former eligibility gate keep their step.
+    p.setCareerSubStep(p.recapNextStep);
   }
 
   function handleCompetitionResultModalClose() {
@@ -178,7 +177,7 @@ export function useCompetitionFlow(p: CompetitionFlowProps) {
       // Fail closed: never guess that a continental wheel exists when the V2
       // server did not authorize it. The next user action will resync through
       // the checkpoint conflict path instead of issuing a wrong wheel command.
-      p.setApproachBanner?.("Không thể xác nhận bước thi đấu tiếp theo. Career sẽ được đồng bộ lại khi thử lại.");
+      p.setApproachBanner?.(t("competitionStepError"));
       p.setIsProcessing(false);
       return;
     }

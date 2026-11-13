@@ -117,6 +117,27 @@ const resolution = resolveServerCareerWheel(resolverContext, "standing");
 
 assert.equal(typeof resolution.outcome, "number");
 assert.equal(resolution.nextStep, "domestic_cup");
+const noNomination = resolveServerCareerWheel({
+  ...resolverContext,
+  player: { ...resolverContext.player, isUnemployed: true },
+  currentClub: null,
+}, "ballon_dor_nomination");
+assert.equal(noNomination.outcome, "no");
+assert.equal(noNomination.nextStep, "dir_increase");
+
+const nominated = resolveServerCareerWheel({
+  ...resolverContext,
+  season: { ...resolverContext.season, runtimeState: { ballonDorNominationWeight: 100 } },
+}, "ballon_dor_nomination");
+assert.equal(nominated.outcome, "yes");
+assert.equal(nominated.nextStep, "ballon_dor_ranking");
+
+const ranking = resolveServerCareerWheel({
+  ...resolverContext,
+  season: { ...resolverContext.season, runtimeState: { ballonDorRankWeights: [0, 0, 0, 0, 0, 0, 0, 0, 0, 100] } },
+}, "ballon_dor_ranking");
+assert.equal(ranking.outcome, 10);
+assert.equal(ranking.nextStep, "dir_increase");
 
 const continentalSeasonResolution = resolveServerCareerWheel(
   {

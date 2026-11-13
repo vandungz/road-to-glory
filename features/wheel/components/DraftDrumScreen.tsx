@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useDraftDrum } from "../hooks/useDraftDrum";
@@ -14,6 +15,8 @@ import { PersistentTransferSection } from "./PersistentTransferSection";
 import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
 import { WheelGameHeader } from "./WheelGameHeader";
 import { getSeasonYearString } from "../lib/simulation-helpers";
+import { LoadingState, RouteLoading } from "@/components/ui/States";
+import { AppShell } from "@/components/shared/AppShell";
 import { Toast } from "@/components/ui/Toast";
 import { ClassicProfileSetup, type ClassicProfile } from "./ClassicProfileSetup";
 import { useWheelUiStore } from "../stores/useWheelUiStore";
@@ -61,6 +64,8 @@ export function DraftDrumScreen({
   shopReturnToken,
   transferReturnAction,
 }: DraftDrumScreenProps) {
+  const ui = useTranslations("ui");
+  const careerCopy = useTranslations("career");
   const router = useRouter();
   const [profile, setProfile] = useState<ClassicProfile | null | undefined>(savedPlayerId || initialMode !== "setup" ? null : undefined);
   const [portraitId, setPortraitId] = useState<string | null>(
@@ -113,6 +118,7 @@ export function DraftDrumScreen({
     transferMarket,
     approachRejects,
     approachBanner,
+    clearApproachBanner,
     isUnemployed,
     clubStints,
     nationalCallupResult,
@@ -128,7 +134,7 @@ export function DraftDrumScreen({
     handleStartCareer,
     handleCareerSpin,
     handleCareerSpinComplete,
-    retrySeasonStats,
+    recapNextStep, retrySeasonStats,
     handleAcceptMarketOffer,
     clearPendingTransferOffer,
     handleRejectTransferWindow,
@@ -197,7 +203,9 @@ export function DraftDrumScreen({
     handleTransferReturn(transferReturnAction);
   }, [handleTransferReturn, isMounted, isProcessing, mode, transferReturnAction]);
 
-  if (!isMounted) return null;
+  if (!isMounted) return <AppShell backHref={backHref} backLabel="squadBoard">
+    <RouteLoading title={savedPlayerId ? ui("career") : ui("createPlayer")} label={ui("loadingPlayerProfile")} layout={savedPlayerId ? "career" : "quick"} />
+  </AppShell>;
 
   const activeRecord = seasonRecords[selectedAgeForStats] ?? null;
   const shopHref = shopTargetSeason === null
@@ -378,15 +386,10 @@ export function DraftDrumScreen({
         />
       )}
 
-      {mode === "career" && careerSubStep === "season_stats" && !yearSimResult && approachBanner && (
-        <Toast
-          title="Chưa thể chốt mùa giải"
-          actionLabel="Thử lại"
-          onAction={retrySeasonStats}
-          actionBusy={isProcessing}
-        >
-          Thống kê mùa giải chưa được lưu. Bạn có thể thử lại ngay.
-        </Toast>
+      {mode === "career" && !activeModal && approachBanner && (
+        careerSubStep === "season_stats" && !yearSimResult
+          ? <Toast title={ui("couldNotFinalizeTheSeason")} actionLabel={ui("retry")} onAction={retrySeasonStats} actionBusy={isProcessing}>{approachBanner}</Toast>
+          : <Toast title={careerCopy("careerNotice")} onDismiss={clearApproachBanner}>{approachBanner}</Toast>
       )}
 
       {/* ── TRANSFER DECISION FLOATING MODAL ── */}
@@ -422,7 +425,9 @@ export function DraftDrumScreen({
             return result;
           }}
           onRejectAll={() => {
-            void handleRejectTransferWindow().then(() => setActiveModal(null));
+            void handleRejectTransferWindow().then((completed) => {
+              if (completed) setActiveModal(null);
+            });
           }}
           onApproachShortlist={async (club, wageOption) => {
             const accepted = await handleApproachShortlist(club, wageOption);
@@ -434,7 +439,7 @@ export function DraftDrumScreen({
           approachBanner={approachBanner}
           acceptedOffer={transferOffer}
           onClearAcceptedOffer={clearPendingTransferOffer}
-          onClose={() => setActiveModal(null)}
+          onClose={() => { clearApproachBanner(); setActiveModal(null); }}
         />
       )}
 
@@ -443,6 +448,7 @@ export function DraftDrumScreen({
         <SeasonRecapModal
           record={activeRecord}
           yearSimResult={yearSimResult}
+          nextIsNomination={recapNextStep === "ballon_dor_nomination"}
           currentContinentalCup={currentContinentalCup}
           playerDebutAge={playerDebutAge}
           onClose={() => { portrait.release("recap"); handleSeasonStatsModalClose(); }}
@@ -452,7 +458,6 @@ export function DraftDrumScreen({
       {activeModal === "ballon_dor_nomination" && ballonDorResult?.phase === "nomination" && (
         <BallonDorNominationModal
           nominated={ballonDorResult.nominated}
-          age={currentAge}
           onClose={() => setActiveModal(null)}
         />
       )}
@@ -473,21 +478,15 @@ export function DraftDrumScreen({
       {isBallonDorTransitioning && (
         <Modal
           open
-          title="Đang mở kết quả Ballon d’Or"
+          title={ui("openingBallonDorResults")}
           onClose={() => undefined}
           closeOnBackdrop={false}
           size="sm"
           className="football-ballon-dor-transition-modal"
         >
-          <ModalHeader eyebrow="Quả Bóng Vàng · Xếp hạng chung cuộc">
-            Đang mở kết quả…
-          </ModalHeader>
+          <ModalHeader>{ui("ballonDor")}</ModalHeader>
           <ModalBody>
-            <div className="football-ballon-dor-transition__status" role="status" aria-live="polite" aria-busy="true">
-              <span className="football-ballon-dor-transition__spinner" aria-hidden="true" />
-              <strong>Kết quả đã được ghi nhận</strong>
-            </div>
-            <p className="football-ballon-dor-transition__note">Vui lòng chờ trang kết quả hiển thị.</p>
+            <LoadingState label={ui("loadingStandings")} />
           </ModalBody>
         </Modal>
       )}

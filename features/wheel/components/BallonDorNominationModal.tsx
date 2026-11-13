@@ -1,33 +1,31 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { ResultBanner } from "@/components/ui/ResultBanner";
+import { EditorialArt } from "@/components/shared/EditorialArt";
 
 interface Props {
   nominated: boolean;
-  age: number;
   onClose: () => void;
 }
 
-export function BallonDorNominationModal({ nominated, age, onClose }: Props) {
+export function BallonDorNominationModal({ nominated, onClose }: Props) {
+  const ui = useTranslations("ui");
   return (
-    <Modal open title="Quả Bóng Vàng — đề cử" onClose={onClose} size="sm" className="football-season-result-modal">
-      <ModalHeader onClose={onClose} closeLabel="Đóng kết quả" eyebrow={`Quả Bóng Vàng · Tuổi ${age}`}>
-        Quả Bóng Vàng — đề cử
+    <Modal open title={ui("ballonDor")} onClose={onClose} size={nominated ? "md" : "sm"}
+      className={nominated ? "football-ballon-nomination is-nominated" : "football-ballon-nomination"}>
+      <ModalHeader onClose={onClose} closeLabel={ui("closeResults")}>
+        {ui("ballonDor")}
       </ModalHeader>
       <ModalBody>
-        <ResultBanner tone={nominated ? "positive" : "default"}>
-          {nominated ? "Được đề cử Top 10" : "Chưa được đề cử năm này"}
-        </ResultBanner>
-        <p className="football-modal-note">
-          {nominated
-            ? "Bạn sẽ tiếp tục tới vòng xếp hạng chung cuộc."
-            : "Bạn sẽ tiếp tục sang phần phát triển chỉ số của mùa giải."}
+        <p className="football-ballon-nomination__result">
+          {nominated ? ui("nominatedInTheTop10") : ui("notNominatedThisYear")}
         </p>
+        {nominated && <EditorialArt asset="ballon-dor-trophy" className="football-ballon-nomination__art" />}
       </ModalBody>
       <ModalFooter>
-        <Button fullWidth onClick={onClose}>Tiếp tục hành trình</Button>
+        <Button fullWidth onClick={onClose}>{ui(nominated ? "viewRankingWheel" : "continuePlayerDevelopment")}</Button>
       </ModalFooter>
     </Modal>
   );

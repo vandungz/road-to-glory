@@ -79,11 +79,12 @@ export async function startCareerSeasonCommand(params: {
       ? (player.clubStints.at(-1) as { clubId?: string; clubName?: string; leagueId?: string; leagueName?: string } | undefined)
       : undefined;
 
+    const currentStep = player.isUnemployed ? "ballon_dor_nomination" : "standing";
     const reserved = await tx.careerPlayer.updateMany({
       where: { id: player.id, revision: params.expectedRevision, currentStep: "idle" },
       data: {
         revision: { increment: 1 },
-        currentStep: player.isUnemployed ? "dir_increase" : "standing",
+        currentStep,
         currentWheel: "career",
       },
     });
@@ -124,7 +125,7 @@ export async function startCareerSeasonCommand(params: {
       seasonNumber,
       age: player.currentAge,
       revision: params.expectedRevision + 1,
-      currentStep: player.isUnemployed ? "dir_increase" : "standing",
+      currentStep,
       seasonContinentalCup: player.currentContinentalCup,
     };
   });

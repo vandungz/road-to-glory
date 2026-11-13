@@ -4,6 +4,7 @@ import { useRef, useState } from "react";
 import { DraftDrumCareerStage } from "@/features/wheel/components/DraftDrumCareerStage";
 import { WheelGameHeader } from "@/features/wheel/components/WheelGameHeader";
 import { SeasonResultModal } from "@/features/wheel/components/SeasonResultModal";
+import { BallonDorNominationModal } from "@/features/wheel/components/BallonDorNominationModal";
 import { SeasonRecapModal } from "@/features/wheel/components/SeasonRecapModal";
 import { getPortraitCue, getStatsPortraitCue } from "@/features/wheel/lib/portrait-reactions";
 import { usePaniniReaction } from "@/features/wheel/hooks/usePaniniReaction";
@@ -33,12 +34,20 @@ export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showP
   const [selectedAge, setSelectedAge] = useState(initialResult === "national" ? 34 : 35);
   const [modal, setModal] = useState<"league" | "cup" | "continental" | "national" | "recap" | null>(initialResult ?? null);
   const [processing, setProcessing] = useState(false);
+  const showNomination = reactionStep === "ballon-yes" || reactionStep === "ballon-no";
+  const nominated = reactionStep === "ballon-yes";
+  const [nominationOpen, setNominationOpen] = useState(false);
+  const [awardStep, setAwardStep] = useState<"ballon_dor_nomination" | "ballon_dor_ranking" | "dir_increase">("ballon_dor_nomination");
   const portraitId = showPortrait ? "p03" : null;
   const portrait = usePaniniReaction(setRightTab, Boolean(modal), processing, reactionStep === "transfer-reaction" ? "preview" : undefined);
   const sequence = useRef(0);
   const competition = cup ? "cup" : "league";
 
   function spin() {
+    if (showNomination && awardStep === "ballon_dor_nomination") {
+      setNominationOpen(true);
+      return;
+    }
     const key = String(++sequence.current);
     if (reactionStep === "continue" && sequence.current > 1) {
       setProcessing(true);
@@ -86,14 +95,16 @@ export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showP
     <WheelGameHeader mode="career" backHref="/dev/design-preview" gameName="Kiểm tra bố cục" position="ST" slotIndex={9} seasonLabel="2042/43" age={35} currentClubName={club.name} overall={75} onOpenTrophyCabinet={() => setModal("recap")} />
     <DraftDrumCareerStage
       mobileSection="action" setMobileSection={() => {}} rightTab={rightTab} setRightTab={setRightTab}
-      wheelInteractionLocked={false} careerSubStep={transfer ? "transfer" : cup ? "domestic_cup" : "standing"}
+      wheelInteractionLocked={false} careerSubStep={showNomination ? awardStep : transfer ? "transfer" : cup ? "domestic_cup" : "standing"}
       isUnemployed={false} currentAge={35} currentOvr={75} currentClub={club} currentContinentalCup="none"
       currentStats={{ pac: 72, sho: 78, pas: 70, dri: 74, def: 42, phy: 73 }} position="ST" playerName="Cầu thủ thử nghiệm"
       portraitId={portraitId} portraitReaction={portrait.reaction} onPortraitReactionEnd={portrait.clear}
       playerNationality="England" playerDebutAge={18} playerCareerLength={18}
       seasonRecords={{ 34: archivedSeason, 35: season }} selectedAgeForStats={selectedAge} setSelectedAgeForStats={setSelectedAge}
       clubStints={stints} peakOvrValue={75} yearSimResult={result} yearEvolution={{ count: null, direction: null }}
-      evolvedStatsThisYear={[]} careerWheelItems={[{ label: "Vô địch", value: 1 }, { label: "Á quân", value: 2 }, { label: "Hạng 3", value: 3 }, { label: "Hạng 4", value: 4 }]}
+      evolvedStatsThisYear={[]} careerWheelItems={showNomination && awardStep === "ballon_dor_nomination" ? [
+        { label: "Yes", value: "yes", weight: nominated ? 40 : 1 }, { label: "No", value: "no", weight: nominated ? 60 : 99 },
+      ] : showNomination && awardStep === "ballon_dor_ranking" ? Array.from({ length: 10 }, (_, i) => ({ label: String(i + 1), value: i + 1, weight: 10 })) : [{ label: "Vô địch", value: 1 }, { label: "Á quân", value: 2 }, { label: "Hạng 3", value: 3 }, { label: "Hạng 4", value: 4 }]}
       careerTargetIndex={0} careerSpinning={processing} isProcessing={processing} seasonTicketResolved={true}
       standingResult={modalSeason.standing} domesticCupResult="Semi-Finals" continentalCupResult={null} nationalCallupResult={null} nationalTournamentResult={null}
       hasBallonDorWinner={false} selectorIndex={0} tempSelectedStat={null} contractYearsTotal={2} contractYearsRemaining={1}
@@ -102,6 +113,10 @@ export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showP
         if (type === "league" || type === "cup" || type === "continental" || type === "national") setModal(type);
       }} handleCareerSpinComplete={() => {}} handleCareerSpin={spin} handleNextSeason={() => {}}
     />
+    {nominationOpen && <BallonDorNominationModal nominated={nominated} onClose={() => {
+      setNominationOpen(false);
+      setAwardStep(nominated ? "ballon_dor_ranking" : "dir_increase");
+    }} />}
     {modal && modal !== "recap" && <SeasonResultModal type={modal} record={selectedAge === 34 ? archivedSeason : modalSeason}
       currentContinentalCup="none" playerDebutAge={18} playerNationality="England" isArchived={selectedAge === 34} onClose={close} />}
     {modal === "recap" && <SeasonRecapModal record={season} yearSimResult={result} currentContinentalCup="none" playerDebutAge={18} onClose={close} />}

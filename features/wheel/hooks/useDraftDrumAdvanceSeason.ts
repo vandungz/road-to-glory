@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { getCareerPlayerAction } from "@/actions/player.actions";
 import type { SeasonRecord } from "@/types/game";
@@ -59,6 +61,7 @@ export function useDraftDrumAdvanceSeason({
   setMode,
   setCareerSubStep,
 }: DraftDrumAdvanceSeasonProps) {
+  const t = useTranslations("career");
   async function advanceToNextSeason(
     autoStart = false,
     shopDecision: "completed" | "skipped" = "completed",
@@ -66,6 +69,7 @@ export function useDraftDrumAdvanceSeason({
     const canAdvanceFromCompletedSeason = ["resolved", "transfer"].includes(careerSubStep);
     const isHydratedModuleReturn = autoStart && careerSubStep === "idle";
     if (isProcessing || (!canAdvanceFromCompletedSeason && !isHydratedModuleReturn)) return;
+    setApproachBanner(null);
     if (autoStart) autoStartSeasonRef.current = true;
     setIsProcessing(true);
     let serverTransition: Awaited<ReturnType<typeof checkpointSync.advanceSeason>> | null = null;
@@ -74,7 +78,7 @@ export function useDraftDrumAdvanceSeason({
         serverTransition = await checkpointSync.advanceSeason(shopDecision);
       } catch {
         autoStartSeasonRef.current = false;
-        setApproachBanner("Không thể chốt mùa giải — hãy thử lại.");
+        setApproachBanner(t("seasonCloseError"));
         setIsProcessing(false);
         return;
       }

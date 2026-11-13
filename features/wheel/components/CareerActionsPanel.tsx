@@ -1,14 +1,17 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import type { CurrentClub } from "@/types/domain";
+import { LoadingState } from "@/components/ui/States";
 import { Button } from "@/components/ui/Button";
 import { DataRow } from "@/components/ui/DataRow";
 import { ResultBanner } from "@/components/ui/ResultBanner";
 import { SpinnerWheel } from "./SpinnerWheel";
 import type { SpinnerItem } from "./SpinnerWheel";
-import { getSeasonYearString, getContinentalCupLabel, getDomesticCupName } from "../lib/simulation-helpers";
-import { getCompetitionResultLabel } from "../lib/competition-result-labels";
+import { getSeasonYearString } from "../lib/simulation-helpers";
+import { useCompetitionNames } from "./useCompetitionNames";
+import { useCompetitionResult } from "./useCompetitionResult";
 
 interface CareerActionsPanelProps {
   careerSubStep: string;
@@ -39,47 +42,12 @@ interface CareerActionsPanelProps {
   onOpenShop?: () => void;
 }
 
-function getStageTitle(step: string, cup: string, index: number, total: number, direction?: string | null, stat?: string | null) {
-  const decrease = direction === "decrease";
-  const titles: Record<string, string> = {
-    idle: "Cửa hàng đầu mùa giải",
-    dir_increase: "Tăng trưởng chỉ số sự nghiệp",
-    dir_decrease: "Suy giảm chỉ số sự nghiệp",
-    count: decrease ? "Số lượng chỉ số suy giảm" : "Số lượng chỉ số thay đổi",
-    standing: "Vòng quay VĐQG — xếp hạng giải đấu",
-    domestic_cup: "Cúp quốc gia",
-    continental_cup: `Cúp lục địa — ${getContinentalCupLabel(cup)}`,
-    national_callup: "Đội tuyển quốc gia — triệu tập",
-    national_tournament: "Đội tuyển quốc gia — giải quốc tế",
-    ballon_dor_nomination: "Quả Bóng Vàng — top 10 đề cử",
-    ballon_dor_ranking: "Quả Bóng Vàng — xếp hạng chung cuộc",
-    season_stats: "Thống kê thành tích mùa giải",
-    transfer: "Quyết định mùa tới",
-    resolved: "Mùa giải đã hoàn thành",
-  };
-  if (step === "selector") return `${decrease ? "Chọn chỉ số suy giảm" : "Chọn chỉ số phát triển"} (${index + 1}/${total})`;
-  if (step === "magnitude") return `${decrease ? "Biên độ giảm" : "Biên độ tăng"} cho ${stat?.toUpperCase() ?? "chỉ số"} (${index + 1}/${total})`;
-  return titles[step] ?? "Tiếp tục sự nghiệp";
-}
-
-function getStageEyebrow(step: string, cup: string) {
-  const labels: Record<string, string> = {
-    standing: "Bước 1 / 5 · Vòng quay xếp hạng",
-    domestic_cup: "Bước 2 / 5 · Vòng quay cúp",
-    continental_cup: `Bước 2 / 5 · ${getContinentalCupLabel(cup)}`,
-    national_callup: "Bước 3 / 5 · Vòng quay đội tuyển",
-    national_tournament: "Bước 3 / 5 · Vòng quay danh hiệu",
-    dir_increase: "Bước 4 / 5 · Phát triển chỉ số",
-    dir_decrease: "Bước 4 / 5 · Phát triển chỉ số",
-    season_stats: "Bước 4 / 5 · Tổng kết mùa giải",
-    transfer: "Bước 5 / 5 · Chuyển nhượng",
-  };
-  return labels[step] ?? "Tiến trình sự nghiệp";
-}
-
-function cupResultLabel(result: string | null) {
-  return getCompetitionResultLabel(result, "Chưa có kết quả");
-}
+const stageNumbers: Record<string, number> = {
+  standing: 1, domestic_cup: 2, continental_cup: 2,
+  national_callup: 3, national_tournament: 3, ballon_dor_nomination: 3, ballon_dor_ranking: 3,
+  season_stats: 4, dir_increase: 4, dir_decrease: 4, count: 4, selector: 4, magnitude: 4,
+  transfer: 5, resolved: 5,
+};
 
 export function CareerActionsPanel({
   careerSubStep, currentAge, playerDebutAge, playerCareerLength, currentClub, currentContinentalCup,
@@ -89,75 +57,111 @@ export function CareerActionsPanel({
   handleNextSeason, selectorIndex, yearEvolutionCount, yearEvolutionDirection, tempSelectedStat,
   isUnemployed, onOpenTransferModal, onOpenShop,
 }: CareerActionsPanelProps) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("career");
+  const wheel = useTranslations("wheel");
+  const resultLabel = useCompetitionResult();
+  const names = useCompetitionNames();
   const seasonLabel = getSeasonYearString(currentAge, playerDebutAge);
   const totalNeed = yearEvolutionCount ?? 1;
   const retireAge = playerDebutAge + (playerCareerLength ?? 15);
   const isFinalSeason = currentAge >= retireAge;
+  const isNomination = careerSubStep === "ballon_dor_nomination";
+  const isAward = isNomination || careerSubStep === "ballon_dor_ranking";
   const isHighStakes = ["national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep);
   const isWheelStep = ["dir_increase", "dir_decrease", "count", "selector", "magnitude", "standing", "domestic_cup", "continental_cup", "national_callup", "national_tournament", "ballon_dor_nomination", "ballon_dor_ranking"].includes(careerSubStep);
   const isShopStage = careerSubStep === "idle";
-  const clubLabel = isUnemployed || !currentClub ? "Thất nghiệp" : currentClub.name;
-  const domesticCupName = currentClub ? getDomesticCupName(currentClub.leagueName, currentClub.leagueId) : "Cúp quốc gia";
-  const stageTitle = careerSubStep === "domestic_cup"
-    ? domesticCupName
-    : getStageTitle(careerSubStep, currentContinentalCup, selectorIndex, totalNeed, yearEvolutionDirection, tempSelectedStat);
+  const clubLabel = isUnemployed || !currentClub ? t("noClub") : currentClub.name;
+  const domesticCupName = currentClub ? names.domesticCupName(currentClub.leagueName, currentClub.leagueId) : t("domestic_cup");
+  const cup = names.continentalCupName(currentContinentalCup);
+  const decrease = yearEvolutionDirection === "decrease";
+  const step = stageNumbers[careerSubStep];
+  const selection = { index: selectorIndex + 1, total: totalNeed };
+  let stageTitle = t.has(careerSubStep) ? t(careerSubStep, { cup }) : t("progress");
+  if (careerSubStep === "domestic_cup") stageTitle = domesticCupName;
+  if (careerSubStep === "count" && decrease) stageTitle = t("decreaseCount");
+  if (careerSubStep === "selector") stageTitle = t(decrease ? "selectDown" : "selectUp", selection);
+  if (careerSubStep === "magnitude") {
+    stageTitle = t(decrease ? "magnitudeDown" : "magnitudeUp", { ...selection, stat: tempSelectedStat?.toUpperCase() ?? ui("stats") });
+  }
+  const stageContext = step === 4 ? ui("stats") : step === 5 ? ui("transferWindow") : ui("competition");
+
+  const displayWheel = careerWheelItems.map((item) => {
+    const value = item.value;
+    let label = item.label;
+    switch (careerSubStep) {
+      case "dir_increase": label = wheel(value === "yes" ? "increase" : "noIncrease"); break;
+      case "dir_decrease": label = wheel(value === "yes" ? "decrease" : "noDecrease"); break;
+      case "count": label = wheel("statCount", { count: Number(value) }); break;
+      case "magnitude": label = wheel("pointCount", { count: Number(value) }); break;
+      case "standing": label = resultLabel(value === 1 ? "Winner" : value === 2 ? "Runner-Up" : `Hạng ${value}`); break;
+      case "domestic_cup":
+      case "continental_cup":
+      case "national_tournament": label = resultLabel(String(value)); break;
+      case "national_callup": label = ui(value === "called_up" ? "calledUp" : "notCalledUp"); break;
+      case "ballon_dor_nomination": label = wheel(value === "yes" ? "awardYes" : "awardNo"); break;
+      case "ballon_dor_ranking": label = `#${value}`; break;
+    }
+    return { ...item, label };
+  });
 
   return (
     <section className={`football-action-panel${isHighStakes ? " football-action-panel--high-stakes" : ""}`}>
       {!isShopStage && (
-        <header className="football-action-panel__header">
-          <span className="football-eyebrow">{getStageEyebrow(careerSubStep, currentContinentalCup)}</span>
+        <header key={stageTitle} className="football-action-panel__header" data-mount="detail">
+          {!isAward && <span className="football-eyebrow">{step ? t("step", { step, label: stageContext }) : t("progress")}</span>}
           <h2>{stageTitle}</h2>
-          {careerSubStep === "domestic_cup" && <p className="football-action-panel__description">Quay để biết {domesticCupName} đi được đến đâu ở mùa này.</p>}
-          {careerSubStep === "continental_cup" && <p className="football-action-panel__description">Quay để biết {getContinentalCupLabel(currentContinentalCup)} đi được đến đâu ở mùa này.</p>}
-          {isFinalSeason && <span className="football-action-panel__notice">Mùa giải cuối cùng</span>}
+          {isNomination && <p className="football-action-panel__description">{t("nominationChance", { chance: displayWheel[0]?.weight ?? 0 })}</p>}
+          {careerSubStep === "domestic_cup" && <p className="football-action-panel__description">{t("cupDescription", { cup: domesticCupName })}</p>}
+          {careerSubStep === "continental_cup" && <p className="football-action-panel__description">{t("cupDescription", { cup })}</p>}
+          {isFinalSeason && <span className="football-action-panel__notice">{ui("finalSeason")}</span>}
         </header>
       )}
 
       <div className="football-action-panel__body">
         {careerSubStep === "idle" && (
           <div className="football-career-shop-entry">
-            <span className="football-eyebrow">Mùa giải {seasonLabel} · tuổi {currentAge} · {clubLabel}</span>
-            <h2>Cửa hàng đầu mùa giải</h2>
-            <p>Mở module cửa hàng để dùng số dư ví cho các vật phẩm hỗ trợ mùa giải trước khi quay bánh xe.</p>
+            <span className="football-eyebrow">{ui("season2")} {seasonLabel} {ui("age2")} {currentAge} · {clubLabel}</span>
+            <h2>{ui("preseasonShop")}</h2>
+            <p>{ui("buySeasonBoostsBeforeSpinning")}</p>
             <Button size="lg" onClick={onOpenShop} disabled={isProcessing || !onOpenShop} className="football-action-panel__primary">
-              Mở cửa hàng
+              {ui("openShop")}
             </Button>
           </div>
         )}
 
         {careerSubStep === "continental_cup" && careerWheelItems.length === 0 && (
-          <div className="football-wheel-stage__processing" role="status" aria-live="polite" aria-busy={isProcessing || !seasonTicketResolved}>
-            <span>{!seasonTicketResolved ? "Đang đồng bộ vé tham dự…" : isProcessing ? "Đang xác nhận vé tham dự…" : "Mùa này không có vé tham dự cúp châu lục."}</span>
-          </div>
+          !seasonTicketResolved || isProcessing
+            ? <LoadingState className="football-wheel-stage__processing" label={ui("checkingQualification")} />
+            : <p className="football-wheel-stage__processing">{ui("yourClubDidNotQualifyForAContinentalCupThisSeason")}</p>
         )}
 
         {isWheelStep && careerWheelItems.length > 0 && (
-          <div className="football-wheel-stage" aria-busy={isProcessing}>
-            <SpinnerWheel isSpinning={careerSpinning} items={careerWheelItems} targetIndex={careerTargetIndex} onSpinComplete={handleCareerSpinComplete} stakes={isHighStakes ? "high" : ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep) ? "mid" : "low"} />
+          <div className="football-wheel-stage" data-ballon-dor={isAward || undefined} aria-busy={isProcessing}>
+            <SpinnerWheel isSpinning={careerSpinning} items={displayWheel} targetIndex={careerTargetIndex} onSpinComplete={handleCareerSpinComplete} idleLabel={isAward ? null : undefined} stakes={isHighStakes ? "high" : ["standing", "domestic_cup", "continental_cup"].includes(careerSubStep) ? "mid" : "low"} />
             <Button size="lg" onClick={handleCareerSpin} disabled={careerSpinning || isProcessing} className="football-action-panel__primary">
-              {careerSpinning ? "Đang quay..." : isProcessing ? "Đã nhận kết quả" : isHighStakes ? "Quay vòng danh hiệu" : "Quay bánh xe"}
+              {careerSpinning ? ui("spinning") : isProcessing ? ui("resultRecorded2") : isHighStakes ? ui("spinForAward") : ui("spin")}
             </Button>
           </div>
         )}
 
         {careerSubStep === "transfer" && !isFinalSeason && (
           <div className="football-career-contract-entry">
-            <p>Chọn ở lại hoặc tìm CLB mới cho mùa giải tiếp theo.</p>
-            <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="football-action-panel__primary">Xem lựa chọn hợp đồng</Button>
+            <p>{ui("stayOrFindANewClubForNextSeason")}</p>
+            <Button size="lg" onClick={onOpenTransferModal} disabled={isProcessing} className="football-action-panel__primary">{ui("viewContractOptions")}</Button>
           </div>
         )}
         {(careerSubStep === "resolved" || (careerSubStep === "transfer" && isFinalSeason)) && yearSimResult && (
           <div className="football-season-report">
-            <div className="football-season-report__heading"><span className="football-eyebrow">Báo cáo thành tích</span><h3>Mùa giải {seasonLabel}</h3></div>
+            <div className="football-season-report__heading"><span className="football-eyebrow">{ui("seasonResults2")}</span><h3>{ui("season2")} {seasonLabel}</h3></div>
             <div className="football-season-report__stats">
-              <DataRow label="Giải VĐQG" value={standingResult ? `Hạng ${standingResult}` : "Chưa có dữ liệu"} />
-              <DataRow label="Cúp quốc gia" value={cupResultLabel(domesticCupResult)} />
-              <DataRow label="Cá nhân" value={`${yearSimResult.apps} trận · ${yearSimResult.goals} bàn · ${yearSimResult.assists} kiến tạo`} />
-              <DataRow label="Match rating" value={<span className="football-data-row__value--accent">{yearSimResult.matchRating}</span>} />
+              <DataRow label={ui("domesticLeague")} value={standingResult ? ui("position2", { v0: String(standingResult) }) : ui("noData")} />
+              <DataRow label={ui("domesticCup")} value={resultLabel(domesticCupResult)} />
+              <DataRow label={ui("player2")} value={ui("appsGoalsAssists", { v0: String(yearSimResult.apps), v1: String(yearSimResult.goals), v2: String(yearSimResult.assists) })} />
+              <DataRow label={ui("matchRating")} value={<span className="football-data-row__value--accent">{yearSimResult.matchRating}</span>} />
             </div>
-            {hasBallonDorWinner && <ResultBanner tone="honour">Quả Bóng Vàng — chiến thắng danh giá</ResultBanner>}
-              <Button size="lg" onClick={!isFinalSeason && careerSubStep === "resolved" && onOpenShop ? onOpenShop : handleNextSeason} disabled={isProcessing} className="football-action-panel__primary">{isFinalSeason ? "Giải nghệ và tổng kết sự nghiệp" : "Tiến vào mùa giải tiếp theo"}</Button>
+            {hasBallonDorWinner && <ResultBanner tone="honour">{ui("ballonDorWinner")}</ResultBanner>}
+              <Button size="lg" onClick={!isFinalSeason && careerSubStep === "resolved" && onOpenShop ? onOpenShop : handleNextSeason} disabled={isProcessing} className="football-action-panel__primary">{isFinalSeason ? ui("retireAndReviewCareer") : ui("startNextSeason")}</Button>
           </div>
         )}
       </div>

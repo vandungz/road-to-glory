@@ -1,10 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { SpinnerWheel } from "./SpinnerWheel";
 import { Button } from "@/components/ui/Button";
 import type { DraftData } from "../stores/useWheelUiStore";
 import { DraftPlayerDossier } from "./DraftPlayerDossier";
-import { DraftProgressRail } from "./DraftProgressRail";
+import { DRAFT_CHAPTERS, DraftProgressRail } from "./DraftProgressRail";
 import type { ClassicProfile } from "./ClassicProfileSetup";
 
 interface SetupStageProps {
@@ -25,43 +26,52 @@ interface SetupStageProps {
   STEP_LABELS: string[];
 }
 
-function getChapterLabel(step: number) {
-  if (step <= 2) return "Xuất thân";
-  if (step <= 8) return "Chỉ số";
-  if (step <= 10) return "Thể chất";
-  return "Khởi đầu";
-}
-
-function getStepDescription(step: number) {
-  if (step <= 2) return "Một vòng quay quyết định dữ kiện đầu tiên của cầu thủ.";
-  if (step <= 8) return "Mỗi chỉ số được tạo riêng, không bị thay thế bởi OVR tổng.";
-  if (step <= 10) return "Thể chất và thời gian sự nghiệp sẽ định hình hành trình phía trước.";
-  return "Nơi bắt đầu sẽ khép lại bản draft của cầu thủ.";
-}
+const draftStepKeys: Partial<Record<number, string>> = {
+  0: "nationality", 1: "debutAge", 2: "height", 3: "weight",
+  10: "careerLength", 11: "league", 12: "club",
+};
 
 export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelItems, targetIndex, handleSetupSpinComplete, tempValue, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
+  const ui = useTranslations("ui");
   const isComplete = activeStep >= STEP_LABELS.length;
-  const chapterLabel = getChapterLabel(activeStep);
+  const t = useTranslations("draft");
+  const wheel = useTranslations("wheel");
+  const chapter = DRAFT_CHAPTERS.find(({ end }) => activeStep <= end) ?? DRAFT_CHAPTERS[3];
+  const stepKey = draftStepKeys[activeStep];
+  const stepLabel = stepKey ? t(stepKey) : STEP_LABELS[activeStep];
+
+  const displayWheel = wheelItems.map((item) => {
+    if (activeStep === 1) return { ...item, label: wheel("ageCount", { count: Number(item.value) }) };
+    if (activeStep === 10) return { ...item, label: ui("yearCount", { count: Number(item.value) }) };
+    if (activeStep === 12 && typeof item.value === "object" && item.value && "id" in item.value && item.value.id === "") {
+      return { ...item, label: wheel("clubNone") };
+    }
+    return item;
+  });
+
+  const ageResult = typeof tempValue === "string" ? /^(\d+) Tuổi$/.exec(tempValue)?.[1] : null;
+  const lengthResult = typeof tempValue === "string" ? /^(\d+) Năm$/.exec(tempValue)?.[1] : null;
+  const result = ageResult ? wheel("ageCount", { count: Number(ageResult) })
+    : lengthResult ? ui("yearCount", { count: Number(lengthResult) }) : tempValue;
 
   return (
     <main className="football-draft-setup">
       <div className="football-draft-setup__main">
         <DraftProgressRail currentStep={activeStep} />
         <section className="football-draft-setup__action">
-          <div className="football-draft-setup__heading">
-            <span>{isComplete ? "Draft hoàn tất" : `Vòng ${activeStep + 1} · ${chapterLabel}`}</span>
-            <h1>{isComplete ? "Bắt đầu sự nghiệp cầu thủ" : STEP_LABELS[activeStep]}</h1>
-            {!isComplete && <p>{getStepDescription(activeStep)}</p>}
+          <div key={activeStep} className="football-draft-setup__heading" data-mount="detail">
+            <span>{isComplete ? ui("draftComplete") : ui("round", { v0: String(activeStep + 1), v1: t(chapter.key) })}</span>
+            <h1>{isComplete ? ui("startPlayerCareer") : stepLabel}</h1>
           </div>
 
           {!isComplete ? (
             <>
-              <SpinnerWheel isSpinning={isSpinning} items={wheelItems} targetIndex={targetIndex} onSpinComplete={handleSetupSpinComplete} />
-              {tempValue !== null && !isSpinning && <div className="football-draft-setup__result" aria-live="polite">{tempValue}</div>}
+              <SpinnerWheel isSpinning={isSpinning} items={displayWheel} targetIndex={targetIndex} onSpinComplete={handleSetupSpinComplete} />
+              {tempValue !== null && !isSpinning && <div className="football-draft-setup__result" aria-live="polite">{result}</div>}
               <div className="football-draft-setup__cta">
-                <span>{isSpinning ? "Đang quay..." : tempValue !== null ? "Kết quả đã ghi nhận" : "Sẵn sàng"}</span>
+                <span>{isSpinning ? ui("spinning") : tempValue !== null ? ui("resultRecorded") : ui("ready")}</span>
                 <Button size="lg" onClick={handleSetupSpin} disabled={isSpinning}>
-                  {isSpinning ? "Bánh xe đang quay" : "Quay bánh xe"}
+                  {isSpinning ? ui("wheelIsSpinning") : ui("spin")}
                 </Button>
               </div>
             </>
@@ -71,7 +81,7 @@ export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelIt
                 <p className="football-draft-setup__error" role="alert">{startCareerError}</p>
               )}
               <Button size="lg" onClick={handleStartCareer} disabled={isProcessing}>
-                {isProcessing ? "Đang tạo cầu thủ" : "Bắt đầu sự nghiệp"}
+                {isProcessing ? ui("creatingPlayer") : ui("startYourCareer")}
               </Button>
             </>
           )}

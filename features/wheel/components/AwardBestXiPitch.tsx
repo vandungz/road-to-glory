@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { Formation } from "@/types/game";
 import { FORMATION_SLOTS } from "@/types/squad";
 import type { AwardRankingEntry, AwardRankingSnapshotInput } from "@/types/awards";
@@ -27,12 +28,13 @@ function entryBySlot(snapshot: AwardRankingSnapshotInput): Map<string, AwardRank
 }
 
 export function AwardBestXiPitch({ snapshot }: Props) {
+  const ui = useTranslations("ui");
   const formation = isFormation(snapshot.formation) ? snapshot.formation : "4-3-3";
   const entries = entryBySlot(snapshot);
   const slots = FORMATION_SLOTS[formation];
 
   return (
-    <div className="football-award-xi-pitch" role="img" aria-label={`Đội hình tiêu biểu ${formation}`}>
+    <div className="football-award-xi-pitch" role="img" aria-label={ui("teamOfTheSeason2", { v0: String(formation) })}>
       <span className="football-award-xi-pitch__outline" aria-hidden="true" />
       <span className="football-award-xi-pitch__halfway" aria-hidden="true" />
       <span className="football-award-xi-pitch__circle" aria-hidden="true" />
@@ -49,8 +51,8 @@ export function AwardBestXiPitch({ snapshot }: Props) {
             style={{ left: `${slot.x}%`, top: `${slot.y}%` }}
           >
             <span>{slot.position}</span>
-            <strong>{entry ? (entry.isCareerPlayer ? shortName(entry.name) : `Số ${getPositionNumber(entry.position)}`) : "Chưa có"}</strong>
-            <small>{entry ? `${entry.clubName} · Rating ${rating}` : "Đang cập nhật"}</small>
+            <strong>{entry ? (entry.isCareerPlayer ? shortName(entry.name) : ui("message2", { v0: String(getPositionNumber(entry.position)) })) : ui("unavailable2")}</strong>
+            <small>{entry ? `${entry.clubName} · Rating ${rating}` : ui("updating")}</small>
           </div>
         );
       })}

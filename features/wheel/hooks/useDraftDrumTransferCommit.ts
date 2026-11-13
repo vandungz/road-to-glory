@@ -1,9 +1,11 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import { completeTransferCommandAction } from "@/actions/career-transfer.actions";
 import type { WageDealOption } from "@/lib/salary-negotiation";
-import type { ApproachRejectState } from "../components/TransferWindowPanel";
+import type { ApproachRejectState } from "@/features/transfer/services/transfer.service";
 import type { ContractOfferCard, TransferDealAttemptResult, TransferMarketResult } from "@/features/transfer/services/transfer.service";
 import type { TransferCommandResult } from "@/features/career/contracts/transfer-transition.contract";
 import type { CareerSubStep, ClubSummary } from "@/types/domain";
@@ -50,6 +52,7 @@ export function useDraftDrumTransferCommit({
   setWillingToMove,
   setCareerSubStep,
 }: DraftDrumTransferCommitProps) {
+  const t = useTranslations("transfer");
   async function commitTransferSelection(
     offer: ContractOfferCard,
     wageOption: WageDealOption = "standard",
@@ -57,7 +60,7 @@ export function useDraftDrumTransferCommit({
     if (!checkpointSync.isEnabled) return { resolution: "accepted", offer };
     const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
     if (!syncPlayerId || !seasonId || revision === null) {
-      setApproachBanner("Không thể xác nhận chuyển nhượng — thiếu checkpoint mùa hiện tại.");
+      setApproachBanner(t("missingSeason"));
       return { resolution: "error" };
     }
     try {
@@ -73,7 +76,7 @@ export function useDraftDrumTransferCommit({
         wageOption,
       });
       if (result.status !== "accepted") {
-        setApproachBanner(result.message);
+        setApproachBanner(t(result.code));
         return {
           resolution: result.status === "cancelled" ? "cancelled" : "rejected",
           failedWageOptions: result.failedWageOptions,
@@ -93,10 +96,9 @@ export function useDraftDrumTransferCommit({
           wageAnnual: result.transfer.wageAnnual,
         },
       };
-    } catch (error) {
+    } catch {
       if (checkpointSync.isEnabled) await checkpointSync.resync();
-      const message = error instanceof Error ? error.message : "";
-      setApproachBanner(message || "Không thể chốt chuyển nhượng — hãy thử lại.");
+      setApproachBanner(t("completionError"));
       return { resolution: "error" };
     }
   }
@@ -156,8 +158,8 @@ export function useDraftDrumTransferCommit({
         },
       );
       return committed;
-    } catch (error) {
-      setApproachBanner(error instanceof Error ? error.message : "Không thể chốt chuyển nhượng — hãy thử lại.");
+    } catch {
+      setApproachBanner(t("completionError"));
       return { resolution: "error" };
     } finally {
       if (ownsProcessing) setIsProcessing(false);
@@ -165,14 +167,14 @@ export function useDraftDrumTransferCommit({
   }
 
   async function handleRejectTransferWindow() {
-    if (isProcessing) return;
+    if (isProcessing) return false;
     const remaining = transferMarket?.contract.yearsRemaining ?? statsProps.contractYearsRemaining;
     const fa = remaining <= 0 || statsProps.isUnemployed || !currentClub;
     if (checkpointSync.isEnabled) {
       const { playerId: syncPlayerId, seasonId, revision } = checkpointSync.state;
       if (!syncPlayerId || !seasonId || revision === null) {
-        setApproachBanner("Không thể chốt ở lại — thiếu checkpoint mùa hiện tại.");
-        return;
+        setApproachBanner(t("missingSeason"));
+        return false;
       }
       setIsProcessing(true);
       try {
@@ -186,16 +188,16 @@ export function useDraftDrumTransferCommit({
           kind: "stay",
         });
         if (result.status !== "accepted") {
-          setApproachBanner(result.message);
+          setApproachBanner(t(result.code));
           setIsProcessing(false);
-          return;
+          return false;
         }
         checkpointSync.applyTransferCompletion(result.transfer);
       } catch {
         await checkpointSync.resync();
-        setApproachBanner("Không thể chốt ở lại — hãy thử lại.");
+        setApproachBanner(t("decisionError"));
         setIsProcessing(false);
-        return;
+        return false;
       }
     }
     if (fa) {
@@ -208,6 +210,7 @@ export function useDraftDrumTransferCommit({
     setApproachBanner(null);
     setCareerSubStep("resolved");
     setIsProcessing(false);
+    return true;
   }
   return {
     handleAcceptTransfer,

@@ -15,6 +15,8 @@ export interface ClubMarketInfo {
   leagueSize?: number;
 }
 
+export type ApproachRejectState = Record<string, { chance: number; reason: string }>;
+
 export type ContractOfferKind = "transfer" | "free_agent" | "renewal";
 
 export type TransferDealResolution = "accepted" | "rejected" | "cancelled" | "error";

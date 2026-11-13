@@ -1,12 +1,15 @@
 "use client";
 
+import { useAwardCopy } from "./useAwardCopy";
+import { useTranslations } from "next-intl";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import { useState, type ReactNode } from "react";
 import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { AWARD_LABELS, isDeprecatedAwardKey, type AwardRankingSnapshotInput } from "@/types/awards";
-import { getContinentalCupLabel, getDomesticCupName, getSeasonYearString } from "../lib/simulation-helpers";
-import { getCompetitionResultLabel } from "../lib/competition-result-labels";
+import { getSeasonYearString } from "../lib/simulation-helpers";
+import { useCompetitionNames } from "./useCompetitionNames";
+import { useCompetitionResult } from "./useCompetitionResult";
 import { Button } from "@/components/ui/Button";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 import { Expandable } from "@/components/ui/Expandable";
@@ -19,15 +22,7 @@ interface Props {
   currentContinentalCup: string;
   playerDebutAge: number;
   onClose: () => void;
-}
-
-function resultLabel(result: string | null | undefined) {
-  return getCompetitionResultLabel(result, "—");
-}
-
-function getStandingLabel(record: SeasonRecord) {
-  if (!record.standing) return "—";
-  return record.standing === 1 ? "Vô địch" : `Hạng ${record.standing}`;
+  nextIsNomination?: boolean;
 }
 
 function SummaryMetric({ label, value, accent = false }: { label: string; value: string; accent?: boolean }) {
@@ -101,25 +96,30 @@ function isRemovedAwardLabel(label: string): boolean {
   return normalized.includes("cầu thủ xuất sắc nhất") || normalized.includes("hậu vệ xuất sắc nhất");
 }
 
-export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup, playerDebutAge, onClose }: Props) {
+export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup, playerDebutAge, onClose, nextIsNomination = false }: Props) {
+  const ui = useTranslations("ui");
+  const awardCopy = useAwardCopy();
+  const formatResult = useCompetitionResult();
+  const names = useCompetitionNames();
+  const resultLabel = (result: string | null | undefined) => formatResult(result, "—");
   const [openSections, setOpenSections] = useState<Record<string, boolean>>({ stats: true, honours: true });
   const season = getSeasonYearString(record.age, playerDebutAge);
   const continentalName = record.continentalCup?.type
-    ? getContinentalCupLabel(record.continentalCup.type)
-    : currentContinentalCup !== "none" ? getContinentalCupLabel(currentContinentalCup) : "Cúp châu lục";
+    ? names.continentalCupName(record.continentalCup.type)
+    : currentContinentalCup !== "none" ? names.continentalCupName(currentContinentalCup) : ui("continentalCup");
   const nationalResult = record.nationalTeam?.result;
   const hasNationalResult = Boolean(nationalResult && nationalResult !== "Chờ quay");
   const summaryMetrics = [
-    { label: "Kết quả VĐQG", value: getStandingLabel(record) },
-    { label: "Cúp quốc gia", value: resultLabel(record.domesticCup) },
+    { label: ui("domesticLeague"), value: resultLabel(record.standing === 1 ? "Winner" : record.standing ? `Hạng ${record.standing}` : null) },
+    { label: ui("domesticCup"), value: resultLabel(record.domesticCup) },
     {
-      label: "Cúp châu lục",
+      label: ui("continentalCup"),
       value: record.continentalCup ? resultLabel(record.continentalCup.result) : "—",
       accent: record.continentalCup?.result === "Winner",
     },
     ...(hasNationalResult
       ? [{
-          label: "Tuyển quốc gia",
+          label: ui("nationalTeam"),
           value: resultLabel(nationalResult),
           accent: nationalResult === "Winner",
         }]
@@ -129,11 +129,11 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
     event.type === "individual_award" && !isRemovedAwardLabel(event.label)
   )) ?? [];
   const awards = [
-    ...(record.standing === 1 ? [{ title: `Vô địch ${record.leagueName || "giải quốc gia"}`, detail: record.clubName, accent: true }] : []),
-    ...(record.domesticCup === "Winner" ? [{ title: getDomesticCupName(record.leagueName, record.leagueId), detail: `Vô địch · ${record.clubName}` }] : []),
-    ...(record.continentalCup?.result === "Winner" ? [{ title: continentalName, detail: `Vô địch · ${record.clubName}` }] : []),
-    ...(nationalResult === "Winner" ? [{ title: record.nationalTeam?.type || "Giải đấu quốc tế", detail: "Vô địch cùng đội tuyển", accent: true }] : []),
-    ...individualAwards.map((award) => ({ title: award.label, detail: `Mùa ${record.age}` })),
+    ...(record.standing === 1 ? [{ title: names.leagueName(record.leagueName), detail: `${resultLabel("Winner")} · ${names.clubName(record.clubName)}`, accent: true }] : []),
+    ...(record.domesticCup === "Winner" ? [{ title: names.domesticCupName(record.leagueName, record.leagueId), detail: `${resultLabel("Winner")} · ${names.clubName(record.clubName)}` }] : []),
+    ...(record.continentalCup?.result === "Winner" ? [{ title: continentalName, detail: `${resultLabel("Winner")} · ${names.clubName(record.clubName)}` }] : []),
+    ...(nationalResult === "Winner" ? [{ title: record.nationalTeam?.type || ui("nationalTeam"), detail: resultLabel("Winner"), accent: true }] : []),
+    ...individualAwards.map((award) => ({ title: awardCopy(award.label), detail: `${ui("age")} ${record.age}` })),
   ];
   const seasonAwardSnapshots = (yearSimResult.awardSimulation?.snapshots ?? []).filter(isVisibleSeasonAward);
   const rankingSnapshots = seasonAwardSnapshots.filter((snapshot) => snapshot.awardKey !== "league_best_xi");
@@ -141,32 +141,32 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
   const toggleSection = (key: string) => setOpenSections((current) => ({ ...current, [key]: !current[key] }));
 
   return (
-    <Modal open title={`Mùa giải khép lại · ${season}`} onClose={onClose} size="md" className="football-season-close-modal">
-      <ModalHeader onClose={onClose} closeLabel="Đóng tổng kết" eyebrow={`Kết quả mùa giải · ${record.clubName} · tuổi ${record.age}`}>
-        Mùa giải khép lại
+    <Modal open title={ui("seasonReview", { v0: String(season) })} onClose={onClose} size="md" className="football-season-close-modal">
+      <ModalHeader onClose={onClose} closeLabel={ui("closeSeasonReview")} eyebrow={ui("seasonResultsAge", { v0: names.clubName(record.clubName), v1: String(record.age) })}>
+        {ui("seasonReview2")}
       </ModalHeader>
 
       <div className="football-season-close__layout">
         <EditorialArt asset="match-duel" className="football-editorial-art--recap" />
       <ModalBody>
-        <section className="football-season-close__metrics" data-count={summaryMetrics.length} aria-label="Kết quả mùa giải">
+        <section className="football-season-close__metrics" data-count={summaryMetrics.length} aria-label={ui("seasonResults")}>
           {summaryMetrics.map((metric) => <SummaryMetric key={metric.label} {...metric} />)}
         </section>
 
         <div className="football-season-close__accordion">
-          <AccordionSection id="season-stats" eyebrow="Hiệu suất" title="Số liệu mùa giải" open={Boolean(openSections.stats)} onToggle={() => toggleSection("stats")}>
+          <AccordionSection id="season-stats" eyebrow={ui("performance")} title={ui("seasonStats2")} open={Boolean(openSections.stats)} onToggle={() => toggleSection("stats")}>
             <div className="football-season-close__stats">
-              <SeasonStat label="Ra sân" value={yearSimResult.apps} />
-              <SeasonStat label="Bàn thắng" value={yearSimResult.goals} />
-              <SeasonStat label="Kiến tạo" value={yearSimResult.assists} />
-              <SeasonStat label="Clean Sheet" value={yearSimResult.cleanSheets} />
-              <SeasonStat label="Điểm phong độ" value={yearSimResult.matchRating.toFixed(2)} accent />
+              <SeasonStat label={ui("appearances2")} value={yearSimResult.apps} />
+              <SeasonStat label={ui("goals2")} value={yearSimResult.goals} />
+              <SeasonStat label={ui("assists2")} value={yearSimResult.assists} />
+              <SeasonStat label={ui("cleanSheetLabel")} value={yearSimResult.cleanSheets} />
+              <SeasonStat label={ui("matchRating")} value={yearSimResult.matchRating.toFixed(2)} accent />
             </div>
           </AccordionSection>
 
-          <AccordionSection id="season-honours" eyebrow="Thành tích" title="Danh hiệu nhận được" open={Boolean(openSections.honours)} onToggle={() => toggleSection("honours")}>
+          <AccordionSection id="season-honours" eyebrow={ui("honours2")} title={ui("honoursWon")} open={Boolean(openSections.honours)} onToggle={() => toggleSection("honours")}>
             <div className="football-season-close__awards">
-              {awards.length > 0 ? awards.map((award, index) => <AwardItem key={`${award.title}-${index}`} {...award} />) : <p className="football-modal-note">Chưa có danh hiệu mùa này.</p>}
+              {awards.length > 0 ? awards.map((award, index) => <AwardItem key={`${award.title}-${index}`} {...award} />) : <p className="football-modal-note">{ui("noHonoursThisSeason")}</p>}
             </div>
           </AccordionSection>
 
@@ -174,8 +174,8 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
             <AccordionSection
               key={snapshot.snapshotKey}
               id={`season-award-${snapshot.awardKey}`}
-              eyebrow="Cuộc đua trong giải vô địch quốc gia"
-              title={AWARD_LABELS[snapshot.awardKey]}
+              eyebrow={ui("leagueAwards")}
+              title={awardCopy(AWARD_LABELS[snapshot.awardKey], snapshot.awardKey)}
               open={Boolean(openSections[snapshot.awardKey])}
               onToggle={() => toggleSection(snapshot.awardKey)}
             >
@@ -184,7 +184,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
           ))}
 
           {bestXiSnapshot && (
-            <AccordionSection id="season-best-xi" eyebrow="Cuộc đua trong giải vô địch quốc gia" title="Đội hình tiêu biểu" open={Boolean(openSections.league_best_xi)} onToggle={() => toggleSection("league_best_xi")}>
+            <AccordionSection id="season-best-xi" eyebrow={ui("leagueAwards")} title={ui("teamOfTheSeason")} open={Boolean(openSections.league_best_xi)} onToggle={() => toggleSection("league_best_xi")}>
               <AwardBestXiPitch snapshot={bestXiSnapshot} />
             </AccordionSection>
           )}
@@ -193,7 +193,7 @@ export function SeasonRecapModal({ record, yearSimResult, currentContinentalCup,
       </div>
 
       <ModalFooter className="football-season-close__footer">
-        <Button size="lg" onClick={onClose}>Tiếp tục phát triển chỉ số</Button>
+        <Button size="lg" onClick={onClose}>{ui(nextIsNomination ? "openBallonDorNomination" : "continueToPlayerDevelopment")}</Button>
       </ModalFooter>
     </Modal>
   );

@@ -86,7 +86,29 @@ assert.equal(topAssist.entries.length, 10, "Top Assist must always expose exactl
 const ballonSnapshot = result.snapshots.find((snapshot) => snapshot.awardKey === "ballon_dor");
 assert.ok(ballonSnapshot, "Ballon d'Or candidate snapshot must exist");
 assert.equal(ballonSnapshot.revealStage, "ballon_dor_result", "Ballon d'Or ranking must wait for the Ballon d'Or result screen");
+assert.equal(ballonSnapshot.entries.length, 10);
+assert.ok(ballonSnapshot.entries.some((entry) => entry.isCareerPlayer));
 assert.ok(!result.snapshots.some((snapshot) => isDeprecatedAwardKey(snapshot.awardKey)), "Deprecated position/general awards must not be emitted as season awards");
+
+const weakResult = simulateAwardSeason({
+  seasonId: "weak-ballon-case",
+  age: 19,
+  randomSource: seededSource(11),
+  player: {
+    ...testPlayer,
+    ovr: 67,
+    leagueStats: { apps: 8, goals: 0, assists: 0, cleanSheets: 0, rating: 6.4 },
+    domesticCupStats: { apps: 1, goals: 0, assists: 0, cleanSheets: 0, rating: 6.4 },
+    standing: 17,
+    domesticCupResult: "Early Exit",
+    continentalResult: null,
+  },
+});
+const weakCandidate = weakResult.snapshots.find((snapshot) => snapshot.awardKey === "ballon_dor")
+  ?.entries.find((entry) => entry.isCareerPlayer);
+assert.ok(weakCandidate && weakCandidate.rank > 10 && weakCandidate.metrics.apps === 8);
+assert.ok(weakResult.ballonDor.nominationWeight > 0);
+assert.ok(weakResult.ballonDor.nominationWeight < result.ballonDor.nominationWeight);
 
 const cbResult = simulateAwardSeason({
   seasonId: "00000000-0000-0000-0000-000000000003",

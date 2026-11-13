@@ -1,11 +1,16 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { formatEuroThousands } from "@/lib/transfer-economy";
 import {
+  EXTRA_APPEARANCES_BONUS,
+  NATIONAL_CALLUP_WEIGHT_BONUS,
+  TRAINING_CAMP_RATING_BONUS,
+  TRAINING_CAMP_STAT_BONUS,
   isShopItemAvailableForSeason,
   SHOP_CATALOG,
   type ShopCatalogItem,
@@ -25,28 +30,10 @@ interface ShopModalProps {
   standalone?: boolean;
 }
 
-type ShopItemStatus = {
-  label: string;
-  tone: "available" | "active" | "insufficient" | "locked";
-};
-
-function getItemStatus(
-  item: ShopCatalogItem,
-  walletBalance: number,
-  targetSeason: number | null,
-  alreadyBought: boolean,
-): ShopItemStatus {
-  if (targetSeason === null || !isShopItemAvailableForSeason(item, targetSeason)) {
-    return { label: "Chưa mở bán", tone: "locked" };
-  }
-  if (alreadyBought) return { label: "Đã mua", tone: "active" };
-  if (walletBalance < item.priceThousands) {
-    return {
-      label: `Thiếu ${formatEuroThousands(item.priceThousands - walletBalance)}`,
-      tone: "insufficient",
-    };
-  }
-  return { label: "Mua", tone: "available" };
+function getItemStatus(item: ShopCatalogItem, balance: number, season: number | null, purchased: boolean) {
+  if (season === null || !isShopItemAvailableForSeason(item, season)) return "locked";
+  if (purchased) return "active";
+  return balance < item.priceThousands ? "insufficient" : "available";
 }
 
 function ShopItemRow({
@@ -68,38 +55,45 @@ function ShopItemRow({
   error?: string;
   onBuy: (item: ShopCatalogItem) => void;
 }) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("shop");
   const alreadyBought = targetSeason !== null && shopInventory.some(
     (entry) => entry.itemId === item.id && entry.appliedSeason === targetSeason,
   );
   const status = getItemStatus(item, walletBalance, targetSeason, alreadyBought);
-  const canBuy = status.tone === "available" && !isProcessing && purchasingId === null;
+  const canBuy = status === "available" && !isProcessing && purchasingId === null;
   const isPurchasing = purchasingId === item.id;
 
   return (
-    <div className={`football-shop-item football-shop-item--${status.tone}`}>
+    <div className={`football-shop-item football-shop-item--${status}`}>
       <div className="football-shop-item__copy">
         <div className="football-shop-item__title">
-          <span>{item.name}</span>
-          {status.tone === "active" && <small>Đang hoạt động</small>}
-          {status.tone === "locked" && <small>Chưa mở bán</small>}
+          <span>{t(item.id)}</span>
+          {status === "active" && <small>{ui("active")}</small>}
+          {status === "locked" && <small>{ui("unavailable")}</small>}
         </div>
-        <p>{item.description}</p>
+        <p>{t(item.id + "_detail", {
+          rating: TRAINING_CAMP_RATING_BONUS,
+          stats: TRAINING_CAMP_STAT_BONUS,
+          apps: EXTRA_APPEARANCES_BONUS,
+          chance: NATIONAL_CALLUP_WEIGHT_BONUS,
+        })}</p>
         {error && <span className="football-shop-item__error" role="alert">{error}</span>}
       </div>
 
       <div className="football-shop-item__action">
         <span className="football-shop-item__price">{formatEuroThousands(item.priceThousands)}</span>
-        {status.tone === "available" ? (
+        {status === "available" ? (
           <Button
             size="sm"
             onClick={() => onBuy(item)}
             disabled={!canBuy}
             loading={isPurchasing}
           >
-            {isPurchasing ? "Đang xử lý" : "Mua"}
+            {t("buy")}
           </Button>
         ) : (
-          <span className="football-shop-item__status">{status.label}</span>
+          <span className="football-shop-item__status">{status === "insufficient" ? t("insufficient", { amount: formatEuroThousands(item.priceThousands - walletBalance) }) : t(status === "active" ? "bought" : "locked")}</span>
         )}
       </div>
     </div>
@@ -118,6 +112,8 @@ export function ShopModal({
   onClose,
   standalone = false,
 }: ShopModalProps) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("shop");
   const [purchasingId, setPurchasingId] = useState<string | null>(null);
   const [errorByItem, setErrorByItem] = useState<Record<string, string>>({});
   const [purchaseAllError, setPurchaseAllError] = useState<string | null>(null);
@@ -138,10 +134,10 @@ export function ShopModal({
     setErrorByItem((previous) => ({ ...previous, [item.id]: "" }));
     try {
       await onPurchase(item.id);
-    } catch (err: unknown) {
+    } catch {
       setErrorByItem((previous) => ({
         ...previous,
-        [item.id]: err instanceof Error ? err.message : "Giao dịch thất bại",
+        [item.id]: t("purchaseError"),
       }));
     } finally {
       setPurchasingId(null);
@@ -154,8 +150,8 @@ export function ShopModal({
     setPurchasingId("__all__");
     try {
       await onPurchaseAll();
-    } catch (err: unknown) {
-      setPurchaseAllError(err instanceof Error ? err.message : "Không thể mua tất cả vật phẩm");
+    } catch {
+      setPurchaseAllError(t("bulkError"));
     } finally {
       setPurchasingId(null);
     }
@@ -165,14 +161,14 @@ export function ShopModal({
     <div className={`football-shop-content${standalone ? " football-shop-content--standalone" : ""}`}>
       <header className="football-shop-content__header">
         <div className="football-shop-content__heading">
-          <h3>Cửa hàng</h3>
+          <h3>{ui("shop")}</h3>
         </div>
         <div className="football-shop-content__balance">
           <span>{formatEuroThousands(walletBalance)}</span>
-          <small>Số dư ví</small>
+          <small>{ui("walletBalance")}</small>
         </div>
         {!embedded && onClose && (
-          <button type="button" className="football-icon-button football-shop-content__close" onClick={onClose} aria-label="Đóng">
+          <button type="button" className="football-icon-button football-shop-content__close" onClick={onClose} aria-label={ui("close")}>
             <X aria-hidden="true" size={19} strokeWidth={1.6} />
           </button>
         )}
@@ -181,8 +177,8 @@ export function ShopModal({
       <div className="football-shop-content__body">
         <p className="football-shop-content__intro">
           {canPurchase
-            ? <>Vật phẩm mua ở đây áp dụng cho <strong>Mùa giải Tuổi {targetSeason}</strong>.</>
-            : "Mua sắm mở lại vào đầu hoặc cuối mùa giải, trước khi vòng quay bắt đầu."}
+            ? t("appliesTo", { age: targetSeason })
+            : ui("theShopOpensAtTheStartAndEndOfTheSeasonBeforeTheNextSpin")}
         </p>
         <div className="football-shop-content__items">
           {SHOP_CATALOG.map((item) => (
@@ -202,11 +198,11 @@ export function ShopModal({
       </div>
 
       <footer className="football-shop-content__footer">
-        <span>Mỗi vật phẩm mua một lần cho mỗi mùa.</span>
+        <span>{ui("eachItemCanBeBoughtOncePerSeason")}</span>
         <div className="football-shop-content__footer-actions">
-          {canPurchaseAll && <Button size="lg" variant="outline" onClick={() => void handleBuyAll()} disabled={isProcessing || purchasingId !== null} loading={purchasingId === "__all__"}>Mua tất cả · {formatEuroThousands(totalAvailablePrice)}</Button>}
+          {canPurchaseAll && <Button size="lg" variant="outline" onClick={() => void handleBuyAll()} disabled={isProcessing || purchasingId !== null} loading={purchasingId === "__all__"}>{ui("buyAll")} {formatEuroThousands(totalAvailablePrice)}</Button>}
           <Button size="lg" onClick={onContinue} disabled={!canPurchase || isProcessing || purchasingId !== null}>
-            {canPurchase ? `Vào mùa tuổi ${targetSeason} →` : "Chưa sẵn sàng"}
+            {canPurchase ? ui("startSeasonAtAge", { v0: String(targetSeason) }) : ui("notReady")}
           </Button>
         </div>
       </footer>
@@ -216,7 +212,7 @@ export function ShopModal({
 
   if (embedded) return content;
   return (
-    <Modal open title="Cửa hàng" onClose={() => onClose?.()} size="lg" className="football-shop-modal">
+    <Modal open title={ui("shop")} onClose={() => onClose?.()} size="lg" className="football-shop-modal">
       {content}
     </Modal>
   );

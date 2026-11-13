@@ -35,9 +35,9 @@ const belowOvrGate = evaluateBallonDor({
   ovr: 84,
   position: "CM",
 });
-assert.equal(belowOvrGate.eligible, false);
-assert.equal(belowOvrGate.nominationWeight, 0);
-assert.deepEqual(belowOvrGate.rankWeights, []);
+assert.ok(belowOvrGate.nominationWeight > 0);
+assert.ok(belowOvrGate.nominationWeight < strongCm.nominationWeight);
+assert.ok(belowOvrGate.rankWeights[0] < strongCm.rankWeights[0]);
 
 const weakSeason = evaluateBallonDor({
   ovr: 85,
@@ -54,7 +54,20 @@ const weakSeason = evaluateBallonDor({
   clubPrestige: 2,
   domesticCup: "Early Exit",
 });
-assert.equal(weakSeason.eligible, false);
+assert.ok(weakSeason.nominationWeight >= 1 && weakSeason.nominationWeight <= 8);
+assert.ok(weakSeason.rankWeights[0] < weakSeason.rankWeights[9]);
+assert.ok(weakSeason.rankWeights.every((weight) => weight > 0));
+assert.equal(weakSeason.rankWeights.reduce((sum, weight) => sum + weight, 0), 100);
+
+const outsideShortlist = evaluateBallonDor({ ...strongCmInput(), shortlistScoreRatio: 0.7 });
+assert.ok(outsideShortlist.nominationWeight > 0 && outsideShortlist.nominationWeight < strongCm.nominationWeight);
+assert.ok(outsideShortlist.rankWeights[0] < strongCm.rankWeights[0]);
+assert.equal(evaluateBallonDor({ ...strongCmInput(), apps: 0 }).nominationWeight, 0);
+for (const input of [{ apps: 14 }, { matchRating: 6.9 }]) {
+  const result = evaluateBallonDor({ ...strongCmInput(), ...input });
+  assert.ok(result.nominationWeight > 0 && result.nominationWeight < strongCm.nominationWeight);
+  assert.ok(result.rankWeights[0] < strongCm.rankWeights[0]);
+}
 
 const sameTotals = {
   ovr: 90,

@@ -1,8 +1,10 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState } from "react";
 import { X } from "lucide-react";
 import { Modal, ModalHeader } from "@/components/ui/Modal";
+import { ActivityLine } from "@/components/ui/ActivityLine";
 import { Button } from "@/components/ui/Button";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { SearchField } from "@/components/ui/SearchField";
@@ -14,7 +16,7 @@ import {
 } from "@/lib/transfer-economy";
 import { type WageDealOption } from "@/lib/salary-negotiation";
 import type { ContractOfferCard, PendingTransferNegotiation, ShortlistClubCard, TransferDealAttemptResult, TransferMarketResult } from "@/features/transfer/services/transfer.service";
-import type { ApproachRejectState } from "./TransferWindowPanel";
+import type { ApproachRejectState } from "@/features/transfer/services/transfer.service";
 
 interface SearchResult {
   clubs: ShortlistClubCard[];
@@ -47,10 +49,13 @@ export interface PersistentTransferSectionProps {
 }
 
 export function PersistentTransferSection({ market, currentClubId, currentClubName, isProcessing, onAcceptOffer, onRejectAll, onApproachShortlist, onSearchClubs, approachRejects, approachBanner, onClose, acceptedOffer, onClearAcceptedOffer, onSelectOffer }: PersistentTransferSectionProps) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("transfer");
   const { contract, inbound, shortlist, isUnemployedMarket } = market;
   const renewal = market.renewal ?? (acceptedOffer?.kind === "renewal" ? acceptedOffer : null);
   const visibleRenewal = renewal;
   const [activeTab, setActiveTab] = useState<"renewal" | "inbound" | "shortlist">(visibleRenewal ? "renewal" : inbound.length > 0 ? "inbound" : "renewal");
+  const [pendingClubId, setPendingClubId] = useState<string | null>(null);
   const [feeDeals, setFeeDeals] = useState<Record<string, TransferFeeDealOption>>({});
   const [wageDeal, setWageDeal] = useState<WageDealOption>("standard");
   const [failedWageOptions, setFailedWageOptions] = useState<WageDealOption[]>([]);
@@ -62,34 +67,58 @@ export function PersistentTransferSection({ market, currentClubId, currentClubNa
   const [prestige, setPrestige] = useState("all");
   const [page, setPage] = useState(1);
   const [search, setSearch] = useState<SearchResult>({ clubs: shortlist, totalCount: shortlist.length, leagues: [] });
-  const [isSearching, setIsSearching] = useState(true);
-  const [searchError, setSearchError] = useState(false);
+  const [settledSearch, setSettledSearch] = useState<{ key: string; failed: boolean }>();
   const [retryKey, setRetryKey] = useState(0);
   const searchRef = useRef(onSearchClubs);
+  const lastRequestedQuery = useRef("");
+  const searchQuery = query.trim();
+  const searchKey = JSON.stringify([currentClubId, searchQuery, league, prestige, page, retryKey]);
+  const isSearching = settledSearch?.key !== searchKey;
+  const searchError = !isSearching && settledSearch?.failed;
 
   useEffect(() => { searchRef.current = onSearchClubs; }, [onSearchClubs]);
   useEffect(() => {
+    if (activeTab !== "shortlist" || !isSearching) return;
     let active = true;
-    const timer = window.setTimeout(async () => {
-      setIsSearching(true);
-      setSearchError(false);
+
+    async function fetchClubs() {
+      lastRequestedQuery.current = searchQuery;
       try {
-        const result = await searchRef.current({ currentClubId, query: query.trim() || undefined, leagueId: league === "all" ? undefined : league, prestigeMin: prestige === "all" ? undefined : Number(prestige), prestigeMax: prestige === "all" ? undefined : Number(prestige), page });
-        if (active) setSearch({ ...result, clubs: result.clubs.filter((club) => club.clubId !== currentClubId && !excludedClubIds.has(club.clubId)) });
+        const result = await searchRef.current({
+          currentClubId,
+          query: searchQuery || undefined,
+          leagueId: league === "all" ? undefined : league,
+          prestigeMin: prestige === "all" ? undefined : Number(prestige),
+          prestigeMax: prestige === "all" ? undefined : Number(prestige),
+          page,
+        });
+        if (active) {
+          setSearch(result);
+          setSettledSearch({ key: searchKey, failed: false });
+        }
       } catch {
-        if (active) setSearchError(true);
-      } finally {
-        if (active) setIsSearching(false);
+        if (active) setSettledSearch({ key: searchKey, failed: true });
       }
-    }, 250);
+    }
+
+    // Debounce typing. Opening the list, changing filters and paging start immediately.
+    let timer: number | undefined;
+    if (lastRequestedQuery.current === searchQuery) void fetchClubs();
+    else timer = window.setTimeout(fetchClubs, 200);
     return () => { active = false; window.clearTimeout(timer); };
-  }, [currentClubId, query, league, prestige, page, excludedClubIds, retryKey]);
+  }, [activeTab, currentClubId, isSearching, searchQuery, searchKey, league, prestige, page]);
 
   const isFreeAgent = contract.yearsRemaining <= 0 || isUnemployedMarket;
-  const currentClub = currentClubName ?? (visibleRenewal?.clubName || "CLB hiện tại");
+  const currentClub = currentClubName ?? (visibleRenewal?.clubName || ui("currentClub3"));
   const visibleInbound = inbound.filter((offer) => !excludedClubIds.has(offer.clubId));
-  const visibleSearchClubs = search.clubs.filter((club) => !excludedClubIds.has(club.clubId));
+  const visibleSearchClubs = search.clubs.filter((club) => club.clubId !== currentClubId && !excludedClubIds.has(club.clubId));
   const totalPages = Math.max(1, Math.ceil(search.totalCount / 8));
+  async function runClubAction(clubId: string, action: () => Promise<unknown> | void) {
+    setPendingClubId(clubId);
+    try { await action(); }
+    finally { setPendingClubId(null); }
+  }
+
   async function beginWageNegotiation(offer: ContractOfferCard) {
     if (offer.kind === "renewal") { await onAcceptOffer(offer, "standard"); return; }
     const persistedSelection = onSelectOffer
@@ -127,41 +156,42 @@ export function PersistentTransferSection({ market, currentClubId, currentClubNa
     }} /> : null;
   const cancelledContent = cancelledOffer ? (
     <section className="football-transfer-panel football-transfer-negotiation football-transfer-negotiation--cancelled">
-      <span className="football-eyebrow">Đàm phán kết thúc</span>
-      <h2>Thương vụ với {cancelledOffer.clubName} đã bị hủy</h2>
-      <p>CLB đã từ chối hai phương án lương. Offer này không còn hiệu lực và CLB sẽ không xuất hiện lại trong danh sách mùa này.</p>
-      <Button size="lg" fullWidth onClick={() => { setCancelledOffer(null); setActiveTab("shortlist"); setPage(1); }}>Quay lại danh sách CLB</Button>
+      <span className="football-eyebrow">{ui("talksEnded")}</span>
+      <h2>{t("moveCancelled", { club: cancelledOffer.clubName })}</h2>
+      <p>{ui("theClubRejectedTwoWageProposalsAndWithdrewItsOfferForThisSeason")}</p>
+      <Button size="lg" fullWidth onClick={() => { setCancelledOffer(null); setActiveTab("shortlist"); setPage(1); }}>{ui("backToClubs")}</Button>
     </section>
   ) : null;
   const content = (
     <section className="football-transfer-window">
       <div className="football-transfer-window__overview">
-      <header className="football-transfer-window__header"><div><span className="football-eyebrow">Cửa sổ chuyển nhượng · {contract.seasonsLeftInCareer} mùa còn lại</span><h1>{inbound.length > 1 ? `${inbound.length} lời đề nghị` : "Cửa sổ chuyển nhượng"}</h1><p>Chọn hướng đi tiếp theo cho sự nghiệp của bạn.</p></div>{onClose && <button type="button" className="football-icon-button" onClick={onClose} aria-label="Đóng cửa sổ chuyển nhượng"><X aria-hidden="true" size={18} /></button>}</header>
-      <div className="football-transfer-window__context"><span><small>Đang ở</small><strong>{isUnemployedMarket ? "Cầu thủ tự do" : currentClub}</strong></span><span><small>Lương hiện tại</small><strong>{formatEuroThousands(contract.currentWageAnnual)}/năm</strong></span><span><small>Hợp đồng còn lại</small><strong>{isUnemployedMarket ? "Không có HĐ" : `${contract.yearsRemaining}/${contract.yearsTotal} mùa`}</strong></span><span><small>Giá trị thị trường</small><strong>{formatEuroThousands(contract.marketValue)}</strong></span></div>
+      <header className="football-transfer-window__header"><div><span className="football-eyebrow">{t("windowTiming", { count: contract.seasonsLeftInCareer })}</span><h1>{inbound.length > 1 ? ui("transferOfferCount", { count: inbound.length }) : ui("transferWindow2")}</h1><p>{ui("reviewYourContractAndTransferOptions")}</p></div>{onClose && <button type="button" className="football-icon-button" onClick={onClose} aria-label={ui("closeTransferWindow")}><X aria-hidden="true" size={18} /></button>}</header>
+      <div className="football-transfer-window__context"><span><small>{ui("currentClub")}</small><strong>{isUnemployedMarket ? ui("freeAgent2") : currentClub}</strong></span><span><small>{ui("currentWage")}</small><strong>{formatEuroThousands(contract.currentWageAnnual)}{ui("yr")}</strong></span><span><small>{ui("contractRemaining")}</small><strong>{isUnemployedMarket ? ui("noContract") : ui("seasons2", { v0: String(contract.yearsRemaining), v1: String(contract.yearsTotal) })}</strong></span><span><small>{ui("marketValue")}</small><strong>{formatEuroThousands(contract.marketValue)}</strong></span></div>
       </div>
       {approachBanner && <p className="football-transfer-feedback is-banner" role="status">{approachBanner}</p>}
-      <nav className="football-transfer-tabs" aria-label="Các lựa chọn chuyển nhượng"><button type="button" className={activeTab === "renewal" ? "is-active" : ""} onClick={() => setActiveTab("renewal")}>Ở lại {visibleRenewal ? "· đề nghị" : ""}</button><button type="button" className={activeTab === "inbound" ? "is-active" : ""} onClick={() => setActiveTab("inbound")}>Lời đề nghị <b>{visibleInbound.length}</b></button><button type="button" className={activeTab === "shortlist" ? "is-active" : ""} onClick={() => setActiveTab("shortlist")}>Tìm CLB chủ động <b>{search.totalCount}</b></button></nav>
+      <nav className="football-transfer-tabs" aria-label={ui("transferOptions")}><button type="button" className={activeTab === "renewal" ? "is-active" : ""} onClick={() => setActiveTab("renewal")}>{ui("stay")} {visibleRenewal ? ui("offer") : ""}</button><button type="button" className={activeTab === "inbound" ? "is-active" : ""} onClick={() => setActiveTab("inbound")}>{ui("offers")} <b>{visibleInbound.length}</b></button><button type="button" className={activeTab === "shortlist" ? "is-active" : ""} onClick={() => setActiveTab("shortlist")}>{ui("findAClub")} <b>{search.totalCount}</b></button></nav>
 
       <div className="football-transfer-window__body">
-        {activeTab === "renewal" && <div className="football-transfer-panel"><div className="football-transfer-panel__heading"><h2>Tiếp tục tại {currentClub}</h2><p>Giữ vai trò, mức lương và môi trường hiện tại cho mùa giải tiếp theo.</p></div>{visibleRenewal ? <div className="football-transfer-renewal"><div><span>Đề nghị gia hạn</span><strong>{visibleRenewal.contractYears} mùa</strong></div><div><span>Lương mới</span><strong>{formatEuroThousands(visibleRenewal.wageAnnual)}/năm</strong></div><div><span>Vai trò dự kiến</span><div className="football-transfer-renewal__role"><strong>{visibleRenewal.expectedLeagueApps >= 25 ? "Đá chính" : "Xoay vòng"}</strong><small>· {visibleRenewal.expectedLeagueApps} trận/mùa</small></div></div><Button size="lg" disabled={isProcessing} loading={isProcessing} onClick={() => void onAcceptOffer(visibleRenewal, "standard")}>Đồng ý gia hạn</Button></div> : <p className="football-transfer-empty">CLB hiện tại chưa gửi đề nghị gia hạn. Bạn có thể xem lời đề nghị khác hoặc tìm CLB mới.</p>}</div>}
-        {activeTab === "inbound" && <div className="football-transfer-panel"><div className="football-transfer-panel__heading"><p>Chọn lời đề nghị trước, sau đó chốt lương ở bước cuối.</p></div><div className="football-transfer-offers" role="region" aria-label="Danh sách lời đề nghị" tabIndex={0}>{visibleInbound.length > 0 ? visibleInbound.map((offer) => <OfferCard key={`${offer.clubId}-${offer.kind}`} offer={offer} isProcessing={isProcessing} onAccept={() => beginWageNegotiation(offer)} />) : <p className="football-transfer-empty">Chưa có CLB nào gửi đề nghị mùa này.</p>}</div></div>}
-        {activeTab === "shortlist" && <div className="football-transfer-panel"><div className="football-transfer-panel__heading"><p>Chọn mức phí ở bước mở lời; lương sẽ được đàm phán sau khi CLB đồng ý.</p></div><div className="football-transfer-search">
-          <SearchField label="Tên CLB" value={query} onChange={(value) => { setQuery(value); setPage(1); }} placeholder="Tìm theo tên CLB..." maxLength={80} />
-          <FilterSelect label="Lọc theo giải đấu" value={league} searchable onChange={(value) => { setLeague(value); setPage(1); }} options={[{ value: "all", label: "Tất cả giải đấu" }, ...search.leagues.map((item) => ({ value: item.id, label: item.name, description: `Hạng ${item.tier}`, keywords: `tier ${item.tier}` }))]} />
-          <FilterSelect label="Lọc theo danh tiếng" value={prestige} onChange={(value) => { setPrestige(value); setPage(1); }} options={[{ value: "all", label: "Mọi mức danh tiếng" }, ...[5,4,3,2,1].map((item) => ({ value: String(item), label: `${item} sao` }))]} />
+        {activeTab === "renewal" && <div className="football-transfer-panel"><div className="football-transfer-panel__heading"><h2>{t("stayAtClub", { club: currentClub })}</h2><p>{ui("stayWithYourCurrentClubNextSeason")}</p></div>{visibleRenewal ? <div className="football-transfer-renewal"><div><span>{ui("extensionOffer")}</span><strong>{ui("seasonCount", { count: visibleRenewal.contractYears })}</strong></div><div><span>{ui("newWage")}</span><strong>{formatEuroThousands(visibleRenewal.wageAnnual)}{ui("yr")}</strong></div><div><span>{ui("expectedRole")}</span><div className="football-transfer-renewal__role"><strong>{visibleRenewal.expectedLeagueApps >= 25 ? ui("starter") : ui("rotation")}</strong><small>· {t("seasonApps", { count: visibleRenewal.expectedLeagueApps })}</small></div></div><Button size="lg" disabled={isProcessing} loading={pendingClubId === visibleRenewal.clubId} onClick={() => void runClubAction(visibleRenewal.clubId, async () => { await onAcceptOffer(visibleRenewal, "standard"); })}>{ui("acceptExtension")}</Button></div> : <p className="football-transfer-empty">{ui("yourClubHasNotOfferedAnExtension")}</p>}</div>}
+        {activeTab === "inbound" && <div className="football-transfer-panel"><div className="football-transfer-panel__heading"><p>{ui("selectAnOfferToNegotiateWages")}</p></div><div className="football-transfer-offers" role="region" aria-label={ui("transferOffers")} tabIndex={0}>{visibleInbound.length > 0 ? visibleInbound.map((offer) => <OfferCard key={`${offer.clubId}-${offer.kind}`} offer={offer} isProcessing={isProcessing || pendingClubId !== null} pending={pendingClubId === offer.clubId} onAccept={() => runClubAction(offer.clubId, () => beginWageNegotiation(offer))} />) : <p className="football-transfer-empty">{ui("noOffersThisSeason")}</p>}</div></div>}
+        {activeTab === "shortlist" && <div className="football-transfer-panel"><div className="football-transfer-panel__heading"><p>{ui("setTheTransferFeeToOpenTalksDiscussWagesIfTheClubAgrees")}</p></div><div className="football-transfer-search">
+          <SearchField label={ui("clubName")} value={query} onChange={(value) => { setQuery(value); setPage(1); }} placeholder={ui("searchByClubName")} maxLength={80} />
+          <FilterSelect label={ui("filterByLeague")} value={league} searchable onChange={(value) => { setLeague(value); setPage(1); }} options={[{ value: "all", label: ui("allLeagues") }, ...search.leagues.map((item) => ({ value: item.id, label: item.name, description: t("leagueTier", { tier: item.tier }), keywords: `tier ${item.tier}` }))]} />
+          <FilterSelect label={ui("filterByPrestige")} value={prestige} onChange={(value) => { setPrestige(value); setPage(1); }} options={[{ value: "all", label: ui("anyPrestige") }, ...[5,4,3,2,1].map((item) => ({ value: String(item), label: t("prestigeStars", { count: item }) }))]} />
         </div>
-        <div className="football-transfer-search-status"><span role="status">{isSearching ? "Đang tìm CLB..." : searchError ? "Chưa tải được danh sách CLB. Vui lòng thử lại." : `${search.totalCount} CLB`}</span>{(query || league !== "all" || prestige !== "all") && <button type="button" className="football-text-button" onClick={() => { setQuery(""); setLeague("all"); setPrestige("all"); setPage(1); }}>Xóa bộ lọc</button>}</div><div className="football-transfer-targets" role="region" aria-label="Danh sách CLB tìm kiếm" tabIndex={0} aria-busy={isSearching}>
-          {isSearching ? <p className="football-transfer-empty">Đang tìm CLB...</p> : searchError ? <p className="football-transfer-empty">Không thể tải danh sách. <button type="button" className="football-text-button" onClick={() => setRetryKey((previous) => previous + 1)}>Thử lại</button></p> : visibleSearchClubs.length > 0 ? visibleSearchClubs.map((club) => <ShortlistCard key={club.clubId} club={club} selectedDeal={feeDeals[club.clubId] ?? "standard"} isProcessing={isProcessing} rejected={approachRejects[club.clubId]} onDealChange={(option) => setFeeDeals((previous) => ({ ...previous, [club.clubId]: option }))} onApproach={() => void onApproachShortlist(club, feeDeals[club.clubId] ?? "standard")} />) : <p className="football-transfer-empty">Không tìm thấy CLB phù hợp với bộ lọc.</p>}
-        </div>{totalPages > 1 && <div className="football-transfer-pagination"><Button size="sm" variant="quiet" disabled={page <= 1 || isSearching} onClick={() => setPage((value) => value - 1)}>Trước</Button><span>Trang {page}/{totalPages}</span><Button size="sm" variant="quiet" disabled={page >= totalPages || isSearching} onClick={() => setPage((value) => value + 1)}>Sau</Button></div>}</div>}
+        <div className="football-transfer-search-status" data-search-error={Boolean(searchError)}><span role="status">{isSearching ? ui("searchingForClubs") : searchError ? ui("couldNotLoadClubs") : `${search.totalCount} CLB`}</span>{searchError && <button type="button" className="football-text-button" onClick={() => setRetryKey((previous) => previous + 1)}>{ui("retry")}</button>}{(query || league !== "all" || prestige !== "all") && <button type="button" className="football-text-button" onClick={() => { setQuery(""); setLeague("all"); setPrestige("all"); setPage(1); }}>{ui("clearFilters")}</button>}</div><div className="football-transfer-targets" role="region" aria-label={ui("clubSearchResults")} tabIndex={0} aria-busy={isSearching}>
+          {isSearching && <div className="football-transfer-targets__activity"><ActivityLine /></div>}
+          {visibleSearchClubs.length > 0 ? visibleSearchClubs.map((club) => <ShortlistCard key={club.clubId} club={club} selectedDeal={feeDeals[club.clubId] ?? "standard"} isProcessing={isProcessing || pendingClubId !== null || isSearching || Boolean(searchError)} pending={pendingClubId === club.clubId} rejected={approachRejects[club.clubId]} onDealChange={(option) => setFeeDeals((previous) => ({ ...previous, [club.clubId]: option }))} onApproach={() => void runClubAction(club.clubId, () => onApproachShortlist(club, feeDeals[club.clubId] ?? "standard"))} />) : !isSearching && !searchError && <p className="football-transfer-empty">{ui("noClubsMatchYourFilters")}</p>}
+        </div>{totalPages > 1 && <div className="football-transfer-pagination"><Button size="sm" variant="quiet" disabled={page <= 1 || isSearching || searchError} onClick={() => setPage((value) => value - 1)}>{ui("previous")}</Button><span>{ui("pagination", { page, total: totalPages })}</span><Button size="sm" variant="quiet" disabled={page >= totalPages || isSearching || searchError} onClick={() => setPage((value) => value + 1)}>{ui("next")}</Button></div>}</div>}
       </div>
-      <footer className="football-transfer-window__footer"><span>{isFreeAgent ? "Bạn đang là cầu thủ tự do." : "Không chọn lời đề nghị nào? Bạn có thể ở lại CLB hiện tại."}</span><Button variant="outline" disabled={isProcessing} onClick={onRejectAll}>{isFreeAgent ? "Ký hợp đồng tự do" : "Bỏ qua · ở lại CLB"}</Button></footer>
+      <footer className="football-transfer-window__footer"><span>{isFreeAgent ? ui("youAreAFreeAgent") : ui("youCanStayWithYourCurrentClub")}</span><Button variant="outline" disabled={isProcessing} onClick={onRejectAll}>{isFreeAgent ? ui("signAsAFreeAgent") : ui("skipAndStay")}</Button></footer>
     </section>
   );
 
   if (pendingContent || cancelledContent) {
     const negotiationContent = pendingContent ?? cancelledContent;
-    return onClose ? <Modal open title="Đàm phán hợp đồng" onClose={onClose} size="lg" className="football-transfer-modal"><ModalHeader className="sr-only">Đàm phán hợp đồng</ModalHeader>{negotiationContent}</Modal> : negotiationContent;
+    return onClose ? <Modal open title={ui("contractTalks")} onClose={onClose} size="lg" className="football-transfer-modal"><ModalHeader className="sr-only">{ui("contractTalks")}</ModalHeader>{negotiationContent}</Modal> : negotiationContent;
   }
   if (!onClose) return content;
-  return <Modal open title="Cửa sổ chuyển nhượng" onClose={onClose} size="lg" className="football-transfer-modal"><ModalHeader className="sr-only">Cửa sổ chuyển nhượng</ModalHeader>{content}</Modal>;
+  return <Modal open title={ui("transferWindow2")} onClose={onClose} size="lg" className="football-transfer-modal"><ModalHeader className="sr-only">{ui("transferWindow2")}</ModalHeader>{content}</Modal>;
 }

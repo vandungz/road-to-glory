@@ -47,7 +47,7 @@ export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: 
 
               // Text: center of arc, radial orientation
               const textAngle = startAngle + arcSize / 2;
-                const showText  = items.length <= 10 || arcSize >= 10;
+                const showText = arcSize >= (items.length <= 10 ? 5 : 10);
               const fontSize  = arcSize >= 50 ? "0.72rem" : arcSize >= 30 ? "0.58rem" : arcSize >= 16 ? "0.45rem" : "0.32rem";
               const isFullCircle = arcSize >= 359.999;
 

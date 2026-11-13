@@ -324,9 +324,7 @@ export async function commitSeasonStatsCommand(params: {
       simulation: simulated.awardSimulation,
     });
     const achievementCache = await syncAchievementCache(tx, player.id);
-    const nextStep = simulated.ballonDor.eligible
-      ? "ballon_dor_nomination"
-      : "dir_increase";
+    const nextStep = "ballon_dor_nomination";
     const nextRevision = input.expectedRevision + 1;
     const nextRuntime = {
       ...runtime,

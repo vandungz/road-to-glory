@@ -1,5 +1,7 @@
 "use client";
 
+import { useTranslations } from "next-intl";
+
 import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
 import { isCareerRevisionConflict } from "@/features/career/hooks/useCareerCheckpointSync";
@@ -121,13 +123,14 @@ export function useDraftDrumWheelFlow({
   setIsBallonDorTransitioning,
   applyAuthoritativeSeasonTicket,
 }: DraftDrumWheelFlowProps) {
+  const t = useTranslations("career");
   const competitionDetailsRef = useRef<unknown>(null);
 
   async function handleCareerSpin() {
     if (isProcessing || careerSpinning || careerSubStep === "idle" || careerSubStep === "resolved"
       || careerSubStep === "season_stats" || activeModal !== null || isBallonDorTransitioning
       || careerWheelItems.length === 0) return;
-    if (careerSubStep === "ballon_dor_nomination" && ballonDorNominationWeight === 0) return;
+    setApproachBanner(null);
 
     if (checkpointSync.isEnabled) {
       const stepKey = careerSubStep;
@@ -190,9 +193,9 @@ export function useDraftDrumWheelFlow({
               setActiveModal(null);
             }
           }
-          setApproachBanner("Career đã được đồng bộ lại. Hãy tiếp tục từ bước hiện tại.");
+          setApproachBanner(t("resynced"));
         } else {
-          setApproachBanner("Không thể chốt kết quả — hãy thử lại.");
+          setApproachBanner(t("wheelError"));
         }
         setIsProcessing(false);
       }

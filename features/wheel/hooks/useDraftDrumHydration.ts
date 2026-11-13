@@ -2,6 +2,7 @@
 
 import { useEffect, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
 import { hydrateCurrentSeasonRecord, restoreArchivedCompetitionRecord } from "../lib/season-record-hydration";
+import { emptyUnemployedSeasonResult } from "./empty-unemployed-season-result";
 import { shouldResumeSeasonStatsModal } from "../lib/career-resume-state";
 import { getCareerPlayerAction } from "@/actions/player.actions";
 import { AWARD_MODEL_VERSION } from "@/types/awards";
@@ -279,6 +280,7 @@ export function useDraftDrumHydration({
           const unemployed = !!playerRecord.isUnemployed;
           statsProps.setIsUnemployed(unemployed);
           if (unemployed) {
+            if (!restoredYearResult) setYearSimResult(emptyUnemployedSeasonResult());
             statsProps.setCurrentClub(null);
             statsProps.setCurrentContinentalCup("none");
           } else {

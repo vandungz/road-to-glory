@@ -1,11 +1,13 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ChevronRight } from "lucide-react";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import type { ModalType } from "../hooks/useDraftDrum";
 import type { SeasonRecord } from "@/types/game";
-import { getDomesticCupName, getContinentalCupLabel, getSeasonYearString } from "../lib/simulation-helpers";
-import { getCompetitionResultLabel } from "../lib/competition-result-labels";
+import { getSeasonYearString } from "../lib/simulation-helpers";
+import { useCompetitionNames } from "./useCompetitionNames";
+import { useCompetitionResult } from "./useCompetitionResult";
 
 interface SeasonProfileProps {
   seasonRecords: Record<number, SeasonRecord>;
@@ -17,41 +19,34 @@ interface SeasonProfileProps {
   onOpenModal: (type: ModalType) => void;
 }
 
-function leagueResult(standing: number | null): string {
-  if (standing === null) return "Chờ quay";
-  if (standing === 1) return "Vô địch";
-  if (standing <= 4) return `Top ${standing}`;
-  return `Hạng #${standing}`;
-}
-
-function cupResult(result: string | null | undefined): string {
-  return getCompetitionResultLabel(result, "Chờ quay");
-}
-
 export function SeasonProfile({ seasonRecords, currentAge, playerDebutAge, selectedAgeForStats, setSelectedAgeForStats, onOpenModal }: SeasonProfileProps) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("career");
+  const resultLabel = useCompetitionResult();
+  const names = useCompetitionNames();
   const activeRecord = seasonRecords[selectedAgeForStats] ?? null;
   const ages = Object.keys(seasonRecords).map(Number).sort((a, b) => a - b);
 
   return (
-    <section className="football-season-profile">
+    <section className="football-season-profile" data-mount="detail">
       <div className="football-season-profile__inner">
         <div className="football-section-header">
-          <div><span className="football-section-header__label">Mùa giải</span><h2 className="football-section-header__title">Hồ sơ mùa giải</h2></div>
+          <div><span className="football-section-header__label">{ui("season2")}</span><h2 className="football-section-header__title">{ui("seasonRecord")}</h2></div>
         </div>
-        <FilterSelect label="Chọn mùa giải" value={String(selectedAgeForStats)} onChange={(value) => setSelectedAgeForStats(Number(value))} searchable={ages.length > 8} disabled={ages.length === 0}
-          options={ages.map((age) => ({ value: String(age), label: `Mùa ${getSeasonYearString(age, playerDebutAge)}`, description: `Tuổi ${age}${age === currentAge ? ", hiện tại" : ""}` }))} />
+        <FilterSelect label={ui("selectASeason")} value={String(selectedAgeForStats)} onChange={(value) => setSelectedAgeForStats(Number(value))} searchable={ages.length > 8} disabled={ages.length === 0}
+          options={ages.map((age) => ({ value: String(age), label: t("seasonOption", { season: getSeasonYearString(age, playerDebutAge) }), description: t(age === currentAge ? "ageCurrent" : "ageOption", { age }) }))} />
 
         {activeRecord ? (
           <>
-            <div className="football-season-profile__club"><span>Câu lạc bộ</span><strong>{activeRecord.clubName}</strong><small>{activeRecord.leagueName}</small></div>
+            <div className="football-season-profile__club"><span>{ui("club")}</span><strong>{names.clubName(activeRecord.clubName)}</strong><small>{names.leagueName(activeRecord.leagueName)}</small></div>
             <div className="football-season-profile__rows">
-              <StatusRow label={activeRecord.leagueName || "Giải VĐQG"} result={leagueResult(activeRecord.standing ?? null)} hasResult={activeRecord.standing != null} isChampion={activeRecord.standing === 1} onClick={() => onOpenModal("league")} />
-              <StatusRow label={getDomesticCupName(activeRecord.leagueName, activeRecord.leagueId)} result={cupResult(activeRecord.domesticCup)} hasResult={!!activeRecord.domesticCup && activeRecord.domesticCup !== "Chờ quay"} isChampion={activeRecord.domesticCup === "Winner"} onClick={() => onOpenModal("cup")} />
-              {activeRecord.continentalCup ? <StatusRow label={getContinentalCupLabel(activeRecord.continentalCup.type)} result={cupResult(activeRecord.continentalCup.result)} hasResult={!!activeRecord.continentalCup.result && activeRecord.continentalCup.result !== "Chờ quay"} isChampion={activeRecord.continentalCup.result === "Winner"} onClick={() => onOpenModal("continental")} /> : <InactiveRow label="Cúp châu lục CLB" note="Không tham gia" />}
-              {activeRecord.nationalTeam ? <StatusRow label={activeRecord.nationalTeam.type?.trim() || "Đội tuyển quốc gia"} result={activeRecord.nationalTeam.result ? cupResult(activeRecord.nationalTeam.result) : activeRecord.nationalTeam.callup === "Được triệu tập" ? "Được triệu tập" : activeRecord.nationalTeam.callup === "Không được gọi" ? "Không được gọi" : "Chờ quay"} hasResult={activeRecord.nationalTeam.callup !== "Chờ gọi"} isChampion={activeRecord.nationalTeam.result === "Winner"} isNational onClick={() => onOpenModal("national")} /> : <InactiveRow label="Đội tuyển quốc gia" note="Không có giải" />}
+              <StatusRow label={names.leagueName(activeRecord.leagueName)} result={resultLabel(activeRecord.standing === 1 ? "Winner" : activeRecord.standing ? `Hạng ${activeRecord.standing}` : null, ui("awaitingSpin"))} hasResult={activeRecord.standing != null} isChampion={activeRecord.standing === 1} onClick={() => onOpenModal("league")} />
+              <StatusRow label={names.domesticCupName(activeRecord.leagueName, activeRecord.leagueId)} result={resultLabel(activeRecord.domesticCup)} hasResult={!!activeRecord.domesticCup && activeRecord.domesticCup !== "Chờ quay"} isChampion={activeRecord.domesticCup === "Winner"} onClick={() => onOpenModal("cup")} />
+              {activeRecord.continentalCup ? <StatusRow label={names.continentalCupName(activeRecord.continentalCup.type)} result={resultLabel(activeRecord.continentalCup.result)} hasResult={!!activeRecord.continentalCup.result && activeRecord.continentalCup.result !== "Chờ quay"} isChampion={activeRecord.continentalCup.result === "Winner"} onClick={() => onOpenModal("continental")} /> : <InactiveRow label={ui("continentalCup")} note={ui("didNotEnter")} />}
+              {activeRecord.nationalTeam ? <StatusRow label={activeRecord.nationalTeam.type?.trim() || ui("nationalTeam")} result={activeRecord.nationalTeam.result ? resultLabel(activeRecord.nationalTeam.result) : activeRecord.nationalTeam.callup === "Được triệu tập" ? ui("calledUp") : activeRecord.nationalTeam.callup === "Không được gọi" ? ui("notCalledUp") : ui("awaitingSpin")} hasResult={activeRecord.nationalTeam.callup !== "Chờ gọi"} isChampion={activeRecord.nationalTeam.result === "Winner"} isNational onClick={() => onOpenModal("national")} /> : <InactiveRow label={ui("nationalTeam")} note={ui("noTournament")} />}
             </div>
           </>
-        ) : <p className="football-empty-copy">Chưa có dữ liệu thi đấu.</p>}
+        ) : <p className="football-empty-copy">{ui("noMatchData")}</p>}
       </div>
     </section>
   );
