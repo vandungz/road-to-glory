@@ -1,3 +1,5 @@
+import { NextIntlClientProvider } from "next-intl";
+import { getLocale, getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { Oswald, Be_Vietnam_Pro } from "next/font/google";
 import "./globals.css";
@@ -23,25 +25,26 @@ const bodyFont = Be_Vietnam_Pro({
   display: "swap",
 });
 
-export const metadata: Metadata = {
-  title: "Football Life — Road to Glory",
-  description:
-    "Trò chơi mô phỏng sự nghiệp bóng đá dựa trên vận may. Xây dựng squad, quay bánh xe, viết nên huyền thoại của bạn.",
-  keywords: ["football", "career", "simulation", "squad", "road to glory"],
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("common");
+  return { title: "Football Life — Road to Glory", description: t("description") };
+}
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const locale = await getLocale();
   return (
-    <html lang="vi" suppressHydrationWarning className={`${oswald.variable} ${bodyFont.variable}`}>
+    <html lang={locale} suppressHydrationWarning className={`${oswald.variable} ${bodyFont.variable}`}>
       <body className="antialiased">
-        <DesktopNotice />
-        <div className="football-desktop-content">
-          <AppProviders>{children}</AppProviders>
-        </div>
+        <NextIntlClientProvider>
+          <DesktopNotice />
+          <div className="football-desktop-content">
+            <AppProviders>{children}</AppProviders>
+          </div>
+        </NextIntlClientProvider>
       </body>
     </html>
   );
