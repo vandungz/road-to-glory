@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { ReactNode } from "react";
 import { AlertCircle, X } from "lucide-react";
 import { Button } from "./Button";
@@ -12,6 +13,7 @@ interface ToastProps {
 }
 
 export function Toast({ title, children, actionLabel, onAction, onDismiss, actionBusy = false }: ToastProps) {
+  const ui = useTranslations("ui");
   return (
     <aside className="football-toast" role="alert" aria-live="assertive">
       <div className="football-toast__icon" aria-hidden="true">
@@ -27,7 +29,7 @@ export function Toast({ title, children, actionLabel, onAction, onDismiss, actio
         )}
       </div>
       {onDismiss && (
-        <button type="button" className="football-toast__dismiss" onClick={onDismiss} aria-label="Đóng thông báo">
+        <button type="button" className="football-toast__dismiss" onClick={onDismiss} aria-label={ui("dismissNotification")}>
           <X size={17} aria-hidden="true" />
         </button>
       )}

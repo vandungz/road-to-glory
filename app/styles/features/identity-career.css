@@ -178,17 +178,10 @@
 .football-pve-content :is(.football-pve-moments__list, .football-pve-lineup, .football-pve-league-table__scroll):focus-visible { outline: var(--football-outline); outline-offset: -2px; }
 .football-pve-content .football-button--primary:active:not(:disabled) { background: var(--football-accent-ink); }
 .football-pve-content .football-button:disabled { cursor: not-allowed; }
-.football-pve-content .football-pve-loading-duel { flex: 1; min-height: 0; }
-.football-pve-content .football-pve-loading-duel .football-pve-skeleton { height: auto; }
 .football-pve-tournament-shell .football-pve-error { flex-shrink: 0; }
-.football-pve-loading.football-pve-tournament-loading { height: 100dvh; min-height: 0; padding-block: 24px; }
-.football-pve-tournament-loading .football-pve-skeleton--match { flex: 1; height: auto; }
 @media (max-height: 800px) {
   .football-pve-tournament-shell > .football-app-shell__footer { display: none; }
 }
 @media (max-height: 720px) {
   .football-pve-duel .football-pve-pitch__field .football-pitch-player--readonly { width: clamp(52px, 13cqw, 84px); padding: 4px; line-height: 1.1; }
-}
-@media (prefers-reduced-motion: reduce) {
-  :is(.football-pve-content, .football-pve-tournament-loading) .football-pve-skeleton { animation: none; }
 }

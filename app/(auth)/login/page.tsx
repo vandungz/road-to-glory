@@ -1,9 +1,11 @@
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { LoginForm } from "./LoginForm";
 
-export const metadata: Metadata = {
-  title: "Đăng nhập | Football Life",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const ui = await getTranslations("ui");
+  return { title: ui("signIn") + " | Football Life" };
+}
 
 interface Props {
   searchParams: Promise<{ error?: string; next?: string }>;

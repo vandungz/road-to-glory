@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import { cn } from "@/lib/utils";
 
 interface ProgressIndicatorProps {
@@ -9,10 +10,11 @@ interface ProgressIndicatorProps {
 }
 
 export function ProgressIndicator({ current, total, labels, className, label }: ProgressIndicatorProps) {
+  const ui = useTranslations("ui");
   const safeTotal = Math.max(total, 1);
   const safeCurrent = Math.min(Math.max(current, 0), safeTotal);
   return (
-    <div className={cn("football-progress", className)} aria-label={label ?? `Tiến trình ${safeCurrent} trên ${safeTotal}`}>
+    <div className={cn("football-progress", className)} aria-label={label ?? ui("stepOf", { v0: String(safeCurrent), v1: String(safeTotal) })}>
       {labels && <div className="football-progress__labels">{labels.map((item) => <span key={item}>{item}</span>)}</div>}
       <div className="football-progress__track" role="progressbar" aria-valuemin={0} aria-valuemax={safeTotal} aria-valuenow={safeCurrent}>
         {Array.from({ length: safeTotal }, (_, index) => (

@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { createContext, useContext, useEffect, useId, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import { X } from "lucide-react";
@@ -139,6 +140,7 @@ export function Modal({
           className,
         )}
         style={style}
+        data-mount="panel"
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -161,7 +163,8 @@ interface ModalHeaderProps {
   eyebrow?: ReactNode;
 }
 
-export function ModalHeader({ children, onClose, closeLabel = "Đóng", className, eyebrow }: ModalHeaderProps) {
+export function ModalHeader({ children, onClose, closeLabel, className, eyebrow }: ModalHeaderProps) {
+  const ui = useTranslations("ui");
   const titleId = useContext(ModalTitleContext);
   return (
     <header className={cn("football-modal-header", className)}>
@@ -170,7 +173,7 @@ export function ModalHeader({ children, onClose, closeLabel = "Đóng", classNam
         <h2 id={titleId ?? undefined} className="football-modal-header__title">{children}</h2>
       </div>
       {onClose && (
-        <button type="button" className="football-icon-button" onClick={onClose} aria-label={closeLabel}>
+        <button type="button" className="football-icon-button" onClick={onClose} aria-label={closeLabel ?? ui("close")}>
           <X aria-hidden="true" size={19} strokeWidth={1.6} />
         </button>
       )}

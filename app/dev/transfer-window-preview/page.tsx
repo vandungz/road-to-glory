@@ -106,13 +106,14 @@ const MOCK: TransferMarketResult = {
 
 export default function TransferWindowPreviewPage() {
   const [log, setLog] = useState("—");
+  const [failedSearch, setFailedSearch] = useState(false);
 
   if (process.env.NODE_ENV === "production") {
     return <p style={{ padding: 24 }}>Preview only in development.</p>;
   }
 
   return (
-    <AppShell className="football-transfer-shell" backHref="/dev/design-preview" backLabel="Sự nghiệp" headerMeta={<span role="status">Last action: {log}</span>}>
+    <AppShell className="football-transfer-shell" backHref="/dev/design-preview" backLabel="career" headerMeta={<span role="status">Last action: {log}</span>}>
         <PersistentTransferSection
           market={MOCK}
           currentClubId="c1"
@@ -124,6 +125,11 @@ export default function TransferWindowPreviewPage() {
           onRejectAll={() => setLog("Reject all / stay")}
           onApproachShortlist={(c) => { setLog(`Approach ${c.clubName} (${Math.round((c.acceptChance ?? 0) * 100)}%)`); }}
           onSearchClubs={async ({query,leagueId,prestigeMin}) => {
+            if (query === "Ajax") await new Promise((resolve) => setTimeout(resolve, 700));
+            if (query === "St. Pauli" && !failedSearch) {
+              setFailedSearch(true);
+              throw new Error("Temporary search failure");
+            }
             const clubs = MOCK.shortlist.filter((c) => (!query || c.clubName.toLowerCase().includes(query.toLowerCase())) && (!leagueId || c.leagueId === leagueId) && (!prestigeMin || c.prestige === prestigeMin));
             return { clubs, totalCount: clubs.length, leagues: [{ id: "eredivisie", name: "Eredivisie", tier: 1 }, { id: "bundesliga", name: "Bundesliga", tier: 1 }] };
           }}

@@ -17,7 +17,6 @@
 @import "./styles/features/lobby-and-results.css";
 @import "./styles/features/quick-mode.css";
 @import "./styles/features/pve.css";
-@import "./styles/foundation/animations.css";
 @import "./styles/foundation/nation-themes.css";
 @import "./styles/foundation/identity-system.css";
 @import "./styles/features/identity-entry.css";
@@ -26,3 +25,5 @@
 @import "./styles/features/identity-quick.css";
 @import "./styles/features/editorial-media.css";
 @import "./styles/layout/desktop-policy.css";
+@import "./styles/foundation/animations.css";
+@import "./styles/features/ballon-dor.css";

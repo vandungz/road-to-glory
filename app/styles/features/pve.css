@@ -15,7 +15,7 @@
 .football-pve-lobby__mark span { font-family: var(--font-headline); font-size: 25px; font-weight: 600; }
 .football-pve-lobby__mark small { color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-transform: none; }
 .football-pve-lobby__list { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1px; background: var(--football-rule); }
-.football-pve-lobby__session { display: flex; min-height: 145px; align-items: stretch; justify-content: space-between; gap: 18px; padding: 22px 24px; background: var(--football-surface); color: inherit; text-decoration: none; transition: background 140ms ease-out; }
+.football-pve-lobby__session { display: flex; min-height: 145px; align-items: stretch; justify-content: space-between; gap: 18px; padding: 22px 24px; background: var(--football-surface); color: inherit; text-decoration: none; transition: background-color var(--football-motion-control) var(--football-motion-ease); }
 .football-pve-lobby__session:hover { background: var(--football-paper); }
 .football-pve-lobby__session-copy { display: flex; min-width: 0; flex-direction: column; gap: 6px; }
 .football-pve-lobby__session-meta, .football-pve-match__sub { overflow: hidden; color: var(--football-ink-3); font-family: var(--font-stamp); font-size: 12px; letter-spacing: 0; text-overflow: ellipsis; text-transform: none; white-space: nowrap; }
@@ -114,10 +114,6 @@
 .football-pve-terminal h2 { margin: 4px 0 0; color: var(--football-ink); font-family: var(--font-headline); font-size: 27px; }
 .football-pve-terminal p { margin: 4px 0 0; color: var(--football-ink-2); font-family: var(--font-body); font-size: 14px; }
 .football-pve-error { display: flex; align-items: center; gap: 8px; border: 1px solid var(--football-accent); padding: 11px 14px; color: var(--football-accent-ink); font-family: var(--font-body); font-size: 13px; }
-.football-pve-skeleton { display: block; background: color-mix(in srgb, var(--football-ink) 9%, transparent); animation: football-pve-shimmer 1.2s ease-in-out infinite alternate; }
-.football-pve-loading { display: flex; width: min(100% - 48px, 1000px); min-height: 70vh; margin: 0 auto; flex-direction: column; gap: 18px; padding-top: 70px; }
-.football-pve-skeleton--eyebrow { width: 120px; height: 12px; }.football-pve-skeleton--hero { width: min(70%, 600px); height: 58px; }.football-pve-skeleton--copy { width: min(90%, 680px); height: 42px; }.football-pve-skeleton--card { width: 100%; height: 120px; }.football-pve-skeleton--group { width: 100%; height: 112px; }.football-pve-skeleton--match { width: 100%; height: 420px; }.football-pve-skeleton--title { width: 35%; height: 30px; margin-bottom: 12px; }.football-pve-skeleton--line { width: 100%; height: 38px; }.football-pve-skeleton--score { width: 90px; height: 36px; }.football-pve-loading-duel { display: grid; grid-template-columns: minmax(0, 1.08fr) minmax(0, .92fr); gap: 1px; background: var(--football-rule); }.football-pve-skeleton--pitch, .football-pve-skeleton--moments { height: 490px; }.football-pve-skeleton--moment-line { width: min(100%, 280px); height: 11px; margin-top: 8px; }.football-pve-skeleton--moment-line-short { width: 40%; }.football-pve-moment--loading { min-height: 82px; }.football-pve-moment--loading .football-pve-moment__result { background: color-mix(in srgb, var(--football-ink) 8%, transparent); border-color: transparent; }
-@keyframes football-pve-shimmer { from { opacity: .55; } to { opacity: 1; } }
 
 @media (max-width: 800px) {
   .football-pve-lobby-shell .football-app-shell__main, .football-pve-tournament-shell .football-app-shell__main { width: calc(100% - 32px); padding: 24px 0 40px; }
@@ -150,8 +146,4 @@
   .football-pve-league-table__heading { align-items: flex-start; flex-direction: column; padding: 16px 18px 12px; }
   .football-pve-pitch__player { max-width: 62px; padding: 4px 5px; font-size: 12px; }
   .football-pve-group__meta { flex-direction: column; gap: 5px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-  .football-pve-skeleton { animation: none; }
 }

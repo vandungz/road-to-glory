@@ -1,0 +1,37 @@
+/* Hallmark · Ballon d’Or result · Football Life · playful */
+/* Keep the standings scrollable and the result and next action in view. */
+
+.football-ballon-dor-page { justify-content: safe center; }
+.football-ballon-dor-page__intro { flex: none; }
+.football-ballon-dor-page__intro h1 { min-width: 0; overflow-wrap: break-word; text-wrap: balance; }
+.football-ballon-dor-page__result { display: flex; min-height: 0; flex-direction: column; align-items: flex-start; }
+.football-ballon-dor-page__ranking { width: 100%; min-height: 0; overflow-y: auto; overscroll-behavior: contain; }
+.football-ballon-dor-page__ranking:focus-visible { outline: var(--football-outline); outline-offset: -2px; }
+.football-ballon-dor-page__result > :is(.football-button, .football-ballon-dor-page__banner) { flex: none; }
+.football-career-shell .football-wheel-stage[data-ballon-dor] .football-spinner-wheel__label { border: 0; }
+
+.football-ballon-nomination .football-modal-header { padding-block: 12px; }
+.football-ballon-nomination .football-modal-body { padding: 16px 24px; }
+.football-ballon-nomination .football-modal-footer { border: 0; padding-block: 4px 20px; }
+.football-ballon-nomination__result {
+  min-width: 0;
+  margin: 0;
+  color: var(--football-ink);
+  font-size: 16px;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+}
+
+.football-ballon-nomination.is-nominated .football-modal-body {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+}
+.football-ballon-nomination.is-nominated .football-ballon-nomination__result {
+  font: 600 clamp(26px, 3vw, 38px)/1.15 var(--font-headline);
+}
+.football-ballon-nomination .football-ballon-nomination__art {
+  width: 100%;
+  height: min(252px, 44dvh);
+}

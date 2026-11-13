@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
@@ -57,15 +58,17 @@ async function recordLoginFailureRateLimit(ip: string, email: string): Promise<v
   ]);
 }
 
-function genericAuthError(): AuthActionResult {
+async function genericAuthError(): Promise<AuthActionResult> {
+  const t = await getTranslations("auth");
   return {
     success: false,
-    error: "Không thể hoàn tất yêu cầu xác thực. Vui lòng kiểm tra thông tin hoặc thử lại sau.",
+    error: t("genericError"),
   };
 }
 
-function authActionError(error: unknown): AuthActionResult {
+async function authActionError(error: unknown): Promise<AuthActionResult> {
   if (error instanceof AuthRateLimitError) {
+    const t = await getTranslations("auth");
     const retryAfterSeconds = Math.max(
       1,
       Math.ceil((error.resetAt - Date.now()) / 1000),
@@ -76,7 +79,7 @@ function authActionError(error: unknown): AuthActionResult {
       success: false,
       code: "rate_limited",
       retryAfterSeconds,
-      error: `Bạn đã thử quá nhiều lần. Vui lòng thử lại sau khoảng ${retryAfterMinutes} phút.`,
+      error: t("rateLimited", { minutes: retryAfterMinutes }),
     };
   }
 
@@ -179,16 +182,17 @@ export async function logoutAction(): Promise<AuthActionResult> {
 }
 
 export async function updateDisplayNameAction(input: unknown): Promise<AuthActionResult> {
+  const t = await getTranslations("auth");
   const name = z.string().trim().min(1).max(40).safeParse(input);
-  if (!name.success) return { success: false, error: "Tên hiển thị phải có từ 1 đến 40 ký tự." };
+  if (!name.success) return { success: false, error: t("displayNameInvalid") };
 
   try {
     const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return { success: false, error: "Phiên đăng nhập đã hết. Hãy đăng nhập lại." };
+    if (!user) return { success: false, error: t("sessionExpired") };
     const { error } = await supabase.auth.updateUser({ data: { display_name: name.data } });
-    return error ? { success: false, error: "Không thể lưu tên. Vui lòng thử lại." } : { success: true };
+    return error ? { success: false, error: t("nameSaveError") } : { success: true };
   } catch {
-    return { success: false, error: "Không thể lưu tên. Vui lòng thử lại." };
+    return { success: false, error: t("nameSaveError") };
   }
 }

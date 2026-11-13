@@ -178,6 +178,7 @@
 .football-transfer-club-row:last-child { border-bottom: 0; }
 .football-transfer-search { gap: 12px; }
 .football-transfer-search-status { display: flex; flex-shrink: 0; align-items: center; justify-content: space-between; gap: 12px; min-height: 32px; margin-bottom: 8px; font-size: 12px; color: var(--football-ink-2); }
+.football-transfer-search-status [role="status"] { display: flex; align-items: center; gap: 8px; }
 .football-transfer-search-status .football-text-button { font-size: 12px; }
 .football-transfer-panel > .football-transfer-targets { flex: 1; min-height: 0; }
 .football-transfer-back { border-bottom: 0; }

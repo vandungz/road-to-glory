@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { prisma } from "@/lib/prisma";
@@ -12,8 +13,9 @@ interface Props {
   params: Promise<{ gameId: string }>;
 }
 
-export function generateMetadata(): Metadata {
-  return { title: "Đội hình | Football Life" };
+export async function generateMetadata(): Promise<Metadata> {
+  const ui = await getTranslations("ui");
+  return { title: ui("squads") + " | Football Life" };
 }
 
 export default async function SquadBoardPage({ params }: Props) {
@@ -90,8 +92,7 @@ export default async function SquadBoardPage({ params }: Props) {
     <AppShell
       className="football-squad-board-shell"
       backHref="/classic"
-      backLabel="Đội hình"
-      userEmail={user.email}
+      backLabel="squads"
     >
       <SquadDashboard
         gameId={gameId}

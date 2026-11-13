@@ -1,3 +1,8 @@
+import { useTranslations } from "next-intl";
+import { AppShell } from "@/components/shared/AppShell";
+import { RouteLoading } from "@/components/ui/States";
+
 export default function PveTournamentLoading() {
-  return <main className="football-pve-loading football-pve-tournament-loading" aria-busy="true" role="status" aria-label="Đang tải giải PvE"><span className="football-pve-skeleton football-pve-skeleton--hero" /><span className="football-pve-skeleton football-pve-skeleton--match" /></main>;
+  const ui = useTranslations("ui");
+  return <AppShell backHref="/pve" backLabel="pve"><RouteLoading title="Champions League" label={ui("loadingTournament")} layout="match" /></AppShell>;
 }

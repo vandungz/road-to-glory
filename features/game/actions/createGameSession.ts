@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { redirect } from "next/navigation";
 import { prisma } from "@/lib/prisma";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
@@ -26,7 +27,8 @@ export async function createGameSession(
   const parsed = createGameSchema.safeParse(rawInput);
 
   if (!parsed.success) {
-    const firstError = parsed.error.issues[0]?.message ?? "Dữ liệu không hợp lệ";
+    const ui = await getTranslations("ui");
+    const firstError = ui(parsed.error.issues[0]?.path[0] === "formation" ? "squadFormationError" : "squadNameError");
     return { success: false, error: firstError };
   }
 
@@ -48,9 +50,10 @@ export async function createGameSession(
       },
     });
   } catch {
+    const ui = await getTranslations("ui");
     return {
       success: false,
-      error: "Không thể tạo squad. Vui lòng thử lại.",
+      error: ui("squadCreateError"),
     };
   }
 

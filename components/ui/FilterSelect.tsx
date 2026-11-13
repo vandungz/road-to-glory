@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
 import { Check, ChevronDown, Search } from "lucide-react";
 
@@ -23,6 +24,7 @@ export function FilterSelect({ label, value, options, onChange, searchable = fal
   searchable?: boolean;
   disabled?: boolean;
 }) {
+  const ui = useTranslations("ui");
   const id = useId();
   const trigger = useRef<HTMLButtonElement>(null);
   const popup = useRef<HTMLDivElement>(null);
@@ -92,7 +94,7 @@ export function FilterSelect({ label, value, options, onChange, searchable = fal
     <div ref={popup} id={id} popover="auto" role="dialog" aria-label={label} className="football-filter__popup" style={position}
       onToggle={(event) => setOpen(event.newState === "open")} onKeyDown={navigate}>
       {searchable && <label className="football-filter__search"><Search aria-hidden="true" size={16} />
-        <input ref={search} className="football-search-input" aria-label={`Tìm trong ${label.toLowerCase()}`} placeholder="Tìm tùy chọn..." value={query} onChange={(event) => setQuery(event.target.value)} />
+        <input ref={search} className="football-search-input" aria-label={ui("search", { v0: String(label.toLowerCase()) })} placeholder={ui("searchOptions")} value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>}
       <div className="football-filter__options" role="listbox" aria-label={label}>
         {visible.map((option) => <button key={option.value} type="button" role="option" tabIndex={-1} aria-selected={option.value === value}
@@ -100,7 +102,7 @@ export function FilterSelect({ label, value, options, onChange, searchable = fal
           <span><span>{option.label}</span>{option.description && <small>{option.description}</small>}</span>
           {option.value === value && <Check aria-hidden="true" size={16} />}
         </button>)}
-        {visible.length === 0 && <p role="status">Không tìm thấy tùy chọn.</p>}
+        {visible.length === 0 && <p role="status">{ui("noMatchingOptions")}</p>}
       </div>
     </div>
   </div>;

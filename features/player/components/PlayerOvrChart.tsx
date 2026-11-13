@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useMemo } from "react";
 import type { CareerArchiveSnapshot } from "@/features/career/services/career-summary.service";
 
@@ -18,6 +19,7 @@ const BOTTOM = 21;
 const GRID_VALUES = [90, 82, 74, 66];
 
 export function PlayerOvrChart({ statsTimeline, debutAge, retireAge }: PlayerOvrChartProps) {
+  const ui = useTranslations("ui");
   const chart = useMemo(() => {
     const timeline = statsTimeline
       .filter((snapshot) => snapshot.age >= debutAge && snapshot.age <= retireAge)
@@ -37,16 +39,16 @@ export function PlayerOvrChart({ statsTimeline, debutAge, retireAge }: PlayerOvr
     return { points, path, x, labelAges };
   }, [statsTimeline, debutAge, retireAge]);
 
-  if (!chart) return <div className="football-career-dialog__chart-empty">Chưa có dữ liệu OVR.</div>;
+  if (!chart) return <div className="football-career-dialog__chart-empty">{ui("noOvrHistoryYet")}</div>;
 
   return (
-    <svg className="football-career-dialog__chart-svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label="Biểu đồ phát triển OVR theo tuổi">
+    <svg className="football-career-dialog__chart-svg" viewBox={`0 0 ${WIDTH} ${HEIGHT}`} role="img" aria-label={ui("ovrByAge")}>
       {GRID_VALUES.map((value, index) => {
         const y = TOP + (index / (GRID_VALUES.length - 1)) * (HEIGHT - TOP - BOTTOM);
         return <g key={value}><line x1={LEFT} y1={y} x2={WIDTH - RIGHT} y2={y} className={index === GRID_VALUES.length - 1 ? "is-axis" : "is-grid"} /><text x={LEFT - 8} y={y + 3} textAnchor="end">{value}</text></g>;
       })}
       <path d={chart.path} className="football-career-dialog__chart-line" />
-      {chart.points.map((point) => <circle key={point.age} cx={point.x} cy={point.y} r={point.ovr === Math.max(...chart.points.map((item) => item.ovr)) ? 4.5 : 3} className={point.ovr === Math.max(...chart.points.map((item) => item.ovr)) ? "is-peak" : "is-point"}><title>{`Tuổi ${point.age}: OVR ${point.ovr}`}</title></circle>)}
+      {chart.points.map((point) => <circle key={point.age} cx={point.x} cy={point.y} r={point.ovr === Math.max(...chart.points.map((item) => item.ovr)) ? 4.5 : 3} className={point.ovr === Math.max(...chart.points.map((item) => item.ovr)) ? "is-peak" : "is-point"}><title>{ui("ageOvr", { v0: String(point.age), v1: String(point.ovr) })}</title></circle>)}
       {chart.points.length > 0 && <text x={chart.points.reduce((peak, point) => point.ovr > peak.ovr ? point : peak).x} y={chart.points.reduce((peak, point) => point.ovr > peak.ovr ? point : peak).y - 9} className="football-career-dialog__chart-peak" textAnchor="middle">{chart.points.reduce((peak, point) => point.ovr > peak.ovr ? point : peak).ovr}</text>}
       {chart.labelAges.map((age) => <text key={age} x={chart.x(age)} y={HEIGHT - 5} textAnchor="middle" className="football-career-dialog__chart-age">{age}</text>)}
     </svg>

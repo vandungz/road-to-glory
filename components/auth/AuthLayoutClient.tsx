@@ -1,25 +1,20 @@
-"use client";
-
-import { useMemo, useState, type ReactNode } from "react";
-import { AuthMotionContext } from "./AuthMotionContext";
+import { useTranslations } from "next-intl";
+import type { ReactNode } from "react";
 import { HeroPanel } from "./HeroPanel";
 
 export function AuthLayoutClient({ children }: { children: ReactNode }) {
-  const [replayToken, setReplayToken] = useState(0);
-  const motion = useMemo(() => ({ replayToken, replay: () => setReplayToken((token) => token + 1) }), [replayToken]);
+  const ui = useTranslations("ui");
   return (
-    <AuthMotionContext.Provider value={motion}>
-      <div className="football-auth-shell">
-        <div className="football-auth-stage">
-          <HeroPanel />
-          <section className="football-auth-form-column" aria-label="Khu vực xác thực">
-            <div className="football-auth-form-column__body">{children}</div>
-            <footer className="football-auth-form-column__footer">
-              <span>© Football Life — mùa 2025/26</span>
-            </footer>
-          </section>
-        </div>
+    <div className="football-auth-shell">
+      <div className="football-auth-stage">
+        <HeroPanel />
+        <section className="football-auth-form-column" aria-label={ui("authentication")}>
+          <div className="football-auth-form-column__body" data-mount="page">{children}</div>
+          <footer className="football-auth-form-column__footer">
+            <span>{ui("footballLife202526Season")}</span>
+          </footer>
+        </section>
       </div>
-    </AuthMotionContext.Provider>
+    </div>
   );
 }

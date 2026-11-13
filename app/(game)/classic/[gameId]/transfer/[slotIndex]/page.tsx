@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/shared/AppShell";
@@ -12,11 +13,13 @@ interface Props {
   searchParams: Promise<{ return?: string }>;
 }
 
-export function generateMetadata(): Metadata {
-  return { title: "Chuyển nhượng | Football Life" };
+export async function generateMetadata(): Promise<Metadata> {
+  const ui = await getTranslations("ui");
+  return { title: ui("transferMarket") + " | Football Life" };
 }
 
 export default async function ClassicTransferPage({ params, searchParams }: Props) {
+  const ui = await getTranslations("ui");
   const { gameId, slotIndex: slotParam } = await params;
   const { return: returnAction } = await searchParams;
   const slotIndex = Number(slotParam);
@@ -83,15 +86,15 @@ export default async function ClassicTransferPage({ params, searchParams }: Prop
   });
 
   return (
-    <AppShell keepGameOpen className="football-transfer-shell" backHref={`/classic/${gameId}/draft/${slotIndex}`} backLabel="Sự nghiệp" headerMeta={(
-      <div className="football-transfer-shell__header-meta"><span><small>Cầu thủ</small><strong>{player.name}</strong></span><span><small>Vị trí</small><strong>{player.position}</strong></span><span><small>Giá trị</small><strong>{formatEuroThousands(syncedMarketValue)}</strong></span></div>
+    <AppShell className="football-transfer-shell" backHref={`/classic/${gameId}/draft/${slotIndex}`} backLabel="career" headerMeta={(
+      <div className="football-transfer-shell__header-meta"><span><small>{ui("player3")}</small><strong>{player.name}</strong></span><span><small>{ui("position")}</small><strong>{player.position}</strong></span><span><small>{ui("value")}</small><strong>{formatEuroThousands(syncedMarketValue)}</strong></span></div>
     )}>
       <TransferPageClient input={{
         gameId, slotIndex, playerId: player.id, playerName: player.name, position: player.position,
         currentClubId: currentClub?.id ?? currentStint?.clubId ?? null,
-        currentClubName: currentClub?.name ?? currentStint?.clubName ?? "Cầu thủ tự do",
+        currentClubName: currentClub?.name ?? currentStint?.clubName ?? ui("freeAgent2"),
         currentClubLeagueId: currentClub?.leagueId ?? currentStint?.leagueId ?? null,
-        currentClubLeagueName: currentClub?.league.name ?? currentStint?.leagueName ?? "Không có giải đấu",
+        currentClubLeagueName: currentClub?.league.name ?? currentStint?.leagueName ?? ui("noLeague"),
         currentClubPrestige: currentClub?.prestige ?? 2, currentClubLeagueTier: currentClub?.league.tier ?? 1,
         seasonId: season?.id ?? null, revision: player.revision, checkpointVersion: player.checkpointVersion,
         currentAge, retireAge: player.retireAge, currentOvr: currentSnapshot.ovr,

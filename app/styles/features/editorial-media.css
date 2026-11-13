@@ -19,7 +19,6 @@
 .football-auth-form-column__body { min-height: 0; padding: 32px; align-items: safe center; overflow-y: auto; }
 .football-auth-panel { gap: 20px; }
 .football-auth-form { gap: 16px; }
-.football-auth-stage [data-anim], .football-auth-stage .football-auth-submit, .football-auth-hero__wordmark { animation: none; opacity: 1; transform: none; }
 .football-auth-form-column .football-auth-submit { min-height: 52px !important; }
 .football-quick-setup { display: grid; width: 100%; grid-template-columns: minmax(0, .8fr) minmax(0, 1.5fr); gap: 32px; align-items: center; padding-block: 0 32px; }
 .football-editorial-art--setup { width: 100%; height: 500px; }

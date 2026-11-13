@@ -1,20 +1,16 @@
-"use client";
-
+import { useTranslations } from "next-intl";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { Settings, UserRound } from "lucide-react";
 
-export function AccountNavigation({ newTab = false }: { newTab?: boolean }) {
-  const pathname = usePathname();
-  const target = newTab ? "_blank" : undefined;
-  const titleSuffix = newTab ? " (mở tab mới)" : "";
+export function AccountNavigation() {
+  const ui = useTranslations("ui");
 
   return (
-    <nav className="football-account-nav" aria-label="Tài khoản và cài đặt">
-      <Link href="/profile" target={target} rel={newTab ? "noopener" : undefined} aria-current={pathname === "/profile" ? "page" : undefined} aria-label="Hồ sơ" title={`Hồ sơ${titleSuffix}`}>
+    <nav className="football-account-nav" aria-label={ui("accountAndSettings")}>
+      <Link href="/profile" aria-label={ui("profile")} title={ui("profile")}>
         <UserRound aria-hidden="true" size={19} />
       </Link>
-      <Link href="/settings" target={target} rel={newTab ? "noopener" : undefined} aria-current={pathname === "/settings" ? "page" : undefined} aria-label="Cài đặt" title={`Cài đặt${titleSuffix}`}>
+      <Link href="/settings" aria-label={ui("settings")} title={ui("settings")}>
         <Settings aria-hidden="true" size={19} />
       </Link>
     </nav>

@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
@@ -7,9 +8,10 @@ import { getGameSessionsForUser } from "@/features/game/services/game-session.se
 
 export const dynamic = "force-dynamic";
 
-export const metadata: Metadata = {
-  title: "Đội hình Classic | Football Life",
-};
+export async function generateMetadata(): Promise<Metadata> {
+  const ui = await getTranslations("ui");
+  return { title: ui("classicSquads") + " | Football Life" };
+}
 
 export default async function ClassicLobbyPage() {
   const supabase = await createClient();
@@ -19,9 +21,8 @@ export default async function ClassicLobbyPage() {
 
   return (
     <AppShell
-      userEmail={user?.email}
       backHref="/"
-      backLabel="Về chọn chế độ"
+      backLabel="modeSelect"
       className="football-classic-lobby-shell"
       headerIdentityMeta={<span>Classic</span>}
     >

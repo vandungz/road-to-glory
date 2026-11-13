@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { ChevronRight, Plus } from "lucide-react";
 import { RARITY_ACCENT, type ClientSafePlayer, type SlotConfig } from "@/types/squad";
 import { getSlotStateForIndex, type SlotState } from "../lib/slot-state";
@@ -31,6 +32,7 @@ interface RowProps {
 }
 
 function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps) {
+  const ui = useTranslations("ui");
   const isInteractive = state !== "locked";
   const rarityColor = player ? RARITY_ACCENT[player.cardRarity] ?? "var(--football-rule-strong)" : "var(--football-rule-strong)";
   const flag = getFlagUrl(player?.nationality);
@@ -49,12 +51,12 @@ function SlotRow({ slot, player, state, isHovered, onHover, onClick }: RowProps)
       disabled={!isInteractive}
       style={style}
       data-nation={player?.nationality.replace(/\s+/g, "")}
-      aria-label={player ? `Mở hồ sơ ${player.name}` : state === "active" ? `Tiếp tục draft vị trí ${slot.position}` : state === "empty" ? `Draft vị trí ${slot.position}` : `Vị trí ${slot.position} chưa có cầu thủ`}
+      aria-label={player ? ui("openSProfile", { v0: String(player.name) }) : state === "active" ? ui("resumeDrafting", { v0: String(slot.position) }) : state === "empty" ? ui("draftA", { v0: String(slot.position) }) : ui("slotIsEmpty", { v0: String(slot.position) })}
     >
       <span className="football-squad-sheet__position">{player?.position ?? slot.position}</span>
       <span className="football-squad-sheet__nation">{nationCode(player?.nationality)}</span>
       <span className="football-squad-sheet__player">
-        {state === "active" ? "Tiếp tục draft" : state === "empty" ? <><Plus aria-hidden="true" size={13} strokeWidth={2.2} />Draft cầu thủ</> : state === "locked" ? "Chưa có cầu thủ" : player?.name}
+        {state === "active" ? ui("resumeDraft") : state === "empty" ? <><Plus aria-hidden="true" size={13} strokeWidth={2.2} />{ui("draftPlayer")}</> : state === "locked" ? ui("noPlayerYet") : player?.name}
       </span>
       <span className="football-squad-sheet__ovr">{player?.peakOvr ?? "—"}</span>
       <ChevronRight className="football-squad-sheet__chevron" aria-hidden="true" size={15} strokeWidth={1.6} />
@@ -73,17 +75,18 @@ interface Props {
 }
 
 export function SquadSheet({ slots, players, inProgressSlots, status, hoveredSlot, onSlotHover, onSlotClick }: Props) {
+  const ui = useTranslations("ui");
   const playerMap = new Map(players.map((player) => [player.slotIndex, player]));
 
   return (
     <section className="football-squad-sheet" aria-labelledby="starting-xi-title">
       <div className="football-squad-sheet__heading">
-        <h2 id="starting-xi-title">Đội hình xuất phát</h2>
+        <h2 id="starting-xi-title">{ui("startingXi")}</h2>
       </div>
       <div className="football-squad-sheet__row football-squad-sheet__row--head" aria-hidden="true">
-        <span>Vị trí</span><span className="football-squad-sheet__nation">QT</span><span>Cầu thủ</span><span>OVR</span><span />
+        <span>{ui("position")}</span><span className="football-squad-sheet__nation">{ui("nationalityShort")}</span><span>{ui("player3")}</span><span>OVR</span><span />
       </div>
-      <div className="football-squad-sheet__table" role="region" aria-label="Danh sách cầu thủ xuất phát" tabIndex={0}>
+      <div className="football-squad-sheet__table" role="region" aria-label={ui("startingLineup")} tabIndex={0}>
         {slots.map((slot) => {
           const player = playerMap.get(slot.index);
           const state = getSlotStateForIndex(slot.index, player, inProgressSlots, status);

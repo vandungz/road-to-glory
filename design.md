@@ -39,8 +39,25 @@ data, field names and component contracts when changing presentation.
   preserving the existing spin callback timing and authoritative outcome.
 - Keep content visible without animation initialization; no width/height transitions.
 
+## Motion and loading
+- Render the page, controls, focus rings and disclosures immediately. Use the
+  shared motion tokens for control feedback and portrait opacity. Use page and
+  dialog fades at 180–220 ms. Use a 180 ms reveal for a new wheel stage or
+  a disclosure. Keep the wheel and player portrait mounted across these changes.
+- Use `Button loading` for the action that started a request. Disable it
+  immediately. Keep its label and footprint, with a delayed activity line.
+- Use `LoadingState` for inline work and `RouteLoading` for initial navigation
+  or restoration. Match its static placeholder to the destination: records, wheel
+  workspace or match. Keep the status near the page heading. Never show fake scores
+  or progress percentages. Reuse `ActivityLine` for the single indeterminate signal.
+- Keep existing records visible while refreshing. Mark the region busy, disable
+  stale result actions, and offer a retry when a request fails. Debounce typing
+  only. A completed request can display its result immediately.
+- System and account reduced motion share the same CSS policy. Game sequences
+  use the existing motion preference hook. Keep wheel outcomes authoritative.
+
 ## Desktop policy
-- Supported viewport starts at 1024 CSS pixels. Narrower windows show a Vietnamese
+- Supported viewport starts at 1024 CSS pixels. Narrower windows show a localized
   desktop-required screen across every route, including auth and direct deep links.
 - The CSS gate retains mounted state when resizing, including an in-flight wheel.
 - It is a presentation policy, not an authorization boundary. Auth remains unchanged.
@@ -141,3 +158,10 @@ data, field names and component contracts when changing presentation.
 - Keep the signing scene large in the right column, contained and transparent.
   It is decorative and never represents the created player's personal portrait.
   Short viewports scroll left-hand information while preserving the submit action.
+
+## Language and account controls
+
+- Offer Tiếng Việt and English in Settings. Keep the preference per browser and update the document language.
+- Add user-facing copy to both message catalogs. Use one message for a sentence with variables, counts or names. Keep OVR, position codes, Classic, Quick Mode, League Phase, Ballon d’Or and official competition names.
+- Use gameplay identifiers and numeric values for decisions. Format them when displaying the result. Preserve historical data when an older format cannot be read.
+- Put Profile, Settings and Sign out in the homepage header. Gameplay headers show game context and navigation.

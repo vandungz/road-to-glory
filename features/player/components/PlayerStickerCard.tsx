@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import type { ClientSafePlayer } from "@/types/squad";
 import { PlayerPortrait } from "./PlayerPortrait";
 import { resolveSavedPortraitId } from "../lib/player-portraits";
@@ -24,6 +25,7 @@ function nationCode(nationality: string): string {
 }
 
 export function PlayerStickerCard({ player, finalClub, debutAge, retireAge, careerLength }: PlayerStickerCardProps) {
+  const ui = useTranslations("ui");
   return (
     <div className="football-player-sticker" data-nation={player.nationality.replace(/\s+/g, "")}>
       <div className="football-player-sticker__top"><span>Hall of Fame</span><strong>{player.position}</strong></div>
@@ -32,11 +34,11 @@ export function PlayerStickerCard({ player, finalClub, debutAge, retireAge, care
         <strong>{player.peakOvr}</strong>
         <span>{nationCode(player.nationality)}</span>
         <div className="football-player-sticker__silhouette" aria-hidden="true" />
-        <small>OVR đỉnh cao</small>
+        <small>{ui("peakOvr")}</small>
       </div>
       <div className="football-player-sticker__identity">
         <h3>{player.name}</h3>
-        <small>{debutAge} → {retireAge} tuổi · {careerLength} mùa · {finalClub}</small>
+        <small>{debutAge} → {retireAge} {ui("yearsOld")} {careerLength} {ui("seasons3")} {finalClub}</small>
       </div>
     </div>
   );

@@ -1,11 +1,14 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState, type FormEvent } from "react";
 import { updateDisplayNameAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 
 export function DisplayNameForm({ initialName }: { initialName: string }) {
+  const ui = useTranslations("ui");
+  const t = useTranslations("auth");
   const [name, setName] = useState(initialName);
   const [savedName, setSavedName] = useState(initialName);
   const [pending, setPending] = useState(false);
@@ -25,9 +28,9 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
       }
       setName(nextName);
       setSavedName(nextName);
-      setStatus({ error: false, text: "Đã lưu tên hiển thị." });
+      setStatus({ error: false, text: t("nameSaved") });
     } catch {
-      setStatus({ error: true, text: "Không thể lưu tên. Vui lòng thử lại." });
+      setStatus({ error: true, text: t("nameSaveError") });
     } finally {
       setPending(false);
     }
@@ -35,12 +38,12 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
 
   return (
     <form className="football-account-form" onSubmit={save} aria-busy={pending}>
-      <Field label="Tên hiển thị">
+      <Field label={ui("displayName")}>
         <Input value={name} onChange={(event) => { setName(event.target.value); setStatus(undefined); }}
           name="displayName" readOnly={pending} required maxLength={40} autoComplete="nickname"
           aria-invalid={status?.error || undefined} aria-describedby="profile-save-status" />
       </Field>
-      <Button type="submit" loading={pending} disabled={!name.trim() || name.trim() === savedName}>Lưu tên</Button>
+      <Button type="submit" loading={pending} disabled={!name.trim() || name.trim() === savedName}>{ui("saveName")}</Button>
       <p id="profile-save-status" className="football-account-note" data-error={status?.error} role="status">{status?.text}</p>
     </form>
   );

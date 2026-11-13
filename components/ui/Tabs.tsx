@@ -24,5 +24,5 @@ export function TabsTrigger({ value, active, onSelect, children, className, disa
 
 export function TabsContent({ active, children, className }: { active: boolean; children: ReactNode; className?: string }) {
   if (!active) return null;
-  return <div role="tabpanel" className={cn("football-tab-panel", className)}>{children}</div>;
+  return <div data-mount="detail" role="tabpanel" className={cn("football-tab-panel", className)}>{children}</div>;
 }

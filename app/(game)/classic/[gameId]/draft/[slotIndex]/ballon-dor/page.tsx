@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
@@ -38,11 +39,14 @@ function snapshotEntries(value: unknown): Array<Record<string, unknown>> {
   return Array.isArray(value) ? value.slice(0, TOP_TEN_LIMIT).filter(isRecord) : [];
 }
 
-export function generateMetadata(): Metadata {
-  return { title: "Quả Bóng Vàng | Football Life" };
+export async function generateMetadata(): Promise<Metadata> {
+  const t = await getTranslations("awards");
+  return { title: t("ballon_dor") + " | Football Life" };
 }
 
 export default async function BallonDorResultPage({ params }: Props) {
+  const ui = await getTranslations("ui");
+  const awards = await getTranslations("awards");
   const { gameId, slotIndex: slotParam } = await params;
   const slotIndex = Number(slotParam);
   if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
@@ -78,46 +82,44 @@ export default async function BallonDorResultPage({ params }: Props) {
   if (!result) notFound();
 
   const isWinner = result.phase === "ranking" && result.rank === 1;
-  const message = isWinner ? "Hạng #1 — Ballon d'Or!" : `Hạng #${result.rank} trong Top 10`;
+  const message = isWinner ? awards("winnerHeadline") : awards("topTenRank", { rank: result.rank });
   const tone = isWinner ? "honour" : "positive";
 
   return (
     <AppShell
-      keepGameOpen
       className="football-ballon-dor-page-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
-      backLabel="Sự nghiệp"
+      backLabel="career"
       headerMeta={(
         <div className="football-ballon-dor-page__header-meta">
-          <span><small>Cầu thủ</small><strong>{player.name}</strong></span>
-          <span><small>Vị trí</small><strong>{player.position}</strong></span>
-          <span><small>Tuổi</small><strong>{player.currentAge}</strong></span>
+          <span><small>{ui("player3")}</small><strong>{player.name}</strong></span>
+          <span><small>{ui("position")}</small><strong>{player.position}</strong></span>
+          <span><small>{ui("age")}</small><strong>{player.currentAge}</strong></span>
         </div>
       )}
     >
       <section className="football-ballon-dor-page">
         <header className="football-ballon-dor-page__intro">
-          <span className="football-eyebrow">Kết quả Ballon d&apos;Or</span>
-          <h1>Quả Bóng Vàng</h1>
+          <h1>{ui("ballonDorResults")}</h1>
         </header>
 
         <article className={`football-ballon-dor-page__result${isWinner ? " is-winner" : ""}`}>
           <ResultBanner tone={tone} className="football-ballon-dor-page__banner">{message}</ResultBanner>
           {snapshot && snapshotEntries(snapshot.entries).length > 0 && (
-            <section className="football-ballon-dor-page__ranking" aria-labelledby="ballon-ranking-title">
-              <h2 id="ballon-ranking-title">Danh sách ứng viên</h2>
+            <section className="football-ballon-dor-page__ranking" aria-labelledby="ballon-ranking-title" tabIndex={0}>
+              <h2 id="ballon-ranking-title">{ui("ballonDorRanking")}</h2>
               <ol>
                 {snapshotEntries(snapshot.entries).map((entry) => (
                   <li key={`${String(entry.candidateKey)}-${String(entry.rank)}`} className={entry.isCareerPlayer === true ? "is-player" : undefined}>
                     <strong>{String(entry.rank ?? "—")}</strong>
-                    <span><b>{entry.isCareerPlayer === true ? String(entry.name ?? "Player") : `Số ${getPositionNumber(String(entry.position ?? ""))}`}</b><small>{String(entry.clubName ?? "—")}{entry.isCareerPlayer === true ? ` · ${String(entry.position ?? "—")}` : ""}</small></span>
+                    <span><b>{entry.isCareerPlayer === true ? String(entry.name ?? "Player") : ui("message2", { v0: String(getPositionNumber(String(entry.position ?? ""))) })}</b><small>{String(entry.clubName ?? "—")}{entry.isCareerPlayer === true ? ` · ${String(entry.position ?? "—")}` : ""}</small></span>
                   </li>
                 ))}
               </ol>
             </section>
           )}
           <Link className="football-button football-button--primary football-button--lg" href={`/classic/${gameId}/draft/${slotIndex}`}>
-            Tiếp tục hành trình <ArrowRight aria-hidden="true" size={17} />
+            {ui("continue")} <ArrowRight aria-hidden="true" size={17} />
           </Link>
         </article>
       </section>

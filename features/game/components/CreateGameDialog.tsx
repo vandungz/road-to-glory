@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useRef, useState, useTransition } from "react";
 import { Plus } from "lucide-react";
 import { createGameSession } from "@/features/game/actions/createGameSession";
@@ -8,12 +9,13 @@ import { Button } from "@/components/ui/Button";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 
 const FORMATION_INFO: Record<Formation, { label: string; desc: string }> = {
-  "4-3-3": { label: "4-3-3", desc: "Tấn công mạnh, cánh rộng" },
-  "4-4-2": { label: "4-4-2", desc: "Cân bằng cổ điển" },
-  "3-5-2": { label: "3-5-2", desc: "Kiểm soát tuyến giữa" },
+  "4-3-3": { label: "4-3-3", desc: "formation433" },
+  "4-4-2": { label: "4-4-2", desc: "formation442" },
+  "3-5-2": { label: "3-5-2", desc: "formation352" },
 };
 
 export function CreateGameDialog() {
+  const ui = useTranslations("ui");
   const [isOpen, setIsOpen] = useState(false);
   const [selectedFormation, setSelectedFormation] = useState<Formation>("4-3-3");
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
@@ -48,30 +50,30 @@ export function CreateGameDialog() {
     <>
       <Button id="btn-new-squad" type="button" onClick={openDialog}>
         <Plus aria-hidden="true" size={16} />
-        Tạo đội hình
+        {ui("createSquad")}
       </Button>
 
       <Modal
         open={isOpen}
-        title="Tạo đội hình mới"
+        title={ui("createASquad")}
         onClose={closeDialog}
         size="sm"
         closeOnBackdrop={!isPending}
       >
-        <ModalHeader onClose={closeDialog} closeLabel="Đóng cửa sổ tạo đội hình">
-          Tạo đội hình mới
+        <ModalHeader onClose={closeDialog} closeLabel={ui("closeSquadCreation")}>
+          {ui("createASquad")}
         </ModalHeader>
 
         <form ref={formRef} onSubmit={handleSubmit}>
           <ModalBody>
             <div className="football-form-stack">
               <label className="football-field">
-                <span className="football-field__label">Tên đội hình</span>
+                <span className="football-field__label">{ui("squadName")}</span>
                 <input
                   id="squad-name"
                   name="name"
                   type="text"
-                  placeholder="Tên đội hình của bạn"
+                  placeholder={ui("yourSquadName")}
                   maxLength={50}
                   required
                   disabled={isPending}
@@ -81,7 +83,7 @@ export function CreateGameDialog() {
               </label>
 
               <fieldset className="football-field">
-                <legend className="football-field__label">Sơ đồ chiến thuật</legend>
+                <legend className="football-field__label">{ui("formation")}</legend>
                 <div className="football-formation-list">
                   {FORMATIONS.map((formation) => {
                     const isSelected = selectedFormation === formation;
@@ -100,7 +102,7 @@ export function CreateGameDialog() {
                         />
                         <span>
                           <strong>{FORMATION_INFO[formation].label}</strong>
-                          <small>{FORMATION_INFO[formation].desc}</small>
+                          <small>{ui(FORMATION_INFO[formation].desc)}</small>
                         </span>
                       </label>
                     );
@@ -115,10 +117,10 @@ export function CreateGameDialog() {
 
           <ModalFooter>
             <Button type="button" variant="quiet" onClick={closeDialog} disabled={isPending}>
-              Huỷ
+              {ui("cancel")}
             </Button>
             <Button id="btn-submit-squad" type="submit" loading={isPending}>
-              {isPending ? "Đang tạo" : "Tạo đội hình"}
+              {ui("createSquad")}
             </Button>
           </ModalFooter>
         </form>

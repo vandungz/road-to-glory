@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { Plus } from "lucide-react";
 import { useRouter } from "next/navigation";
 import type { Formation } from "@/types/game";
@@ -27,6 +28,7 @@ function PitchMarkings() {
 }
 
 function SlotButton({ position, state, onClick }: { position: string; state: Exclude<SlotState, "filled">; onClick: () => void }) {
+  const ui = useTranslations("ui");
   const isInteractive = state !== "locked";
   return (
     <button
@@ -34,9 +36,9 @@ function SlotButton({ position, state, onClick }: { position: string; state: Exc
       className={`football-pitch-token football-pitch-token--${state}`}
       onClick={onClick}
       disabled={!isInteractive}
-      aria-label={state === "active" ? `Tiếp tục draft cầu thủ ${position}` : state === "empty" ? `Thêm cầu thủ ${position}` : `Vị trí ${position} chưa có cầu thủ`}
+      aria-label={state === "active" ? ui("resumeDrafting2", { v0: String(position) }) : state === "empty" ? ui("addA", { v0: String(position) }) : ui("slotIsEmpty", { v0: String(position) })}
     >
-      {state === "active" ? <><span>{position}</span><span className="football-pitch-token__status">Đang dở</span></> : state === "empty" ? <><span>{position}</span><span className="football-pitch-token__status"><Plus aria-hidden="true" size={10} />Draft</span></> : <span>{position}</span>}
+      {state === "active" ? <><span>{position}</span><span className="football-pitch-token__status">{ui("inProgress2")}</span></> : state === "empty" ? <><span>{position}</span><span className="football-pitch-token__status"><Plus aria-hidden="true" size={10} />Draft</span></> : <span>{position}</span>}
     </button>
   );
 }
@@ -71,6 +73,7 @@ interface Props {
 }
 
 export function PitchBoard({ gameId, formation, players, status, inProgressSlots = [], draftBasePath = `/${gameId}`, hoveredSlot, onSlotHover, onPlayerClick }: Props) {
+  const ui = useTranslations("ui");
   const router = useRouter();
   const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];
   const playerMap = new Map(players.map((player) => [player.slotIndex, player]));
@@ -85,7 +88,7 @@ export function PitchBoard({ gameId, formation, players, status, inProgressSlots
   }
 
   return (
-    <div className="football-pitch" role="region" aria-label="Sân đấu chiến thuật">
+    <div className="football-pitch" role="region" aria-label={ui("formationPitch")}>
       <PitchMarkings />
       {slots.map((slot) => {
         const player = playerMap.get(slot.index);

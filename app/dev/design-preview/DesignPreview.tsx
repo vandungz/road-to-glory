@@ -26,11 +26,12 @@ export function DesignPreview({ initialTab = TABS[0] }: { initialTab?: string })
   const [feedback, setFeedback] = useState("");
 
   const rejectPreviewPurchase = async () => {
+    await new Promise((resolve) => setTimeout(resolve, 750));
     throw new Error("Dữ liệu thử nghiệm: không thực hiện giao dịch.");
   };
 
   return (
-    <AppShell className="football-squad-board-shell" backHref="/" backLabel="Về game">
+    <AppShell className="football-squad-board-shell" backHref="/" backLabel="home">
       <section aria-label="Kiểm tra thiết kế" style={{ display: "grid", width: "100%", minWidth: 0, gap: 24, paddingBlock: 24 }}>
         <div>
           <h1>Kiểm tra thiết kế</h1>

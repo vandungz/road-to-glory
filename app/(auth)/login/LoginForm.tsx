@@ -1,12 +1,12 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
-import { useAuthMotion } from "@/components/auth/AuthMotionContext";
 import { createClient } from "@/lib/supabase/client";
 import { loginAction, resendSignupAction, signUpAction } from "@/actions/auth.actions";
 
@@ -14,7 +14,7 @@ type Mode = "login" | "register";
 type View = "form" | "confirm-email";
 
 export function LoginForm({ initialError, nextPath = "/" }: { initialError?: string; nextPath?: string }) {
-  const { replayToken } = useAuthMotion();
+  const ui = useTranslations("ui");
   const [mode, setMode] = useState<Mode>("login");
   const [view, setView] = useState<View>("form");
   const [email, setEmail] = useState("");
@@ -66,7 +66,7 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
       setView("confirm-email");
       startCooldown();
     } catch {
-      setError("Không thể kết nối. Vui lòng thử lại.");
+      setError(ui("connectionError"));
     } finally {
       setIsPending(false);
     }
@@ -83,9 +83,9 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
         provider: "google",
         options: { redirectTo: callbackUrl.href },
       });
-      if (authError) setError("Không thể đăng nhập với Google.");
+      if (authError) setError(ui("googleSignInError"));
     } catch {
-      setError("Không thể đăng nhập với Google.");
+      setError(ui("googleSignInError"));
     } finally {
       setIsPending(false);
     }
@@ -99,7 +99,7 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
       if (!result.success) throw new Error(result.error);
       startCooldown();
     } catch {
-      setError("Không thể gửi lại email.");
+      setError(ui("resendError"));
     } finally {
       setIsResending(false);
     }
@@ -108,15 +108,15 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
   if (view === "confirm-email") {
     return (
       <section className="football-auth-panel football-auth-confirm">
-        <div className="football-auth-panel__intro" key={`confirm-${replayToken}`} data-anim>
-          <h2>Kiểm tra email của bạn</h2>
-          <p>Đường dẫn xác nhận đã được gửi tới <strong>{email}</strong>.</p>
+        <div className="football-auth-panel__intro">
+          <h2>{ui("checkYourEmail")}</h2>
+          <p>{ui("weSentAConfirmationLinkTo")} <strong>{email}</strong>.</p>
         </div>
-        {error && <p className="football-auth-message football-auth-message--error" data-anim>{error}</p>}
+        {error && <p className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
         <Button fullWidth variant="outline" onClick={handleResend} disabled={isResending || cooldown > 0} loading={isResending}>
-          {cooldown > 0 ? `Gửi lại sau ${cooldown}s` : "Gửi lại email"}
+          {cooldown > 0 ? ui("resendInS", { v0: String(cooldown) }) : ui("resendEmail")}
         </Button>
-        <button type="button" className="football-text-button" onClick={() => setView("form")}>Quay lại đăng nhập</button>
+        <button type="button" className="football-text-button" onClick={() => setView("form")}>{ui("backToSignIn")}</button>
       </section>
     );
   }
@@ -124,41 +124,41 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
   const isLogin = mode === "login";
   return (
     <section className="football-auth-panel">
-      <div className="football-auth-panel__intro" key={`intro-${mode}-${replayToken}`} data-anim>
-        <h2>{isLogin ? "Tiếp tục sự nghiệp" : "Bắt đầu sự nghiệp"}</h2>
-        <p>{isLogin ? "Đăng nhập để tiếp tục đội hình đã lưu." : "Tạo tài khoản để lưu đội hình của bạn."}</p>
+      <div className="football-auth-panel__intro">
+        <h2>{isLogin ? ui("resumeYourCareer") : ui("startYourCareer")}</h2>
+        <p>{isLogin ? ui("signInToAccessYourSavedSquads") : ui("createAnAccountToSaveYourSquads")}</p>
       </div>
 
-      {initialError === "link_expired" && <p className="football-auth-message football-auth-message--warning">Đường dẫn đã hết hạn. Vui lòng đăng ký lại để nhận đường dẫn mới.</p>}
+      {initialError === "link_expired" && <p className="football-auth-message football-auth-message--warning">{ui("theLinkExpiredSignUpAgainToGetANewOne")}</p>}
 
-      <div className="football-auth-tabs" role="tablist" aria-label="Phương thức xác thực" key={`tabs-${replayToken}`}>
-        <button type="button" role="tab" aria-selected={isLogin} aria-controls="football-auth-form" className={isLogin ? "is-active" : ""} onClick={() => { setMode("login"); setError(null); }}>Đăng nhập</button>
-        <button type="button" role="tab" aria-selected={!isLogin} aria-controls="football-auth-form" className={!isLogin ? "is-active" : ""} onClick={() => { setMode("register"); setError(null); }}>Đăng ký</button>
+      <div className="football-auth-tabs" role="tablist" aria-label={ui("signinOptions")}>
+        <button type="button" role="tab" aria-selected={isLogin} aria-controls="football-auth-form" className={isLogin ? "is-active" : ""} onClick={() => { setMode("login"); setError(null); }}>{ui("signIn")}</button>
+        <button type="button" role="tab" aria-selected={!isLogin} aria-controls="football-auth-form" className={!isLogin ? "is-active" : ""} onClick={() => { setMode("register"); setError(null); }}>{ui("signUp")}</button>
       </div>
 
       <form id="football-auth-form" className="football-auth-form" onSubmit={handleSubmit} role="tabpanel">
-        <div className="football-auth-field" data-anim key={`email-${replayToken}`}>
+        <div className="football-auth-field">
           <label htmlFor="football-email">Email</label>
           <Input id="football-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
         </div>
 
-        <div className="football-auth-field" data-anim key={`password-${replayToken}`}>
+        <div className="football-auth-field">
           <div className="football-auth-field__label-row">
-          <label htmlFor="football-pass">{isLogin ? "Mật khẩu" : "Mật khẩu (ít nhất 8 ký tự)"}</label>
-            {isLogin && <Link href="/auth/reset-password">Quên mật khẩu?</Link>}
+          <label htmlFor="football-pass">{isLogin ? ui("password") : ui("passwordAtLeast8Characters")}</label>
+            {isLogin && <Link href="/auth/reset-password">{ui("forgotPassword")}</Link>}
           </div>
           <div className="football-password-field">
             <Input id="football-pass" type={showPassword ? "text" : "password"} required minLength={isLogin ? 1 : 8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
-            <IconButton type="button" className="football-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? "Ẩn mật khẩu" : "Hiện mật khẩu"}>
+            <IconButton type="button" className="football-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? ui("hidePassword") : ui("showPassword")}>
               {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
             </IconButton>
           </div>
-          {error && <p id="football-auth-error" className="football-auth-message football-auth-message--error" data-anim>{error}</p>}
+          {error && <p id="football-auth-error" className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
         </div>
 
-        <Button type="submit" fullWidth loading={isPending} size="lg" className="football-auth-submit">{isLogin ? "Đăng nhập" : "Tạo tài khoản"}</Button>
-        <div className="football-auth-divider" aria-hidden="true"><span />hoặc<span /></div>
-        <Button type="button" variant="outline" fullWidth className="football-auth-google" onClick={handleGoogleSignIn} disabled={isPending}>Tiếp tục với Google</Button>
+        <Button type="submit" fullWidth loading={isPending} size="lg" className="football-auth-submit">{isLogin ? ui("signIn") : ui("createAccount")}</Button>
+        <div className="football-auth-divider" aria-hidden="true"><span />{ui("or")}<span /></div>
+        <Button type="button" variant="outline" fullWidth className="football-auth-google" onClick={handleGoogleSignIn} disabled={isPending}>{ui("continueWithGoogle")}</Button>
       </form>
     </section>
   );

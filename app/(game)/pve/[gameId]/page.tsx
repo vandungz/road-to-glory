@@ -23,5 +23,5 @@ export default async function PveTournamentPage({ params }: Props) {
   if (!user || !session || session.userId !== user.id || session.status !== "completed" || session.players.length !== 11) notFound();
   const formation = (FORMATIONS as readonly string[]).includes(session.formation) ? session.formation as Formation : "4-3-3";
   const initialState = session.pveTournament && isCurrentPveTournamentState(session.pveTournament.state) ? session.pveTournament.state as PveTournamentState : null;
-  return <AppShell keepGameOpen className="football-pve-tournament-shell" userEmail={user.email} headerIdentityMeta={<span>PvE Tournament</span>}><PveTournamentScreen gameId={gameId} sessionName={session.name} formation={formation} squadRating={session.squadRating} userPlayers={session.players.map((player) => ({ ...player, overall: player.peakOvr }))} initialState={initialState} /></AppShell>;
+  return <AppShell className="football-pve-tournament-shell" headerIdentityMeta={<span>PvE Tournament</span>}><PveTournamentScreen gameId={gameId} sessionName={session.name} formation={formation} squadRating={session.squadRating} userPlayers={session.players.map((player) => ({ ...player, overall: player.peakOvr }))} initialState={initialState} /></AppShell>;
 }

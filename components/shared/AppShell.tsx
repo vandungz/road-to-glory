@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -6,33 +7,36 @@ import { AccountNavigation } from "./AccountNavigation";
 
 interface AppShellProps {
   children: React.ReactNode;
-  userEmail?: string;
+  isAuthenticated?: boolean;
   headerMeta?: React.ReactNode;
   headerIdentityMeta?: React.ReactNode;
   backHref?: string;
-  backLabel?: string;
+  backLabel?: "back" | "home" | "squads" | "career" | "modeSelect" | "setup" | "pve" | "squadBoard";
   className?: string;
-  keepGameOpen?: boolean;
+  showAccountControls?: boolean;
 }
 
 export function AppShell({
   children,
-  userEmail,
+  isAuthenticated = false,
   headerMeta,
   headerIdentityMeta,
   backHref,
-  backLabel = "Quay lại",
+  backLabel = "back",
   className,
-  keepGameOpen,
+  showAccountControls = false,
 }: AppShellProps) {
+  const ui = useTranslations("ui");
+  const common = useTranslations("common");
+  const backText = common(backLabel);
   return (
     <div className={cn("football-app-shell", className)}>
       <header className="football-app-shell__header">
         <div className="football-app-shell__identity">
           {backHref && (
-            <Link className="football-app-shell__back" href={backHref} aria-label={backLabel}>
+            <Link className="football-app-shell__back" href={backHref} aria-label={backText}>
               <ArrowLeft aria-hidden="true" size={16} />
-              <span>{backLabel}</span>
+              <span>{backText}</span>
             </Link>
           )}
           <Link className="football-app-shell__wordmark" href="/">
@@ -45,15 +49,15 @@ export function AppShell({
 
         <div className="football-app-shell__context">
           {headerMeta}
-          <AccountNavigation newTab={keepGameOpen} />
-          {userEmail && <LogoutButton />}
+          {showAccountControls && <AccountNavigation />}
+          {showAccountControls && isAuthenticated && <LogoutButton />}
         </div>
       </header>
 
-      <main className="football-app-shell__main">{children}</main>
+      <main className="football-app-shell__main" data-mount="page">{children}</main>
 
       <footer className="football-app-shell__footer">
-        <span>Football Life © Road to Glory — mùa 2025/26</span>
+        <span>{ui("footballLifeRoadToGlory202526Season")}</span>
       </footer>
     </div>
   );

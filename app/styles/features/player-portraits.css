@@ -32,7 +32,7 @@
   isolation: isolate;
   opacity: 0;
   background: var(--nation-primary, var(--football-ink));
-  transition: opacity 140ms ease-out;
+  transition: opacity var(--football-motion-control) var(--football-motion-ease);
 }
 
 .football-player-portrait__reaction[data-playing="true"] { opacity: 1; }
@@ -94,9 +94,6 @@
 .football-panini-sticker__ovr > strong { font-family: var(--font-headline); font-size: 28px; font-variant-numeric: tabular-nums; }
 .football-panini-sticker__stats em[data-loss="true"] { color: var(--football-negative); }
 
-@media (prefers-reduced-motion: reduce) {
-  .football-player-portrait__reaction { transition: none; }
-}
 
 .football-quick-portrait-identity {
   display: grid;

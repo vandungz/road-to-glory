@@ -47,7 +47,7 @@ input, textarea { caret-color: var(--football-accent-ink); }
   text-transform: none;
   text-decoration: none;
   padding: 12px 24px;
-  transition: background-color 140ms ease, color 140ms ease, transform 140ms ease;
+  transition: background-color var(--football-motion-control) var(--football-motion-ease), color var(--football-motion-control) var(--football-motion-ease), transform var(--football-motion-control) var(--football-motion-ease);
 }
 .football-button--primary, .btn-primary { background: var(--football-accent-ink); color: var(--football-primary-text); }
 .football-button--primary:hover:not(:disabled), .btn-primary:hover:not(:disabled) { background: var(--football-ink); }
@@ -87,11 +87,6 @@ input, textarea { caret-color: var(--football-accent-ink); }
 /* Legacy inline metadata remains present, but follows the shared type hierarchy. */
 [style*="var(--font-stamp)"] { font-family: var(--font-body) !important; letter-spacing: 0 !important; text-transform: none !important; }
 [style*="var(--font-stamp)"]:not(svg *) { font-size: max(12px, .75rem) !important; }
-
-@media (prefers-reduced-motion: reduce) {
-  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
-  [data-anim] { opacity: 1 !important; transform: none !important; }
-}
 
 :is(.football-shop-shell, .football-transfer-shell) .football-app-shell__header { z-index: 20; }
 :is(.football-shop-shell, .football-transfer-shell) .football-app-shell__header,

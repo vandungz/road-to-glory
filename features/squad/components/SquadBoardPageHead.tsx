@@ -1,3 +1,4 @@
+import { useTranslations } from "next-intl";
 import type { Formation } from "@/types/game";
 
 interface Props {
@@ -8,13 +9,14 @@ interface Props {
 }
 
 export function SquadBoardPageHead({ sessionName, formation, playerCount, slotCount }: Props) {
+  const ui = useTranslations("ui");
   return (
     <div className="football-squad-board__head">
       <div className="football-squad-board__title-row">
         <h1>{sessionName}</h1>
         <span>{formation}</span>
       </div>
-      <span>{playerCount}/{slotCount} cầu thủ</span>
+      <span>{playerCount}/{slotCount} {ui("players")}</span>
     </div>
   );
 }

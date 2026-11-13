@@ -195,8 +195,3 @@
   .football-auth-form-column__footer { flex-wrap: wrap; padding-inline: 24px; }
   .football-auth-hero__stat { padding-inline: 16px; }
 }
-
-@media (prefers-reduced-motion: reduce) {
-  .football-homepage [data-anim],
-  .football-auth-stage [data-anim] { animation: none; transform: none; }
-}

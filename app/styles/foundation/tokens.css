@@ -85,9 +85,6 @@
   box-sizing: border-box;
 }
 
-html {
-  scroll-behavior: smooth;
-}
 
 body {
   width: 100%;
@@ -161,7 +158,7 @@ body {
   box-shadow: none;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--football-motion-control) var(--football-motion-ease), color var(--football-motion-control) var(--football-motion-ease);
   user-select: none;
 }
 
@@ -198,7 +195,7 @@ body {
   box-shadow: none;
   cursor: pointer;
   text-decoration: none;
-  transition: background-color 120ms ease, color 120ms ease;
+  transition: background-color var(--football-motion-control) var(--football-motion-ease), color var(--football-motion-control) var(--football-motion-ease);
   user-select: none;
 }
 
@@ -222,7 +219,7 @@ body {
   border-radius: var(--football-radius);
   box-shadow: none;
   overflow: hidden;
-  transition: background-color 120ms ease;
+  transition: background-color var(--football-motion-control) var(--football-motion-ease);
 }
 
 .card-retro:hover {
@@ -244,7 +241,7 @@ body {
   border: 1px solid var(--football-rule-strong);
   border-radius: var(--football-radius);
   outline: none;
-  transition: box-shadow 80ms ease;
+  transition: box-shadow var(--football-motion-control) var(--football-motion-ease);
 }
 
 .input-retro:focus {
@@ -272,7 +269,7 @@ body {
   background-repeat: no-repeat;
   background-position: right 14px center;
   padding-right: 36px;
-  transition: box-shadow 80ms ease;
+  transition: box-shadow var(--football-motion-control) var(--football-motion-ease);
 }
 
 .select-retro:focus {

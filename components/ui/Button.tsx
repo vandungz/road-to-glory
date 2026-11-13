@@ -1,5 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes } from "react";
-import { Loader2 } from "lucide-react";
+import { ActivityLine } from "./ActivityLine";
 import { cn } from "@/lib/utils";
 
 export type ButtonVariant = "primary" | "outline" | "quiet";
@@ -21,6 +21,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
     className,
     children,
     disabled,
+    "aria-busy": ariaBusy,
     ...props
   },
   ref,
@@ -36,10 +37,11 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(function Button
         className,
       )}
       disabled={disabled || loading}
+      aria-busy={loading || ariaBusy}
       {...props}
     >
-      {loading && <Loader2 aria-hidden="true" className="animate-spin" size={16} />}
       {children}
+      {loading && <span className="football-button__pending"><ActivityLine /></span>}
     </button>
   );
 });

@@ -17,12 +17,10 @@ export default async function QuickModePlayPage() {
 
   return (
     <AppShell
-      keepGameOpen
       className="football-quick-mode-shell football-quick-session-shell"
-      userEmail={user?.email}
       headerIdentityMeta="Quick Mode"
       backHref="/quick"
-      backLabel="Về thiết lập"
+      backLabel="setup"
     >
       <QuickModeScreen leagues={leagues} clubs={clubs} isAuthenticated={Boolean(user)} />
     </AppShell>

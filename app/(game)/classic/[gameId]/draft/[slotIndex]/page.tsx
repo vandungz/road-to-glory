@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
 import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
@@ -39,7 +40,8 @@ interface Props {
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { slotIndex } = await params;
-  return { title: `Draft Vị Trí ${slotIndex} | Football Life` };
+  const t = await getTranslations("draft");
+  return { title: t("slotTitle", { slot: slotIndex }) + " | Football Life" };
 }
 
 export default async function ClassicDraftSlotPage({ params, searchParams }: Props) {

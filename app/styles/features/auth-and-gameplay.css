@@ -4,11 +4,6 @@
 .football-text-button, .football-text-link { align-self: center; border: 0; padding: 0; background: transparent; color: var(--football-ink-2); cursor: pointer; font-family: var(--font-body); font-size: 14px; text-decoration: underline; text-underline-offset: 3px; }
 .football-text-link:hover, .football-text-button:hover { color: var(--football-accent-ink); }
 
-@keyframes football-auth-drift { from { transform: scale(1) translate3d(0,0,0); } to { transform: scale(1.07) translate3d(0,-1.2%,0); } }
-@keyframes football-auth-ticker { from { transform: translate3d(0,0,0); } to { transform: translate3d(-50%,0,0); } }
-@keyframes football-auth-rise { from { opacity: 0; transform: translate3d(0,14px,0); } to { opacity: 1; transform: translate3d(0,0,0); } }
-@keyframes football-auth-veil { from { opacity: 0; } to { opacity: 1; } }
-@keyframes football-auth-shake { 0%,100% { transform: translate3d(0,0,0); } 25% { transform: translate3d(-3px,0,0); } 75% { transform: translate3d(3px,0,0); } }
 
 .football-result-banner { width: min(100%, 520px); border: 1px solid var(--football-rule-strong); border-radius: var(--football-radius); padding: 12px 16px; background: var(--football-sunken); color: var(--football-ink); font-family: var(--font-headline); font-size: 18px; font-weight: 600; text-align: center; text-transform: none; }
 .football-result-banner--positive { border-color: var(--football-positive); color: var(--football-positive); }

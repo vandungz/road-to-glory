@@ -1,5 +1,6 @@
 "use server";
 
+import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
 import { z } from "zod/v4";
 import { prisma } from "@/lib/prisma";
@@ -30,7 +31,10 @@ export async function manageSquadPlayerAction(input: unknown): Promise<ManageSqu
     where: { id: playerId, gameSessionId: gameId, isRetired: true, slotIndex: { gte: 0, lte: 10 } },
     select: { id: true, slotIndex: true },
   });
-  if (!player) return { success: false, error: "Không tìm thấy cầu thủ trong đội hình này." };
+  if (!player) {
+    const ui = await getTranslations("ui");
+    return { success: false, error: ui("squadPlayerMissing") };
+  }
 
   await prisma.$transaction([
     prisma.pveTournament.deleteMany({ where: { gameSessionId: gameId, userId: owner.id } }),

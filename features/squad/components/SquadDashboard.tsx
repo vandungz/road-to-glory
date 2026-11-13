@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { PlayerCareerDialog } from "@/features/player/components/PlayerCareerDialog";
@@ -34,6 +35,7 @@ export function SquadDashboard({
   inProgressSlots = [],
   draftBasePath = `/${gameId}`,
 }: SquadDashboardProps) {
+  const ui = useTranslations("ui");
   const router = useRouter();
   const [selectedPlayer, setSelectedPlayer] = useState<ClientSafePlayer | null>(null);
   const [hoveredSlot, setHoveredSlot] = useState<number | null>(null);
@@ -83,7 +85,7 @@ export function SquadDashboard({
             squadOvr={displaySquadOvr}
             draftAction={status !== "completed" && nextDraftSlot && startingXI.length < 11 && (
               <button type="button" className="football-button football-button--primary" onClick={() => draftSlot(nextDraftSlot.index)}>
-                {activeSlot ? "Tiếp tục draft" : "Draft"} {nextDraftSlot.position}
+                {activeSlot ? ui("resumeDraft") : "Draft"} {nextDraftSlot.position}
               </button>
             )}
           />

@@ -12,8 +12,8 @@ export default async function LobbyPage() {
 
   return (
     <AppShell
-      className="football-homepage-shell"
-      userEmail={user?.email}
+      className="football-homepage-shell" showAccountControls
+      isAuthenticated={Boolean(user)}
     >
       <Homepage sessions={sessions} isAuthenticated={Boolean(user)} />
     </AppShell>

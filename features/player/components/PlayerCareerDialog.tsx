@@ -1,5 +1,7 @@
 "use client";
 
+import { useAwardCopy } from "@/features/wheel/components/useAwardCopy";
+import { useTranslations } from "next-intl";
 import React, { useMemo, useState, useTransition } from "react";
 import { RotateCcw, Trash2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
@@ -39,6 +41,8 @@ interface SeasonRow {
 }
 
 export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage = false }: PlayerCareerDialogProps) {
+  const ui = useTranslations("ui");
+  const awardCopy = useAwardCopy();
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -79,7 +83,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
     return knownOvr.length > 0 ? Math.min(...knownOvr) : player?.peakOvr ?? 0;
   }, [statsTimeline, debutAge, retireAge, player?.peakOvr]);
 
-  const finalClub = clubStints.at(-1)?.clubName ?? "Tự do";
+  const finalClub = clubStints.at(-1)?.clubName ?? ui("freeAgent");
   const honours = useMemo(
     () => getHonourRows(player?.achievements, player?.seasonHistory, player?.honours),
     [player?.achievements, player?.seasonHistory, player?.honours],
@@ -91,9 +95,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
 
   function managePlayer(mode: "replace" | "delete") {
     if (!player || !gameId) return;
-    const message = mode === "replace"
-      ? `Thay ${player.name}? Hồ sơ sự nghiệp và kết quả PvE hiện tại sẽ bị xóa để mở lại vị trí này.`
-      : `Xóa ${player.name} khỏi đội hình? Hồ sơ sự nghiệp và kết quả PvE hiện tại sẽ bị xóa. Hành động này không thể hoàn tác.`;
+    const message = ui(mode === "replace" ? "replacePlayerConfirmation" : "removePlayerConfirmation", { name: player.name });
     if (!window.confirm(message)) return;
     setActionError(null);
     startTransition(async () => {
@@ -107,7 +109,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
         if (mode === "replace") router.push(`/classic/${gameId}/draft/${result.slotIndex}`);
         else router.refresh();
       } catch {
-        setActionError("Không thể cập nhật đội hình. Vui lòng thử lại.");
+        setActionError(ui("squadUpdateError"));
       }
     });
   }
@@ -160,7 +162,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
   return (
     <Modal
       open={isOpen}
-      title={`Hồ sơ sự nghiệp của ${player.name}`}
+      title={ui("sCareerRecord", { v0: String(player.name) })}
       onClose={onClose}
       className="football-career-modal"
       mobileSheet={false}
@@ -171,49 +173,49 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
           <PlayerStickerCard player={player} finalClub={finalClub} debutAge={debutAge} retireAge={retireAge} careerLength={careerLength} />
 
           {canManage && gameId && <section className="football-career-dialog__management" aria-labelledby="squad-management-title">
-            <span className="football-career-dialog__eyebrow">Quản lý đội hình</span>
-            <h3 id="squad-management-title">Cập nhật vị trí này</h3>
-            <p>Thay cầu thủ sẽ mở lại đúng vị trí. Kết quả PvE cũ sẽ được làm mới theo đội hình mới.</p>
+            <span className="football-career-dialog__eyebrow">{ui("manageSquad")}</span>
+            <h3 id="squad-management-title">{ui("manageThisSlot")}</h3>
+            <p>{ui("replacingThePlayerReopensThisSlotAndResetsPveResultsForThisSquad")}</p>
             <div className="football-career-dialog__management-actions">
-              <Button variant="outline" size="sm" onClick={() => managePlayer("replace")} disabled={isPending} loading={isPending}><RotateCcw aria-hidden="true" size={14} /> Thay cầu thủ</Button>
-              <Button variant="quiet" size="sm" className="football-career-dialog__danger-button" onClick={() => managePlayer("delete")} disabled={isPending}><Trash2 aria-hidden="true" size={14} /> Xóa khỏi đội hình</Button>
+              <Button variant="outline" size="sm" onClick={() => managePlayer("replace")} disabled={isPending} loading={isPending}><RotateCcw aria-hidden="true" size={14} /> {ui("replacePlayer")}</Button>
+              <Button variant="quiet" size="sm" className="football-career-dialog__danger-button" onClick={() => managePlayer("delete")} disabled={isPending}><Trash2 aria-hidden="true" size={14} /> {ui("removeFromSquad")}</Button>
             </div>
             {actionError && <p className="football-career-dialog__action-error" role="alert">{actionError}</p>}
           </section>}
 
           <section className="football-career-dialog__section" aria-labelledby="career-total-title">
-            <h3 id="career-total-title">Trọn đời sự nghiệp</h3>
-            <div className="football-career-dialog__metric"><span>Ra sân</span><strong>{summaryStats.apps}</strong></div>
-            <div className="football-career-dialog__metric"><span>Bàn thắng</span><strong>{summaryStats.goals}</strong></div>
-            <div className="football-career-dialog__metric"><span>Kiến tạo</span><strong>{summaryStats.assists}</strong></div>
-            <div className="football-career-dialog__metric"><span>Phong độ trung bình</span><strong className="is-positive">{summaryStats.avgRating}</strong></div>
+            <h3 id="career-total-title">{ui("careerTotals2")}</h3>
+            <div className="football-career-dialog__metric"><span>{ui("appearances2")}</span><strong>{summaryStats.apps}</strong></div>
+            <div className="football-career-dialog__metric"><span>{ui("goals2")}</span><strong>{summaryStats.goals}</strong></div>
+            <div className="football-career-dialog__metric"><span>{ui("assists2")}</span><strong>{summaryStats.assists}</strong></div>
+            <div className="football-career-dialog__metric"><span>{ui("averageMatchRating")}</span><strong className="is-positive">{summaryStats.avgRating}</strong></div>
           </section>
 
           <section className="football-career-dialog__section" aria-labelledby="club-honours-title">
-            <h3 id="club-honours-title">Danh hiệu CLB</h3>
-            {clubHonours.filter((honour) => honour.result === "winner").length === 0 ? <p className="football-career-dialog__empty">Chưa đạt danh hiệu CLB nào</p> : clubHonours.filter((honour) => honour.result === "winner").map((honour) => (
+            <h3 id="club-honours-title">{ui("clubHonours")}</h3>
+            {clubHonours.filter((honour) => honour.result === "winner").length === 0 ? <p className="football-career-dialog__empty">{ui("noClubHonours")}</p> : clubHonours.filter((honour) => honour.result === "winner").map((honour) => (
               <div className="football-career-dialog__metric" key={`club:${honour.label}`}>
-                <span>{honour.label}</span>
+                <span>{awardCopy(honour.label)}</span>
                 <strong>{honour.count}</strong>
               </div>
             ))}
             {clubRunnerUps.length > 0 && <>
-              <h3 className="football-career-dialog__subheading">Á quân / về nhì</h3>
-              {clubRunnerUps.map((honour) => <div className="football-career-dialog__metric" key={`${honour.label}:runner-up`}><span>{honour.label}</span><strong>{honour.count}</strong></div>)}
+              <h3 className="football-career-dialog__subheading">{ui("runnerupFinishes")}</h3>
+              {clubRunnerUps.map((honour) => <div className="football-career-dialog__metric" key={`${honour.label}:runner-up`}><span>{awardCopy(honour.label)}</span><strong>{honour.count}</strong></div>)}
             </>}
           </section>
 
           <section className="football-career-dialog__section" aria-labelledby="individual-honours-title">
-            <h3 id="individual-honours-title">Danh hiệu cá nhân</h3>
-            {individualHonours.filter((honour) => honour.result === "winner").length === 0 ? <p className="football-career-dialog__empty">Chưa đạt danh hiệu cá nhân nào</p> : individualHonours.filter((honour) => honour.result === "winner").map((honour) => (
+            <h3 id="individual-honours-title">{ui("individualAwards")}</h3>
+            {individualHonours.filter((honour) => honour.result === "winner").length === 0 ? <p className="football-career-dialog__empty">{ui("noIndividualAwards")}</p> : individualHonours.filter((honour) => honour.result === "winner").map((honour) => (
               <div className="football-career-dialog__metric" key={`individual:${honour.label}`}>
-                <span className={honour.accent ? "is-honour" : undefined}>{honour.label}</span>
+                <span className={honour.accent ? "is-honour" : undefined}>{awardCopy(honour.label)}</span>
                 <strong className={honour.accent ? "is-honour" : undefined}>{honour.count}</strong>
               </div>
             ))}
             {individualRunnerUps.length > 0 && <>
-              <h3 className="football-career-dialog__subheading">Á quân / về nhì</h3>
-              {individualRunnerUps.map((honour) => <div className="football-career-dialog__metric" key={`${honour.label}:runner-up`}><span>{honour.label}</span><strong>{honour.count}</strong></div>)}
+              <h3 className="football-career-dialog__subheading">{ui("runnerupFinishes")}</h3>
+              {individualRunnerUps.map((honour) => <div className="football-career-dialog__metric" key={`${honour.label}:runner-up`}><span>{awardCopy(honour.label)}</span><strong>{honour.count}</strong></div>)}
             </>}
           </section>
         </aside>
@@ -221,34 +223,34 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
         <main className="football-career-dialog__main">
           <header className="football-career-dialog__heading">
             <div>
-              <span className="football-career-dialog__eyebrow">Hồ sơ lưu trữ · vị trí {player.position} · đội hình {finalClub}</span>
-              <h2>Tiến trình sự nghiệp</h2>
+              <span className="football-career-dialog__eyebrow">{ui("careerArchivePosition")} {player.position} {ui("squad")} {finalClub}</span>
+              <h2>{ui("careerProgress")}</h2>
             </div>
-            <button type="button" className="football-career-dialog__close" onClick={onClose} aria-label="Đóng hồ sơ sự nghiệp"><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
+            <button type="button" className="football-career-dialog__close" onClick={onClose} aria-label={ui("closeCareerRecord")}><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
           </header>
 
           <section className="football-career-dialog__chart" aria-labelledby="ovr-chart-title">
-            <div className="football-career-dialog__section-heading"><h3 id="ovr-chart-title">Đường phát triển OVR</h3><span>thấp nhất {minOvr} · đỉnh cao {player.peakOvr}</span></div>
+            <div className="football-career-dialog__section-heading"><h3 id="ovr-chart-title">{ui("ovrHistory")}</h3><span>{ui("lowest")} {minOvr} {ui("peak")} {player.peakOvr}</span></div>
             <PlayerOvrChart statsTimeline={statsTimeline} debutAge={debutAge} retireAge={retireAge} />
           </section>
 
           <section className="football-career-dialog__seasons" aria-labelledby="season-stats-title">
-            <h3 id="season-stats-title">Thống kê từng mùa</h3>
+            <h3 id="season-stats-title">{ui("seasonbyseasonStats")}</h3>
             <div className="football-career-dialog__table-wrap">
               <table>
-                <thead><tr><th>Tuổi</th><th>Câu lạc bộ</th><th>Giải</th><th>OVR</th><th>Trận</th><th>Bàn</th><th>K.tạo</th><th>Phong độ</th></tr></thead>
+                <thead><tr><th>{ui("age")}</th><th>{ui("club")}</th><th>{ui("league")}</th><th>OVR</th><th>{ui("apps2")}</th><th>{ui("goals3")}</th><th>{ui("assists3")}</th><th>{ui("rating")}</th></tr></thead>
                 <tbody>
-                  {seasonRows.length === 0 ? <tr><td className="football-career-dialog__empty" colSpan={8}>Chưa có dữ liệu mùa giải.</td></tr> : seasonRows.map((row) => (
+                  {seasonRows.length === 0 ? <tr><td className="football-career-dialog__empty" colSpan={8}>{ui("noSeasonDataYet")}</td></tr> : seasonRows.map((row) => (
                     <React.Fragment key={row.age}>
                       <tr>
                         <td className={row.isDebut ? "is-debut" : undefined}>{row.age}</td>
-                        <td>{row.clubName} <small>{row.isDebut ? "ra mắt" : row.isTransfer ? "chuyển nhượng" : row.isFinal ? "mùa cuối" : ""}</small></td>
+                        <td>{row.clubName} <small>{row.isDebut ? ui("debut") : row.isTransfer ? ui("transfer") : row.isFinal ? ui("finalSeason2") : ""}</small></td>
                         <td>{row.leagueName}</td>
                         <td className={row.snap.ovr === player.peakOvr ? "is-peak" : undefined}>{row.snap.ovr ?? "—"}</td>
                         <td>{row.snap.apps ?? "—"}</td><td>{row.snap.goals ?? "—"}</td><td>{row.snap.assists ?? "—"}</td>
                         <td className={(row.snap.matchRating ?? 0) >= 7.8 ? "is-positive" : undefined}>{row.snap.matchRating != null ? row.snap.matchRating.toFixed(2) : "—"}</td>
                       </tr>
-                      {row.awards.length > 0 && <tr className="football-career-dialog__award-row"><td colSpan={8}>{row.awards.map((award) => award.label).join(" · ")}</td></tr>}
+                      {row.awards.length > 0 && <tr className="football-career-dialog__award-row"><td colSpan={8}>{row.awards.map((award) => awardCopy(award.label)).join(" · ")}</td></tr>}
                     </React.Fragment>
                   ))}
                 </tbody>

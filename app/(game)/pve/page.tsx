@@ -26,5 +26,5 @@ export default async function PveLobbyPage() {
     const tournamentStatus = isCurrentPveTournamentState(state) && ([...PVE_ROUNDS, "champion", "eliminated"] as string[]).includes(state.status) ? state.status as PveStatus : null;
     return { gameId: session.id, name: session.name, formation, squadRating: session.squadRating, playerCount: session.players.length, tournamentStatus };
   });
-  return <AppShell className="football-pve-lobby-shell" userEmail={user.email} headerIdentityMeta={<span>PvE Tournament</span>}><PveLobby sessions={cards} /></AppShell>;
+  return <AppShell className="football-pve-lobby-shell" headerIdentityMeta={<span>PvE Tournament</span>}><PveLobby sessions={cards} /></AppShell>;
 }

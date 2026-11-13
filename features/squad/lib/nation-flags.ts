@@ -27,3 +27,18 @@ export function getFlagUrl(nationality?: string): string | undefined {
   const code = FLAG_CODES[nationality.replace(/\s+/g, "")];
   return code ? `https://flagcdn.com/w320/${code}.png` : undefined;
 }
+
+// Some archived national-team journeys store opponent names in Vietnamese.
+const vietnameseNames = new Intl.DisplayNames("vi", { type: "region" });
+const englishNamesByVietnameseName = new Map(
+  Object.entries(FLAG_CODES).filter(([, code]) => code.length === 2).map(([name, code]) => [
+    vietnameseNames.of(code.toUpperCase())?.toLocaleLowerCase("vi"),
+    name,
+  ]),
+);
+
+export function resolveArchivedNationName(name: string): string {
+  const knownName = englishNamesByVietnameseName.get(name.toLocaleLowerCase("vi"));
+  if (!knownName) return name;
+  return knownName.replace(/([a-z])([A-Z])/g, "$1 $2");
+}

@@ -17,8 +17,7 @@
   border-radius: var(--football-radius-control);
 }
 
-.football-account-nav a:hover,
-.football-account-nav a[aria-current="page"] {
+.football-account-nav a:hover {
   background: var(--football-sunken);
   color: var(--football-accent-ink);
 }
@@ -79,13 +78,16 @@
 .football-account-options input { width: 18px; height: 18px; accent-color: var(--football-accent-ink); }
 .football-account-options .football-account-note { margin: 16px 0 0; }
 
-html[data-game-reduced-motion] *,
-html[data-game-reduced-motion] *::before,
-html[data-game-reduced-motion] *::after {
-  animation-duration: .01ms !important;
-  animation-iteration-count: 1 !important;
-  transition-duration: .01ms !important;
-  scroll-behavior: auto !important;
+.football-settings-sheet {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  gap: 32px;
 }
 
-html[data-game-reduced-motion] [data-anim] { opacity: 1 !important; transform: none !important; }
+.football-settings-sheet > .football-account-options + .football-account-options {
+  border-inline-start: 1px solid var(--football-rule);
+  padding-inline-start: 32px;
+}
+
+.football-account-options label:active { color: var(--football-accent-ink); }
+.football-account-options:disabled label { color: var(--football-ink-2); cursor: default; }

@@ -1,3 +1,5 @@
+import { resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+
 export const PORTRAIT_IDS = ["p01", "p02", "p03", "p04", "p05", "p06"] as const;
 export type PortraitId = (typeof PORTRAIT_IDS)[number];
 export type PortraitPose = "idle" | "celebrate" | "disappointed";
@@ -10,7 +12,7 @@ export function isPortraitId(value: unknown): value is PortraitId {
 }
 
 export function randomPortraitId(): PortraitId {
-  return PORTRAIT_IDS[Math.floor(Math.random() * PORTRAIT_IDS.length)];
+  return PORTRAIT_IDS[resolveRandomInt(0, PORTRAIT_IDS.length - 1)];
 }
 
 export function resolveSavedPortraitId(portraitId: string | null | undefined, playerId: string): PortraitId {

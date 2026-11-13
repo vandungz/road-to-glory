@@ -1,3 +1,4 @@
+import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { AppShell } from "@/components/shared/AppShell";
@@ -13,11 +14,13 @@ interface Props {
   searchParams: Promise<{ season?: string; return?: string }>;
 }
 
-export function generateMetadata(): Metadata {
-  return { title: "Cửa hàng | Football Life" };
+export async function generateMetadata(): Promise<Metadata> {
+  const ui = await getTranslations("ui");
+  return { title: ui("shop") + " | Football Life" };
 }
 
 export default async function ClassicShopPage({ params, searchParams }: Props) {
+  const ui = await getTranslations("ui");
   const { gameId, slotIndex: slotIndexParam } = await params;
   const { season, return: returnAction } = await searchParams;
   const slotIndex = Number(slotIndexParam);
@@ -71,22 +74,21 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
 
   return (
     <AppShell
-      keepGameOpen
       className="football-shop-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
-      backLabel="Sự nghiệp"
+      backLabel="career"
       headerMeta={(
         <div className="football-shop-shell__header-meta">
           <span>
-            <small>Cầu thủ</small>
+            <small>{ui("player3")}</small>
             <strong>{player.name}</strong>
           </span>
           <span>
-            <small>Vị trí</small>
+            <small>{ui("position")}</small>
             <strong>{player.position}</strong>
           </span>
           <span>
-            <small>Số dư ví</small>
+            <small>{ui("walletBalance")}</small>
             <strong className="football-shop-shell__wallet">{formatEuroThousands(player.walletBalance)}</strong>
           </span>
         </div>
