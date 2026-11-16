@@ -1,0 +1,80 @@
+/* Hallmark · shape: Long Document · genre: editorial · theme: Football Life · job: read · signature: anchored policy sections · v2.0.0 */
+/* Hallmark · pre-emit critique: legal copy needs a stable reading width and a contents list that works without JavaScript. */
+.football-policy {
+  min-height: 100svh;
+  padding-inline: clamp(20px, 5vw, 64px);
+  background: var(--football-paper);
+  color: var(--football-ink);
+}
+
+.football-policy__header,
+.football-policy__main,
+.football-policy__footer {
+  max-width: 1100px;
+  margin-inline: auto;
+}
+
+.football-policy__header,
+.football-policy__footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 24px;
+  padding-block: 12px;
+}
+
+.football-policy__header { border-bottom: 1px solid var(--football-rule-strong); }
+.football-policy__footer { border-top: 1px solid var(--football-rule-strong); }
+.football-policy__main { padding-block: clamp(32px, 6vw, 72px); }
+.football-policy h1,
+.football-policy h2 {
+  min-width: 0;
+  overflow-wrap: break-word;
+  text-wrap: balance;
+  font-family: var(--font-headline);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.football-policy h1 { margin: 0 0 16px; font-size: clamp(36px, 6vw, 64px); }
+.football-policy h2 { margin: 0 0 16px; font-size: clamp(24px, 3vw, 34px); }
+.football-policy p { max-width: 68ch; margin: 0 0 16px; font-size: 16px; line-height: 1.7; }
+.football-policy .football-policy__draft {
+  padding: 12px 16px;
+  border-inline-start: 2px solid var(--football-accent-ink);
+  background: var(--football-sunken);
+  color: var(--football-ink-2);
+  font-size: 14px;
+}
+
+.football-policy__layout {
+  display: grid;
+  grid-template-columns: minmax(0, 235px) minmax(0, 1fr);
+  gap: 24px clamp(24px, 5vw, 64px);
+  align-items: start;
+  margin-top: 40px;
+}
+
+.football-policy__layout nav { position: sticky; top: 24px; }
+.football-policy__layout ul { margin: 0; padding: 0; list-style: none; }
+.football-policy__layout section { padding-block: 24px 12px; border-top: 1px solid var(--football-rule-strong); }
+.football-policy a { text-underline-offset: 4px; }
+.football-policy__layout a,
+.football-policy__footer a {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  text-decoration: underline;
+  font-size: 14px;
+}
+
+.football-policy a:hover { color: var(--football-accent-ink); }
+.football-policy a:active { color: var(--football-accent-ink); text-decoration-thickness: 2px; }
+.football-policy button:active { background: var(--football-sunken); }
+.football-policy :is(a, button):focus-visible { outline: var(--football-outline); outline-offset: 3px; }
+
+@media (width < 740px) {
+  .football-policy__layout { grid-template-columns: minmax(0, 1fr); }
+  .football-policy__layout nav { position: static; }
+}

@@ -1,0 +1,134 @@
+{
+  "switchLanguage": "Switch to Vietnamese",
+  "contents": "Contents",
+  "home": "Back to Road to Glory",
+  "draft": "Review draft. The operator’s legal details and the effective date are pending confirmation.",
+  "privacy": {
+    "title": "Privacy Policy",
+    "intro": "How Road to Glory handles information when you visit, play or use an account.",
+    "sections": [
+      {
+        "id": "account",
+        "title": "Accounts and sign-in",
+        "paragraphs": [
+          "If you sign up by email, we use your email address to confirm your account and send password reset links. Supabase handles sign-in and stores your password in a form that cannot be read directly.",
+          "If you sign in with Google, we use the information Google shares with your permission to create or link your account. Your game profile uses your email and display name, if provided."
+        ]
+      },
+      {
+        "id": "progress",
+        "title": "What does the game save?",
+        "paragraphs": [
+          "Classic and PvE save progress to your account, including squads, player names you enter, season results and career choices. Player age and nationality describe your character in the game.",
+          "Quick Mode saves your run in the browser tab you’re using. The game uses cookies and browser storage to keep you signed in, remember your language and reduced-motion preferences, and show your player’s reaction after a transfer.",
+          "Clearing site data may remove your Quick Mode run and preferences in that browser. Classic and PvE progress stays with your account."
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Security and abuse prevention",
+        "paragraphs": [
+          "To prevent abuse, the game may use your IP address, email address or account ID to block too many requests made in a short time. Upstash provides this service."
+        ]
+      },
+      {
+        "id": "analytics",
+        "title": "Visit and play statistics",
+        "paragraphs": [
+          "When analytics is enabled, we use Vercel Web Analytics to count visits to the landing page, video plays, and Quick Mode starts and completions. The game uses browser storage to tell whether you came to Quick Mode from the landing page or opened it directly, and to avoid counting a start twice.",
+          "The game groups browser window widths and sends only the main part of the page address with its statistics. Vercel may also use technical information from your visit to produce statistics."
+        ]
+      },
+      {
+        "id": "storage",
+        "title": "Where and for how long is data kept?",
+        "paragraphs": [
+          "We use Supabase to store account information and saved games. We still need to confirm where data is stored, whether it is sent abroad and how long we keep saved games, operating logs and backups."
+        ]
+      },
+      {
+        "id": "rights",
+        "title": "Rights and data requests",
+        "paragraphs": [
+          "You can change your display name in your profile. To ask about the information we hold or request to see, copy, correct or delete it, use the email in the Contact section. Describe your request and include your account email if you have one. Keep your password and verification codes private.",
+          "Depending on the law that applies, you may also be able to ask us to limit how we use your information, object to its use or complain to the relevant authority. If the law requires us to ask for your permission for a particular purpose, we must ask separately for that purpose. You can withdraw permission you have given. We may need to verify your identity to handle a request."
+        ]
+      },
+      {
+        "id": "children",
+        "title": "Children’s data",
+        "paragraphs": [
+          "Parents and guardians can use the email below to ask a question or make a request about a child’s data. Share only the details needed to describe the request."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Contact",
+        "paragraphs": [
+          "Use the email below for privacy questions, data requests or security reports. We use Gmail to receive and reply to messages."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Terms of Service",
+    "intro": "The conditions for using Road to Glory, how saves work and the rules for play.",
+    "sections": [
+      {
+        "id": "service",
+        "title": "Game and scope",
+        "paragraphs": [
+          "Road to Glory is a free, independent, fan-made football career simulation for the community. Weighted wheels generate simulated outcomes.",
+          "If we accept contributions in the future, they will be voluntary and will support the game's development and updates. You can play for free whether or not you contribute. Contributions do not buy in-game items, features or advantages."
+        ]
+      },
+      {
+        "id": "access",
+        "title": "Accounts and age eligibility",
+        "paragraphs": [
+          "You can play Quick Mode without an account. Classic and PvE require sign-in to save progress. Keep your sign-in details private.",
+          "Age eligibility and parent or guardian requirements are pending confirmation by release location and applicable game classification."
+        ]
+      },
+      {
+        "id": "rules",
+        "title": "Rules of use",
+        "paragraphs": [
+          "Access only accounts and data you are authorized to use. Do not interfere with the system, disrupt the service or use automation to bypass limits or manipulate results.",
+          "When naming a squad or player, avoid other people’s personal information and content that infringes third-party rights."
+        ]
+      },
+      {
+        "id": "virtual-items",
+        "title": "In-game values",
+        "paragraphs": [
+          "Wages, transfer fees, budgets and points are simulated game values. They are used for play and do not represent real money or prizes."
+        ]
+      },
+      {
+        "id": "content",
+        "title": "Content and ownership",
+        "paragraphs": [
+          "Road to Glory is unaffiliated with and does not represent FIFA, Electronic Arts (EA SPORTS FC), or any football association, league or club named in the game. None of these organizations sponsors, funds or endorses the project.",
+          "Club names, competition names and related information are used in the simulation. Game content and results are not official information from those organizations. Playing the game does not transfer ownership of its software, artwork or content. Rights in third-party names, marks and materials remain with the relevant rights holders."
+        ]
+      },
+      {
+        "id": "availability",
+        "title": "Progress and availability",
+        "paragraphs": [
+          "Quick Mode saves progress in the tab’s browser session. Closing the tab or clearing browser storage may remove the run. Classic and PvE save progress under the account.",
+          "Maintenance or incidents may interrupt access. If you have trouble accessing the game or lose progress saved on the server, use the contact details below."
+        ]
+      },
+      {
+        "id": "complaints",
+        "title": "Complaints and legal rights",
+        "paragraphs": [
+          "You can email us for support or to make a complaint. Describe what happened, when it happened and which game mode was affected.",
+          "You retain your mandatory rights under applicable law, including the right to seek a remedy, complain to a competent authority or bring legal proceedings where provided by law."
+        ]
+      }
+    ]
+  }
+}

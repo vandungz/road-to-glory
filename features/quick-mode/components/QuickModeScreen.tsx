@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { useEffect, useRef } from "react";
 import Link from "next/link";
 import { RefreshCw, RotateCw } from "lucide-react";
 import { RouteLoading } from "@/components/ui/States";
@@ -8,6 +9,7 @@ import { Button } from "@/components/ui/Button";
 import { SpinnerWheel } from "@/features/wheel/components/SpinnerWheel";
 import { NationFlag } from "@/components/shared/NationFlag";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
+import { trackGameEntry } from "@/features/game/lib/entry-analytics";
 import { useQuickMode } from "../hooks/useQuickMode";
 import type { QuickClubOption, QuickLeagueOption, QuickPlayer, QuickStatKey } from "../types";
 
@@ -42,6 +44,18 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
   const t = useTranslations("quick");
   const quick = useQuickMode({ leagues, clubs });
   const { state, activeWheel } = quick;
+  const seenActiveRun = useRef(false);
+
+  useEffect(() => {
+    if (!quick.hydrated || !state.player.name.trim() || isAuthenticated) return;
+    if (state.phase !== "complete") {
+      if (!seenActiveRun.current && state.phase === "setup" && state.setupStep === 0) trackGameEntry("quick_start");
+      seenActiveRun.current = true;
+    } else if (seenActiveRun.current) {
+      seenActiveRun.current = false;
+      trackGameEntry("quick_complete");
+    }
+  }, [isAuthenticated, quick.hydrated, state.phase, state.player.name, state.setupStep]);
 
   if (!quick.hydrated) return <RouteLoading title="Quick Mode" label={ui("openingYourRun")} layout="quick" />;
   if (state.phase === "complete") return <QuickSummary quick={quick} isAuthenticated={isAuthenticated} />;
@@ -89,7 +103,10 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
         <div className="football-quick-play__controls">
           <div className="football-quick-play__wheel">
             {activeWheel && hasOptions
-              ? <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={quick.completeSpin}
+              ? <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={() => {
+                  quick.completeSpin();
+                  if (!isAuthenticated && activeWheel.key === "debut-age") trackGameEntry("quick_first_spin");
+                }}
                   idleLabel={null} stakes={state.phase === "finale" ? "high" : "low"}
                   items={activeWheel.items.map((item) => ({
                     label: activeWheel.key === "improvement-stat" ? item.label ?? valueLabel(item.value, t("yes"), t("no")) : valueLabel(item.value, t("yes"), t("no")),

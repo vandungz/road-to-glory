@@ -8,8 +8,11 @@ import "./styles/foundation/filters.css";
 import "./styles/features/contract-negotiation.css";
 import "./styles/features/player-portraits.css";
 import "./styles/features/account.css";
+import "./styles/features/guest-landing.css";
+import "./styles/features/policy.css";
 import { AppProviders } from "./providers";
 import { DesktopNotice } from "@/components/shared/DesktopNotice";
+import { GameEntryAnalytics } from "@/features/game/components/GameEntryAnalytics";
 
 const oswald = Oswald({
   subsets: ["latin"],
@@ -40,10 +43,11 @@ export default async function RootLayout({
     <html lang={locale} suppressHydrationWarning className={`${oswald.variable} ${bodyFont.variable}`}>
       <body className="antialiased">
         <NextIntlClientProvider>
-          <DesktopNotice />
+          {process.env.NODE_ENV === "production" && process.env.NEXT_PUBLIC_GAME_ANALYTICS === "1" && <GameEntryAnalytics />}
           <div className="football-desktop-content">
             <AppProviders>{children}</AppProviders>
           </div>
+          <DesktopNotice />
         </NextIntlClientProvider>
       </body>
     </html>

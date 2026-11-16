@@ -1,0 +1,134 @@
+{
+  "switchLanguage": "Chuyển sang tiếng Anh",
+  "contents": "Mục lục",
+  "home": "Về Road to Glory",
+  "draft": "Bản dự thảo. Thông tin pháp lý về bên vận hành và ngày hiệu lực đang chờ xác nhận.",
+  "privacy": {
+    "title": "Chính sách quyền riêng tư",
+    "intro": "Cách Road to Glory xử lý dữ liệu khi bạn truy cập, chơi hoặc dùng tài khoản.",
+    "sections": [
+      {
+        "id": "account",
+        "title": "Tài khoản và đăng nhập",
+        "paragraphs": [
+          "Khi đăng ký bằng email, chúng tôi dùng địa chỉ email của bạn để xác nhận tài khoản và gửi liên kết đặt lại mật khẩu. Supabase xử lý thông tin đăng nhập và lưu mật khẩu dưới dạng không đọc được trực tiếp.",
+          "Nếu đăng nhập bằng Google, chúng tôi dùng thông tin Google chia sẻ theo quyền bạn cấp để tạo hoặc liên kết tài khoản. Hồ sơ trong game dùng email và tên hiển thị nếu có."
+        ]
+      },
+      {
+        "id": "progress",
+        "title": "Game lưu gì khi bạn chơi?",
+        "paragraphs": [
+          "Classic và PvE lưu tiến trình vào tài khoản của bạn, gồm đội hình, tên cầu thủ bạn nhập, kết quả mùa giải và các lựa chọn trong sự nghiệp. Tuổi và quốc tịch của cầu thủ là thông tin của nhân vật trong game.",
+          "Quick Mode lưu lượt chơi trong tab trình duyệt bạn đang dùng. Game dùng cookie và bộ nhớ trình duyệt để giữ đăng nhập, nhớ ngôn ngữ và lựa chọn giảm chuyển động, cũng như hiển thị phản ứng của cầu thủ sau chuyển nhượng.",
+          "Nếu xóa dữ liệu trang trong trình duyệt, bạn có thể mất lượt Quick Mode đang lưu và các tùy chọn trên trình duyệt đó. Tiến trình Classic và PvE vẫn gắn với tài khoản."
+        ]
+      },
+      {
+        "id": "security",
+        "title": "Bảo mật và chống lạm dụng",
+        "paragraphs": [
+          "Để hạn chế lạm dụng, game có thể dùng địa chỉ IP, email hoặc mã tài khoản để chặn các yêu cầu được gửi quá nhiều lần trong thời gian ngắn. Dịch vụ Upstash hỗ trợ việc này."
+        ]
+      },
+      {
+        "id": "analytics",
+        "title": "Thống kê lượt truy cập và chơi",
+        "paragraphs": [
+          "Khi tính năng thống kê được bật, chúng tôi dùng Vercel Web Analytics để đếm lượt mở trang giới thiệu, phát video, bắt đầu hoặc hoàn thành Quick Mode. Game dùng bộ nhớ trình duyệt để biết bạn vào Quick Mode từ trang giới thiệu hay vào thẳng, đồng thời tránh đếm trùng lượt bắt đầu.",
+          "Khi gửi số liệu, game chia độ rộng cửa sổ trình duyệt thành các nhóm và chỉ gửi phần chính của địa chỉ trang. Vercel cũng có thể dùng thông tin kỹ thuật từ lượt truy cập để tạo thống kê."
+        ]
+      },
+      {
+        "id": "storage",
+        "title": "Dữ liệu được lưu ở đâu và bao lâu?",
+        "paragraphs": [
+          "Chúng tôi dùng Supabase để lưu thông tin tài khoản và tiến trình. Chi tiết về nơi lưu dữ liệu, việc chuyển dữ liệu ra nước ngoài và thời gian giữ tiến trình, nhật ký vận hành và bản sao lưu đang chờ xác nhận."
+        ]
+      },
+      {
+        "id": "rights",
+        "title": "Quyền và yêu cầu về dữ liệu",
+        "paragraphs": [
+          "Bạn có thể tự đổi tên hiển thị trong hồ sơ. Để hỏi về dữ liệu chúng tôi lưu hoặc yêu cầu xem, nhận bản sao, sửa hoặc xóa dữ liệu, hãy gửi email theo mục Liên hệ. Nêu rõ yêu cầu và địa chỉ email tài khoản nếu có. Hãy giữ riêng mật khẩu và mã xác thực.",
+          "Tùy luật áp dụng, bạn cũng có thể yêu cầu giới hạn hoặc phản đối cách chúng tôi dùng dữ liệu, hoặc khiếu nại với cơ quan có thẩm quyền. Khi luật yêu cầu chúng tôi xin phép bạn cho một mục đích cụ thể, chúng tôi cần xin phép riêng cho mục đích đó. Bạn có thể rút lại sự đồng ý đã cấp. Chúng tôi có thể cần xác minh danh tính để xử lý yêu cầu."
+        ]
+      },
+      {
+        "id": "children",
+        "title": "Dữ liệu của trẻ em",
+        "paragraphs": [
+          "Cha mẹ hoặc người giám hộ có thể dùng email dưới đây để hỏi hoặc gửi yêu cầu về dữ liệu của trẻ. Chỉ gửi thông tin cần thiết để mô tả yêu cầu."
+        ]
+      },
+      {
+        "id": "contact",
+        "title": "Liên hệ",
+        "paragraphs": [
+          "Gửi câu hỏi về quyền riêng tư, yêu cầu về dữ liệu hoặc báo cáo sự cố bảo mật qua email dưới đây. Chúng tôi dùng Gmail để nhận và trả lời thư."
+        ]
+      }
+    ]
+  },
+  "terms": {
+    "title": "Điều khoản dịch vụ",
+    "intro": "Điều kiện sử dụng Road to Glory, cách hoạt động của tiến trình và các quy tắc chơi.",
+    "sections": [
+      {
+        "id": "service",
+        "title": "Trò chơi và phạm vi sử dụng",
+        "paragraphs": [
+          "Road to Glory là game mô phỏng sự nghiệp bóng đá miễn phí do người hâm mộ phát triển độc lập cho cộng đồng. Vòng quay dùng xác suất để tạo kết quả mô phỏng.",
+          "Nếu mở kênh ủng hộ trong tương lai, mọi khoản đóng góp đều tự nguyện và nhằm hỗ trợ phát triển, cập nhật game. Bạn có thể chơi miễn phí dù có ủng hộ hay không. Khoản ủng hộ không mua vật phẩm, tính năng hay lợi thế trong game."
+        ]
+      },
+      {
+        "id": "access",
+        "title": "Tài khoản và độ tuổi",
+        "paragraphs": [
+          "Quick Mode có thể chơi mà không cần tài khoản. Classic và PvE yêu cầu đăng nhập để lưu tiến trình. Hãy giữ riêng thông tin đăng nhập của bạn.",
+          "Độ tuổi đủ điều kiện và yêu cầu đối với cha mẹ hoặc người giám hộ đang chờ xác nhận theo nơi phát hành và phân loại áp dụng."
+        ]
+      },
+      {
+        "id": "rules",
+        "title": "Quy tắc sử dụng",
+        "paragraphs": [
+          "Chỉ truy cập tài khoản và dữ liệu mà bạn được phép sử dụng. Không can thiệp trái phép vào hệ thống, làm gián đoạn dịch vụ hoặc dùng tự động hóa để vượt giới hạn hay thao túng kết quả.",
+          "Khi đặt tên đội hình hoặc cầu thủ, hãy tránh thông tin cá nhân của người khác và nội dung xâm phạm quyền của bên thứ ba."
+        ]
+      },
+      {
+        "id": "virtual-items",
+        "title": "Giá trị trong game",
+        "paragraphs": [
+          "Tiền lương, phí chuyển nhượng, ngân sách và điểm trong game là số liệu mô phỏng. Các giá trị này dùng để chơi, không phải tiền hoặc giải thưởng ngoài đời."
+        ]
+      },
+      {
+        "id": "content",
+        "title": "Nội dung và quyền sở hữu",
+        "paragraphs": [
+          "Road to Glory không liên kết với, không đại diện cho và không được FIFA, Electronic Arts (EA SPORTS FC), các liên đoàn bóng đá, giải đấu hoặc câu lạc bộ được nhắc đến tài trợ, cấp kinh phí hay chứng thực.",
+          "Tên đội bóng, giải đấu và thông tin liên quan được dùng trong bối cảnh mô phỏng. Nội dung và kết quả trong game không phải thông tin chính thức của các tổ chức đó. Việc chơi game không chuyển giao quyền sở hữu phần mềm, hình ảnh hoặc nội dung trong game. Quyền đối với tên, nhãn hiệu và tài liệu của bên thứ ba thuộc về chủ thể có quyền tương ứng."
+        ]
+      },
+      {
+        "id": "availability",
+        "title": "Tiến trình và tính khả dụng",
+        "paragraphs": [
+          "Quick Mode lưu theo phiên của tab. Đóng tab hoặc xóa bộ nhớ trình duyệt có thể làm mất lượt chơi đó. Classic và PvE lưu theo tài khoản.",
+          "Bảo trì hoặc sự cố có thể làm gián đoạn truy cập. Nếu bạn gặp lỗi truy cập hoặc mất tiến trình đã lưu trên máy chủ, hãy liên hệ theo mục bên dưới."
+        ]
+      },
+      {
+        "id": "complaints",
+        "title": "Khiếu nại và quyền theo luật",
+        "paragraphs": [
+          "Bạn có thể gửi yêu cầu hỗ trợ hoặc khiếu nại qua email. Hãy mô tả vấn đề, thời điểm xảy ra và chế độ chơi liên quan.",
+          "Bạn vẫn có các quyền mà pháp luật áp dụng bảo đảm, gồm quyền yêu cầu khắc phục, khiếu nại với cơ quan có thẩm quyền hoặc khởi kiện khi có căn cứ."
+        ]
+      }
+    ]
+  }
+}

@@ -15,6 +15,65 @@
     "title": "Settings",
     "description": "Change the language and motion preferences."
   },
+  "landing": {
+    "headline": "A season can turn on a spin",
+    "intro": "Create a footballer and play out their career through weighted spins.",
+    "navigation": "Explore Road to Glory",
+    "gameplayLink": "The wheel",
+    "modesLink": "Modes",
+    "switchLanguage": "Switch to Vietnamese",
+    "updatesLink": "Updates",
+    "updatesTitle": "Update history",
+    "updates": {
+      "languageAndAwards": { "title": "English and the Ballon d’Or", "description": "Play in English or Vietnamese. Classic considers Ballon d’Or nominations every season." },
+      "careerRecords": { "title": "Competition history", "description": "Revisit league standings and cup journeys from saved seasons in Classic." }
+    },
+    "footer": {
+      "game": "Explore",
+      "gameplay": "Watch gameplay",
+      "modes": "Game modes",
+      "community": "Community",
+      "contact": "Contact",
+      "donate": "Support the project",
+      "policies": "Policies",
+      "privacy": "Privacy",
+      "terms": "Terms of use",
+      "pending": "Community pages are in preparation."
+    },
+    "faqLink": "FAQ",
+    "storyTitle": "Where will the wheel land?",
+    "gameplayDescription": "In Career, the wheel decides where your club finishes in the league and how far it goes in the cup. Player and club strength shape the odds.",
+    "careerLink": "Follow a career",
+    "careerTitle": "From debut to retirement",
+    "career": {
+      "debut": { "title": "Find your first club", "description": "Create a player, pick a position and spin to see when you make your debut and which club you join." },
+      "season": { "title": "Stay or move on?", "description": "In Classic, a season can end with a trophy or a transfer offer. Choose whether to stay or try your luck at another club." },
+      "legacy": { "title": "Look back at retirement", "description": "Revisit the clubs you played for, the trophies you won and the seasons that shaped your player." }
+    },
+    "modesTitle": "Three ways to play",
+    "quickDescription": "Simulate one full career without an account.",
+    "classicDescription": "Draft 11 players, play season by season and save your squad.",
+    "pveDescription": "Enter the tournament with 11 retired players from your Classic squad.",
+    "quickAction": "Try it now",
+    "classicAction": "Enter Classic",
+    "pveAction": "Enter PvE",
+    "faqTitle": "Before you play",
+    "faq": {
+      "wheel": { "question": "Do I control the player on the pitch?", "answer": "Wheel spins simulate results. In Classic, you make choices such as creating a player profile and deciding which contracts to accept." },
+      "account": { "question": "Where is my progress saved?", "answer": "Quick Mode keeps your run in the current tab’s session. Sign in to save Classic and PvE progress to your account." },
+      "devices": { "question": "Can I play on my phone?", "answer": "You can read about the game and watch the footage on your phone. To play, open the game in a desktop browser window at least 1024 px wide." }
+    },
+    "closingTitle": "Give your player a debut",
+    "closingAction": "Start Quick Mode",
+    "closingDesktop": "Open Road to Glory on a computer to get started.",
+    "backToTop": "Back to top",
+    "trailerUnavailable": "The trailer is currently unavailable.",
+    "description": "Create a player and simulate their football career through weighted spins. Play Quick Mode in your browser without an account.",
+    "desktop": "Open the game on a computer to play.",
+    "previewAlt": "The league standings wheel in Career",
+    "trailer": "Gameplay trailer",
+    "trailerDescription": "Silent Career footage in Vietnamese, showing the league standings wheel and the FA Cup result."
+  },
   "ui": {
     "dismissNotification": "Dismiss notification",
     "clear": "Clear {v0}",

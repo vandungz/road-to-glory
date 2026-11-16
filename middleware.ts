@@ -36,6 +36,12 @@ export async function middleware(request: NextRequest) {
   }
 
   const pathname = request.nextUrl.pathname;
+  if (pathname === "/privacy" || pathname === "/terms") {
+    return withSecurityHeaders(NextResponse.next());
+  }
+  if (process.env.NEXT_PUBLIC_GAME_ANALYTICS === "1" && pathname.startsWith("/_vercel/insights/")) {
+    return withSecurityHeaders(NextResponse.next());
+  }
   if (isProduction && (pathname === "/dev" || pathname.startsWith("/dev/"))) {
     return withSecurityHeaders(NextResponse.redirect(new URL("/", request.url), 307));
   }
@@ -94,6 +100,6 @@ export async function middleware(request: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|media/player-portraits/.*\\.webm$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static|_next/image|favicon.ico|media/player-portraits/.*\\.webm$|media/landing/career-gameplay-v2\\.mp4$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
   ],
 };
