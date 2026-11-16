@@ -20,12 +20,14 @@ export function EditorialRail({ asset }: { asset: EditorialAsset }) {
 }
 
 /** Decorative editorial reference, never a fictional player's assigned face. */
-export function EditorialArt({ asset, className = "", priority = false }: {
+export function EditorialArt({ asset, className = "", priority = false, sizes }: {
   asset: EditorialAsset;
   className?: string;
   priority?: boolean;
+  sizes?: string;
 }) {
   return <Image src={`/media/editorial/${DISPLAY_VARIANTS[asset] ?? `${asset}-trimmed`}.webp`} alt="" aria-hidden="true"
-    width={dimensions[asset].width} height={dimensions[asset].height} unoptimized priority={priority}
+    width={dimensions[asset].width} height={dimensions[asset].height} unoptimized={!sizes} sizes={sizes}
+    priority={priority} loading={priority ? undefined : "lazy"} fetchPriority={sizes && !priority ? "low" : undefined}
     className={`football-editorial-art ${className}`} />;
 }

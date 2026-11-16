@@ -3,7 +3,8 @@
 import { useOptimistic, useTransition } from "react";
 import { useLocale, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
-import { localeCookie, locales, type Locale } from "@/i18n/locale";
+import { locales, type Locale } from "@/i18n/locale";
+import { saveBrowserLocale } from "@/i18n/browser-locale";
 
 const names: Record<Locale, string> = { vi: "Tiếng Việt", en: "English" };
 
@@ -15,8 +16,7 @@ export function LanguageSettings() {
   const [pending, startTransition] = useTransition();
 
   function selectLanguage(language: Locale) {
-    const secure = window.location.protocol === "https:" ? "; Secure" : "";
-    document.cookie = `${localeCookie}=${language}; Path=/; Max-Age=31536000; SameSite=Lax${secure}`;
+    saveBrowserLocale(language);
     startTransition(() => {
       setSelection(language);
       router.refresh();
