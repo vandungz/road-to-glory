@@ -17,6 +17,9 @@ export default defineConfig({
     viewport: { width: 1440, height: 1000 },
     trace: "retain-on-failure",
     screenshot: "only-on-failure",
+    extraHTTPHeaders: process.env.RTG_PRODUCTION_CHECK === "1"
+      ? { "x-forwarded-proto": "https" }
+      : undefined,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],
   webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : {

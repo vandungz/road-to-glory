@@ -3,13 +3,14 @@ import { test, expect, expectNoHorizontalOverflow } from "./helpers";
 
 test("language persists across routes and switches without resetting a Quick run", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1024, height: 600 });
-  await page.goto("/");
-  await page.getByRole("link", { name: "Cài đặt" }).click();
+  await page.goto("/settings");
   await page.getByRole("radio", { name: "English" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await page.getByRole("link", { name: "Home", exact: true }).click();
-  await expect(page.getByRole("heading", { name: "Choose a mode" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "A season can turn on a spin" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "The wheel" })).toHaveAttribute("href", "#landing-gameplay");
+  await expect(page.getByRole("heading", { name: "Three ways to play" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("home-en.png") });
 

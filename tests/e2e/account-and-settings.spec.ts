@@ -1,10 +1,12 @@
 import { test, expect, expectNoHorizontalOverflow, startQuickRun } from "./helpers";
 
-test("guest can reach profile and settings without losing access to Quick Mode", async ({ page }, testInfo) => {
+test("guest header is simplified and settings remain accessible", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1024, height: 600 });
   await page.goto("/");
   const account = page.getByRole("navigation", { name: "Tài khoản và cài đặt" });
-  await account.getByRole("link", { name: "Hồ sơ" }).click();
+  await expect(account).toHaveCount(0);
+  await expect(page.getByRole("banner").getByRole("link", { name: "Cài đặt" })).toHaveCount(0);
+  await page.goto("/profile");
   await expect(page).toHaveURL(/\/profile$/);
   await expect(page.getByRole("heading", { name: "Hồ sơ" })).toBeVisible();
   await expect(page.getByRole("link", { name: "Đăng nhập", exact: true })).toHaveAttribute("href", "/login?next=/profile");
@@ -15,7 +17,8 @@ test("guest can reach profile and settings without losing access to Quick Mode",
   await page.screenshot({ path: testInfo.outputPath("profile-guest.png") });
 
   await page.getByRole("link", { name: "Trang chủ" }).click();
-  await account.getByRole("link", { name: "Cài đặt" }).click();
+  await expect(page.getByRole("contentinfo").getByRole("link", { name: "Cài đặt" })).toHaveCount(0);
+  await page.goto("/settings");
   await expect(page.getByRole("heading", { name: "Cài đặt" })).toBeVisible();
   await expect(page.getByRole("radio", { name: "Theo hệ thống" })).toBeChecked();
   await expect(page.getByRole("radio", { name: "Luôn giảm chuyển động" })).toBeInViewport({ ratio: 1 });

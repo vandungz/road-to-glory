@@ -28,6 +28,11 @@ for (const engine of [chromium, firefox]) {
         await expect(page).not.toHaveURL(/\/login/);
         await page.waitForLoadState("networkidle");
       }
+      await page.goto(new URL("/", baseURL).href);
+      await expect(page.locator(".football-homepage-shell")).toBeVisible();
+      await expect(page.locator(".football-guest-landing")).toHaveCount(0);
+      await expect(page.getByRole("button", { name: "Đăng xuất" })).toBeVisible();
+      expect(await page.evaluate(() => document.documentElement.scrollHeight)).toBeLessThanOrEqual(901);
       for (const viewport of [{ width: 1440, height: 900 }, { width: 1280, height: 720 }, { width: 1024, height: 768 }]) {
         await page.setViewportSize(viewport);
         await page.goto(new URL(new URL(fixture.url).pathname, baseURL).href);
