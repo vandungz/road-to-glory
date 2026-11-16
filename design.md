@@ -4,7 +4,7 @@ The shared system for every screen. Preserve game behavior, routes, actions,
 data, field names and component contracts when changing presentation.
 
 ## Direction
-- Sports collectible album, contemporary controls. App screens, not marketing pages.
+- Sports collectible album, contemporary controls. Use the same identity for the guest introduction and game screens.
 - Keep warm paper, orange identity, Oswald display typography and existing layouts.
 - Reference: bold sports colour blocks, rounded controls, collectible player cards.
 - Signature: player identity cards with nationality colours and large real ratings.
@@ -57,8 +57,18 @@ data, field names and component contracts when changing presentation.
   use the existing motion preference hook. Keep wheel outcomes authoritative.
 
 ## Desktop policy
-- Supported viewport starts at 1024 CSS pixels. Narrower windows show a localized
-  desktop-required screen across every route, including auth and direct deep links.
+- Gameplay starts at 1024 CSS pixels. Narrower windows show a localized
+  desktop-required screen on game, account, and auth routes, including direct links.
+- The guest introduction at `/` scrolls from an illustrated hero through actual
+  gameplay, career milestones, mode choices, updates and FAQs, then repeats the Quick Mode action.
+  The header provides section links and the language switch. Footer links point to
+  available sections, with plain text for upcoming community and policy pages.
+  Each section reveals once when it enters the viewport and stays visible with
+  reduced motion or scripting off. Below-the-fold art reserves its space and
+  loads a responsive source near the viewport. The muted trailer loops in view without
+  playback controls and shows its poster with reduced motion. Show the desktop
+  requirement below 1024px and game links at playable widths.
+- Signed-in players reach the existing lobby at `/`.
 - The CSS gate retains mounted state when resizing, including an in-flight wheel.
 - It is a presentation policy, not an authorization boundary. Auth remains unchanged.
 - At 1024/1280/1440/1920, allow vertical scrolling instead of hiding controls.
