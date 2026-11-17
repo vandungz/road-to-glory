@@ -54,9 +54,9 @@ trong tài liệu.
 
 - Vercel có `DATABASE_URL` hợp lệ cho server, Supabase URL/anon key, site URL HTTPS;
 - Supabase Auth Email và redirect URL đúng;
-- Upstash Redis nếu muốn bật rate limit auth của source hiện tại;
+- Upstash Redis để giới hạn các yêu cầu đăng ký, xác nhận mã và đăng nhập qua email;
 - deploy mới sau khi đổi biến môi trường;
-- kiểm tra login, trang sau login và logout.
+- kiểm tra đăng ký bằng mã email, Google, truy cập trang sau đăng nhập và đăng xuất.
 
 Đường A không yêu cầu chạy `scripts/provision-production-db-roles.sql`.
 Supabase đã có role kết nối mặc định; script này không sửa Auth và không chữa
@@ -164,14 +164,31 @@ https://rtg-vandungz.vercel.app
 
 Redirect URLs:
 https://rtg-vandungz.vercel.app/auth/callback
+https://rtg-vandungz.vercel.app/auth/callback?next=/classic
+https://rtg-vandungz.vercel.app/auth/callback?next=/pve
+https://rtg-vandungz.vercel.app/auth/callback?next=/profile
 https://rtg-vandungz.vercel.app/auth/callback?next=/auth/reset-password
 ~~~
 
 Vào Authentication → Sign In / Providers:
 
-- Email: Enabled;
-- Confirm email: chọn theo chính sách của bạn; source hiện xử lý flow confirmation;
-- Google: có thể để OFF nếu chưa dùng Google.
+- Bật Email và Confirm email. Đặt mã xác nhận email dài 6 số. Nếu thay đổi thời hạn mã, kiểm tra cả luồng đặt lại mật khẩu vì Supabase dùng chung thời hạn cho các loại email xác thực này.
+- Cấu hình custom SMTP và xác minh địa chỉ hoặc tên miền gửi theo yêu cầu của nhà cung cấp SMTP. SMTP mặc định chỉ gửi đến địa chỉ thuộc nhóm quản trị dự án. Kiểm tra quota của nhà cung cấp đã chọn để giữ chi phí bằng 0.
+- Trong Authentication → Email Templates → Confirm signup, dùng mẫu mã dưới đây. Giữ mẫu Reset password dành cho luồng liên kết khôi phục.
+
+~~~html
+<h2>Road to Glory</h2>
+<p>Mã xác nhận đăng ký / Your signup verification code:</p>
+<p><strong>{{ .Token }}</strong></p>
+<p><a href="{{ .SiteURL }}/login?verify=1">Nhập mã / Enter your code</a></p>
+~~~
+
+#### Google OAuth
+
+1. Trong Google Cloud, tạo OAuth client loại Web application và cấu hình màn hình đồng ý. Dùng chế độ External cho người chơi bên ngoài và kiểm tra trạng thái phát hành theo quyền truy cập đang yêu cầu. Luồng hiện tại chỉ dùng quyền nhận diện cơ bản để đăng nhập.
+2. Thêm **callback của Supabase** vào Authorized redirect URIs của Google. Sao chép giá trị mà mục Google trong Supabase Dashboard hiển thị, theo dạng `https://<project-ref>.supabase.co/auth/v1/callback`.
+3. Bật Google trong Supabase Auth và đặt Client ID/Client Secret tại đó. Danh sách Redirect URLs của Supabase ở trên là nơi kiểm soát trang đích Road to Glory sau callback.
+4. Kiểm tra cả tài khoản Google mới và Google có cùng email với tài khoản Road to Glory đã xác nhận. Supabase xử lý việc nhận diện và liên kết. Tiến trình chỉ được coi là giữ nguyên khi hai cách đăng nhập trả về cùng tài khoản và mở được cùng đội hình.
 
 Vào Authentication → Sessions và đặt thời hạn hữu hạn. Nếu Dashboard không
 có mục inactivity timeout/timebox ở plan hiện tại, ghi nhận là chưa kiểm tra;
@@ -352,11 +369,11 @@ UPSTASH_REDIS_REST_TOKEN
 6. Redeploy Production.
 
 Source hiện tách limiter auth theo từng hành động: login request guard 10/15 phút,
-login thất bại 5/15 phút, signup 3/15 phút, password reset 3/15 phút và resend
-confirmation 3/15 phút. Mỗi hành động có bucket IP và email riêng; login thành
+login thất bại 5/15 phút, signup 3/15 phút, xác nhận mã 10/15 phút, password reset 3/15 phút và gửi lại mã 3/15 phút. Mỗi hành động có bucket IP và email riêng; login thành
 công không tiêu thụ bucket signup, reset, resend hoặc login-failure. Key trong Redis
 sẽ bắt đầu bằng `rtg-auth-ratelimit:login`, `:login-failure`, `:signup`,
-`:password-reset` hoặc `:resend-confirmation`, sau đó mới tới identifier IP/email.
+`:verify-signup`, `:password-reset` hoặc `:resend-confirmation`, sau đó mới tới identifier IP/email.
+Khi Redis không phản hồi kịp, các thao tác có giới hạn auth trả lỗi và có thể thử lại khi dịch vụ phục hồi.
 Các key cũ bắt đầu bằng `rtg-auth-ratelimit:` không có operation có thể hết hạn tự
 nhiên và không được đọc bởi code mới. Sau khi bị giới hạn, UI phải nói rõ thời gian
 chờ; đừng thử liên tục vì sẽ tự gia hạn counter.
@@ -388,17 +405,16 @@ không chứng minh authenticated Prisma query đã pass.
 
 ## 9. Test auth theo đúng thứ tự
 
-Dùng tài khoản test, không dùng tài khoản chính ở lần đầu:
+Dùng project thử tách khỏi dữ liệu thật và một hộp thư thử ngoài nhóm quản trị:
 
-1. Đăng ký bằng email mới.
-2. Xác nhận email.
-3. Đăng nhập.
-4. Mở / và tạo game.
-5. Refresh trang.
-6. Logout rồi mở lại URL game; phải quay về /login.
-7. Test reset password.
-8. Test password sai; chỉ được thấy lỗi chung.
-9. Thử login sai 6 lần trên Preview/staging, không spam Production.
+1. Đăng ký email mới. Trước khi nhập mã, kiểm tra chưa có phiên đăng nhập và chưa vào được Career.
+2. Thử mã sai và mã hết hạn. Gửi lại, kiểm tra nhận đúng mã mới, nhập mã và xác nhận mở được trang đích. Mã đã sử dụng phải bị từ chối khi xác nhận lại.
+3. Đăng xuất, mở lại URL Career ở cùng trình duyệt và kiểm tra được chuyển về đăng nhập. Đăng nhập lại bằng email và mật khẩu. Tạo đội hình thử, tải lại trang để xác nhận tiến trình còn đó.
+4. Kiểm tra đặt lại mật khẩu bằng liên kết. Thử mật khẩu sai và kiểm tra thông báo chung.
+5. Đăng nhập Google từ Classic, PvE và Hồ sơ. Kiểm tra trang quay về, thử hủy màn hình đồng ý và kiểm tra thông báo có thể thử lại. Xác minh đăng nhập Google cùng email đã xác nhận mở đúng tiến trình cũ.
+6. Trên môi trường thử, kiểm tra hết lượt thử và tình huống Redis không phản hồi. Hai trường hợp phải có cách phục hồi phù hợp, và đăng xuất vẫn có thể gọi riêng.
+
+Sau khi nghiệm thu Auth, tiếp tục theo thứ tự: kiểm tra quyền đọc/ghi giữa hai tài khoản và DB runtime → diễn tập yêu cầu dữ liệu và khôi phục backup → kiểm tra logic và dữ liệu công khai của bản build → theo dõi và cấu hình WAF trong khả năng gói miễn phí. Đối chiếu [kế hoạch an toàn production](security-prod-readiness-plan.md) và [rà soát pháp lý](legal-review.md).
 
 Nếu login thành công nhưng / trả 500, vào Vercel Logs → Functions. Phân biệt:
 
@@ -431,7 +447,7 @@ Chỉ đánh dấu Production Ready khi tất cả đều đúng:
 - [ ] Nếu đã chọn Đường B: RLS/grants/owner đã được audit trên đúng Supabase project.
 - [ ] Runtime page sau login tải được dữ liệu.
 - [ ] Upstash rate limit hoạt động.
-- [ ] Auth/email/reset/logout hoạt động.
+- [ ] Email xác nhận bằng mã, đăng nhập mật khẩu, đặt lại mật khẩu, Google OAuth và đăng xuất đạt trên môi trường thử.
 - [ ] Session lifetime hữu hạn đã xác nhận trong Supabase.
 - [ ] HTTPS/security headers/cookie flags đạt.
 - [ ] User B không đọc/sửa dữ liệu User A.
@@ -458,6 +474,10 @@ Migration Production chỉ chạy một lần qua DIRECT_URL đã xác định.
 - https://supabase.com/docs/guides/database/connecting-to-postgres
 - https://supabase.com/docs/guides/platform/ssl-enforcement
 - https://supabase.com/docs/guides/auth/redirect-urls
+- https://supabase.com/docs/guides/auth/auth-email-templates
+- https://supabase.com/docs/guides/auth/auth-smtp
+- https://supabase.com/docs/guides/auth/social-sign-in/auth-google
+- https://support.google.com/cloud/answer/15549945
 - https://supabase.com/docs/guides/auth/sessions
 - https://supabase.com/docs/guides/database/postgres/row-level-security
 - https://vercel.com/docs/environment-variables
