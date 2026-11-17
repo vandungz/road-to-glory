@@ -8,6 +8,8 @@ The operator describes the game as a free, independent community project. Any fu
 
 OpenFront’s [Privacy Policy](https://openfront.io/privacy-policy.html) and [Terms of Service](https://openfront.io/terms-of-service.html) informed the organization of the drafts, particularly service scope, information collected, how account access works and mandatory rights. The Road to Glory drafts describe the features and providers verified in this repository.
 
+SynApp’s [Privacy Policy](https://synapp.vn/privacy) and [Terms of Service](https://synapp.vn/terms) were consulted for practical instructions on email requests and grouping the rules by topic. Road to Glory directs people to a single mailbox for requests about data, accounts and support.
+
 ## Evidence from the repository
 
 | Topic | Source |

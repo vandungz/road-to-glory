@@ -5,14 +5,14 @@
   "draft": "Review draft. The operator’s legal details and the effective date are pending confirmation.",
   "privacy": {
     "title": "Privacy Policy",
-    "intro": "How Road to Glory handles information when you visit, play or use an account.",
+    "intro": "What the game saves, how we use it and how to make a request about your data.",
     "sections": [
       {
         "id": "account",
         "title": "Accounts and sign-in",
         "paragraphs": [
-          "If you sign up by email, we use your email address to confirm your account and send password reset links. Supabase handles sign-in and stores your password in a form that cannot be read directly.",
-          "If you sign in with Google, we use the information Google shares with your permission to create or link your account. Your game profile uses your email and display name, if provided."
+          "If you sign up by email, we use your address to confirm your account and send password reset links. Our sign-in and storage provider handles account information and stores Classic and PvE progress.",
+          "If you sign in with an outside account, we use the information you allow that service to share to create or link your account. Your game profile uses your email and display name, if provided."
         ]
       },
       {
@@ -28,30 +28,31 @@
         "id": "security",
         "title": "Security and abuse prevention",
         "paragraphs": [
-          "To prevent abuse, the game may use your IP address, email address or account ID to block too many requests made in a short time. Upstash provides this service."
+          "Our abuse prevention provider may handle your IP address, email address or account ID to limit repeated requests, such as too many sign-in attempts."
         ]
       },
       {
         "id": "analytics",
         "title": "Visit and play statistics",
         "paragraphs": [
-          "When analytics is enabled, we use Vercel Web Analytics to count visits to the landing page, video plays, and Quick Mode starts and completions. The game uses browser storage to tell whether you came to Quick Mode from the landing page or opened it directly, and to avoid counting a start twice.",
-          "The game groups browser window widths and sends only the main part of the page address with its statistics. Vercel may also use technical information from your visit to produce statistics."
+          "When analytics is enabled, the game uses a web analytics provider to count landing page visits, video plays and Quick Mode milestones.",
+          "Browser storage helps the game remember how you entered Quick Mode and avoid counting a start twice. The statistics may include how you entered the game, your browser window size category, a shortened page address and technical information from your visit."
         ]
       },
       {
         "id": "storage",
         "title": "Where and for how long is data kept?",
         "paragraphs": [
-          "We use Supabase to store account information and saved games. We still need to confirm where data is stored, whether it is sent abroad and how long we keep saved games, operating logs and backups."
+          "We still need to confirm where data is stored, whether it is sent abroad and how long we keep account information, saved games, logs, backups and support emails."
         ]
       },
       {
         "id": "rights",
         "title": "Rights and data requests",
         "paragraphs": [
-          "You can change your display name in your profile. To ask about the information we hold or request to see, copy, correct or delete it, use the email in the Contact section. Describe your request and include your account email if you have one. Keep your password and verification codes private.",
-          "Depending on the law that applies, you may also be able to ask us to limit how we use your information, object to its use or complain to the relevant authority. If the law requires us to ask for your permission for a particular purpose, we must ask separately for that purpose. You can withdraw permission you have given. We may need to verify your identity to handle a request."
+          "You can change your display name in your profile. Use the email in the Contact section to ask what we hold about you, see it, get a copy, or ask us to correct or delete it. You can also request account deletion at that address.",
+          "Tell us what you want to do and include the email address linked to your account if you have one. We may need to verify your identity before acting on a request. Keep your password and verification codes private.",
+          "Depending on the law that applies, you may be able to ask us to limit how we use your information, object to its use or complain to the relevant authority. If the law requires us to ask for your permission for a particular purpose, we must ask separately for that purpose. You can withdraw permission you have given."
         ]
       },
       {
@@ -65,21 +66,21 @@
         "id": "contact",
         "title": "Contact",
         "paragraphs": [
-          "Use the email below for privacy questions, data requests or security reports. We use Gmail to receive and reply to messages."
+          "Use the email below for data requests, privacy questions or security reports. Our email provider handles your address and message so we can receive and reply to it."
         ]
       }
     ]
   },
   "terms": {
     "title": "Terms of Service",
-    "intro": "The conditions for using Road to Glory, how saves work and the rules for play.",
+    "intro": "How to play Road to Glory, what we ask of players and where to get help.",
     "sections": [
       {
         "id": "service",
-        "title": "Game and scope",
+        "title": "Free play and voluntary contributions",
         "paragraphs": [
           "Road to Glory is a free, independent, fan-made football career simulation for the community. Weighted wheels generate simulated outcomes.",
-          "If we accept contributions in the future, they will be voluntary and will support the game's development and updates. You can play for free whether or not you contribute. Contributions do not buy in-game items, features or advantages."
+          "The game does not currently accept contributions. If we open a contribution channel, you can choose to support development and updates. Contributions do not buy access, in-game items, features or advantages."
         ]
       },
       {
@@ -115,18 +116,17 @@
       },
       {
         "id": "availability",
-        "title": "Progress and availability",
+        "title": "Saved progress and interruptions",
         "paragraphs": [
           "Quick Mode saves progress in the tab’s browser session. Closing the tab or clearing browser storage may remove the run. Classic and PvE save progress under the account.",
-          "Maintenance or incidents may interrupt access. If you have trouble accessing the game or lose progress saved on the server, use the contact details below."
+          "Maintenance or incidents may temporarily interrupt the game. If you have trouble getting in or notice progress missing from your account, you can report it using the email below."
         ]
       },
       {
         "id": "complaints",
-        "title": "Complaints and legal rights",
+        "title": "Contact",
         "paragraphs": [
-          "You can email us for support or to make a complaint. Describe what happened, when it happened and which game mode was affected.",
-          "You retain your mandatory rights under applicable law, including the right to seek a remedy, complain to a competent authority or bring legal proceedings where provided by law."
+          "Use the email below to report a bug, ask about these terms or make a complaint. You retain your rights under applicable law."
         ]
       }
     ]

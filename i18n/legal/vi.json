@@ -5,14 +5,14 @@
   "draft": "Bản dự thảo. Thông tin pháp lý về bên vận hành và ngày hiệu lực đang chờ xác nhận.",
   "privacy": {
     "title": "Chính sách quyền riêng tư",
-    "intro": "Cách Road to Glory xử lý dữ liệu khi bạn truy cập, chơi hoặc dùng tài khoản.",
+    "intro": "Game lưu gì khi bạn chơi, dữ liệu được dùng vào việc gì và cách gửi yêu cầu về dữ liệu của bạn.",
     "sections": [
       {
         "id": "account",
         "title": "Tài khoản và đăng nhập",
         "paragraphs": [
-          "Khi đăng ký bằng email, chúng tôi dùng địa chỉ email của bạn để xác nhận tài khoản và gửi liên kết đặt lại mật khẩu. Supabase xử lý thông tin đăng nhập và lưu mật khẩu dưới dạng không đọc được trực tiếp.",
-          "Nếu đăng nhập bằng Google, chúng tôi dùng thông tin Google chia sẻ theo quyền bạn cấp để tạo hoặc liên kết tài khoản. Hồ sơ trong game dùng email và tên hiển thị nếu có."
+          "Khi đăng ký bằng email, chúng tôi dùng địa chỉ email của bạn để xác nhận tài khoản và gửi liên kết đặt lại mật khẩu. Nhà cung cấp dịch vụ đăng nhập và lưu trữ xử lý thông tin tài khoản và lưu tiến trình Classic và PvE.",
+          "Nếu đăng nhập bằng tài khoản bên ngoài, chúng tôi dùng thông tin mà bạn cho phép dịch vụ đăng nhập chia sẻ để tạo hoặc liên kết tài khoản. Hồ sơ trong game dùng email và tên hiển thị nếu có."
         ]
       },
       {
@@ -28,30 +28,31 @@
         "id": "security",
         "title": "Bảo mật và chống lạm dụng",
         "paragraphs": [
-          "Để hạn chế lạm dụng, game có thể dùng địa chỉ IP, email hoặc mã tài khoản để chặn các yêu cầu được gửi quá nhiều lần trong thời gian ngắn. Dịch vụ Upstash hỗ trợ việc này."
+          "Nhà cung cấp dịch vụ chống lạm dụng có thể xử lý địa chỉ IP, email hoặc mã tài khoản để hạn chế các yêu cầu lặp lại quá nhanh, chẳng hạn khi có quá nhiều lần thử đăng nhập."
         ]
       },
       {
         "id": "analytics",
         "title": "Thống kê lượt truy cập và chơi",
         "paragraphs": [
-          "Khi tính năng thống kê được bật, chúng tôi dùng Vercel Web Analytics để đếm lượt mở trang giới thiệu, phát video, bắt đầu hoặc hoàn thành Quick Mode. Game dùng bộ nhớ trình duyệt để biết bạn vào Quick Mode từ trang giới thiệu hay vào thẳng, đồng thời tránh đếm trùng lượt bắt đầu.",
-          "Khi gửi số liệu, game chia độ rộng cửa sổ trình duyệt thành các nhóm và chỉ gửi phần chính của địa chỉ trang. Vercel cũng có thể dùng thông tin kỹ thuật từ lượt truy cập để tạo thống kê."
+          "Khi bật thống kê, game dùng dịch vụ phân tích lượt truy cập để đếm lượt mở trang giới thiệu, phát video và các mốc chơi Quick Mode.",
+          "Trình duyệt giúp ghi nhớ cách bạn vào Quick Mode và tránh đếm trùng lượt bắt đầu. Số liệu gửi đi có thể gồm nguồn vào game, nhóm độ rộng cửa sổ, địa chỉ trang rút gọn và thông tin kỹ thuật từ lượt truy cập."
         ]
       },
       {
         "id": "storage",
         "title": "Dữ liệu được lưu ở đâu và bao lâu?",
         "paragraphs": [
-          "Chúng tôi dùng Supabase để lưu thông tin tài khoản và tiến trình. Chi tiết về nơi lưu dữ liệu, việc chuyển dữ liệu ra nước ngoài và thời gian giữ tiến trình, nhật ký vận hành và bản sao lưu đang chờ xác nhận."
+          "Nơi lưu dữ liệu, việc chuyển dữ liệu ra nước ngoài và thời gian giữ thông tin tài khoản, tiến trình, nhật ký, bản sao lưu và thư hỗ trợ đang chờ xác nhận."
         ]
       },
       {
         "id": "rights",
         "title": "Quyền và yêu cầu về dữ liệu",
         "paragraphs": [
-          "Bạn có thể tự đổi tên hiển thị trong hồ sơ. Để hỏi về dữ liệu chúng tôi lưu hoặc yêu cầu xem, nhận bản sao, sửa hoặc xóa dữ liệu, hãy gửi email theo mục Liên hệ. Nêu rõ yêu cầu và địa chỉ email tài khoản nếu có. Hãy giữ riêng mật khẩu và mã xác thực.",
-          "Tùy luật áp dụng, bạn cũng có thể yêu cầu giới hạn hoặc phản đối cách chúng tôi dùng dữ liệu, hoặc khiếu nại với cơ quan có thẩm quyền. Khi luật yêu cầu chúng tôi xin phép bạn cho một mục đích cụ thể, chúng tôi cần xin phép riêng cho mục đích đó. Bạn có thể rút lại sự đồng ý đã cấp. Chúng tôi có thể cần xác minh danh tính để xử lý yêu cầu."
+          "Bạn có thể đổi tên hiển thị trong hồ sơ. Để hỏi game lưu gì về bạn hoặc yêu cầu xem, nhận bản sao, sửa hay xóa dữ liệu, hãy gửi email theo mục Liên hệ. Bạn cũng có thể gửi yêu cầu xóa tài khoản qua địa chỉ này.",
+          "Nêu rõ việc bạn muốn thực hiện và địa chỉ email gắn với tài khoản nếu có. Chúng tôi có thể cần xác minh danh tính trước khi xử lý yêu cầu. Hãy giữ riêng mật khẩu và mã xác thực.",
+          "Tùy luật áp dụng, bạn có thể yêu cầu giới hạn hoặc phản đối việc sử dụng dữ liệu và khiếu nại với cơ quan có thẩm quyền. Khi luật yêu cầu sự đồng ý cho một mục đích cụ thể, chúng tôi cần xin phép riêng cho mục đích đó. Bạn có thể rút lại sự đồng ý đã cấp."
         ]
       },
       {
@@ -65,21 +66,21 @@
         "id": "contact",
         "title": "Liên hệ",
         "paragraphs": [
-          "Gửi câu hỏi về quyền riêng tư, yêu cầu về dữ liệu hoặc báo cáo sự cố bảo mật qua email dưới đây. Chúng tôi dùng Gmail để nhận và trả lời thư."
+          "Dùng địa chỉ bên dưới để gửi yêu cầu về dữ liệu, hỏi về quyền riêng tư hoặc báo cáo sự cố bảo mật. Nhà cung cấp dịch vụ email xử lý địa chỉ và nội dung thư để chúng tôi tiếp nhận và trả lời."
         ]
       }
     ]
   },
   "terms": {
     "title": "Điều khoản dịch vụ",
-    "intro": "Điều kiện sử dụng Road to Glory, cách hoạt động của tiến trình và các quy tắc chơi.",
+    "intro": "Cách tham gia Road to Glory, quy tắc chơi và cách liên hệ khi cần hỗ trợ.",
     "sections": [
       {
         "id": "service",
-        "title": "Trò chơi và phạm vi sử dụng",
+        "title": "Chơi miễn phí và ủng hộ tự nguyện",
         "paragraphs": [
           "Road to Glory là game mô phỏng sự nghiệp bóng đá miễn phí do người hâm mộ phát triển độc lập cho cộng đồng. Vòng quay dùng xác suất để tạo kết quả mô phỏng.",
-          "Nếu mở kênh ủng hộ trong tương lai, mọi khoản đóng góp đều tự nguyện và nhằm hỗ trợ phát triển, cập nhật game. Bạn có thể chơi miễn phí dù có ủng hộ hay không. Khoản ủng hộ không mua vật phẩm, tính năng hay lợi thế trong game."
+          "Hiện game chưa nhận ủng hộ. Nếu mở kênh ủng hộ sau này, bạn có thể tự nguyện đóng góp để hỗ trợ phát triển và cập nhật game. Khoản ủng hộ không mua quyền truy cập, vật phẩm, tính năng hay lợi thế trong game."
         ]
       },
       {
@@ -115,18 +116,17 @@
       },
       {
         "id": "availability",
-        "title": "Tiến trình và tính khả dụng",
+        "title": "Tiến trình và gián đoạn",
         "paragraphs": [
           "Quick Mode lưu theo phiên của tab. Đóng tab hoặc xóa bộ nhớ trình duyệt có thể làm mất lượt chơi đó. Classic và PvE lưu theo tài khoản.",
-          "Bảo trì hoặc sự cố có thể làm gián đoạn truy cập. Nếu bạn gặp lỗi truy cập hoặc mất tiến trình đã lưu trên máy chủ, hãy liên hệ theo mục bên dưới."
+          "Game có thể tạm gián đoạn khi bảo trì hoặc gặp sự cố. Nếu gặp lỗi truy cập hoặc thiếu tiến trình đã lưu theo tài khoản, bạn có thể báo qua email bên dưới."
         ]
       },
       {
         "id": "complaints",
-        "title": "Khiếu nại và quyền theo luật",
+        "title": "Liên hệ",
         "paragraphs": [
-          "Bạn có thể gửi yêu cầu hỗ trợ hoặc khiếu nại qua email. Hãy mô tả vấn đề, thời điểm xảy ra và chế độ chơi liên quan.",
-          "Bạn vẫn có các quyền mà pháp luật áp dụng bảo đảm, gồm quyền yêu cầu khắc phục, khiếu nại với cơ quan có thẩm quyền hoặc khởi kiện khi có căn cứ."
+          "Bạn có thể báo lỗi, hỏi về điều khoản hoặc gửi khiếu nại qua email bên dưới. Bạn vẫn có các quyền được pháp luật áp dụng bảo đảm."
         ]
       }
     ]
