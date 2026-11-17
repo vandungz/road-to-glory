@@ -25,3 +25,7 @@ export function getCanonicalSiteUrl(requestHeaders?: Headers): string {
   const protocol = requestHeaders?.get("x-forwarded-proto") === "https" ? "https" : "http";
   return `${protocol}://${host}`;
 }
+
+export function getGoogleReturnPath(next: unknown): string {
+  return next === "/profile" || next === "/classic" || next === "/pve" ? next : "/";
+}

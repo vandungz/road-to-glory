@@ -8,7 +8,7 @@ import {
   AuthRateLimitError,
   checkAuthRateLimit,
 } from "@/lib/rate-limit";
-import { getCanonicalSiteUrl } from "@/lib/auth/site-url";
+import { getCanonicalSiteUrl, getGoogleReturnPath } from "@/lib/auth/site-url";
 
 const loginCredentialsSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
@@ -20,9 +20,13 @@ const signUpCredentialsSchema = loginCredentialsSchema.extend({
 });
 
 const emailSchema = z.string().trim().toLowerCase().email().max(254);
+const signupCodeSchema = z.object({
+  email: emailSchema,
+  token: z.string().trim().regex(/^[0-9]{6}$/),
+}).strict();
 
 export type AuthActionResult =
-  | { success: true; requiresEmailConfirmation?: boolean }
+  | { success: true }
   | {
       success: false;
       error: string;
@@ -39,7 +43,7 @@ function getClientIp(requestHeaders: Headers): string {
 }
 
 async function checkAuthOperationRateLimit(
-  operation: "login" | "signup" | "password-reset" | "resend-confirmation",
+  operation: "login" | "signup" | "verify-signup" | "password-reset" | "resend-confirmation",
   email: string,
 ): Promise<{ ip: string }> {
   const requestHeaders = await headers();
@@ -93,7 +97,7 @@ export async function loginAction(input: unknown): Promise<AuthActionResult> {
   try {
     const { ip } = await checkAuthOperationRateLimit("login", parsed.data.email);
     const supabase = await createClient();
-    const { error } = await supabase.auth.signInWithPassword(parsed.data);
+    const { data, error } = await supabase.auth.signInWithPassword(parsed.data);
     if (error) {
       // Only invalid-credential responses count toward the stricter failure
       // budget. Provider/network failures must not lock out real users.
@@ -102,7 +106,7 @@ export async function loginAction(input: unknown): Promise<AuthActionResult> {
       }
       return genericAuthError();
     }
-    return { success: true };
+    return data.session ? { success: true } : genericAuthError();
   } catch (error) {
     return authActionError(error);
   }
@@ -115,15 +119,47 @@ export async function signUpAction(input: unknown): Promise<AuthActionResult> {
   try {
     await checkAuthOperationRateLimit("signup", parsed.data.email);
     const supabase = await createClient();
-    const siteUrl = getCanonicalSiteUrl(await headers());
-    const { data, error } = await supabase.auth.signUp({
-      ...parsed.data,
-      options: siteUrl ? { emailRedirectTo: `${siteUrl}/auth/callback` } : undefined,
-    });
+    const { data, error } = await supabase.auth.signUp(parsed.data);
     if (error) return genericAuthError();
-    return { success: true, requiresEmailConfirmation: !data.session };
+    if (data.session) {
+      await supabase.auth.signOut({ scope: "local" });
+      return genericAuthError();
+    }
+    return { success: true };
   } catch (error) {
     return authActionError(error);
+  }
+}
+
+export async function verifySignupCodeAction(input: unknown): Promise<AuthActionResult> {
+  const t = await getTranslations("auth");
+  const parsed = signupCodeSchema.safeParse(input);
+  if (!parsed.success) return { success: false, error: t("invalidSignupCode") };
+
+  try {
+    await checkAuthOperationRateLimit("verify-signup", parsed.data.email);
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.verifyOtp({ ...parsed.data, type: "email" });
+    if (error || !data.session) return { success: false, error: t("invalidSignupCode") };
+    return { success: true };
+  } catch (error) {
+    return authActionError(error);
+  }
+}
+
+export async function startGoogleSignInAction(next: unknown): Promise<{ url: string } | null> {
+  try {
+    const origin = getCanonicalSiteUrl(await headers());
+    const path = getGoogleReturnPath(next);
+    const callback = path === "/" ? `${origin}/auth/callback` : `${origin}/auth/callback?next=${path}`;
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo: callback },
+    });
+    return error || !data.url ? null : { url: data.url };
+  } catch {
+    return null;
   }
 }
 
@@ -174,7 +210,7 @@ export async function updatePasswordAction(password: string): Promise<AuthAction
 export async function logoutAction(): Promise<AuthActionResult> {
   try {
     const supabase = await createClient();
-    const { error } = await supabase.auth.signOut();
+    const { error } = await supabase.auth.signOut({ scope: "local" });
     return error ? genericAuthError() : { success: true };
   } catch {
     return genericAuthError();

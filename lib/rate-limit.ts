@@ -36,6 +36,7 @@ export type AuthRateLimitOperation =
   | "login"
   | "login-failure"
   | "signup"
+  | "verify-signup"
   | "password-reset"
   | "resend-confirmation";
 
@@ -50,6 +51,7 @@ const authRateLimitConfig: Record<
   // traffic. This bucket is recorded only after Supabase rejects credentials.
   "login-failure": { limit: 5, window: "15 m" },
   signup: { limit: 3, window: "15 m" },
+  "verify-signup": { limit: 10, window: "15 m" },
   "password-reset": { limit: 3, window: "15 m" },
   "resend-confirmation": { limit: 3, window: "15 m" },
 };
@@ -112,7 +114,8 @@ export async function checkAuthRateLimit(
     return;
   }
 
-  const { success, reset } = await authRatelimits[operation].limit(identifier);
+  const { success, reset, reason } = await authRatelimits[operation].limit(identifier);
+  if (reason === "timeout") throw new Error("Request protection is unavailable.");
   if (!success) {
     throw new AuthRateLimitError(reset);
   }

@@ -1,26 +1,31 @@
 "use client";
 
 import { useTranslations } from "next-intl";
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, type FormEvent, type MouseEvent } from "react";
 import { Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
-import { createClient } from "@/lib/supabase/client";
-import { loginAction, resendSignupAction, signUpAction } from "@/actions/auth.actions";
+import { loginAction, resendSignupAction, signUpAction, startGoogleSignInAction, verifySignupCodeAction } from "@/actions/auth.actions";
 
 type Mode = "login" | "register";
 type View = "form" | "confirm-email";
 
-export function LoginForm({ initialError, nextPath = "/" }: { initialError?: string; nextPath?: string }) {
+export function LoginForm({ initialError, nextPath = "/", initialVerification = false }: {
+  initialError?: string;
+  nextPath?: string;
+  initialVerification?: boolean;
+}) {
   const ui = useTranslations("ui");
   const [mode, setMode] = useState<Mode>("login");
-  const [view, setView] = useState<View>("form");
+  const [view, setView] = useState<View>(initialVerification ? "confirm-email" : "form");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [token, setToken] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState(false);
   const [isPending, setIsPending] = useState(false);
   const [isResending, setIsResending] = useState(false);
   const [cooldown, setCooldown] = useState(0);
@@ -30,9 +35,9 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     if (cooldownRef.current) clearInterval(cooldownRef.current);
   }, []);
 
-  function startCooldown() {
+  function startCooldown(seconds = 60) {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
-    setCooldown(60);
+    setCooldown(seconds);
     cooldownRef.current = setInterval(() => {
       setCooldown((previous) => {
         if (previous <= 1) {
@@ -42,6 +47,15 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
         return previous - 1;
       });
     }, 1000);
+  }
+
+  function openVerification() {
+    setError(null);
+    setNotice(false);
+    setPassword("");
+    setShowPassword(false);
+    setToken("");
+    setView("confirm-email");
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -59,11 +73,8 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
 
       const result = await signUpAction({ email, password });
       if (!result.success) { setError(result.error); return; }
-      if (result.requiresEmailConfirmation === false) {
-        window.location.href = nextPath;
-        return;
-      }
-      setView("confirm-email");
+      openVerification();
+      setNotice(true);
       startCooldown();
     } catch {
       setError(ui("connectionError"));
@@ -77,13 +88,9 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     setError(null);
     setIsPending(true);
     try {
-      const callbackUrl = new URL("/auth/callback", window.location.origin);
-      if (nextPath === "/profile") callbackUrl.searchParams.set("next", nextPath);
-      const { error: authError } = await createClient().auth.signInWithOAuth({
-        provider: "google",
-        options: { redirectTo: callbackUrl.href },
-      });
-      if (authError) setError(ui("googleSignInError"));
+      const result = await startGoogleSignInAction(nextPath);
+      if (result) window.location.assign(result.url);
+      else setError(ui("googleSignInError"));
     } catch {
       setError(ui("googleSignInError"));
     } finally {
@@ -91,12 +98,38 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
     }
   }
 
-  async function handleResend() {
-    if (cooldown > 0 || isResending) return;
+  async function handleVerify(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (isPending || isResending) return;
+    setError(null);
+    setNotice(false);
+    setIsPending(true);
+    try {
+      const result = await verifySignupCodeAction({ email, token });
+      if (result.success) window.location.assign(nextPath);
+      else setError(result.error);
+    } catch {
+      setError(ui("connectionError"));
+    } finally {
+      setIsPending(false);
+    }
+  }
+
+  async function handleResend(event: MouseEvent<HTMLButtonElement>) {
+    const emailInput = event.currentTarget.form?.querySelector<HTMLInputElement>("#football-verify-email");
+    if (cooldown > 0 || isPending || isResending || !emailInput?.reportValidity()) return;
+    setError(null);
+    setNotice(false);
     setIsResending(true);
     try {
       const result = await resendSignupAction(email);
-      if (!result.success) throw new Error(result.error);
+      if (!result.success) {
+        setError(result.error);
+        if (result.retryAfterSeconds) startCooldown(result.retryAfterSeconds);
+        return;
+      }
+      setToken("");
+      setNotice(true);
       startCooldown();
     } catch {
       setError(ui("resendError"));
@@ -106,17 +139,34 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
   }
 
   if (view === "confirm-email") {
+    const busy = isPending || isResending;
     return (
       <section className="football-auth-panel football-auth-confirm">
         <div className="football-auth-panel__intro">
           <h2>{ui("checkYourEmail")}</h2>
-          <p>{ui("weSentAConfirmationLinkTo")} <strong>{email}</strong>.</p>
+          <p>{ui("enterSignupCodeHelp")}</p>
         </div>
-        {error && <p className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
-        <Button fullWidth variant="outline" onClick={handleResend} disabled={isResending || cooldown > 0} loading={isResending}>
-          {cooldown > 0 ? ui("resendInS", { v0: String(cooldown) }) : ui("resendEmail")}
-        </Button>
-        <button type="button" className="football-text-button" onClick={() => setView("form")}>{ui("backToSignIn")}</button>
+        <form className="football-auth-form" onSubmit={handleVerify}>
+          <div className="football-auth-field">
+            <label htmlFor="football-verify-email">Email</label>
+            <Input id="football-verify-email" type="email" autoComplete="email" required maxLength={254} value={email} disabled={busy}
+              onChange={(event) => { setEmail(event.target.value); setToken(""); setError(null); setNotice(false); }} />
+          </div>
+          <div className="football-auth-field">
+            <label htmlFor="football-verify-token">{ui("signupCodeLabel")}</label>
+            <Input id="football-verify-token" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required
+              value={token} disabled={busy} onChange={(event) => setToken(event.target.value)} />
+          </div>
+          {error && <p className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
+          {notice && <p role="status">{ui("signupCodeSent")}</p>}
+          <Button type="submit" fullWidth loading={isPending} disabled={isResending}>{ui("verifyEmail")}</Button>
+          <Button type="button" fullWidth variant="outline" onClick={handleResend} disabled={isPending || cooldown > 0} loading={isResending}>
+            {cooldown > 0 ? ui("resendInS", { v0: String(cooldown) }) : ui("resendEmail")}
+          </Button>
+          <button type="button" disabled={busy} className="football-text-button" onClick={() => {
+            setMode("login"); setError(null); setNotice(false); setView("form");
+          }}>{ui("backToSignIn")}</button>
+        </form>
       </section>
     );
   }
@@ -130,6 +180,7 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
       </div>
 
       {initialError === "link_expired" && <p className="football-auth-message football-auth-message--warning">{ui("theLinkExpiredSignUpAgainToGetANewOne")}</p>}
+      {initialError === "auth_callback" && <p className="football-auth-message football-auth-message--warning">{ui("authCallbackError")}</p>}
 
       <div className="football-auth-tabs" role="tablist" aria-label={ui("signinOptions")}>
         <button type="button" role="tab" aria-selected={isLogin} aria-controls="football-auth-form" className={isLogin ? "is-active" : ""} onClick={() => { setMode("login"); setError(null); }}>{ui("signIn")}</button>
@@ -138,8 +189,11 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
 
       <form id="football-auth-form" className="football-auth-form" onSubmit={handleSubmit} role="tabpanel">
         <div className="football-auth-field">
-          <label htmlFor="football-email">Email</label>
-          <Input id="football-email" type="email" required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
+          <div className="football-auth-field__label-row">
+            <label htmlFor="football-email">Email</label>
+            <button type="button" disabled={isPending} className="football-text-button" onClick={openVerification}>{ui("enterSignupCode")}</button>
+          </div>
+          <Input id="football-email" type="email" autoComplete="email" maxLength={254} required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
         </div>
 
         <div className="football-auth-field">
@@ -148,7 +202,7 @@ export function LoginForm({ initialError, nextPath = "/" }: { initialError?: str
             {isLogin && <Link href="/auth/reset-password">{ui("forgotPassword")}</Link>}
           </div>
           <div className="football-password-field">
-            <Input id="football-pass" type={showPassword ? "text" : "password"} required minLength={isLogin ? 1 : 8} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
+            <Input id="football-pass" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} required minLength={isLogin ? 1 : 8} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
             <IconButton type="button" className="football-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? ui("hidePassword") : ui("showPassword")}>
               {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
             </IconButton>
