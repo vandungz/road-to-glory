@@ -172,7 +172,7 @@ https://rtg-vandungz.vercel.app/auth/callback?next=/auth/reset-password
 
 Vào Authentication → Sign In / Providers:
 
-- Bật Email và Confirm email. Đặt mã xác nhận email dài 6 số. Nếu thay đổi thời hạn mã, kiểm tra cả luồng đặt lại mật khẩu vì Supabase dùng chung thời hạn cho các loại email xác thực này.
+- Bật Email và Confirm email. Đặt OTP dài 6 số theo cấu hình người vận hành đã xác nhận. Form và Server Action nhận đúng 6 chữ số; Supabase quyết định mã nào hợp lệ. Sau khi gửi đăng ký thành công, form tự chuyển sang nhập OTP. Nếu thay đổi thời hạn mã, kiểm tra cả luồng đặt lại mật khẩu vì Supabase dùng chung thời hạn cho các loại email xác thực này.
 - Cấu hình custom SMTP và xác minh địa chỉ hoặc tên miền gửi theo yêu cầu của nhà cung cấp SMTP. SMTP mặc định chỉ gửi đến địa chỉ thuộc nhóm quản trị dự án. Kiểm tra quota của nhà cung cấp đã chọn để giữ chi phí bằng 0.
 - Trong Authentication → Email Templates → Confirm signup, dùng mẫu mã dưới đây. Giữ mẫu Reset password dành cho luồng liên kết khôi phục.
 
@@ -183,12 +183,45 @@ Vào Authentication → Sign In / Providers:
 <p><a href="{{ .SiteURL }}/login?verify=1">Nhập mã / Enter your code</a></p>
 ~~~
 
+Mẫu Confirm signup được lưu độc lập với SMTP. Trong Dashboard, tìm Authentication → Email → Templates → Confirm signup. Sau khi lưu mẫu, tiếp tục cấu hình SMTP Settings để gửi được tới hộp thư ngoài nhóm quản trị.
+
+#### Xác nhận cấu hình qua ảnh — 18/11/2026
+
+- Site URL trong ảnh là `https://rtg-vandungz.vercel.app`. Năm callback có tiền tố `/auth/callback` đã có trong danh sách.
+- Xóa dòng cũ `https://rtg-vandungz.vercel.app/callback?next=/auth/reset-password` để danh sách chỉ giữ các callback ứng dụng đang xử lý.
+- Ảnh ban đầu hiển thị Email provider đang bật, OTP dài 8 số, hết hạn sau 3600 giây. Người vận hành sau đó xác nhận đã đổi OTP thành 6 số. Đặt minimum password length thành 8 để khớp form đăng ký.
+- Ảnh chưa hiển thị Confirm email, SMTP hay mẫu email đã lưu. Kiểm tra trực tiếp từng mục đó trước khi đánh dấu đã đạt.
+
+#### Gửi email với ngân sách bằng 0
+
+Resend là tên một nhà cung cấp gửi email. Gói Free hiện có 3000 email/tháng, tối đa 100/ngày và cần domain đã xác minh để gửi tới người dùng bên ngoài. Domain `vercel.app` của ứng dụng không cho phép bạn xác minh quyền sở hữu DNS để gửi thư từ domain đó. [Resend pricing](https://resend.com/pricing), [Supabase SMTP integration](https://resend.com/docs/send-with-supabase-smtp)
+
+Brevo Free hiện có 300 email/ngày. Có thể bắt đầu bằng cách xác minh địa chỉ gửi, nhưng khi dùng địa chỉ Gmail, Brevo thay địa chỉ gửi bằng địa chỉ thuộc domain của họ. Đây là biện pháp tạm thời, cần kiểm tra việc kích hoạt tài khoản và khả năng nhận thư thực tế trước khi public. [Brevo Free](https://help.brevo.com/hc/en-us/articles/208580669-FAQs-What-are-the-limits-of-the-Free-plan), [Sender requirements](https://help.brevo.com/hc/en-us/articles/14925263522578-Comply-with-Gmail-Yahoo-and-Microsoft-s-requirements-for-email-senders)
+
+Nếu chọn thử Brevo:
+
+1. Tạo tài khoản Free, hoàn thành yêu cầu xác minh và kích hoạt gửi transactional email mà Dashboard hiển thị.
+2. Trong Settings → Senders, Domains & Dedicated IPs → Senders, tạo sender tên Road to Glory với email bạn quản lý và xác minh email đó.
+3. Trong Settings → SMTP & API → SMTP, sao chép Login và tạo SMTP key.
+4. Trong Supabase SMTP Settings, đặt sender email đã xác minh, sender name Road to Glory, Host `smtp-relay.brevo.com`, Port `587`, Username là Login của Brevo, Password là SMTP key.
+5. Lưu, thử đăng ký bằng một hộp thư khác và kiểm tra cả trạng thái giao thư trong Brevo lẫn mã đến hộp thư. [Brevo SMTP](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP)
+
+Hạn mức email tính cả đăng ký, gửi lại mã và đặt lại mật khẩu. Google OAuth giúp giảm số email ứng dụng cần gửi cho người chọn đăng nhập Google. Mức tải phục vụ còn phụ thuộc quota Auth, database, Vercel và Redis. Kết quả gửi thử và lưu lượng đo được là căn cứ để quyết định khi nào cần đổi kế hoạch.
+
 #### Google OAuth
 
 1. Trong Google Cloud, tạo OAuth client loại Web application và cấu hình màn hình đồng ý. Dùng chế độ External cho người chơi bên ngoài và kiểm tra trạng thái phát hành theo quyền truy cập đang yêu cầu. Luồng hiện tại chỉ dùng quyền nhận diện cơ bản để đăng nhập.
 2. Thêm **callback của Supabase** vào Authorized redirect URIs của Google. Sao chép giá trị mà mục Google trong Supabase Dashboard hiển thị, theo dạng `https://<project-ref>.supabase.co/auth/v1/callback`.
 3. Bật Google trong Supabase Auth và đặt Client ID/Client Secret tại đó. Danh sách Redirect URLs của Supabase ở trên là nơi kiểm soát trang đích Road to Glory sau callback.
 4. Kiểm tra cả tài khoản Google mới và Google có cùng email với tài khoản Road to Glory đã xác nhận. Supabase xử lý việc nhận diện và liên kết. Tiến trình chỉ được coi là giữ nguyên khi hai cách đăng nhập trả về cùng tài khoản và mở được cùng đội hình.
+
+Luồng Google yêu cầu chọn tài khoản bằng `prompt=select_account`. Danh sách phụ thuộc các phiên Google mà trình duyệt hiện tại nhận diện được. Nếu trình duyệt chưa đăng nhập Google, người dùng sẽ cần đăng nhập ở trang Google.
+
+Nút Google gửi form POST tới `/auth/google` và server trả redirect 303, kèm cookie PKCE. Endpoint kiểm tra Origin trước khi khởi tạo OAuth và giới hạn trang quay về. CSP của trang đăng nhập và trang bắt đầu OAuth cho phép các bước redirect tới Supabase và Google. Cách này tránh rời trang giữa lúc client đang xử lý phản hồi Server Action. Có [báo cáo Next.js trên Firefox](https://github.com/vercel/next.js/issues/81377) với thông báo `Error in input stream` trong tình huống tương tự. Cần thử trên deployment mới để xác nhận hiện tượng đã hết. Mỗi lần thử nên bắt đầu lại từ trang đăng nhập mới tải.
+
+Tên domain Supabase có thể xuất hiện trên màn hình Google khi branding chưa được Google xác minh. Đặt tên Road to Glory, email hỗ trợ, trang chủ và hai URL chính sách trong Google Auth Platform → Branding, rồi kiểm tra Branding/Verification Center để biết việc xác minh còn yêu cầu gì. Việc điền tên ứng dụng vào Dashboard chưa bảo đảm tên đó đã được Google công bố. [Google branding](https://support.google.com/cloud/answer/15549049), [Supabase Google consent](https://supabase.com/docs/guides/auth/social-sign-in/auth-google)
+
+Nếu website hiện màn hình `Application error: a client-side exception has occurred`, ghi nhận URL trang và lỗi đầu tiên trong Console, bỏ các giá trị nhạy cảm trước khi chia sẻ. Ảnh thông báo tổng quát chưa đủ để xác định nguyên nhân. Theo dõi riêng lỗi runtime ứng dụng này với các bước đăng nhập/đồng ý trên trang Google.
 
 Vào Authentication → Sessions và đặt thời hạn hữu hạn. Nếu Dashboard không
 có mục inactivity timeout/timebox ở plan hiện tại, ghi nhận là chưa kiểm tra;
