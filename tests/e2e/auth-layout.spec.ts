@@ -1,5 +1,31 @@
 import { test, expect, expectNoHorizontalOverflow } from "./helpers";
 
+test("Google OAuth rejects cross-origin initiation before contacting the provider", async ({ request }) => {
+  const response = await request.post("/auth/google", {
+    headers: { origin: "https://untrusted.example" },
+    form: { next: "/classic" },
+    maxRedirects: 0,
+  });
+  expect(response.status()).toBe(403);
+});
+
+test("Google sign-in starts as a document POST without submitting email credentials", async ({ page }) => {
+  let posted = false;
+  await page.route("**/auth/google", async (route) => {
+    const request = route.request();
+    expect(request.method()).toBe("POST");
+    expect(request.resourceType()).toBe("document");
+    expect([...new URLSearchParams(request.postData() ?? "").entries()]).toEqual([["next", "/classic"]]);
+    posted = true;
+    await route.fulfill({ contentType: "text/html", body: "<p>OAuth navigation received</p>" });
+  });
+  await page.goto("/login?next=/classic");
+  await page.getByLabel("Email").fill("example@example.test");
+  await page.getByRole("button", { name: "Tiếp tục với Google" }).click();
+  await expect(page.getByText("OAuth navigation received")).toBeVisible();
+  expect(posted).toBe(true);
+});
+
 test("auth forms fit desktop heights without page or panel scroll and keep controls visible", async ({ page }, testInfo) => {
   for (const viewport of [{ width: 1024, height: 768 }, { width: 1280, height: 720 }, { width: 1280, height: 800 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
     await page.setViewportSize(viewport);
@@ -32,13 +58,16 @@ test("auth forms fit desktop heights without page or panel scroll and keep contr
   }
 });
 
-test("signup verification can be reopened and requires six digits", async ({ page }) => {
+test("sign-in has no verification shortcut and signup email verification requires six digits", async ({ page }) => {
   await page.goto("/login");
-  await page.getByLabel("Email").fill("example@example.test");
-  await page.getByRole("button", { name: "Nhập mã xác nhận" }).click();
-  await expect(page.getByLabel("Email")).toHaveValue("example@example.test");
+  await expect(page.getByRole("button", { name: "Nhập mã xác nhận" })).toHaveCount(0);
+  await expect(page.getByLabel("Mã xác nhận")).toHaveCount(0);
+  await page.getByRole("tab", { name: "Đăng ký", exact: true }).click();
+  await expect(page.getByLabel("Mã xác nhận")).toHaveCount(0);
+  await page.goto("/login?verify=1");
   await expect(page.getByLabel("Mã xác nhận")).toHaveAttribute("autocomplete", "one-time-code");
   const code = page.getByLabel("Mã xác nhận");
+  await expect(code).toHaveAttribute("maxlength", "6");
   for (const value of ["12345", "abcdef", "012345"]) {
     await code.fill(value);
     expect(await code.evaluate((input: HTMLInputElement) => input.validity.valid)).toBe(value === "012345");
