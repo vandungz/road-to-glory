@@ -175,7 +175,7 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
       <form id="football-auth-form" className="football-auth-form" onSubmit={handleSubmit} role="tabpanel">
         <div className="football-auth-field">
           <label htmlFor="football-email">Email</label>
-          <Input id="football-email" type="email" autoComplete="email" maxLength={254} required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
+          <Input id="football-email" type="email" autoComplete="email" maxLength={254} required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} />
         </div>
 
         <div className="football-auth-field">
@@ -184,14 +184,14 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
             {isLogin && <Link href="/auth/reset-password">{ui("forgotPassword")}</Link>}
           </div>
           <div className="football-password-field">
-            <Input id="football-pass" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} required minLength={isLogin ? 1 : 8} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} aria-invalid={!!error} aria-describedby={error ? "football-auth-error" : undefined} />
+            <Input id="football-pass" type={showPassword ? "text" : "password"} autoComplete={isLogin ? "current-password" : "new-password"} required minLength={isLogin ? 1 : 8} maxLength={128} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" disabled={isPending} />
             <IconButton type="button" className="football-password-field__toggle" onClick={() => setShowPassword((visible) => !visible)} aria-label={showPassword ? ui("hidePassword") : ui("showPassword")}>
               {showPassword ? <EyeOff aria-hidden="true" size={17} /> : <Eye aria-hidden="true" size={17} />}
             </IconButton>
           </div>
-          {error && <p id="football-auth-error" className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
         </div>
 
+        {error && <p id="football-auth-error" className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
         <Button type="submit" fullWidth loading={isPending} size="lg" className="football-auth-submit">{isLogin ? ui("signIn") : ui("createAccount")}</Button>
       </form>
       <div className="football-auth-divider" aria-hidden="true"><span />{ui("or")}<span /></div>

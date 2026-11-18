@@ -9,6 +9,7 @@ import {
   checkAuthRateLimit,
 } from "@/lib/rate-limit";
 import { getCanonicalSiteUrl } from "@/lib/auth/site-url";
+import { classifySignupError } from "@/lib/auth/signup-error";
 
 const loginCredentialsSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
@@ -114,21 +115,35 @@ export async function loginAction(input: unknown): Promise<AuthActionResult> {
 
 export async function signUpAction(input: unknown): Promise<AuthActionResult> {
   const parsed = signUpCredentialsSchema.safeParse(input);
-  if (!parsed.success) return genericAuthError();
+  if (!parsed.success) {
+    const t = await getTranslations("auth");
+    return { success: false, error: t("signupInputInvalid") };
+  }
 
+  let stage: "rate-limit" | "provider" | "confirmation" = "rate-limit";
   try {
     await checkAuthOperationRateLimit("signup", parsed.data.email);
+    stage = "provider";
     const supabase = await createClient();
     const { data, error } = await supabase.auth.signUp(parsed.data);
-    if (error) return genericAuthError();
+    if (error) return signupFailure(error, stage);
     if (data.session) {
+      stage = "confirmation";
       await supabase.auth.signOut({ scope: "local" });
-      return genericAuthError();
+      return signupFailure({ code: "confirmation_disabled" }, stage);
     }
     return { success: true };
   } catch (error) {
-    return authActionError(error);
+    if (error instanceof AuthRateLimitError) return authActionError(error);
+    return signupFailure(error, stage);
   }
+}
+
+async function signupFailure(error: unknown, stage: string): Promise<AuthActionResult> {
+  const { code, status, messageKey } = classifySignupError(error);
+  console.error("auth.signup.failed", { stage, code, status });
+  const t = await getTranslations("auth");
+  return { success: false, error: t(messageKey) };
 }
 
 export async function verifySignupCodeAction(input: unknown): Promise<AuthActionResult> {
@@ -172,9 +187,10 @@ export async function resendSignupAction(input: unknown): Promise<AuthActionResu
     await checkAuthOperationRateLimit("resend-confirmation", parsed.data);
     const supabase = await createClient();
     const { error } = await supabase.auth.resend({ type: "signup", email: parsed.data });
-    return error ? genericAuthError() : { success: true };
+    return error ? signupFailure(error, "resend") : { success: true };
   } catch (error) {
-    return authActionError(error);
+    if (error instanceof AuthRateLimitError) return authActionError(error);
+    return signupFailure(error, "resend");
   }
 }
 
