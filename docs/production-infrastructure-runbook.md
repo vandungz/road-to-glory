@@ -203,7 +203,7 @@ Nếu chọn thử Brevo:
 1. Tạo tài khoản Free, hoàn thành yêu cầu xác minh và kích hoạt gửi transactional email mà Dashboard hiển thị.
 2. Trong Settings → Senders, Domains & Dedicated IPs → Senders, tạo sender tên Road to Glory với email bạn quản lý và xác minh email đó.
 3. Trong Settings → SMTP & API → SMTP, sao chép Login và tạo SMTP key.
-4. Trong Supabase SMTP Settings, đặt sender email đã xác minh, sender name Road to Glory, Host `smtp-relay.brevo.com`, Port `587`, Username là Login của Brevo, Password là SMTP key.
+4. Trong Supabase SMTP Settings, đặt sender email đã xác minh, sender name Road to Glory, Host `smtp-relay.brevo.com`, Port `587`. Username phải sao chép đúng **SMTP login** hiển thị trong Brevo → SMTP & API → SMTP (có thể khác email đăng nhập tài khoản); Password là **SMTP key**, không phải API key hay mật khẩu tài khoản.
 5. Lưu, thử đăng ký bằng một hộp thư khác và kiểm tra cả trạng thái giao thư trong Brevo lẫn mã đến hộp thư. [Brevo SMTP](https://help.brevo.com/hc/en-us/articles/7924908994450-Send-transactional-emails-using-Brevo-SMTP)
 
 Hạn mức email tính cả đăng ký, gửi lại mã và đặt lại mật khẩu. Google OAuth giúp giảm số email ứng dụng cần gửi cho người chọn đăng nhập Google. Mức tải phục vụ còn phụ thuộc quota Auth, database, Vercel và Redis. Kết quả gửi thử và lưu lượng đo được là căn cứ để quyết định khi nào cần đổi kế hoạch.
@@ -501,6 +501,17 @@ npm run check:career-setup-security
 
 Không chạy migration, seed hoặc script backfill trên Production chỉ để “test”.
 Migration Production chỉ chạy một lần qua DIRECT_URL đã xác định.
+
+## Chẩn đoán đăng ký thất bại (18/11/2026)
+
+- Signup và gửi lại mã phân biệt lỗi email, mật khẩu, giới hạn gửi mã, đăng ký bị tắt và lỗi dịch vụ. Không dùng thông báo sai thông tin đăng nhập cho các lỗi này.
+- Vercel Runtime Logs: lọc `auth.signup.failed`. Log chỉ gồm `stage`, mã lỗi trong danh sách cho phép và HTTP status; không ghi email, mật khẩu, OTP hoặc nguyên văn lỗi nhà cung cấp.
+- `stage=rate-limit`: kiểm tra cấu hình và khả năng kết nối Upstash. Không tắt bảo vệ để vượt lỗi.
+- `stage=provider` hoặc `resend`: đối chiếu Supabase Logs → Auth cùng thời điểm. `email_address_not_authorized` liên quan giới hạn SMTP mặc định; `unexpected_failure` cần đọc Auth logs để phân biệt lỗi SMTP, database hoặc lỗi dịch vụ. Không suy luận rằng mọi lỗi 500 đều do SMTP.
+- `stage=confirmation`, `code=confirmation_disabled`: bật Confirm email; ứng dụng không chấp nhận phiên đăng ký bỏ qua bước xác nhận email.
+- Log Auth do người dùng cung cấp ngày 18/11/2026, lúc 09:46:11 UTC: `user_confirmation_requested`, `unexpected_failure`, HTTP 500, lỗi SMTP `535 5.7.8 Authentication failed`. Đã xác định lần đăng ký này thất bại ở bước xác thực với máy chủ SMTP. Người dùng báo đã khắc phục lỗi sau hướng dẫn; chưa có nghiệm thu độc lập toàn bộ luồng đăng ký/OTP. Không lưu dữ liệu người dùng từ log vào tài liệu.
+- Cách xử lý 535: lấy đúng SMTP login và SMTP key còn hoạt động từ Brevo, nhập lại vào Supabase SMTP Settings rồi lưu. Có thể tạo SMTP key mới dành riêng cho Supabase nếu không còn key gốc. Không đổi mật khẩu người chơi, không tắt Confirm email, không thay đổi database để xử lý lỗi này. Thử lại đăng ký và kiểm tra OTP 6 số; chỉ đánh dấu đạt khi xác nhận thành công. [Brevo: lỗi SMTP](https://help.brevo.com/hc/en-us/articles/115000188150-Troubleshooting-Issues-with-Brevo-SMTP).
+- Bản sửa có bài kiểm tra `tests/signup-error.test.ts`, nhưng chưa chạy runtime/build/browser do môi trường hiện tại chưa có sandbox thực thi đáp ứng yêu cầu của skill security-audit. `git diff --check` chỉ kiểm tra whitespace, không thay cho nghiệm thu OTP thật.
 
 ## 13. Tài liệu chính thức
 
