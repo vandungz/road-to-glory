@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
-import { loginAction, resendSignupAction, signUpAction, startGoogleSignInAction, verifySignupCodeAction } from "@/actions/auth.actions";
+import { loginAction, resendSignupAction, signUpAction, verifySignupCodeAction } from "@/actions/auth.actions";
 
 type Mode = "login" | "register";
 type View = "form" | "confirm-email";
@@ -83,21 +83,6 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
     }
   }
 
-  async function handleGoogleSignIn() {
-    if (isPending) return;
-    setError(null);
-    setIsPending(true);
-    try {
-      const result = await startGoogleSignInAction(nextPath);
-      if (result) window.location.assign(result.url);
-      else setError(ui("googleSignInError"));
-    } catch {
-      setError(ui("googleSignInError"));
-    } finally {
-      setIsPending(false);
-    }
-  }
-
   async function handleVerify(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     if (isPending || isResending) return;
@@ -154,7 +139,7 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
           </div>
           <div className="football-auth-field">
             <label htmlFor="football-verify-token">{ui("signupCodeLabel")}</label>
-            <Input id="football-verify-token" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" maxLength={6} required
+            <Input id="football-verify-token" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6}" minLength={6} maxLength={6} required
               value={token} disabled={busy} onChange={(event) => setToken(event.target.value)} />
           </div>
           {error && <p className="football-auth-message football-auth-message--error" role="alert">{error}</p>}
@@ -189,10 +174,7 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
 
       <form id="football-auth-form" className="football-auth-form" onSubmit={handleSubmit} role="tabpanel">
         <div className="football-auth-field">
-          <div className="football-auth-field__label-row">
-            <label htmlFor="football-email">Email</label>
-            <button type="button" disabled={isPending} className="football-text-button" onClick={openVerification}>{ui("enterSignupCode")}</button>
-          </div>
+          <label htmlFor="football-email">Email</label>
           <Input id="football-email" type="email" autoComplete="email" maxLength={254} required value={email} onChange={(event) => setEmail(event.target.value)} placeholder="ten@email.com" disabled={isPending} aria-invalid={!!error} />
         </div>
 
@@ -211,8 +193,15 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
         </div>
 
         <Button type="submit" fullWidth loading={isPending} size="lg" className="football-auth-submit">{isLogin ? ui("signIn") : ui("createAccount")}</Button>
-        <div className="football-auth-divider" aria-hidden="true"><span />{ui("or")}<span /></div>
-        <Button type="button" variant="outline" fullWidth className="football-auth-google" onClick={handleGoogleSignIn} disabled={isPending}>{ui("continueWithGoogle")}</Button>
+      </form>
+      <div className="football-auth-divider" aria-hidden="true"><span />{ui("or")}<span /></div>
+      <form action="/auth/google" method="post" onSubmit={(event) => {
+        if (isPending) { event.preventDefault(); return; }
+        setError(null);
+        setIsPending(true);
+      }}>
+        <input type="hidden" name="next" value={nextPath} />
+        <Button type="submit" variant="outline" fullWidth className="football-auth-google" disabled={isPending}>{ui("continueWithGoogle")}</Button>
       </form>
     </section>
   );

@@ -4,7 +4,7 @@ import { NextResponse, type NextRequest } from "next/server";
 const isProduction = process.env.NODE_ENV === "production";
 const sessionCookieMaxAge = 60 * 60 * 24 * 7;
 
-function withSecurityHeaders(response: NextResponse): NextResponse {
+function withSecurityHeaders(response: NextResponse, oauthForm = false): NextResponse {
   response.headers.set("X-Content-Type-Options", "nosniff");
   response.headers.set("X-Frame-Options", "DENY");
   response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
@@ -14,7 +14,8 @@ function withSecurityHeaders(response: NextResponse): NextResponse {
     "base-uri 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    "form-action 'self'",
+    // Some browsers check every redirect after a form POST, including the OAuth provider.
+    oauthForm ? "form-action 'self' https://*.supabase.co https://accounts.google.com" : "form-action 'self'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https:",
     "style-src 'self' 'unsafe-inline'",
@@ -95,7 +96,7 @@ export async function middleware(request: NextRequest) {
     return withSecurityHeaders(NextResponse.redirect(new URL("/", request.url)));
   }
 
-  return withSecurityHeaders(supabaseResponse);
+  return withSecurityHeaders(supabaseResponse, pathname === "/login" || pathname === "/auth/google");
 }
 
 export const config = {

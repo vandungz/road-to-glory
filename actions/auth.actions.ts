@@ -8,7 +8,7 @@ import {
   AuthRateLimitError,
   checkAuthRateLimit,
 } from "@/lib/rate-limit";
-import { getCanonicalSiteUrl, getGoogleReturnPath } from "@/lib/auth/site-url";
+import { getCanonicalSiteUrl } from "@/lib/auth/site-url";
 
 const loginCredentialsSchema = z.object({
   email: z.string().trim().toLowerCase().email().max(254),
@@ -144,22 +144,6 @@ export async function verifySignupCodeAction(input: unknown): Promise<AuthAction
     return { success: true };
   } catch (error) {
     return authActionError(error);
-  }
-}
-
-export async function startGoogleSignInAction(next: unknown): Promise<{ url: string } | null> {
-  try {
-    const origin = getCanonicalSiteUrl(await headers());
-    const path = getGoogleReturnPath(next);
-    const callback = path === "/" ? `${origin}/auth/callback` : `${origin}/auth/callback?next=${path}`;
-    const supabase = await createClient();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: callback },
-    });
-    return error || !data.url ? null : { url: data.url };
-  } catch {
-    return null;
   }
 }
 
