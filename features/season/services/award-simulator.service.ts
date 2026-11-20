@@ -1,5 +1,6 @@
 import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
 import { evaluateBallonDor } from "./ballon-dor.service";
+import { generateGlobalBallonRivals, globalAwardPrestigeFactor, type GlobalAwardClub } from "./global-award-candidates.service";
 import {
   AWARD_LABELS,
   AWARD_MODEL_VERSION,
@@ -19,6 +20,7 @@ import {
 } from "./synthetic-league.service";
 
 export interface AwardSimulatorInput {
+  globalClubs?: GlobalAwardClub[];
   seasonId?: string;
   age: number;
   formation?: string;
@@ -36,6 +38,7 @@ export interface AwardSimulatorInput {
     leagueId?: string | null;
     leagueName: string;
     leaguePrestige: number;
+    clubPrestige?: number;
     leagueClubsCount: number;
     leagueClubs: SyntheticLeagueClubInput[];
     standing?: number | null;
@@ -58,6 +61,7 @@ interface Candidate extends AwardRankingEntry {
   leagueStats: SyntheticCompetitionStats;
   seasonStats: SyntheticCompetitionStats;
   teamSuccess: number;
+  ballonDorPrestigeFactor?: number;
 }
 
 const DEFENSIVE_POSITIONS = new Set(["CB", "LB", "RB", "CDM"]);
@@ -127,6 +131,7 @@ function fromSynthetic(candidate: SyntheticAwardCandidate): Candidate {
     leagueStats: candidate.leagueStats,
     seasonStats: candidate.seasonStats,
     teamSuccess: candidate.teamSuccess,
+    ballonDorPrestigeFactor: candidate.ballonDorPrestigeFactor,
   };
 }
 
@@ -165,7 +170,8 @@ function makeCandidates(input: AwardSimulatorInput, source: RandomSource): Candi
     ovr: clamp(player.ovr, 1, 99),
     leagueStats: player.leagueStats,
     seasonStats: playerSeasonStats,
-    teamSuccess: teamSuccess(player.standing, player.leaguePrestige),
+    teamSuccess: teamSuccess(player.standing, player.clubPrestige ?? player.leaguePrestige),
+    ballonDorPrestigeFactor: input.globalClubs ? globalAwardPrestigeFactor(player.clubPrestige ?? player.leaguePrestige, player.leaguePrestige) : 1,
   };
   const generated = generateSyntheticLeagueCandidates({
     seasonId: input.seasonId,
@@ -186,7 +192,7 @@ function metricScore(key: AwardKey, candidate: Candidate): number {
     case "league_top_assist": return stats.assists;
     case "league_golden_glove": return candidate.position === "GK" ? stats.cleanSheets * 2 + stats.rating : -1;
     case "league_best_xi": return bestXiScore(candidate);
-    case "ballon_dor": return candidate.seasonStats.rating * 9 + candidate.seasonStats.goals * 1.25 + candidate.seasonStats.assists * 1.15 + candidate.teamSuccess * 0.85 + candidate.ovr * 0.14;
+    case "ballon_dor": return (candidate.seasonStats.rating * 9 + candidate.seasonStats.goals * 1.25 + candidate.seasonStats.assists * 1.15 + candidate.teamSuccess * 0.85 + candidate.ovr * 0.14) * (candidate.ballonDorPrestigeFactor ?? 1);
     default: return 0;
   }
 }
@@ -246,7 +252,7 @@ function rankedEntries(key: AwardKey, candidates: Candidate[], source: RandomSou
 }
 
 function snapshot(input: AwardSimulatorInput, key: AwardKey, entries: Candidate[], scopeKey = "league"): AwardRankingSnapshotInput {
-  const publicEntries = entries.map((entry) => Object.fromEntries(Object.entries(entry).filter(([field]) => field !== "ovr" && field !== "teamSuccess")) as AwardRankingEntry);
+  const publicEntries = entries.map((entry) => Object.fromEntries(Object.entries(entry).filter(([field]) => field !== "ovr" && field !== "teamSuccess" && field !== "ballonDorPrestigeFactor")) as AwardRankingEntry);
   return {
     snapshotKey: `${input.seasonId ?? "season"}:${key}:${scopeKey}`,
     awardKey: key,
@@ -323,10 +329,13 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     if (selected.isCareerPlayer) honours.push(makeHonour(input, "league_best_xi", selected, `${position}:${slotIndex}`));
   });
   if (xiEntries.length > 0) {
-    snapshots.push({ ...snapshot(input, "league_best_xi", xiEntries), status: "resolved", entries: xiEntries.map((entry) => Object.fromEntries(Object.entries(entry).filter(([field]) => field !== "ovr" && field !== "teamSuccess")) as AwardRankingEntry), resolution: { candidateUniverseSize: xiEntries.length, resolver: AWARD_RESOLUTION_VERSION } });
+    snapshots.push({ ...snapshot(input, "league_best_xi", xiEntries), status: "resolved", resolution: { candidateUniverseSize: xiEntries.length, resolver: AWARD_RESOLUTION_VERSION } });
   }
 
-  const ballonCandidates = rankedEntries("ballon_dor", candidates, source, candidates.length);
+  const globalRivals = input.globalClubs?.length
+    ? generateGlobalBallonRivals(input.globalClubs, input.seasonId, source).map(fromSynthetic) : null;
+  const globalCandidates = globalRivals ? [candidates[0], ...globalRivals] : candidates;
+  const ballonCandidates = rankedEntries("ballon_dor", globalCandidates, source, globalCandidates.length);
   const playerBallonEntry = ballonCandidates.find((entry) => entry.isCareerPlayer);
   const rivals = ballonCandidates.filter((entry) => !entry.isCareerPlayer);
   const cutoff = rivals[TOP_TEN_LIMIT - 1]?.score;
@@ -350,7 +359,7 @@ export function simulateAwardSeason(input: AwardSimulatorInput): AwardSimulation
     professionalism: player.professionalism,
     standing: player.standing,
     leagueSize: player.leagueClubsCount,
-    clubPrestige: player.leaguePrestige,
+    clubPrestige: player.clubPrestige ?? player.leaguePrestige,
     domesticCup: player.domesticCupResult,
     continentalResult: player.continentalResult,
     continentalType: player.continentalType,

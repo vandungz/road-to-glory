@@ -21,6 +21,8 @@ export interface SyntheticLeagueInput {
   clubs: SyntheticLeagueClubInput[];
   /** Number of league candidates to synthesize for award ranking depth. */
   candidateCount?: number;
+  /** Global honours need each club represented in every position. Local league simulation stays unchanged. */
+  balancedClubPositions?: boolean;
   randomSource?: RandomSource;
 }
 
@@ -33,6 +35,7 @@ export interface SyntheticAwardCandidate {
   leagueStats: SyntheticCompetitionStats;
   seasonStats: SyntheticCompetitionStats;
   teamSuccess: number;
+  ballonDorPrestigeFactor?: number;
 }
 
 interface SyntheticClub {
@@ -245,11 +248,13 @@ export function generateSyntheticLeagueCandidates(input: SyntheticLeagueInput): 
   const leagueTier = input.leagueTier ?? (leagueClubsCount >= 18 ? 1 : 2);
   const leagueBaseOvr = leagueTier <= 1 ? 78 : 72;
   const leagueMatches = Math.max(18, (Math.max(2, leagueClubsCount) - 1) * 2);
-  const candidateCount = Math.max(POSITION_ROTATION.length, Math.round(input.candidateCount ?? POSITION_ROTATION.length));
+  const positions = input.balancedClubPositions ? [...new Set(POSITION_ROTATION)] : POSITION_ROTATION;
+  const candidateCount = input.balancedClubPositions ? clubs.length * positions.length
+    : Math.max(POSITION_ROTATION.length, Math.round(input.candidateCount ?? POSITION_ROTATION.length));
 
   return Array.from({ length: candidateCount }, (_, index) => {
-    const position = POSITION_ROTATION[index % POSITION_ROTATION.length];
-    const club = clubs[index % clubs.length];
+    const position = positions[index % positions.length];
+    const club = clubs[(input.balancedClubPositions ? Math.floor(index / positions.length) : index) % clubs.length];
     const age = 19 + Math.floor(source() * 16);
     const ageModifier = age >= 23 && age <= 29 ? 2 : age >= 30 ? -1 : -2;
     const positionModifier = position === "ST" || position === "CAM" ? 1 : 0;

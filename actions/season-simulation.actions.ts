@@ -9,6 +9,9 @@ import { simulateDynamicLeagueTableService, type TableRow } from "@/features/sea
 import { startPlayerCareerService, type CareerSetupResult } from "@/features/career/services/career-setup.service";
 import { createCareerSetupToken } from "@/features/career/services/career-setup-token.service";
 import { generateLeagueTableSchema, simulatePlayerSeasonSchema, startPlayerCareerSchema } from "./season-action-contracts";
+import { FORMATION_SLOTS } from "@/types/squad";
+import type { Formation } from "@/types/game";
+import { getTranslations } from "next-intl/server";
 
 async function getShopItemActiveForSeason(playerId: string, itemId: string, season: number): Promise<boolean> {
   const player = await prisma.careerPlayer.findUnique({ where: { id: playerId }, select: { shopInventory: true } });
@@ -37,10 +40,15 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
       select: { id: true, name: true, prestige: true },
       orderBy: { name: "asc" },
     }),
-    prisma.league.findUnique({ where: { id: validated.leagueId }, select: { tier: true } }),
+    prisma.league.findUnique({ where: { id: validated.leagueId }, select: { tier: true, prestige: true } }),
   ]);
 
   return simulatePlayerSeasonService({
+    globalClubs: await prisma.club.findMany({
+      where: { league: { tier: 1 } },
+      select: { id: true, name: true, prestige: true, leagueId: true, league: { select: { prestige: true, tier: true } } },
+      orderBy: { id: "asc" },
+    }),
     age: validated.age,
     ovr: validated.ovr,
     position: validated.position,
@@ -49,6 +57,7 @@ export async function simulatePlayerSeasonAction(input: unknown): Promise<Simula
     clubName: validated.clubName,
     leagueName: validated.leagueName,
     leagueTier: leagueRow?.tier,
+    leaguePrestige: leagueRow?.prestige,
     leagueClubsCount: leagueClubs.length,
     leagueClubs,
     hasContinentalCup: validated.hasContinentalCup,
@@ -97,6 +106,10 @@ export async function startPlayerCareerAction(input: unknown): Promise<CareerSet
   const validated = startPlayerCareerSchema.parse(input);
   const user = await verifyGameOwnership(validated.gameId);
   await checkRateLimit(user.id);
+
+  const session = await prisma.gameSession.findUnique({ where: { id: validated.gameId }, select: { formation: true } });
+  const slot = session ? FORMATION_SLOTS[session.formation as Formation]?.[validated.slotIndex] : undefined;
+  if (!slot || slot.position !== validated.position) throw new Error((await getTranslations("ui"))("slotPositionMismatch"));
 
   const dbClub = await prisma.club.findUnique({
     where: { id: validated.clubId },

@@ -10,6 +10,8 @@ import {
   type AwardSimulationResult,
 } from "@/types/awards";
 import { getHonourResultLabel, getSpecificHonourLabel } from "@/features/career/lib/honour-display";
+import { placeBallonDorPlayer } from "@/features/season/services/ballon-ranking";
+import type { AwardRankingEntry } from "@/types/awards";
 
 type AwardTransaction = Prisma.TransactionClient;
 
@@ -204,25 +206,13 @@ export async function finalizeBallonDorRanking(params: {
   const snapshot = await params.tx.careerAwardRankingSnapshot.findFirst({
     where: { careerPlayerId: params.playerId, seasonId: params.seasonId, awardKey: "ballon_dor" },
   });
-  const existingEntries = Array.isArray(snapshot?.entries) ? snapshot.entries as unknown[] : [];
-  const current = existingEntries.find((entry) => {
-    const record = entry as Record<string, unknown>;
-    return record.isCareerPlayer === true;
-  }) as Record<string, unknown> | undefined;
-  const others = existingEntries.filter((entry) => entry !== current).map((entry) => ({ ...(entry as Record<string, unknown>) }));
-  const playerEntry = {
-    ...(current ?? {}),
+  const existingEntries = Array.isArray(snapshot?.entries) ? snapshot.entries as unknown as AwardRankingEntry[] : [];
+  const entries = placeBallonDorPlayer(existingEntries, rank, {
     candidateKey: `career:${params.playerId}`,
     name: params.player.name,
     position: params.player.position,
     clubName: params.club.name ?? "Không CLB",
-    isCareerPlayer: true,
-    metrics: current?.metrics ?? {},
-    rank,
-    result: rank === 2 ? "runner_up" : rank === 1 ? "winner" : "nominee",
-  };
-  others.splice(Math.min(rank - 1, others.length), 0, playerEntry);
-  const entries = others.slice(0, TOP_TEN_LIMIT).map((entry, index) => ({ ...entry, rank: index + 1, result: entry.isCareerPlayer ? (index === 0 ? "winner" : index === 1 ? "runner_up" : "nominee") : "ranked" }));
+  });
   const snapshotKey = snapshot?.snapshotKey ?? `${params.seasonId}:ballon_dor:global-candidate-universe`;
   await params.tx.careerAwardRankingSnapshot.upsert({
     where: { snapshotKey },

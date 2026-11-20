@@ -35,6 +35,7 @@ export interface CompetitionStats {
 }
 
 export interface PlayerSeasonInput {
+  globalClubs?: import("./global-award-candidates.service").GlobalAwardClub[];
   seasonId?: string;
   playerId?: string;
   playerName?: string;
@@ -48,6 +49,7 @@ export interface PlayerSeasonInput {
   clubName: string;
   leagueName: string;
   leagueTier?: number;
+  leaguePrestige?: number;
   leagueClubsCount: number;
   leagueClubs: SyntheticLeagueClubInput[];
   hasContinentalCup: boolean;
@@ -228,6 +230,7 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
   const matchRating = Math.min(9.0, Math.max(5.5, Math.round(weightedRating * 100) / 100));
 
   const awardSimulation = simulateAwardSeason({
+    globalClubs: input.globalClubs,
     seasonId,
     age: input.age,
     formation,
@@ -243,7 +246,8 @@ export function simulatePlayerSeasonService(input: PlayerSeasonInput): Simulated
       professionalism,
       clubName: input.clubName,
       leagueName: input.leagueName,
-      leaguePrestige: clubPrestige,
+      leaguePrestige: input.leaguePrestige ?? clubPrestige,
+      clubPrestige,
       leagueClubsCount,
       leagueClubs: input.leagueClubs,
       standing: standingResult,

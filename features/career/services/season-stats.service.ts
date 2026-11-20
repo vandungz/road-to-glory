@@ -268,7 +268,7 @@ export async function commitSeasonStatsCommand(params: {
             name: true,
             leagueId: true,
             prestige: true,
-            league: { select: { name: true, tier: true } },
+            league: { select: { name: true, tier: true, prestige: true } },
           },
         })
       : null;
@@ -284,6 +284,11 @@ export async function commitSeasonStatsCommand(params: {
       ? player.shopInventory as unknown as ShopInventoryEntry[]
       : [];
     const simulated = simulatePlayerSeasonService({
+      globalClubs: await tx.club.findMany({
+        where: { league: { tier: 1 } },
+        select: { id: true, name: true, prestige: true, leagueId: true, league: { select: { prestige: true, tier: true } } },
+        orderBy: { id: "asc" },
+      }),
       seasonId: season.id,
       playerId: player.id,
       playerName: player.name,
@@ -297,6 +302,7 @@ export async function commitSeasonStatsCommand(params: {
       clubName: clubRow.name,
       leagueName: clubRow.league.name,
       leagueTier: clubRow.league.tier,
+      leaguePrestige: clubRow.league.prestige,
       leagueClubsCount: leagueClubs.length,
       leagueClubs,
       hasContinentalCup,

@@ -1,4 +1,4 @@
-export const AWARD_MODEL_VERSION = "awards-v5";
+export const AWARD_MODEL_VERSION = "awards-v7";
 export const AWARD_RESOLUTION_VERSION = "weighted-random-v5";
 export const TOP_TEN_LIMIT = 10;
 
