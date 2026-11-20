@@ -20,6 +20,7 @@ interface ModalProps {
   size?: ModalSize;
   variant?: ModalVariant;
   mobileSheet?: boolean;
+  transitionKey?: string;
 }
 
 const FOCUSABLE_SELECTOR = [
@@ -49,6 +50,7 @@ export function Modal({
   size = "md",
   variant = "default",
   mobileSheet = true,
+  transitionKey = "dialog",
 }: ModalProps) {
   const panelRef = useRef<HTMLDivElement>(null);
   const restoreFocusRef = useRef<HTMLElement | null>(null);
@@ -72,6 +74,15 @@ export function Modal({
       : null;
     const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      restoreFocusRef.current?.focus();
+    };
+  }, [open, isMounted]);
+
+  useEffect(() => {
+    if (!open || !isMounted) return;
 
     const focusPanel = () => {
       const focusable = panelRef.current?.querySelector<HTMLElement>(FOCUSABLE_SELECTOR);
@@ -116,10 +127,8 @@ export function Modal({
     return () => {
       window.cancelAnimationFrame(frame);
       document.removeEventListener("keydown", handleKeyDown);
-      document.body.style.overflow = previousOverflow;
-      restoreFocusRef.current?.focus();
     };
-  }, [open, isMounted]);
+  }, [open, isMounted, transitionKey]);
 
   if (!isMounted || !open || typeof document === "undefined") return null;
 
@@ -131,6 +140,7 @@ export function Modal({
       }}
     >
       <div
+        key={transitionKey}
         ref={panelRef}
         className={cn(
           "football-modal-panel",

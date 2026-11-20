@@ -1,0 +1,29 @@
+/* Hallmark · app components · theme: Football Life brand · redesign: polish · v2.0.0 */
+/* Critique: keep confirmation concise, show the complete award standings beside its result. */
+/* Hallmark · waive 26b · controls reuse the shared Button and IconButton · Focus, disabled and loading states are defined in shared-primitives.css and identity-system.css rather than duplicated in TSX. */
+/* Hallmark · waive 72 · a labelled app ranking intentionally scrolls inside the modal · Its below-fold rows remain reachable by keyboard and scroll while summary and footer stay visible at every supported desktop size. */
+.football-confirm-dialog__error { color: var(--football-negative); }
+.football-profile-setup__name-field { display: grid; gap: 8px; }
+.football-profile-setup__name-input { position: relative; }
+.football-profile-setup__fields .football-profile-setup__name-input input { width: 100%; min-height: 44px; border-color: var(--football-ink-3); padding-inline-end: 52px; }
+.football-profile-setup__name-input > .football-tooltip { position: absolute; inset-inline-end: 6px; inset-block-start: 50%; transform: translateY(-50%); }
+.football-profile-setup__name-input .football-icon-button { width: 32px; height: 32px; min-width: 32px; min-height: 32px; }
+.football-profile-setup__name-input .football-icon-button:active:not(:disabled) { transform: scale(.96); }
+.football-profile-setup__fields input[readonly] { color: var(--football-ink-2); background: var(--football-sunken); cursor: default; }
+.football-ballon-result .football-modal-header { min-height: 72px; padding: 16px 24px; }
+.football-ballon-result .football-modal-footer { min-height: 72px; padding: 12px 24px; }
+.football-ballon-result .football-modal-body { display: grid; grid-template-columns: minmax(0, 0.7fr) minmax(0, 1.3fr); gap: 32px; min-height: 0; overflow: hidden; padding: 20px 24px; }
+.football-ballon-result__summary { display: flex; flex-direction: column; justify-content: center; min-width: 0; }
+.football-ballon-result__summary h2 { font: 600 clamp(26px, 2.5vw, 32px)/1.2 var(--font-headline); color: var(--football-honour); min-width: 0; overflow-wrap: break-word; text-wrap: balance; margin: 0; }
+.football-ballon-result__art { width: 100%; height: min(260px, 36dvh); margin-block-start: 16px; }
+.football-ballon-result__ranking { overflow-y: auto; min-height: 0; overscroll-behavior: contain; }
+.football-ballon-result__ranking:focus-visible { outline: var(--football-outline); outline-offset: -2px; }
+.football-ballon-result__ranking h3 { font: inherit; margin: 0; padding: 0 12px 12px; border-block-end: 1px solid var(--football-rule); }
+.football-ballon-result__ranking ol { list-style: none; padding: 0; margin: 0; }
+.football-ballon-result__ranking li { display: grid; grid-template-columns: 24px minmax(0, 1fr); align-items: center; gap: 12px; min-height: 44px; padding: 8px 12px; border-block-end: 1px solid var(--football-rule); font-size: 14px; }
+.football-ballon-result__ranking li > strong { font-variant-numeric: tabular-nums; color: var(--football-ink-2); }
+.football-ballon-result__ranking li > span { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; min-width: 0; }
+.football-ballon-result__ranking li.is-player { background: var(--football-sunken); }
+.football-ballon-result__ranking b, .football-ballon-result__ranking small { overflow-wrap: break-word; min-width: 0; }
+.football-ballon-result__ranking small { color: var(--football-ink-2); font-size: 13px; text-align: end; }
+@media (max-height: 700px) { .football-ballon-result__art { height: min(200px, 32dvh); } }

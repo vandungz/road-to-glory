@@ -101,7 +101,8 @@ export function SquadDashboard({
         </div>
       </div>
 
-      <PlayerCareerDialog player={selectedPlayer} isOpen={selectedPlayer !== null} onClose={() => setSelectedPlayer(null)} gameId={gameId} canManage={status === "completed"} />
+      {/* Board players are retired careers; the server rechecks retirement before mutations. */}
+      <PlayerCareerDialog player={selectedPlayer} isOpen={selectedPlayer !== null} onClose={() => setSelectedPlayer(null)} gameId={gameId} canManage />
     </div>
   );
 }

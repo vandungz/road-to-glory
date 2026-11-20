@@ -169,6 +169,8 @@ html[data-game-reduced-motion] *::after {
 [data-mount="page"] { animation: football-reveal 220ms var(--football-motion-ease); }
 [data-mount="page"]:has(.football-route-loading) { animation: none; }
 [data-mount="panel"] { animation: football-reveal 180ms var(--football-motion-ease); }
+.football-modal-overlay { animation: football-modal-scrim 180ms var(--football-motion-ease); }
+.football-modal-panel[data-mount="panel"] { animation: football-modal-enter 220ms var(--football-motion-ease); }
 [data-mount="detail"] { animation: football-mount 180ms var(--football-motion-ease); }
 
 @keyframes football-reveal {
@@ -179,4 +181,14 @@ html[data-game-reduced-motion] *::after {
 @keyframes football-mount {
   from { opacity: .78; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes football-modal-scrim {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes football-modal-enter {
+  from { opacity: 0; transform: translateY(10px) scale(.98); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
 }

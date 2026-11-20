@@ -7,7 +7,7 @@ import { ArrowLeft, Check, CircleAlert, RotateCcw, Swords } from "lucide-react";
 import { useEffect, useState, useTransition } from "react";
 import { useGameReducedMotion } from "@/features/settings/game-motion";
 import { Button } from "@/components/ui/Button";
-import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { getPveTournamentAction, playPveRoundAction, replayPveTournamentAction, startPveTournamentAction } from "@/actions/pve.actions";
 import type { PveOpponentTeam, PveRoundRecord, PveStatus, PveTournamentState, PveUserLineupPlayer } from "@/types/pve";
 import type { Formation } from "@/types/game";
@@ -194,10 +194,8 @@ export function PveTournamentScreen({ gameId, sessionName, formation, squadRatin
           onReview={latestMatch ? () => setMatchView("review") : undefined} />
       ) : null}
     </div>
-    <Modal open={isReplayConfirmOpen} title={ui("confirmPveReplay")} onClose={() => { if (!isPending) setIsReplayConfirmOpen(false); }} size="sm">
-      <ModalHeader onClose={isPending ? undefined : () => setIsReplayConfirmOpen(false)}>{ui("replayWithThisSquad2")}</ModalHeader>
-      <ModalBody><p className="football-pve-confirm-copy">{ui("thisReplacesYourPreviousTournamentResultsAndStartsFromTheLeaguePhase")}</p>{error && <p className="football-pve-error" role="alert">{error}</p>}</ModalBody>
-      <ModalFooter><Button variant="quiet" disabled={isPending} onClick={() => setIsReplayConfirmOpen(false)}>{ui("cancel2")}</Button><Button loading={isPending} onClick={() => runAction("replay")}>{ui("replay")}</Button></ModalFooter>
-    </Modal>
+    <ConfirmDialog open={isReplayConfirmOpen} title={ui("replayWithThisSquad2")}
+      description={ui("thisReplacesYourPreviousTournamentResultsAndStartsFromTheLeaguePhase")} confirmLabel={ui("replay")}
+      pending={isPending} error={error} onCancel={() => setIsReplayConfirmOpen(false)} onConfirm={() => runAction("replay")} />
   </div>;
 }

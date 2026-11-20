@@ -6,6 +6,8 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { completeGameSession } from "@/actions/season.actions";
 import { Button } from "@/components/ui/Button";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
+import { useState, useTransition } from "react";
 
 interface Props {
   gameId: string;
@@ -18,13 +20,22 @@ interface Props {
 export function SquadSummary({ gameId, status, playerCount, squadOvr, draftAction }: Props) {
   const ui = useTranslations("ui");
   const router = useRouter();
+  const [confirmOpen, setConfirmOpen] = useState(false);
+  const [pending, startTransition] = useTransition();
+  const [error, setError] = useState<string | null>(null);
   const isCompleted = status === "completed";
   const isFull = playerCount === 11;
 
-  async function finishCareer() {
-    if (!window.confirm(ui("confirmCompleteSquad"))) return;
-    await completeGameSession(gameId);
-    router.refresh();
+  function finishCareer() {
+    if (pending) return;
+    setError(null);
+    startTransition(async () => {
+      try {
+        await completeGameSession(gameId);
+        setConfirmOpen(false);
+        router.refresh();
+      } catch { setError(ui("squadUpdateError")); }
+    });
   }
 
   return (
@@ -35,7 +46,7 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr, draftActio
       </div>
       {draftAction}
       {!isCompleted && isFull && (
-        <Button onClick={() => void finishCareer()}>{ui("finalizeSquad")}</Button>
+        <Button onClick={() => { setError(null); setConfirmOpen(true); }}>{ui("finalizeSquad")}</Button>
       )}
       {isCompleted && (
         <Link href={`/pve/${gameId}`} className="football-button football-button--outline">
@@ -43,6 +54,9 @@ export function SquadSummary({ gameId, status, playerCount, squadOvr, draftActio
           <ArrowRight aria-hidden="true" size={16} />
         </Link>
       )}
+      <ConfirmDialog open={confirmOpen} title={ui("finalizeSquad")} description={ui("confirmCompleteSquad")}
+        confirmLabel={ui("finalizeSquad")} pending={pending} error={error}
+        onCancel={() => setConfirmOpen(false)} onConfirm={finishCareer} />
     </section>
   );
 }

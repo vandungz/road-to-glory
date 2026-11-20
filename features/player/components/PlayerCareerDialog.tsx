@@ -12,6 +12,7 @@ import type { ClientSafePlayer } from "@/types/squad";
 import { getHonourResultLabel, getSpecificHonourLabel } from "@/features/career/lib/honour-display";
 import { getHonourRows } from "@/features/player/lib/honour-summary";
 import { Modal } from "@/components/ui/Modal";
+import { ConfirmDialogContent } from "@/components/ui/ConfirmDialog";
 import {
   aggregateCareerStats,
   buildCareerArchiveTimeline,
@@ -46,6 +47,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [actionError, setActionError] = useState<string | null>(null);
+  const [managementMode, setManagementMode] = useState<"replace" | "delete" | null>(null);
   const debutAge = player?.debutAge ?? 18;
   const retireAge = player?.retireAge ?? 35;
   const statsTimeline = useMemo(() => buildCareerArchiveTimeline({
@@ -95,8 +97,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
 
   function managePlayer(mode: "replace" | "delete") {
     if (!player || !gameId) return;
-    const message = ui(mode === "replace" ? "replacePlayerConfirmation" : "removePlayerConfirmation", { name: player.name });
-    if (!window.confirm(message)) return;
+    if (isPending) return;
     setActionError(null);
     startTransition(async () => {
       try {
@@ -105,6 +106,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
           setActionError(result.error);
           return;
         }
+        setManagementMode(null);
         onClose();
         if (mode === "replace") router.push(`/classic/${gameId}/draft/${result.slotIndex}`);
         else router.refresh();
@@ -159,16 +161,24 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
 
   if (!isOpen || !player) return null;
 
+  const cancelManagement = () => { setManagementMode(null); setActionError(null); };
+
   return (
     <Modal
       open={isOpen}
-      title={ui("sCareerRecord", { v0: String(player.name) })}
-      onClose={onClose}
-      className="football-career-modal"
+      title={managementMode ? ui(managementMode === "replace" ? "replacePlayer" : "removeFromSquad") : ui("sCareerRecord", { v0: String(player.name) })}
+      onClose={managementMode ? () => { if (!isPending) cancelManagement(); } : onClose}
+      closeOnBackdrop={!isPending}
+      className={managementMode ? "football-confirm-dialog" : "football-career-modal"}
+      size={managementMode ? "sm" : "md"}
+      transitionKey={managementMode ?? "archive"}
       mobileSheet={false}
-      style={{ width: "min(1056px, calc(100vw - 32px))", maxWidth: "1056px", height: "min(700px, calc(100dvh - 40px))", padding: 0, overflow: "hidden" }}
+      style={managementMode ? undefined : { width: "min(1056px, calc(100% - 32px))", maxWidth: "1056px", height: "min(700px, calc(100dvh - 40px))", padding: 0, overflow: "hidden" }}
     >
-      <div className="football-career-dialog">
+      {managementMode ? <ConfirmDialogContent title={ui(managementMode === "replace" ? "replacePlayer" : "removeFromSquad")}
+        description={ui(managementMode === "replace" ? "replacePlayerConfirmation" : "removePlayerConfirmation", { name: player.name })}
+        confirmLabel={ui(managementMode === "replace" ? "replacePlayer" : "removeFromSquad")} pending={isPending} error={actionError}
+        onCancel={cancelManagement} onConfirm={() => managePlayer(managementMode)} /> : <div className="football-career-dialog">
         <aside className="football-career-dialog__sidebar">
           <PlayerStickerCard player={player} finalClub={finalClub} debutAge={debutAge} retireAge={retireAge} careerLength={careerLength} />
 
@@ -177,8 +187,8 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
             <h3 id="squad-management-title">{ui("manageThisSlot")}</h3>
             <p>{ui("replacingThePlayerReopensThisSlotAndResetsPveResultsForThisSquad")}</p>
             <div className="football-career-dialog__management-actions">
-              <Button variant="outline" size="sm" onClick={() => managePlayer("replace")} disabled={isPending} loading={isPending}><RotateCcw aria-hidden="true" size={14} /> {ui("replacePlayer")}</Button>
-              <Button variant="quiet" size="sm" className="football-career-dialog__danger-button" onClick={() => managePlayer("delete")} disabled={isPending}><Trash2 aria-hidden="true" size={14} /> {ui("removeFromSquad")}</Button>
+              <Button variant="outline" size="sm" onClick={() => { setActionError(null); setManagementMode("replace"); }} disabled={isPending}><RotateCcw aria-hidden="true" size={14} /> {ui("replacePlayer")}</Button>
+              <Button variant="quiet" size="sm" className="football-career-dialog__danger-button" onClick={() => { setActionError(null); setManagementMode("delete"); }} disabled={isPending}><Trash2 aria-hidden="true" size={14} /> {ui("removeFromSquad")}</Button>
             </div>
             {actionError && <p className="football-career-dialog__action-error" role="alert">{actionError}</p>}
           </section>}
@@ -258,7 +268,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
             </div>
           </section>
         </main>
-      </div>
+      </div>}
     </Modal>
   );
 }

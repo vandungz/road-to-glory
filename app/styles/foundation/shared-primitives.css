@@ -63,6 +63,29 @@
 .football-icon-button:hover:not(:disabled) { background: var(--football-sunken); color: var(--football-ink); }
 .football-icon-button:disabled { color: var(--football-disabled); cursor: not-allowed; }
 
+.football-tooltip { position: relative; display: inline-flex; }
+.football-tooltip:focus-visible { outline: var(--football-outline); outline-offset: 2px; border-radius: var(--football-radius); }
+.football-tooltip__bubble {
+  position: absolute;
+  z-index: 70;
+  inset-inline-end: 0;
+  inset-block-end: calc(100% + 8px);
+  width: max-content;
+  max-width: 260px;
+  padding: 8px 12px;
+  border-radius: var(--football-radius);
+  background: var(--football-ink);
+  color: var(--football-paper);
+  font-size: 13px;
+  line-height: 1.5;
+  pointer-events: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(2px);
+  transition: opacity var(--football-motion-control) var(--football-motion-ease), transform var(--football-motion-control) var(--football-motion-ease);
+}
+.football-tooltip:is(:hover, :focus-within) > .football-tooltip__bubble { visibility: visible; opacity: 1; transform: translateY(0); }
+
 .football-badge {
   display: inline-flex;
   align-items: center;

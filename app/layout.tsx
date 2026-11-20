@@ -7,6 +7,7 @@ import "./styles/features/career-workspace.css";
 import "./styles/foundation/filters.css";
 import "./styles/features/contract-negotiation.css";
 import "./styles/features/player-portraits.css";
+import "./styles/features/classic-interactions.css";
 import "./styles/features/account.css";
 import "./styles/features/guest-landing.css";
 import "./styles/features/policy.css";
