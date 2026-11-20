@@ -112,7 +112,7 @@ export default async function BallonDorResultPage({ params }: Props) {
                 {snapshotEntries(snapshot.entries).map((entry) => (
                   <li key={`${String(entry.candidateKey)}-${String(entry.rank)}`} className={entry.isCareerPlayer === true ? "is-player" : undefined}>
                     <strong>{String(entry.rank ?? "—")}</strong>
-                    <span><b>{entry.isCareerPlayer === true ? String(entry.name ?? "Player") : ui("message2", { v0: String(getPositionNumber(String(entry.position ?? ""))) })}</b><small>{String(entry.clubName ?? "—")}{entry.isCareerPlayer === true ? ` · ${String(entry.position ?? "—")}` : ""}</small></span>
+                    <span><b>{entry.isCareerPlayer === true ? String(entry.name ?? "—") : `${String(entry.position ?? "—")} #${getPositionNumber(String(entry.position ?? ""))}`}</b><small>{String(entry.clubName ?? "—")}</small></span>
                   </li>
                 ))}
               </ol>

@@ -9,13 +9,13 @@ import { DraftDrumCareerStage } from "./DraftDrumCareerStage";
 import { RetiredStage } from "./RetiredStage";
 import { SeasonResultModal } from "./SeasonResultModal";
 import { BallonDorNominationModal } from "./BallonDorNominationModal";
+import { placeBallonDorPlayer } from "@/features/season/services/ballon-ranking";
 import { SeasonRecapModal } from "./SeasonRecapModal";
 import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
-import { Modal, ModalBody, ModalHeader } from "@/components/ui/Modal";
 import { WheelGameHeader } from "./WheelGameHeader";
 import { getSeasonYearString } from "../lib/simulation-helpers";
-import { LoadingState, RouteLoading } from "@/components/ui/States";
+import { RouteLoading } from "@/components/ui/States";
 import { AppShell } from "@/components/shared/AppShell";
 import { Toast } from "@/components/ui/Toast";
 import { ClassicProfileSetup, type ClassicProfile } from "./ClassicProfileSetup";
@@ -71,7 +71,7 @@ export function DraftDrumScreen({
   const [portraitId, setPortraitId] = useState<string | null>(
     savedPlayerId ? resolveSavedPortraitId(savedPortraitId, savedPlayerId) : null,
   );
-  const position = profile?.position ?? slotPosition;
+  const position = slotPosition;
   const {
     isMounted,
     isSaving,
@@ -98,7 +98,6 @@ export function DraftDrumScreen({
     setActiveModal,
     careerSubStep,
     isProcessing,
-    isBallonDorTransitioning,
     seasonTicketResolved,
     startCareerError,
     careerSpinning,
@@ -163,13 +162,6 @@ export function DraftDrumScreen({
     }
   }, [careerSubStep, transferMarket, portrait.pending]);
 
-  const ballonDorNavigationStartedRef = React.useRef(false);
-  React.useEffect(() => {
-    if (!ballonDorResult || ballonDorResult.phase !== "ranking") return;
-    if (ballonDorNavigationStartedRef.current) return;
-    ballonDorNavigationStartedRef.current = true;
-    router.replace(`/classic/${gameId}/draft/${slotIndex}/ballon-dor`);
-  }, [ballonDorResult, gameId, router, slotIndex]);
 
   const handledShopReturnRef = React.useRef<string | null>(null);
   const shopReturnKey = shopReturnAction
@@ -455,9 +447,14 @@ export function DraftDrumScreen({
         />
       )}
 
-      {activeModal === "ballon_dor_nomination" && ballonDorResult?.phase === "nomination" && (
+      {activeModal === "ballon_dor_nomination" && ballonDorResult && (
         <BallonDorNominationModal
-          nominated={ballonDorResult.nominated}
+          nominated={ballonDorResult.phase === "ranking" || ballonDorResult.nominated}
+          rank={ballonDorResult.phase === "ranking" ? ballonDorResult.rank : undefined}
+          entries={ballonDorResult.phase === "ranking" ? placeBallonDorPlayer(
+            yearSimResult?.awardSimulation.snapshots.find((snapshot) => snapshot.awardKey === "ballon_dor")?.entries ?? [],
+            ballonDorResult.rank, { candidateKey: `career:${savedPlayerId ?? "player"}`, name: playerName, position, clubName: currentClub?.name ?? ui("freeAgent") },
+          ) : undefined}
           onClose={() => setActiveModal(null)}
         />
       )}
@@ -475,21 +472,6 @@ export function DraftDrumScreen({
         />
       )}
 
-      {isBallonDorTransitioning && (
-        <Modal
-          open
-          title={ui("openingBallonDorResults")}
-          onClose={() => undefined}
-          closeOnBackdrop={false}
-          size="sm"
-          className="football-ballon-dor-transition-modal"
-        >
-          <ModalHeader>{ui("ballonDor")}</ModalHeader>
-          <ModalBody>
-            <LoadingState label={ui("loadingStandings")} />
-          </ModalBody>
-        </Modal>
-      )}
 
     </div>
   );

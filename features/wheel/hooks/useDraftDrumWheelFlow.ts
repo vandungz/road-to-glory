@@ -249,14 +249,12 @@ export function useDraftDrumWheelFlow({
         setBallonDorResult({ phase: "nomination", nominated: result === "yes" });
       } else if (typeof result === "number" && result >= 1 && result <= TOP_TEN_LIMIT) {
         setBallonDorResult({ phase: "ranking", rank: result });
-        // The stat flow moves to the next step in the same callback. Lock the
-        // whole draft surface before that state can render, otherwise users
-        // can click the development wheel while the result route is opening.
-        setIsBallonDorTransitioning(true);
+        // Keep the career mounted; the result modal guards the next wheel.
+        setIsBallonDorTransitioning(false);
       }
       if (result !== null) {
         statFlow.handleSpinComplete(completedStep, result, pendingStats?.currentStats, pendingStats?.currentOvr);
-        if (completedStep === "ballon_dor_nomination") setActiveModal("ballon_dor_nomination");
+        setActiveModal("ballon_dor_nomination");
       }
       return;
     }

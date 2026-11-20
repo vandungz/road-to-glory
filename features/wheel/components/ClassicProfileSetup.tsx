@@ -5,7 +5,12 @@ import { useState } from "react";
 import { Button } from "@/components/ui/Button";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
-import { PLAYER_PROFILE_POSITIONS, PORTRAIT_IDS, type PortraitId } from "@/features/player/lib/player-portraits";
+import { PORTRAIT_IDS, type PortraitId } from "@/features/player/lib/player-portraits";
+import { Dices } from "lucide-react";
+import { IconButton } from "@/components/ui/IconButton";
+import { Input } from "@/components/ui/Field";
+import { Tooltip } from "@/components/ui/Tooltip";
+import { generateFictionalName } from "@/lib/name-gen";
 import { NATIONALITY_POOL } from "@/lib/wheel-engine/weight-calculator";
 
 export interface ClassicProfile {
@@ -16,7 +21,6 @@ export interface ClassicProfile {
 }
 
 const nationalities = NATIONALITY_POOL.map(({ value }) => ({ label: value, value }));
-const positions = PLAYER_PROFILE_POSITIONS.map((value) => ({ label: value, value }));
 
 export function ClassicProfileSetup({ slotPosition, onContinue, onRandom }: {
   slotPosition: string;
@@ -29,16 +33,24 @@ export function ClassicProfileSetup({ slotPosition, onContinue, onRandom }: {
   return <form className="football-profile-setup" onSubmit={(event) => {
     event.preventDefault();
     const name = profile.name.trim();
-    if (name.length >= 2 && profile.nationality) onContinue({ ...profile, name });
+    if (name.length >= 2 && profile.nationality) onContinue({ ...profile, name, position: slotPosition });
   }}>
     <div className="football-profile-setup__fields">
       <h1>{ui("createPlayer")}</h1>
-      <label>{ui("playerName")}<input autoComplete="off" value={profile.name} minLength={2} maxLength={60} required
-        onChange={(event) => setProfile({ ...profile, name: event.target.value })} /></label>
+      <div className="football-profile-setup__name-field">
+        <label htmlFor="classic-player-name">{ui("playerName")}</label>
+        <div className="football-profile-setup__name-input">
+          <Input id="classic-player-name" autoComplete="off" value={profile.name} minLength={2} maxLength={60} required
+            onChange={(event) => setProfile({ ...profile, name: event.target.value })} />
+          <Tooltip label={ui(profile.nationality ? "randomPlayerName" : "chooseNationalityForRandomName")} focusable={!profile.nationality}>
+            <IconButton type="button" aria-label={ui("randomPlayerName")} disabled={!profile.nationality}
+              onClick={() => setProfile({ ...profile, name: generateFictionalName(profile.nationality) })}><Dices aria-hidden="true" size={18} /></IconButton>
+          </Tooltip>
+        </div>
+      </div>
       <div className="football-quick-field"><span>{ui("country")}</span><FilterSelect label={ui("country")} value={profile.nationality} searchable options={nationalities}
         onChange={(nationality) => setProfile({ ...profile, nationality })} /></div>
-      <div className="football-quick-field"><span>{ui("position")}</span><FilterSelect label={ui("position")} value={profile.position} options={positions}
-        onChange={(position) => setProfile({ ...profile, position })} /></div>
+      <label>{ui("position")}<Input value={slotPosition} readOnly disabled tabIndex={-1} /></label>
     </div>
     <fieldset className="football-profile-setup__portraits" data-nation={profile.nationality.replace(/\s+/g, "")}>
       <legend>{ui("portrait")}</legend>
