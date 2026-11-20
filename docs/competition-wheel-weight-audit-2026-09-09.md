@@ -1,5 +1,41 @@
 # Audit weight wheel League / Domestic Cup / Continental Trophy
 
+## Cập nhật 18/11/2026 — đối thủ theo vòng và kết quả ĐTQG
+
+Phần này thay thế nhận định cũ về bốc đối thủ đồng xác suất và công thức kết quả ĐTQG; các phần audit bên dưới được giữ làm lịch sử.
+
+- `Club.prestige` và `League.prestige` đều có thang 1–5. Sức mạnh đối thủ = `0.8 × clubPrestige + 0.2 × leaguePrestige`. Production lấy cả hai từ DB; dữ liệu legacy thiếu league dùng prestige CLB làm fallback.
+- Trọng số bốc đối thủ = `exp((strength - 3) × (0.12 + 0.35 × round))`; `round=0` là vòng 64 đội, `round=5` là chung kết. Đây là trọng số tương đối, không phải phần trăm. Tính weight không dùng số ngẫu nhiên; chỉ resolver bốc kết quả.
+- Chọn đối thủ vòng cuối trước, rồi lùi về các vòng đầu để các pool nhỏ không bị dùng hết đội mạnh quá sớm. Không lặp đối thủ khi đủ đội. Pool quá nhỏ có thể lặp sau khi hết đội; pool rỗng không bịa CLB hoặc bốc chính đội người chơi.
+- C1 chỉ dùng pool `UCL`, tương tự `UEL`/`UECL`; không còn gộp ba cúp. Libertadores không trộn Sudamericana. Riêng Sudamericana vẫn dùng pool Nam Mỹ chung vì catalog hiện chưa có CLB mang tag Sudamericana. Đây là giới hạn dữ liệu cần thay khi có roster riêng.
+- Đối thủ ĐTQG cũng được ưu tiên theo vòng, dùng `NationalTeam.tier` hiện có từ DB (`strength = 7 - 2 × tier`), đồng thời giữ lọc liên đoàn của từng giải. World Cup dùng các liên đoàn.
+- Wheel kết quả ĐTQG dùng **phân nhóm sức mạnh toàn cầu hiện có** `getNationalTier(nationality)` (1 mạnh nhất, 3 yếu nhất), không dùng ngược chênh lệch OVR/ngưỡng gọi tuyển. Phân nhóm này hiện là bảng quy tắc trong `weight-pools.ts`, khác với tier theo khu vực trong seed `NationalTeam`. Chưa bổ sung bảng xếp hạng FIFA hay field prestige mới; không tuyên bố đây là xác suất bóng đá ngoài đời.
+
+Với `T` là tier toàn cầu, `I=clamp(influenceProxy,0.35,1)`:
+
+```text
+playerPull = clamp((effPositionOvr - 78) / 21, -1, 1) × 0.06 × I
+luckPull   = clamp((luckRating - 10) / 10, -1, 1) × 0.02
+s          = clamp((3 - T) / 2 + playerPull + luckPull, 0, 1)
+```
+
+| Kết quả | Weight | Tier 1 / Tier 2 / Tier 3 tại OVR 78, luck 10 |
+|---|---|---|
+| Winner | `2 + 12s` | 14% / 8% / 2% |
+| Runner-Up | `4 + 12s` | 16% / 10% / 4% |
+| Semi-Finals | `9 + 11s` | 20% / 14.5% / 9% |
+| Quarter-Finals | `17 + 4s` | 21% / 19% / 17% |
+| Round of 16 | `27 - 9s` | 18% / 22.5% / 27% |
+| Group Stage | `41 - 30s` | 11% / 26% / 41% |
+
+Tổng weight luôn 100. Chỉ số theo vị trí đã nằm trong `effPositionOvr`; không cộng bonus tấn công cho tiền đạo một lần nữa. Ảnh hưởng cá nhân lên xác suất vô địch tối đa 0.72 điểm phần trăm mỗi phía, luck 0.24 điểm; tuyển yếu vẫn có cửa và tuyển mạnh vẫn có thể bị loại sớm. Áp dụng cùng builder cho wheel World Cup và giải châu lục, preview và server; không sửa wheel gọi tuyển.
+
+Outcome của wheel vẫn quyết định thắng/thua cuối hành trình. Chọn đối thủ không quay lại sửa outcome. Checkpoint/history đã lưu không bị tạo lại; thay đổi chỉ áp dụng khi giải quyết wheel mới. Không cần migration hoặc seed lại DB.
+
+Kiểm nghiệm local: `check:competition-journeys` dùng roster seed cho 8 nhóm cúp, 5.000 lượt mỗi nhóm; mọi nhóm có sức mạnh đối thủ chung kết trung bình cao hơn vòng 1/8. UCL: 4.59 → 4.80; UEL: 3.85 → 4.04; UECL: 3.33 → 3.72. Ca 27 đội prestige 1 và 3 đội prestige 5: đội yếu chiếm 47/10.000 chung kết; không bị khóa hoàn toàn. PRNG cố định giúp kết quả kiểm thử tái lập.
+
+Các ca kiểm tra thêm: mọi outcome, không gặp chính mình, không lặp khi đủ đội, pool rỗng/thiếu, ảnh hưởng league, trọng số dương và tổng 100, tier mạnh luôn có lợi thế ở mọi OVR thử nghiệm, ảnh hưởng cầu thủ bị chặn, preview/resolve khớp cả năm World Cup và năm châu lục. Chưa nghiệm thu bằng tài khoản production hoặc roster thực tế trong DB production.
+
 Ngày audit: 2026-09-09  
 Phạm vi: source code hiện tại của wheel kết quả giải VĐQG, Cúp Quốc gia và Cúp châu lục/continental trophy.  
 Ngoài phạm vi chính: national team wheels và individual awards. Các phần đó chỉ được nhắc khi ảnh hưởng trực tiếp tới cùng season simulator.

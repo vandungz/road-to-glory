@@ -1,7 +1,8 @@
 export function continentalOpponentTypes(cupType: string): string[] {
-  if (cupType === "Libertadores" || cupType === "Sudamericana") return ["Libertadores", "Sudamericana"];
-  if (["AFC_CL", "CONCACAF_CC", "CAF_CL"].includes(cupType)) return [cupType];
-  return ["UCL", "UEL", "UECL"];
+  // The current reference catalog has no separate Sudamericana entrants.
+  if (cupType === "Sudamericana") return ["Libertadores", "Sudamericana"];
+  if (["UCL", "UEL", "UECL", "Libertadores", "AFC_CL", "CONCACAF_CC", "CAF_CL"].includes(cupType)) return [cupType];
+  return [];
 }
 
 export function tournamentConfederation(tournament: string): string | undefined {

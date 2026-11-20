@@ -190,20 +190,25 @@ export function getContinentalCupWeights(
 export function getNationalTournamentWeights(
   ovr: number,
   luckRating: number,
-  midOvr: number,
+  nationalTier: number,
   influenceProxy = 1,
 ) {
-  const luck = Math.floor(luckRating / 4);
-  const diff = ovr - midOvr;
-  const pull = Math.round(Math.max(-10, Math.min(14, diff * 0.4 * influenceProxy)));
+  const tier = Number.isFinite(nationalTier) ? Math.max(1, Math.min(3, nationalTier)) : 3;
+  const ability = Number.isFinite(ovr) ? ovr : 78;
+  const influence = Number.isFinite(influenceProxy) ? Math.max(0.35, Math.min(1, influenceProxy)) : 0.35;
+  const luck = Number.isFinite(luckRating) ? luckRating : 10;
+  // National strength dominates; one position-adjusted player shifts it by at most 6%, luck by 2%.
+  const playerPull = Math.max(-1, Math.min(1, (ability - 78) / 21)) * 0.06 * influence;
+  const luckPull = Math.max(-1, Math.min(1, (luck - 10) / 10)) * 0.02;
+  const strength = Math.max(0, Math.min(1, (3 - tier) / 2 + playerPull + luckPull));
 
   return {
-    wWin: Math.max(1, 2 + luck + Math.max(0, pull)),
-    wRun: Math.max(1, 5 + Math.max(0, Math.round(pull * 0.6))),
-    wSemi: Math.max(3, 10 + Math.round(pull * 0.4)),
-    wQF: Math.max(6, 18 + Math.round(pull * 0.3)),
-    wR16: Math.max(10, 25 + Math.round(pull * 0.1)),
-    wGroup: Math.max(12, 40 - pull * 1.5),
+    wWin: 2 + 12 * strength,
+    wRun: 4 + 12 * strength,
+    wSemi: 9 + 11 * strength,
+    wQF: 17 + 4 * strength,
+    wR16: 27 - 9 * strength,
+    wGroup: 41 - 30 * strength,
   };
 }
 

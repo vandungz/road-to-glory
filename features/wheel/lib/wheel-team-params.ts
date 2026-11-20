@@ -75,9 +75,9 @@ function nationalMidOvr(playerNationality: string): number {
 }
 
 export function buildNationalTournamentPool(ctx: TeamWheelCtx) {
-  const midOvr = nationalMidOvr(ctx.playerNationality);
+  const nationalTier = getNationalTier(ctx.playerNationality);
   const { wWin, wRun, wSemi, wQF, wR16, wGroup } =
-    getNationalTournamentWeights(ctx.effPositionOvr, ctx.luckRating, midOvr, influenceFor(ctx));
+    getNationalTournamentWeights(ctx.effPositionOvr, ctx.luckRating, nationalTier, influenceFor(ctx));
   return [
     { value: "Winner", weight: wWin },
     { value: "Runner-Up", weight: wRun },

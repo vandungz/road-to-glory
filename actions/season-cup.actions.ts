@@ -8,6 +8,7 @@ import { generateDomesticCupJourneyService, generateContinentalCupJourneyService
 import { continentalOpponentTypes, tournamentConfederation } from "@/features/season/services/competition-opponents";
 import { evolvePlayerStatsService, type StatsEvolutionResult } from "@/features/player/services/stats-evolution.service";
 import { generateCupJourneySchema, evolvePlayerStatsSchema } from "./season-action-contracts";
+import { secureRandom } from "@/lib/secure-random";
 
 // ── Cup opponents caches (data thay đổi chỉ khi re-seed) ──────────────────
 
@@ -15,9 +16,9 @@ const getCachedDomesticOpponents = unstable_cache(
   async (country: string) =>
     prisma.club.findMany({
       where: { league: { country } },
-      select: { id: true, name: true, prestige: true, leagueId: true, continentalType: true },
+      select: { id: true, name: true, prestige: true, leagueId: true, continentalType: true, league: { select: { prestige: true } } },
     }),
-  ["domestic-cup-opponents"],
+  ["domestic-cup-opponents-v2"],
   { revalidate: 3600 }
 );
 
@@ -25,9 +26,9 @@ const getCachedContinentalOpponents = unstable_cache(
   async (allowedTypes: string[]) =>
     prisma.club.findMany({
       where: { continentalType: { in: allowedTypes } },
-      select: { id: true, name: true, prestige: true, leagueId: true, continentalType: true },
+      select: { id: true, name: true, prestige: true, leagueId: true, continentalType: true, league: { select: { prestige: true } } },
     }),
-  ["continental-cup-opponents"],
+  ["continental-cup-opponents-v2"],
   { revalidate: 3600 }
 );
 
@@ -69,6 +70,7 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
       playerClubId: validated.playerClubId,
       playerClubPrestige: validated.playerClubPrestige,
       opponents,
+      randomSource: secureRandom,
     });
   }
 
@@ -82,6 +84,7 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
       playerClubPrestige: validated.playerClubPrestige,
       cupName: validated.cupName ?? "Champions League",
       opponents,
+      randomSource: secureRandom,
     });
   }
 
@@ -94,6 +97,7 @@ export async function generateCupJourneyAction(input: unknown): Promise<string[]
     tourneyName,
     playerNationality: validated.playerNationality ?? "",
     opponents,
+    randomSource: secureRandom,
   });
 }
 

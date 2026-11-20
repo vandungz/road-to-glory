@@ -1,4 +1,5 @@
-import { resolveRandom, resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+import { resolveRandom, type RandomSource } from "@/lib/wheel-engine/spin-resolver";
+import { clubJourneyStrength, drawJourneyOpponents, journeyRounds } from "./journey-opponents";
 
 export interface ClubCupInfo {
   id: string;
@@ -6,35 +7,37 @@ export interface ClubCupInfo {
   prestige: number;
   leagueId: string;
   leagueCountry?: string;
+  league?: { prestige: number };
   continentalType: string;
 }
 
-export function generateCupScore(isWinner: boolean, playerPrestige: number, oppPrestige: number): string {
+export function generateCupScore(isWinner: boolean, playerPrestige: number, oppPrestige: number, randomSource: RandomSource = resolveRandom): string {
+  const randomInt = (min: number, max: number) => Math.floor(randomSource() * (max - min + 1)) + min;
   const prestigeDiff = playerPrestige - oppPrestige;
   
   if (isWinner) {
     // Thắng
     if (prestigeDiff >= 2) {
       // Hủy diệt
-      const goals = [3, 4, 5][resolveRandomInt(0, 2)];
-      const oppGoals = [0, 1][resolveRandomInt(0, 1)];
+      const goals = [3, 4, 5][randomInt(0, 2)];
+      const oppGoals = [0, 1][randomInt(0, 1)];
       return `Thắng ${goals}-${oppGoals}`;
     } else {
       // Thắng sít sao
-      const goals = [1, 2, 3][resolveRandomInt(0, 2)];
-      const oppGoals = goals - (resolveRandom() > 0.6 ? 2 : 1);
+      const goals = [1, 2, 3][randomInt(0, 2)];
+      const oppGoals = goals - (randomSource() > 0.6 ? 2 : 1);
       return `Thắng ${goals}-${Math.max(0, oppGoals)}`;
     }
   } else {
     // Thua
     if (prestigeDiff <= -2) {
       // Thua đậm
-      const goals = [0, 1][resolveRandomInt(0, 1)];
-      const oppGoals = [3, 4][resolveRandomInt(0, 1)];
+      const goals = [0, 1][randomInt(0, 1)];
+      const oppGoals = [3, 4][randomInt(0, 1)];
       return `Thua ${goals}-${oppGoals}`;
     } else {
       // Thua sít sao
-      const oppGoals = [1, 2, 3][resolveRandomInt(0, 2)];
+      const oppGoals = [1, 2, 3][randomInt(0, 2)];
       const goals = oppGoals - 1;
       return `Thua ${goals}-${oppGoals}`;
     }
@@ -46,91 +49,83 @@ export function generateDomesticCupJourneyService(params: {
   playerClubId: string;
   playerClubPrestige: number;
   opponents: ClubCupInfo[];
+  randomSource?: RandomSource;
 }): string[] {
   const { result, playerClubId, playerClubPrestige, opponents } = params;
 
-  // Lọc đối thủ hợp lệ (khác CLB hiện tại)
-  let pool = opponents.filter((c) => c.id !== playerClubId);
-  if (pool.length === 0) {
-    pool = [{ id: "mock_opp", name: "Đối Thủ Khác", prestige: 3, leagueId: "GENERIC", continentalType: "none" }];
-  }
-
-  const usedIds = new Set<string>();
-  const getRandomOpp = () => {
-    const available = pool.filter((c) => !usedIds.has(c.id));
-    const src = available.length > 0 ? available : pool;
-    const opp = src[resolveRandomInt(0, src.length - 1)];
-    usedIds.add(opp.id);
-    return opp;
-  };
+  const pool = opponents.filter((c) => c.id !== playerClubId);
+  if (!pool.length || !journeyRounds(result, true).length) return [];
+  const selected = drawJourneyOpponents(pool, journeyRounds(result, true), clubJourneyStrength, params.randomSource);
+  let opponentIndex = 0;
+  const getRandomOpp = () => selected[opponentIndex++];
 
   const journey: string[] = [];
 
   // Vòng 1/32 (Early Exit)
   if (result === "Early Exit") {
     const opp = getRandomOpp();
-    const score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    const score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Vòng 1/32: ${score} trước CLB ${opp.name} (Bị loại sớm)`);
     return journey;
   }
 
   // Vòng 1/32
   let opp = getRandomOpp();
-  let score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  let score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Vòng 1/32: ${score} trước CLB ${opp.name}`);
 
   if (result === "Round of 32") {
     opp = getRandomOpp();
-    score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Vòng 1/16: ${score} trước CLB ${opp.name} (Dừng bước)`);
     return journey;
   }
 
   // Vòng 1/16
   opp = getRandomOpp();
-  score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Vòng 1/16: ${score} trước CLB ${opp.name}`);
 
   if (result === "Round of 16") {
     opp = getRandomOpp();
-    score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name} (Dừng bước)`);
     return journey;
   }
 
   // Vòng 1/8
   opp = getRandomOpp();
-  score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name}`);
 
   if (result === "Quarter-Finals") {
     opp = getRandomOpp();
-    score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Tứ Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Tứ Kết) ⚡`);
     return journey;
   }
 
   // Tứ Kết
   opp = getRandomOpp();
-  score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Tứ Kết: ${score} trước CLB ${opp.name}`);
 
   if (result === "Semi-Finals") {
     opp = getRandomOpp();
-    score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Bán Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Bán Kết)`);
     return journey;
   }
 
   // Bán Kết (nếu vào chung kết)
   opp = getRandomOpp();
-  score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Bán Kết: ${score} trước CLB ${opp.name}`);
 
   // Chung Kết
   opp = getRandomOpp();
   const isWin = result === "Winner";
-  score = generateCupScore(isWin, playerClubPrestige, opp.prestige);
+  score = generateCupScore(isWin, playerClubPrestige, opp.prestige, params.randomSource);
   if (isWin) {
     journey.push(`Chung Kết: ${score} trước CLB ${opp.name} — VÔ ĐỊCH!`);
   } else {
@@ -146,22 +141,14 @@ export function generateContinentalCupJourneyService(params: {
   playerClubPrestige: number;
   cupName: string;
   opponents: ClubCupInfo[];
+  randomSource?: RandomSource;
 }): string[] {
   const { result, playerClubId, playerClubPrestige, cupName, opponents } = params;
 
-  let pool = opponents.filter((c) => c.id !== playerClubId);
-  if (pool.length === 0) {
-    pool = [{ id: "mock_cont", name: "Đối Thủ Châu Lục", prestige: 4, leagueId: "GENERIC", continentalType: "none" }];
-  }
-
-  const usedIds = new Set<string>();
-  const getRandomOpp = () => {
-    const available = pool.filter((c) => !usedIds.has(c.id));
-    const src = available.length > 0 ? available : pool;
-    const opp = src[resolveRandomInt(0, src.length - 1)];
-    usedIds.add(opp.id);
-    return opp;
-  };
+  const pool = opponents.filter((c) => c.id !== playerClubId);
+  const selected = drawJourneyOpponents(pool, journeyRounds(result, false), clubJourneyStrength, params.randomSource);
+  let opponentIndex = 0;
+  const getRandomOpp = () => selected[opponentIndex++];
 
   const journey: string[] = [];
 
@@ -171,48 +158,50 @@ export function generateContinentalCupJourneyService(params: {
     return journey;
   }
 
+  if (!selected.length) return [];
+
   journey.push("Vòng Bảng: Vượt qua vòng bảng thuyết phục!");
 
   if (result === "Round of 16") {
     const opp = getRandomOpp();
-    const score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    const score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name} (Dừng bước)`);
     return journey;
   }
 
   // Vòng 1/8
   let opp = getRandomOpp();
-  let score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  let score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Vòng 1/8: ${score} trước CLB ${opp.name}`);
 
   if (result === "Quarter-Finals") {
     opp = getRandomOpp();
-    score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Tứ Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Tứ kết) ⚡`);
     return journey;
   }
 
   // Tứ Kết
   opp = getRandomOpp();
-  score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Tứ Kết: ${score} trước CLB ${opp.name}`);
 
   if (result === "Semi-Finals") {
     opp = getRandomOpp();
-    score = generateCupScore(false, playerClubPrestige, opp.prestige);
+    score = generateCupScore(false, playerClubPrestige, opp.prestige, params.randomSource);
     journey.push(`Bán Kết: ${score} trước CLB ${opp.name} (Dừng bước ở Bán kết)`);
     return journey;
   }
 
   // Bán Kết
   opp = getRandomOpp();
-  score = generateCupScore(true, playerClubPrestige, opp.prestige);
+  score = generateCupScore(true, playerClubPrestige, opp.prestige, params.randomSource);
   journey.push(`Bán Kết: ${score} trước CLB ${opp.name}`);
 
   // Chung Kết
   opp = getRandomOpp();
   const isWin = result === "Winner";
-  score = generateCupScore(isWin, playerClubPrestige, opp.prestige);
+  score = generateCupScore(isWin, playerClubPrestige, opp.prestige, params.randomSource);
   if (isWin) {
     journey.push(`Chung Kết ${cupName}: ${score} trước CLB ${opp.name} — VÔ ĐỊCH!`);
   } else {
@@ -235,21 +224,14 @@ export function generateNationalTeamJourneyService(params: {
   tourneyName: string;
   playerNationality: string;
   opponents: NationalTeamInfo[];
+  randomSource?: RandomSource;
 }): string[] {
   const { result, tourneyName, playerNationality, opponents } = params;
 
-  // Loại đội của người chơi khỏi pool đối thủ
-  let pool = opponents.filter((t) => t.nationality !== playerNationality);
-  if (pool.length === 0) pool = opponents;
-
-  const usedIds = new Set<string>();
-  const getRandomNation = () => {
-    const available = pool.filter((t) => !usedIds.has(t.id));
-    const src = available.length > 0 ? available : pool;
-    const team = src[resolveRandomInt(0, src.length - 1)];
-    usedIds.add(team.id);
-    return team.name;
-  };
+  const pool = opponents.filter((t) => t.nationality !== playerNationality);
+  const selected = drawJourneyOpponents(pool, journeyRounds(result, false), (team) => 7 - 2 * team.tier, params.randomSource);
+  let opponentIndex = 0;
+  const getRandomNation = () => selected[opponentIndex++].name;
 
   const journey: string[] = [];
 
@@ -257,6 +239,8 @@ export function generateNationalTeamJourneyService(params: {
     journey.push(`Vòng Bảng ${tourneyName}: Bị loại sau vòng bảng`);
     return journey;
   }
+
+  if (!selected.length) return [];
 
   journey.push(`Vòng Bảng ${tourneyName}: Vượt qua vòng bảng thuyết phục!`);
 

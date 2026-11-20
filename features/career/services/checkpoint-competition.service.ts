@@ -11,7 +11,7 @@ import {
 import { continentalOpponentTypes, tournamentConfederation } from "@/features/season/services/competition-opponents";
 import type { CheckpointJson, WheelCheckpointResolverContext, WheelResolution } from "./checkpoint-helpers";
 
-const clubSelect = { id: true, name: true, prestige: true, leagueId: true, continentalType: true } as const;
+const clubSelect = { id: true, name: true, prestige: true, leagueId: true, continentalType: true, league: { select: { prestige: true } } } as const;
 
 export async function attachCompetitionDetails(
   tx: Prisma.TransactionClient,
@@ -29,13 +29,13 @@ export async function attachCompetitionDetails(
   } else if (stepKey === "domestic_cup" && club && typeof outcome === "string") {
     const opponents = await tx.club.findMany({ where: { league: { country: club.leagueCountry } }, select: clubSelect });
     details = { domesticCupJourney: generateDomesticCupJourneyService({
-      result: outcome, playerClubId: club.id, playerClubPrestige: club.prestige, opponents,
+      result: outcome, playerClubId: club.id, playerClubPrestige: club.prestige, opponents, randomSource: secureRandom,
     }) };
   } else if (stepKey === "continental_cup" && club && typeof outcome === "string") {
     const type = typeof runtime?.continentalCupType === "string" ? runtime.continentalCupType : player.currentContinentalCup;
     const opponents = await tx.club.findMany({ where: { continentalType: { in: continentalOpponentTypes(type) } }, select: clubSelect });
     details = { continentalCupJourney: generateContinentalCupJourneyService({
-      result: outcome, playerClubId: club.id, playerClubPrestige: club.prestige, cupName: getContinentalCupLabel(type), opponents,
+      result: outcome, playerClubId: club.id, playerClubPrestige: club.prestige, cupName: getContinentalCupLabel(type), opponents, randomSource: secureRandom,
     }) };
   } else if (stepKey === "national_callup" || (stepKey === "national_tournament" && typeof outcome === "string")) {
     const tournament = getNationalTournamentName(player.nationality, season.age, player.debutAge, getNationalContinentalCup);
@@ -48,7 +48,7 @@ export async function attachCompetitionDetails(
       details = {
         nationalTournamentType: tournament,
         nationalTeamJourney: generateNationalTeamJourneyService({
-          result: outcome, tourneyName: tournament, playerNationality: player.nationality, opponents,
+          result: outcome, tourneyName: tournament, playerNationality: player.nationality, opponents, randomSource: secureRandom,
         }),
       };
     } else {
