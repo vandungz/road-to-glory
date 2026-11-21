@@ -1,3 +1,5 @@
+import { HelpButton } from "@/features/onboarding/HelpButton";
+import { HeaderLanguageButton } from "@/features/settings/components/HeaderLanguageButton";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft, ShoppingBag, Trophy } from "lucide-react";
@@ -78,22 +80,26 @@ export function WheelGameHeader({
         {mode === "career" && (
           <>
             <i className="football-wheel-header__separator" aria-hidden="true" />
-            <div className="football-wheel-header__actions">
+            <div className="football-wheel-header__actions" data-guide="career-shop">
               {shopHref && !isBusy ? (
                 <Link className="football-wheel-header__icon-button" href={shopHref} aria-label={ui("shop")}>
-                  <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.6} />
+                  <ShoppingBag aria-hidden="true" size={18} strokeWidth={1.7} />
                 </Link>
               ) : (
                 <button className="football-wheel-header__icon-button" type="button" disabled aria-label={ui("shopLocked")}>
-                  <ShoppingBag aria-hidden="true" size={19} strokeWidth={1.6} />
+                  <ShoppingBag aria-hidden="true" size={18} strokeWidth={1.7} />
                 </button>
               )}
               <button className="football-wheel-header__icon-button" type="button" onClick={isBusy ? undefined : onOpenTrophyCabinet} disabled={isBusy} aria-label={isBusy ? ui("trophyCabinetSpinInProgress") : ui("trophyCabinet")}>
-                <Trophy aria-hidden="true" size={19} strokeWidth={1.6} />
+                <Trophy aria-hidden="true" size={18} strokeWidth={1.7} />
               </button>
             </div>
           </>
         )}
+        <div className="football-header-tools">
+          <HeaderLanguageButton disabled={isBusy} />
+          <HelpButton />
+        </div>
       </div>
     </header>
   );

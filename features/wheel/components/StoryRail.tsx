@@ -49,7 +49,7 @@ export function StoryRail({ clubStints = [], seasonRecords = {}, currentAge, pla
       })}
       </div>
     </section>
-    <button type="button" className="football-story-rail__honours" onClick={onOpenTrophyCabinet}>
+    <button type="button" className="football-story-rail__honours" data-guide="career-honours" onClick={onOpenTrophyCabinet}>
       <span><Trophy size={14} aria-hidden="true" /> {ui("trophyCabinet")}</span>
       <strong>{totalTrophies}</strong><ChevronRight size={14} aria-hidden="true" />
       {ballonDorCount > 0 && <small>{ballonDorCount} Ballon d’Or</small>}

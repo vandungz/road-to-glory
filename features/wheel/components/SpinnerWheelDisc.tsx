@@ -8,6 +8,7 @@ export interface SpinnerWheelDiscProps {
   arcSizes: number[];
   startAngles: number[];
   rotateValue: MotionValue<number>;
+  "data-guide"?: string;
 }
 
 const SLICE_COLORS = [
@@ -15,10 +16,10 @@ const SLICE_COLORS = [
   "var(--football-wheel-5)", "var(--football-wheel-6)", "var(--football-wheel-7)", "var(--football-wheel-8)",
 ];
 
-export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue }: SpinnerWheelDiscProps) {
+export function SpinnerWheelDisc({ items, arcSizes, startAngles, rotateValue, "data-guide": guideTarget }: SpinnerWheelDiscProps) {
   const reducedMotion = useGameReducedMotion();
   return (
-    <div className="football-spinner-wheel__stage">
+    <div className="football-spinner-wheel__stage" data-guide={guideTarget}>
 
       {/* ── SPINNER WHEEL (ROTATE DIV) ── */}
       <motion.div

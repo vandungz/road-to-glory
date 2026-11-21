@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { EditorialRail } from "@/components/shared/EditorialArt";
 
@@ -28,6 +29,7 @@ export function RetiredStage({ position, playerNationality, peakOvrValue, player
   const ui = useTranslations("ui");
   const ballonDorCount = achievements?.ballonDor ?? 0;
   return <main className="football-retired-stage" data-mount="page">
+    <PageGuide id="retirement" paused={isSaving} />
     <header className="football-retired-stage__header"><div className="football-retired-stage__heading"><h1>{ui("careerHistory")}</h1><p>{ui("yourPlayerHasRetiredReviewTheirRecordAndSaveTheirCard")}</p></div></header>
     <div className="football-retired-stage__grid">
       <section className="football-hall-card" data-nation={playerNationality.replace(/\s+/g, "")}>
@@ -36,7 +38,7 @@ export function RetiredStage({ position, playerNationality, peakOvrValue, player
         <div className="football-hall-card__name">{playerName}</div>
         <div className="football-hall-card__foot">Road to Glory · 2025/26</div>
       </section>
-      <section className="football-retired-stage__details">
+      <section className="football-retired-stage__details" data-guide="retirement-record">
         <div className="football-retired-stage__section"><span className="football-eyebrow">{ui("careerTotals")}</span><div className="football-retired-stage__stats" aria-label={ui("careerTotals")}>
           <div className="football-retired-stage__stat"><span>{ui("appearances3")}</span><strong>{careerTotalStats.apps}</strong></div>
           <div className="football-retired-stage__stat"><span>{ui("goals2")}</span><strong>{careerTotalStats.goals}</strong></div>
@@ -47,6 +49,6 @@ export function RetiredStage({ position, playerNationality, peakOvrValue, player
       </section>
       <EditorialRail asset="heritage-touch" />
     </div>
-    <footer className="football-retired-stage__footer"><Button size="lg" onClick={handleSavePlayer} disabled={isSaving} loading={isSaving} fullWidth><RefreshCw size={17} aria-hidden="true" /> {ui("saveCardToHallOfFame")}</Button></footer>
+    <footer className="football-retired-stage__footer" data-guide="retirement-save"><Button size="lg" onClick={handleSavePlayer} disabled={isSaving} loading={isSaving} fullWidth><RefreshCw size={17} aria-hidden="true" /> {ui("saveCardToHallOfFame")}</Button></footer>
   </main>;
 }

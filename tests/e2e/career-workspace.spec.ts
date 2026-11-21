@@ -1,5 +1,10 @@
 import { test, expect, expectNoHorizontalOverflow } from "./helpers";
 
+async function settleDialog(dialog: import("@playwright/test").Locator) {
+  await expect(dialog).toBeVisible();
+  await expect.poll(() => dialog.evaluate((node) => node.getAnimations().every((animation) => animation.playState === "finished"))).toBe(true);
+}
+
 test("career fills the viewport without a phase strip and club history scrolls independently", async ({ page }, testInfo) => {
   for (const viewport of [{ width: 1024, height: 768 }, { width: 1280, height: 720 }, { width: 1440, height: 900 }, { width: 1920, height: 1080 }]) {
     await page.setViewportSize(viewport);
@@ -79,6 +84,7 @@ test("archived competition results keep the media and stats visible while only t
     const media = summary.locator(".football-editorial-art");
     const footer = league.locator(".football-modal-footer");
     await expect(media).toHaveJSProperty("complete", true);
+    await settleDialog(league);
     const artBefore = (await media.boundingBox())!;
     const statsBefore = (await summary.locator("dl").boundingBox())!;
     const footerBefore = (await footer.boundingBox())!;
@@ -103,6 +109,7 @@ test("recap scrolls only its information column while the whole artwork stays st
     await page.getByRole("button", { name: /Tủ danh hiệu/ }).last().click();
     const dialog = page.getByRole("dialog");
     const art = dialog.locator(".football-editorial-art");
+    await settleDialog(dialog);
     const before = (await art.boundingBox())!;
     const info = dialog.locator(".football-modal-body");
     await info.evaluate((node) => { node.scrollTop = node.scrollHeight; });

@@ -1,0 +1,35 @@
+/* Hallmark · component: header controls · theme: Football Life brand · signature: grouped quiet utilities · v2.0.0 */
+/* Critique: replace the isolated language pill and scattered icons with aligned controls and a clear account boundary. */
+.football-app-shell .football-app-shell__context { gap: 12px; }
+.football-header-tools, .football-header-account { display: flex; align-items: center; gap: 4px; flex: none; }
+.football-header-account { position: relative; padding-inline-start: 12px; }
+.football-header-account::before { content: ""; position: absolute; inset-inline-start: 0; inset-block: 8px; width: 1px; background: var(--football-rule); }
+.football-header-tools :is(.football-header-language, .football-guide-help),
+.football-header-account :is(.football-account-nav a, .football-app-shell__logout) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 40px;
+  height: 40px;
+  min-height: 40px;
+  padding: 0;
+  border: 0;
+  border-radius: var(--football-radius);
+  background: transparent;
+  color: var(--football-ink-2);
+  font: 500 13px/1 var(--font-body);
+  white-space: nowrap;
+  cursor: pointer;
+  transition: background-color var(--football-motion-control) var(--football-motion-ease), color var(--football-motion-control) var(--football-motion-ease);
+}
+.football-header-tools .football-header-language { width: auto; min-width: 64px; padding-inline: 8px; font-weight: 600; }
+.football-header-tools .football-guide-help--labelled { width: auto; padding-inline: 8px; }
+.football-header-account .football-app-shell__logout { width: auto; padding-inline: 8px; margin-inline-start: 4px; }
+.football-wheel-header__actions .football-wheel-header__icon-button { width: 40px; height: 40px; min-height: 40px; border-radius: var(--football-radius); }
+.football-header-tools button:hover:not(:disabled), .football-header-account :is(a, button):hover:not(:disabled) { background: var(--football-sunken); color: var(--football-ink); }
+.football-header-tools button:active:not(:disabled), .football-header-account :is(a, button):active:not(:disabled) { background: var(--football-rule); }
+.football-header-tools button:disabled, .football-header-account button:disabled { color: var(--football-disabled); background: transparent; cursor: not-allowed; }
+.football-header-tools button:focus-visible, .football-header-account :is(a, button):focus-visible { outline: var(--football-outline); outline-offset: 2px; transition: none; }
+@media (prefers-reduced-motion: reduce) { .football-header-tools button, .football-header-account :is(a, button) { transition: none; } }
+html[data-game-reduced-motion] .football-header-tools button, html[data-game-reduced-motion] .football-header-account :is(a, button) { transition: none; }

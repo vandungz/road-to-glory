@@ -1,5 +1,7 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
+import { CoachMark } from "@/features/onboarding/CoachMark";
 import { useTranslations } from "next-intl";
 import { useId, type ReactNode } from "react";
 import { ArrowLeft } from "lucide-react";
@@ -19,12 +21,13 @@ export function TransferNegotiationPanel({ offer, selected, failed, processing, 
   const options = computeWageOptions({ baseWage: offer.wageAnnual, minWage: Math.max(1, Math.round(offer.wageAnnual * .7)), maxWage: Math.round(offer.wageAnnual * 1.5) });
   const mood = Math.max(0, 100 - failed.length * 50);
   return <section data-mount="panel" className="football-transfer-negotiation football-contract-negotiation">
+    <PageGuide id="negotiation" paused={processing} />
     <div className="football-contract-negotiation__copy">
       <div className="football-contract-negotiation__body">
       <button type="button" className="football-transfer-back" disabled={processing} onClick={onBack}><ArrowLeft aria-hidden="true" size={16} />{ui("backToOffers")}</button>
       <h1>{t("dealHeading", { club: offer.clubName })}</h1>
       <p>{t("chooseWage", { count: offer.contractYears })}</p>
-      <dl className="football-contract-negotiation__facts">
+      <dl className="football-contract-negotiation__facts" data-guide="negotiation-facts">
         <div><dt>{ui("transferFee")}</dt><dd>{offer.transferFee ? formatTransferFee(offer.transferFee) : ui("freeTransfer")}</dd></div>
         <div><dt>{ui("term")}</dt><dd>{ui("seasonCount", { count: offer.contractYears })}</dd></div>
       </dl>
@@ -33,7 +36,8 @@ export function TransferNegotiationPanel({ offer, selected, failed, processing, 
         <div role="progressbar" aria-label={ui("clubInterest")} aria-valuemin={0} aria-valuemax={100} aria-valuenow={mood}><span style={{ transform: `scaleX(${mood / 100})` }} /></div>
       </div>
       {children}
-      <fieldset className="football-contract-negotiation__options" disabled={processing}>
+      <CoachMark target="negotiation-wages" />
+      <fieldset className="football-contract-negotiation__options" data-guide="negotiation-wages" disabled={processing}>
         <legend>{ui("wageOptions")}</legend>
         {(["lower", "standard", "higher"] as const).map((option) => {
           const unavailable = failed.includes(option);

@@ -41,7 +41,7 @@ export function LogoutButton() {
         size="sm"
         className="football-app-shell__logout"
       >
-        <LogOut aria-hidden="true" size={16} />
+        <LogOut aria-hidden="true" size={18} strokeWidth={1.7} />
         {isPending ? ui("signingOut") : ui("signOut")}
       </Button>
     </>

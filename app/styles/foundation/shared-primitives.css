@@ -321,4 +321,7 @@ button.football-squad-table__row:hover:not(:disabled) { background: var(--footba
 .football-auth-submit { min-height: 56px !important; margin-top: 6px; }
 .football-auth-submit:active { transform: scale(.985); }
 
+.football-header-language { min-height: 36px; padding-inline: 10px; gap: 6px; flex: none; }
+.football-header-language:disabled, .football-header-language:disabled:hover { background: transparent; color: var(--football-disabled); cursor: not-allowed; }
+
 

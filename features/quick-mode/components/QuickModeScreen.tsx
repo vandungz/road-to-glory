@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef } from "react";
 import Link from "next/link";
@@ -90,6 +91,7 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
 
   return (
     <section className="football-quick-mode football-quick-play">
+      <PageGuide id="quickPlay" paused={quick.isSpinning} />
       <QuickStatsTracker quick={quick} />
       <div className="football-quick-play__stage">
         <header className="football-quick-mode__stage-head">
@@ -103,7 +105,7 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
         <div className="football-quick-play__controls">
           <div className="football-quick-play__wheel">
             {activeWheel && hasOptions
-              ? <SpinnerWheel isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={() => {
+              ? <SpinnerWheel data-guide="quick-wheel" isSpinning={quick.isSpinning} targetIndex={quick.targetIndex} onSpinComplete={() => {
                   quick.completeSpin();
                   if (!isAuthenticated && activeWheel.key === "debut-age") trackGameEntry("quick_first_spin");
                 }}
@@ -138,7 +140,7 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
   const improvements = justFinishedClub ? state.clubs.at(-1)?.improvements ?? [] : state.clubDraft.improvements;
 
   return (
-    <aside className="football-quick-play__tracker" data-nation={player.nationality.replace(/\s+/g, "")} aria-label={ui("playerProfileAndStats")} tabIndex={0}>
+    <aside className="football-quick-play__tracker" data-guide="quick-tracker" data-nation={player.nationality.replace(/\s+/g, "")} aria-label={ui("playerProfileAndStats")} tabIndex={0}>
       <header className="football-quick-play__tracker-head">
         <div className="football-quick-portrait-identity">
           <PlayerPortrait portraitId={player.portraitId} loop />
@@ -177,6 +179,7 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
 
   return (
     <section className="football-quick-mode football-quick-summary">
+      <PageGuide id="quickSummary" />
       <header className="football-quick-summary__hero">
         <div className="football-quick-summary__identity" data-nation={state.player.nationality.replace(/\s+/g, "")}>
           <PlayerPortrait portraitId={state.player.portraitId} animate={false} />
@@ -187,14 +190,14 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
         </div>
         <div className="football-quick-summary__ovr"><span>OVR</span><strong>{quick.overall}</strong></div>
       </header>
-      <dl className="football-quick-summary__totals">
+      <dl className="football-quick-summary__totals" data-guide="quick-totals">
         <div><dt>{ui("appearances")}</dt><dd>{state.finale.appearances ?? "—"}</dd></div>
         <div><dt>{ui("goals2")}</dt><dd>{state.finale.goals}</dd></div>
         <div><dt>{ui("assists2")}</dt><dd>{state.finale.assists}</dd></div>
         <div><dt>{ui("cleanSheets2")}</dt><dd>{state.finale.cleanSheets ?? "—"}</dd></div>
         <div><dt>{ui("ballonDor2")}</dt><dd>{state.finale.ballonDorWins ?? 0}</dd></div>
       </dl>
-      <div className="football-quick-summary__records" role="region" tabIndex={0} aria-label={ui("careerDetails")}>
+      <div className="football-quick-summary__records" data-guide="quick-records" role="region" tabIndex={0} aria-label={ui("careerDetails")}>
         <table className="football-quick-summary__journey">
           <caption>{ui("clubHistory2")}</caption>
           <thead><tr>
@@ -214,7 +217,7 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
         </table>
         {namedAwards.length > 0 && <div className="football-quick-summary__awards"><h2>{ui("otherIndividualAwards")}</h2><p>{namedAwards.join(", ")}</p></div>}
       </div>
-      <div className="football-quick-summary__actions">
+      <div className="football-quick-summary__actions" data-guide="quick-replay">
         {!isAuthenticated && <Link className="football-button football-button--outline" href="/login?next=/">{ui("signInToPlayClassic")}</Link>}
         <Link className="football-button football-button--primary" href="/quick" onClick={quick.reset}><RefreshCw aria-hidden="true" size={14} /> {ui("playQuickModeAgain")}</Link>
       </div>

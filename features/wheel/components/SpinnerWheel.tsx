@@ -22,6 +22,7 @@ interface Props {
   onSpinComplete: () => void;
   stakes?: "low" | "mid" | "high";
   idleLabel?: string | null;
+  "data-guide"?: string;
 }
 
 // ============================================================
@@ -93,7 +94,7 @@ interface SpinSnapshot {
 // COMPONENT
 // ============================================================
 
-export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low", idleLabel }: Props) {
+export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low", idleLabel, "data-guide": guideTarget }: Props) {
   const rotateValue = useMotionValue(0);
   const spinControllerRef = useRef<SpinController | null>(null);
   const [spinSnapshot, setSpinSnapshot] = useState<SpinSnapshot | null>(null);
@@ -308,7 +309,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
       </div>
 
       {/* ── WHEEL + POINTER WRAPPER ── */}
-      <SpinnerWheelDisc items={displayItems} arcSizes={arcSizes} startAngles={startAngles} rotateValue={rotateValue} />
+      <SpinnerWheelDisc data-guide={guideTarget} items={displayItems} arcSizes={arcSizes} startAngles={startAngles} rotateValue={rotateValue} />
     </div>
   );
 }

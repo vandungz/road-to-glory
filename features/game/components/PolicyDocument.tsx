@@ -1,3 +1,5 @@
+import { HelpButton } from "@/features/onboarding/HelpButton";
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import type { Metadata } from "next";
 import Link from "next/link";
 import { getLocale } from "next-intl/server";
@@ -22,8 +24,10 @@ export async function PolicyDocument({ kind }: { kind: PolicyKind }) {
 
   return (
     <div className="football-policy">
+      <PageGuide id="policy" />
       <header className="football-policy__header">
         <Link className="football-guest-landing__brand" href="/">Road to Glory</Link>
+        <HelpButton />
         <LandingLanguageButton label={copy.switchLanguage} target={english ? "vi" : "en"} />
       </header>
       <main className="football-policy__main">
@@ -33,14 +37,14 @@ export async function PolicyDocument({ kind }: { kind: PolicyKind }) {
           <p className="football-policy__draft">{copy.draft}</p>
         </header>
         <div className="football-policy__layout">
-          <nav aria-label={copy.contents}>
+          <nav data-guide="policy-navigation" aria-label={copy.contents}>
             <ul>
               {document.sections.map(({ id, title }) => <li key={id}><a href={`#${id}`}>{title}</a></li>)}
             </ul>
           </nav>
           <article>
             {document.sections.map(({ id, title, paragraphs }) => (
-              <section key={id} id={id} aria-labelledby={`${id}-title`}>
+              <section data-guide={id === contactSection ? "policy-contact" : undefined} key={id} id={id} aria-labelledby={`${id}-title`}>
                 <h2 id={`${id}-title`}>{title}</h2>
                 {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
                 {id === contactSection && <p><a href={`mailto:${contactEmail}`}>{contactEmail}</a></p>}

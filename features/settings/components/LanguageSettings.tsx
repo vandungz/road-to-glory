@@ -23,7 +23,7 @@ export function LanguageSettings() {
     });
   }
 
-  return <fieldset className="football-account-options" disabled={pending}>
+  return <fieldset data-guide="settings-language" className="football-account-options" disabled={pending}>
     <legend>{t("language")}</legend>
     {locales.map((language) => (
       <label key={language}>

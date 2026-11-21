@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import Link from "next/link";
@@ -34,11 +35,12 @@ export function Homepage({ sessions, isAuthenticated }: HomepageProps) {
 
   return (
     <div className="football-homepage">
+      <PageGuide id="home" />
       <div className="football-homepage__head">
         <h1>{ui("chooseAMode")}</h1>
       </div>
 
-      <div className="football-homepage__modes">
+      <div className="football-homepage__modes" data-guide="home-modes">
         <section className="football-home-mode football-home-mode--active" aria-labelledby="classic-mode-title">
           <div className="football-home-mode__content">
             <div className="football-home-mode__copy">

@@ -87,6 +87,7 @@ export default async function BallonDorResultPage({ params }: Props) {
 
   return (
     <AppShell
+      guide="ballonResult"
       className="football-ballon-dor-page-shell"
       backHref={`/classic/${gameId}/draft/${slotIndex}`}
       backLabel="career"
@@ -103,7 +104,7 @@ export default async function BallonDorResultPage({ params }: Props) {
           <h1>{ui("ballonDorResults")}</h1>
         </header>
 
-        <article className={`football-ballon-dor-page__result${isWinner ? " is-winner" : ""}`}>
+        <article data-guide="ballon-ranking" className={`football-ballon-dor-page__result${isWinner ? " is-winner" : ""}`}>
           <ResultBanner tone={tone} className="football-ballon-dor-page__banner">{message}</ResultBanner>
           {snapshot && snapshotEntries(snapshot.entries).length > 0 && (
             <section className="football-ballon-dor-page__ranking" aria-labelledby="ballon-ranking-title" tabIndex={0}>
@@ -118,7 +119,7 @@ export default async function BallonDorResultPage({ params }: Props) {
               </ol>
             </section>
           )}
-          <Link className="football-button football-button--primary football-button--lg" href={`/classic/${gameId}/draft/${slotIndex}`}>
+          <Link data-guide="ballon-return" className="football-button football-button--primary football-button--lg" href={`/classic/${gameId}/draft/${slotIndex}`}>
             {ui("continue")} <ArrowRight aria-hidden="true" size={17} />
           </Link>
         </article>

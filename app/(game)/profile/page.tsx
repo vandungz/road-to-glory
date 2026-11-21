@@ -22,17 +22,17 @@ export default async function ProfilePage() {
   const initialName = typeof displayName === "string" ? displayName.trim().slice(0, 40) : "";
 
   return (
-    <AppShell className="football-account-shell" backHref="/" backLabel="home">
+    <AppShell guide={user ? "profile" : undefined} className="football-account-shell" backHref="/" backLabel="home">
       <section className="football-account">
         <h1>{ui("profile")}</h1>
         {user ? (
           <div className="football-account-sheet football-account-profile">
-            <section aria-labelledby="account-details-title">
+            <section data-guide="account-profile" aria-labelledby="account-details-title">
               <h2 id="account-details-title">{ui("account")}</h2>
               <dl className="football-account-email"><dt>Email</dt><dd>{user.email ?? ui("noEmailAddress")}</dd></dl>
               <DisplayNameForm initialName={initialName} />
             </section>
-            <section aria-labelledby="account-squads-title">
+            <section data-guide="account-squads" aria-labelledby="account-squads-title">
               <h2 id="account-squads-title">{ui("classicSquads")}</h2>
               {sessions ? (
                 <dl className="football-account-record">

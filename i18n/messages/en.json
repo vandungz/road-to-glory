@@ -911,5 +911,199 @@
     "totalHonours": "Total honours ({count})",
     "winnerHeadline": "Ballon d’Or winner",
     "topTenRank": "Rank {rank} in the top 10"
+  },
+  "onboarding": {
+    "helpShort": "Help",
+    "helpTitle": "Introduction & help",
+    "help": "Help for this page",
+    "next": "Next",
+    "previous": "Back",
+    "done": "Got it",
+    "skip": "Skip",
+    "busy": "Help is available when the current action finishes.",
+    "retry": "Could not open help. Click to retry.",
+    "steps": {
+      "home-modes": {
+        "title": "Choose a mode",
+        "description": "Classic saves your squads and careers. Quick Mode needs no account. PvE uses a completed Classic squad."
+      },
+      "home-account": {
+        "title": "Your account and preferences",
+        "description": "Open your profile, switch language or reduce motion here."
+      },
+      "classic-create": {
+        "title": "Create a squad",
+        "description": "Name your squad and choose a formation, then draft a player into each position."
+      },
+      "classic-squads": {
+        "title": "Saved squads",
+        "description": "Open a squad to continue. Each squad has its own progress."
+      },
+      "squad-pitch": {
+        "title": "Choose a position",
+        "description": "An empty slot starts a career. An active slot resumes it. A completed player opens their career record."
+      },
+      "squad-sheet": {
+        "title": "Build your squad",
+        "description": "Track each position here. Replace or remove a retired player from their record, even before all 11 slots are filled."
+      },
+      "player-fields": {
+        "title": "Player details",
+        "description": "Choose a nationality and enter a name. The position follows your selected squad slot."
+      },
+      "player-portraits": {
+        "title": "Choose a portrait",
+        "description": "Your portrait changes the appearance, not player attributes or wheel probabilities."
+      },
+      "player-random": {
+        "title": "Generate a name",
+        "description": "Choose a nationality first, then use the dice for a name from that country. You can still edit it."
+      },
+      "draft-wheel": {
+        "title": "Start your career",
+        "description": "The wheels reveal your debut age, career length, attributes and first club in sequence."
+      },
+      "draft-result": {
+        "title": "Each spin result",
+        "description": "Review the result and continue when the button is ready. This guide never spins or chooses an outcome for you."
+      },
+      "career-wheel": {
+        "title": "One season, several steps",
+        "description": "The centre wheel resolves the season step by step: competitions, statistics and development. Chances change with your career."
+      },
+      "career-tabs": {
+        "title": "Three player views",
+        "description": "Player card shows OVR and attributes. Season shows yearly results. Contract shows term, wages and value."
+      },
+      "career-timeline": {
+        "title": "Career journal",
+        "description": "The left column tracks clubs, seasons played and peak OVR."
+      },
+      "career-honours": {
+        "title": "Trophy cabinet",
+        "description": "Open your club, national team and individual honours."
+      },
+      "career-shop": {
+        "title": "Season support",
+        "description": "The shop opens at eligible points in the season. Review price, conditions and effects before buying."
+      },
+      "retirement-record": {
+        "title": "Your full career",
+        "description": "Review peak attributes, career totals and clubs before saving the player to your squad."
+      },
+      "retirement-save": {
+        "title": "Save the player card",
+        "description": "Save to complete this squad slot, then continue drafting the remaining positions."
+      },
+      "transfer-context": {
+        "title": "Your contract situation",
+        "description": "Wages, remaining term and player value help you weigh staying against a move."
+      },
+      "transfer-tabs": {
+        "title": "Transfer options",
+        "description": "Use the tabs to review staying, incoming offers or clubs you can approach."
+      },
+      "transfer-offers": {
+        "title": "Review the terms",
+        "description": "Offers include wages, term and expected role. When approaching a club, your proposed fee affects the chance of opening talks."
+      },
+      "transfer-continue": {
+        "title": "Continue without a transfer",
+        "description": "This skips the offers. Read the button label to see whether you will stay or become a free agent."
+      },
+      "negotiation-facts": {
+        "title": "Offer terms",
+        "description": "Check the club, wages and contract term before confirming."
+      },
+      "negotiation-wages": {
+        "title": "Negotiate wages",
+        "description": "Choose a wage level and submit it. Higher demands can be harder to accept; the result is resolved when you confirm."
+      },
+      "shop-balance": {
+        "title": "Available budget",
+        "description": "Your balance determines what you can buy. This is in-game money."
+      },
+      "shop-items": {
+        "title": "Review item effects",
+        "description": "Each item lists its effect, price and availability. Purchased or ineligible items cannot be bought again right now."
+      },
+      "shop-continue": {
+        "title": "Purchases are optional",
+        "description": "You can continue without buying. Check the applicable season before spending."
+      },
+      "quick-fields": {
+        "title": "Set up a quick run",
+        "description": "Choose a name, nationality and position. Quick Mode simulates a shorter career than Classic."
+      },
+      "quick-start": {
+        "title": "Start when ready",
+        "description": "Quick Mode progress stays in this browser and does not become a Classic squad."
+      },
+      "quick-wheel": {
+        "title": "Spin through the career",
+        "description": "Each spin reveals another career stage. Attributes and position affect the relevant chances."
+      },
+      "quick-tracker": {
+        "title": "Track your player",
+        "description": "Details and attributes appear as you reveal them. Unplayed steps have no result yet."
+      },
+      "quick-totals": {
+        "title": "Run summary",
+        "description": "Review OVR, clubs and honours from your completed career."
+      },
+      "quick-records": {
+        "title": "Your journey",
+        "description": "The table records clubs and results from this run."
+      },
+      "quick-replay": {
+        "title": "Play again",
+        "description": "Replay starts a new Quick Mode run. This run is not added to Classic."
+      },
+      "pve-squads": {
+        "title": "Eligible squads",
+        "description": "PvE uses completed Classic squads with all 11 players. If none are ready, finish a squad in Classic first."
+      },
+      "pve-progress": {
+        "title": "Tournament progress",
+        "description": "Track the current round and standings during the League Phase."
+      },
+      "pve-round": {
+        "title": "Opponents and results",
+        "description": "Review the opponent before playing. Continue after each result to move to the next round."
+      },
+      "account-profile": {
+        "title": "Your profile",
+        "description": "View your email and edit your display name here. This does not rename your created players."
+      },
+      "account-squads": {
+        "title": "Return to your squads",
+        "description": "Review your squad count and resume saved Classic progress."
+      },
+      "settings-language": {
+        "title": "Language",
+        "description": "Choose Vietnamese or English. Some football terms stay in English."
+      },
+      "settings-motion": {
+        "title": "Motion",
+        "description": "Reduce animations if you find them distracting. This does not change wheel outcomes."
+      },
+      "policy-navigation": {
+        "title": "Read the policies",
+        "description": "Use the contents to find a section or switch between the two policy pages."
+      },
+      "policy-contact": {
+        "title": "Contact",
+        "description": "Contact information is at the end of the page. Use the listed email for privacy requests or questions about the terms."
+      },
+      "ballon-ranking": {
+        "title": "Ballon d’Or result",
+        "description": "The highlighted row is your player. Other candidates show their position, shirt number and club."
+      },
+      "ballon-return": {
+        "title": "Return to your career",
+        "description": "Continue from the saved result. Viewing help does not reroll or change the ranking."
+      }
+    },
+    "close": "Close help"
   }
 }

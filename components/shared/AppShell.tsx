@@ -4,6 +4,10 @@ import { ArrowLeft } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { LogoutButton } from "@/features/auth/components/LogoutButton";
 import { AccountNavigation } from "./AccountNavigation";
+import { HelpButton } from "@/features/onboarding/HelpButton";
+import { PageGuide } from "@/features/onboarding/GuideProvider";
+import type { GuideId } from "@/features/onboarding/guides";
+import { HeaderLanguageButton } from "@/features/settings/components/HeaderLanguageButton";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -14,6 +18,7 @@ interface AppShellProps {
   backLabel?: "back" | "home" | "squads" | "career" | "modeSelect" | "setup" | "pve" | "squadBoard";
   className?: string;
   showAccountControls?: boolean;
+  guide?: GuideId;
 }
 
 export function AppShell({
@@ -25,12 +30,14 @@ export function AppShell({
   backLabel = "back",
   className,
   showAccountControls = false,
+  guide,
 }: AppShellProps) {
   const ui = useTranslations("ui");
   const common = useTranslations("common");
   const backText = common(backLabel);
   return (
     <div className={cn("football-app-shell", className)}>
+      {guide && <PageGuide id={guide} />}
       <header className="football-app-shell__header">
         <div className="football-app-shell__identity">
           {backHref && (
@@ -49,8 +56,14 @@ export function AppShell({
 
         <div className="football-app-shell__context">
           {headerMeta}
-          {showAccountControls && <AccountNavigation />}
-          {showAccountControls && isAuthenticated && <LogoutButton />}
+          <div className="football-header-tools">
+            <HeaderLanguageButton />
+            <HelpButton showLabel={showAccountControls} />
+          </div>
+          {showAccountControls && <div className="football-header-account">
+            <AccountNavigation />
+            {isAuthenticated && <LogoutButton />}
+          </div>}
         </div>
       </header>
 

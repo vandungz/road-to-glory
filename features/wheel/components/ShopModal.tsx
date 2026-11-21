@@ -1,5 +1,7 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
+import { CoachMark } from "@/features/onboarding/CoachMark";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { X } from "lucide-react";
@@ -159,11 +161,12 @@ export function ShopModal({
 
   const content = (
     <div className={`football-shop-content${standalone ? " football-shop-content--standalone" : ""}`}>
+      {standalone && <PageGuide id="shop" paused={isProcessing || purchasingId !== null} />}
       <header className="football-shop-content__header">
         <div className="football-shop-content__heading">
-          <h3>{ui("shop")}</h3>
+          <h3>{ui("shop")} <CoachMark target="shop-items" /></h3>
         </div>
-        <div className="football-shop-content__balance">
+        <div className="football-shop-content__balance" data-guide="shop-balance">
           <span>{formatEuroThousands(walletBalance)}</span>
           <small>{ui("walletBalance")}</small>
         </div>
@@ -180,7 +183,7 @@ export function ShopModal({
             ? t("appliesTo", { age: targetSeason })
             : ui("theShopOpensAtTheStartAndEndOfTheSeasonBeforeTheNextSpin")}
         </p>
-        <div className="football-shop-content__items">
+        <div className="football-shop-content__items" data-guide="shop-items">
           {SHOP_CATALOG.map((item) => (
             <ShopItemRow
               key={item.id}
@@ -197,7 +200,7 @@ export function ShopModal({
         </div>
       </div>
 
-      <footer className="football-shop-content__footer">
+      <footer className="football-shop-content__footer" data-guide="shop-continue">
         <span>{ui("eachItemCanBeBoughtOncePerSeason")}</span>
         <div className="football-shop-content__footer-actions">
           {canPurchaseAll && <Button size="lg" variant="outline" onClick={() => void handleBuyAll()} disabled={isProcessing || purchasingId !== null} loading={purchasingId === "__all__"}>{ui("buyAll")} {formatEuroThousands(totalAvailablePrice)}</Button>}

@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -60,10 +61,11 @@ export function SquadDashboard({
 
   return (
     <div className="football-squad-dashboard">
+      <PageGuide id="squad" />
       <SquadBoardPageHead sessionName={sessionName} formation={formation} playerCount={startingXI.length} slotCount={slots.length} />
 
       <div className="football-squad-dashboard__body">
-        <section className="football-squad-dashboard__pitch">
+        <section className="football-squad-dashboard__pitch" data-guide="squad-pitch">
           <PitchBoard
             gameId={gameId}
             formation={formation}
@@ -77,7 +79,7 @@ export function SquadDashboard({
           />
         </section>
 
-        <div className="football-squad-dashboard__sheet">
+        <div className="football-squad-dashboard__sheet" data-guide="squad-sheet">
           <SquadSummary
             gameId={gameId}
             status={status}

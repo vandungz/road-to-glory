@@ -1,3 +1,4 @@
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { EditorialRail } from "@/components/shared/EditorialArt";
 import Link from "next/link";
@@ -27,6 +28,7 @@ export function PveLobby({ sessions }: { sessions: PveSessionCard[] }) {
   const ui = useTranslations("ui");
   return (
     <section className="football-pve-lobby">
+      <PageGuide id="pve" />
       <Link className="football-pve-lobby__back" href="/"><ArrowRight aria-hidden="true" size={14} className="is-back" /> {ui("gameModes")}</Link>
       <div className="football-pve-lobby__intro">
         <div>
@@ -34,7 +36,7 @@ export function PveLobby({ sessions }: { sessions: PveSessionCard[] }) {
           <p>{ui("enterWithACompletedClassicSquad")}</p>
         </div>
       </div>
-      <div className="football-editorial-content football-pve-lobby__content">
+      <div className="football-editorial-content football-pve-lobby__content" data-guide="pve-squads">
       {sessions.length > 0 ? (
         <div className="football-pve-lobby__list" aria-label={ui("completedClassicSquads")}>
           {sessions.map((session) => <SessionCard key={session.gameId} session={session} />)}

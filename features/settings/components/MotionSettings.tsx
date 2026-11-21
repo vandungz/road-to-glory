@@ -10,7 +10,7 @@ export function MotionSettings() {
   const [storageBlocked, setStorageBlocked] = useState(false);
 
   return (
-    <fieldset className="football-account-options" aria-describedby="motion-description">
+    <fieldset data-guide="settings-motion" className="football-account-options" aria-describedby="motion-description">
       <legend>{ui("motion")}</legend>
       <p id="motion-description">{ui("reduceWheelTransitionAndPortraitAnimation")}</p>
       <label><input type="radio" name="motion" checked={!reduce} onChange={() => setStorageBlocked(!setMotionPreference(false))} /> {ui("followSystem")}</label>

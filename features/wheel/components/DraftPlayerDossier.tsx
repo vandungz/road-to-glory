@@ -34,7 +34,7 @@ export function DraftPlayerDossier({ profile, draftData, position, playerNumber 
   const stats = position === "GK" ? GK_STATS : FIELD_STATS;
 
   return (
-    <aside className="football-draft-dossier" data-nation={draftData.nationality?.replace(/\s+/g, "")} aria-label={ui("draftProfile")}>
+    <aside className="football-draft-dossier" data-guide="draft-result" data-nation={draftData.nationality?.replace(/\s+/g, "")} aria-label={ui("draftProfile")}>
       <div className="football-draft-dossier__heading" data-has-profile={Boolean(profile)}>
         {profile ? <PlayerPortrait portraitId={profile.portraitId} /> : <span>{ui("completedDraftProfile")}</span>}
         <h2>{profile?.name ?? ui("player", { v0: String(playerNumber) })}</h2>

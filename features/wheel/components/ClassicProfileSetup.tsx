@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { Button } from "@/components/ui/Button";
@@ -35,11 +36,12 @@ export function ClassicProfileSetup({ slotPosition, onContinue, onRandom }: {
     const name = profile.name.trim();
     if (name.length >= 2 && profile.nationality) onContinue({ ...profile, name, position: slotPosition });
   }}>
-    <div className="football-profile-setup__fields">
+    <PageGuide id="profileSetup" />
+    <div className="football-profile-setup__fields" data-guide="player-fields">
       <h1>{ui("createPlayer")}</h1>
       <div className="football-profile-setup__name-field">
         <label htmlFor="classic-player-name">{ui("playerName")}</label>
-        <div className="football-profile-setup__name-input">
+        <div className="football-profile-setup__name-input" data-guide="player-random">
           <Input id="classic-player-name" autoComplete="off" value={profile.name} minLength={2} maxLength={60} required
             onChange={(event) => setProfile({ ...profile, name: event.target.value })} />
           <Tooltip label={ui(profile.nationality ? "randomPlayerName" : "chooseNationalityForRandomName")} focusable={!profile.nationality}>
@@ -52,7 +54,7 @@ export function ClassicProfileSetup({ slotPosition, onContinue, onRandom }: {
         onChange={(nationality) => setProfile({ ...profile, nationality })} /></div>
       <label>{ui("position")}<Input value={slotPosition} readOnly disabled tabIndex={-1} /></label>
     </div>
-    <fieldset className="football-profile-setup__portraits" data-nation={profile.nationality.replace(/\s+/g, "")}>
+    <fieldset className="football-profile-setup__portraits" data-guide="player-portraits" data-nation={profile.nationality.replace(/\s+/g, "")}>
       <legend>{ui("portrait")}</legend>
       <div className="football-profile-setup__grid">
         {PORTRAIT_IDS.map((id, index) => <label key={id}>

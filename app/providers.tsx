@@ -3,6 +3,7 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
 import { useMotionPreference } from "@/features/settings/game-motion";
+import { GuideProvider } from "@/features/onboarding/GuideProvider";
 
 export function AppProviders({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(() => new QueryClient());
@@ -11,5 +12,5 @@ export function AppProviders({ children }: { children: React.ReactNode }) {
     document.documentElement.toggleAttribute("data-game-reduced-motion", reduce);
   }, [reduce]);
 
-  return <QueryClientProvider client={queryClient}>{children}</QueryClientProvider>;
+  return <QueryClientProvider client={queryClient}><GuideProvider>{children}</GuideProvider></QueryClientProvider>;
 }

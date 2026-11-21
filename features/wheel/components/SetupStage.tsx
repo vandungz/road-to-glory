@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { SpinnerWheel } from "./SpinnerWheel";
 import { Button } from "@/components/ui/Button";
@@ -56,9 +57,10 @@ export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelIt
 
   return (
     <main className="football-draft-setup">
+      <PageGuide id="draft" paused={isSpinning || isProcessing} />
       <div className="football-draft-setup__main">
         <DraftProgressRail currentStep={activeStep} />
-        <section className="football-draft-setup__action">
+        <section className="football-draft-setup__action" data-guide="draft-wheel">
           <div key={activeStep} className="football-draft-setup__heading" data-mount="detail">
             <span>{isComplete ? ui("draftComplete") : ui("round", { v0: String(activeStep + 1), v1: t(chapter.key) })}</span>
             <h1>{isComplete ? ui("startPlayerCareer") : stepLabel}</h1>

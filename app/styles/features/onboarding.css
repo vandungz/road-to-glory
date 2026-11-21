@@ -1,0 +1,64 @@
+/* Hallmark · app controls · theme: Football Life brand · signature: quiet contextual spotlight · v2.0.0 */
+/* Critique: explain one existing control at a time; preserve unrestricted gameplay and the page's hierarchy. */
+/* Hallmark · waive 71 · pre-existing career headings are outside the tour component · Preserve workspace typography while adding contextual help. */
+/* Hallmark · waive 26b · help and coach mark buttons reuse IconButton · Hover, active, focus and disabled states come from shared-primitives.css. */
+.football-guide.driver-popover {
+  font-family: var(--font-body);
+  color: var(--football-ink);
+  background: var(--football-surface);
+  border-radius: 16px;
+  border: 1px solid var(--football-rule);
+  box-shadow: var(--football-shadow-overlay);
+  min-width: 280px;
+  max-width: 340px;
+  padding: 20px;
+}
+.football-guide .driver-popover-title {
+  font: 600 24px/1.2 var(--font-headline);
+  padding-inline-end: 64px;
+  overflow-wrap: break-word;
+  min-width: 0;
+}
+.football-guide .driver-popover-description { font: 400 14px/1.65 var(--font-body); color: var(--football-ink-2); margin-block-start: 12px; }
+.football-guide .driver-popover-footer { margin-block-start: 20px; gap: 12px; }
+.football-guide .driver-popover-progress-text { color: var(--football-ink-2); font-size: 12px; font-variant-numeric: tabular-nums; }
+.football-guide .driver-popover-footer-btn {
+  font: 600 13px/1.3 var(--font-body);
+  min-height: 36px;
+  box-sizing: border-box;
+  padding: 8px 16px;
+  border: 1px solid var(--football-rule-strong);
+  border-radius: 999px;
+  color: var(--football-ink);
+  background: var(--football-surface);
+  text-shadow: none;
+  white-space: nowrap;
+}
+.football-guide .driver-popover-next-btn { color: var(--football-primary-text); background: var(--football-accent-ink); border-color: var(--football-accent-ink); }
+.football-guide .driver-popover-next-btn:hover { background: var(--football-accent-ink); color: var(--football-primary-text); }
+.football-guide .driver-popover-prev-btn:hover { background: var(--football-sunken); }
+.football-guide .driver-popover-footer-btn:active { transform: scale(.97); }
+.football-guide .driver-popover-close-btn { inset: 12px 12px auto auto; width: auto; min-height: 32px; padding: 0 8px; font: 500 12px/1.4 var(--font-body); color: var(--football-ink-2); border-radius: 8px; }
+.football-guide .driver-popover-close-btn:hover { color: var(--football-ink); background: var(--football-sunken); }
+.football-guide button:focus-visible { outline: var(--football-outline); outline-offset: 3px; }
+.football-guide .driver-popover-btn-disabled { visibility: hidden; }
+.football-guide .driver-popover-arrow { border-color: var(--football-surface); }
+.football-guide .driver-popover-arrow-side-left { border-top-color: transparent; border-bottom-color: transparent; border-right-color: transparent; }
+.football-guide .driver-popover-arrow-side-right { border-top-color: transparent; border-bottom-color: transparent; border-left-color: transparent; }
+.football-guide .driver-popover-arrow-side-top { border-bottom-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+.football-guide .driver-popover-arrow-side-bottom { border-top-color: transparent; border-left-color: transparent; border-right-color: transparent; }
+.football-guide-help { flex: none; }
+.football-coach-mark { width: 28px; height: 28px; min-width: 28px; min-height: 28px; color: var(--football-ink-2); vertical-align: middle; margin-inline-start: 4px; }
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .football-guide.driver-popover { min-width: 250px; max-width: 260px; padding: 16px; }
+}
+.driver-fade .football-guide { animation: football-guide-enter 180ms ease-out; }
+@keyframes football-guide-enter { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+@media (prefers-reduced-motion: reduce) { .driver-fade .football-guide, .driver-fade .driver-overlay { animation: none; } }
+html[data-game-reduced-motion] .driver-fade .football-guide, html[data-game-reduced-motion] .driver-fade .driver-overlay { animation: none; }
+
+.football-page-help { max-height: min(720px, calc(100dvh - 48px)); }
+.football-page-help .football-modal-body { display: grid; gap: 20px; overflow-y: auto; }
+.football-page-help .football-modal-body section + section { border-block-start: 1px solid var(--football-rule); padding-block-start: 20px; }
+.football-page-help h3 { font: 600 20px/1.3 var(--font-headline); margin: 0 0 8px; color: var(--football-ink); }
+.football-page-help p { font: 400 14px/1.7 var(--font-body); margin: 0; color: var(--football-ink-2); }

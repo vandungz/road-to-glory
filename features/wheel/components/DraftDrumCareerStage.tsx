@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { useEffect, useRef, type ComponentProps } from "react";
 import { StoryRail } from "./StoryRail";
@@ -100,6 +101,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
 
   return (
         <>
+          <PageGuide id="career" paused={wheelInteractionLocked || careerSpinning || isProcessing} />
           <main className="football-dashboard__main" data-mount="page" style={{ maxWidth: "1440px", margin: "0 auto", padding: "12px 16px" }}>
             {/* MOBILE SECTION SWITCHER BAR (< 1024px) */}
             <TabsList className="football-dashboard__mobile-switcher">
@@ -122,7 +124,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
             <div className="football-dashboard__grid">
               
               {/* CỘT 1 (TRÁI): STORY RAIL */}
-              <div className={`football-dashboard__story ${mobileSection === "story" ? "" : "max-lg:hidden"}`}>
+              <div data-guide="career-timeline" className={`football-dashboard__story ${mobileSection === "story" ? "" : "max-lg:hidden"}`}>
                 <StoryRail
                   clubStints={clubStints}
                   seasonRecords={seasonRecords}
@@ -137,7 +139,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
               </div>
 
               {/* CỘT 2 (GIỮA): CAREER ACTIONS PANEL */}
-              <div className={`football-dashboard__actions ${mobileSection === "action" ? "" : "max-lg:hidden"}`}>
+              <div data-guide="career-wheel" className={`football-dashboard__actions ${mobileSection === "action" ? "" : "max-lg:hidden"}`}>
                 <CareerActionsPanel
                   careerSubStep={careerSubStep}
                   currentAge={currentAge}
@@ -172,7 +174,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
               <div className={`football-dashboard__dossier ${mobileSection === "panini" ? "" : "max-lg:hidden"}`}>
                 
                 {/* TAB SWITCH HEADER */}
-                <TabsList className="football-tab-list">
+                <TabsList className="football-tab-list" data-guide="career-tabs">
                   <TabsTrigger value="panini" active={rightTab === "panini"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("playerCard")}</TabsTrigger>
                   <TabsTrigger value="profile" active={rightTab === "profile"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("season2")}</TabsTrigger>
                   <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("contract")}</TabsTrigger>

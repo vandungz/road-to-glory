@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import { useEffect, useRef, useState } from "react";
@@ -51,6 +52,7 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
 
   return (
     <section className="football-quick-mode">
+      <PageGuide id="quickSetup" paused={!quick.hydrated} />
       <header className="football-quick-mode__intro">
         <div>
           <h1>Quick Mode</h1>
@@ -65,7 +67,7 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
             {quick.state.phase !== "complete" && <PlayerPortrait portraitId={quick.state.player.portraitId} animate={false} />}
             <h2>{ui("yourPlayer")}</h2>
           </div>
-          <div className="football-quick-setup__form">
+          <div className="football-quick-setup__form" data-guide="quick-fields">
             <label>
               <span>{ui("playerName")}</span>
               <input value={name} onChange={(event) => setName(event.target.value)} placeholder={ui("egSamTaylor")} maxLength={40} autoFocus />
@@ -79,7 +81,7 @@ export function QuickModeSetupScreen({ leagues, clubs }: Props) {
               <FilterSelect label={ui("position")} value={position} onChange={(value) => setPosition(value as QuickPosition)} options={QUICK_POSITIONS.map((item) => ({ value: item, label: item }))} />
             </div>
           </div>
-          <div className="football-quick-setup__footer">
+          <div className="football-quick-setup__footer" data-guide="quick-start">
             <span>{ui("playWithoutAnAccount")}</span>
             <Button size="lg" onClick={begin} disabled={!canStart || starting} loading={starting}>
               {hasExistingRun && quick.state.phase !== "complete" ? ui("continue") : ui("startCareer")}

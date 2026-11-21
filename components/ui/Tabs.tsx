@@ -1,11 +1,11 @@
 "use client";
 
 import { useRef } from "react";
-import type { ReactNode, KeyboardEvent } from "react";
+import type { ReactNode, KeyboardEvent, HTMLAttributes } from "react";
 import { cn } from "@/lib/utils";
 
-export function TabsList({ children, className }: { children: ReactNode; className?: string }) {
-  return <div className={cn("football-tabs", className)} role="tablist">{children}</div>;
+export function TabsList({ children, className, ...props }: HTMLAttributes<HTMLDivElement>) {
+  return <div {...props} className={cn("football-tabs", className)} role="tablist">{children}</div>;
 }
 
 export function TabsTrigger({ value, active, onSelect, children, className, disabled = false }: { value: string; active: boolean; onSelect: (value: string) => void; children: ReactNode; className?: string; disabled?: boolean }) {

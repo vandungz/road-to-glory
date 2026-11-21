@@ -12,7 +12,7 @@ export async function generateMetadata(): Promise<Metadata> {
 export default async function SettingsPage() {
   const t = await getTranslations("settings");
   return (
-    <AppShell className="football-account-shell" backHref="/" backLabel="home">
+    <AppShell guide="settings" className="football-account-shell" backHref="/" backLabel="home">
       <section className="football-account">
         <h1>{t("title")}</h1>
         <div className="football-account-sheet football-settings-sheet">

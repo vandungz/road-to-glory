@@ -911,5 +911,199 @@
     "totalHonours": "Tổng thành tích ({count})",
     "winnerHeadline": "Giành Ballon d’Or",
     "topTenRank": "Hạng {rank} trong Top 10"
+  },
+  "onboarding": {
+    "helpShort": "Hướng dẫn",
+    "helpTitle": "Giới thiệu & hướng dẫn",
+    "help": "Hướng dẫn trang này",
+    "next": "Tiếp",
+    "previous": "Trước",
+    "done": "Đã hiểu",
+    "skip": "Bỏ qua",
+    "busy": "Hướng dẫn sẽ sẵn sàng sau khi thao tác hoàn tất.",
+    "retry": "Không mở được hướng dẫn. Bấm để thử lại.",
+    "steps": {
+      "home-modes": {
+        "title": "Chọn cách chơi",
+        "description": "Classic lưu đội hình và sự nghiệp. Quick Mode chơi nhanh không cần tài khoản. PvE dùng đội hình Classic đã hoàn tất."
+      },
+      "home-account": {
+        "title": "Tài khoản và tùy chọn",
+        "description": "Mở hồ sơ, đổi ngôn ngữ hoặc giảm chuyển động tại đây."
+      },
+      "classic-create": {
+        "title": "Tạo đội hình",
+        "description": "Đặt tên và chọn sơ đồ. Sau đó draft từng cầu thủ vào các ô vị trí."
+      },
+      "classic-squads": {
+        "title": "Các đội hình đã lưu",
+        "description": "Mở một đội hình để tiếp tục. Mỗi đội hình có tiến trình riêng."
+      },
+      "squad-pitch": {
+        "title": "Chọn một vị trí",
+        "description": "Ô trống bắt đầu sự nghiệp mới. Ô đang draft tiếp tục cầu thủ đó. Cầu thủ đã hoàn tất mở hồ sơ sự nghiệp."
+      },
+      "squad-sheet": {
+        "title": "Hoàn thiện đội hình",
+        "description": "Theo dõi từng vị trí ở đây. Cầu thủ đã giải nghệ có thể thay hoặc xóa trong hồ sơ, kể cả khi chưa đủ 11 người."
+      },
+      "player-fields": {
+        "title": "Thông tin cầu thủ",
+        "description": "Chọn quốc tịch và nhập tên. Vị trí đã cố định theo ô đội hình bạn chọn."
+      },
+      "player-portraits": {
+        "title": "Chọn chân dung",
+        "description": "Chân dung chỉ thay đổi hình ảnh cầu thủ, không thay đổi chỉ số hoặc xác suất vòng quay."
+      },
+      "player-random": {
+        "title": "Tạo tên ngẫu nhiên",
+        "description": "Chọn quốc tịch trước, rồi dùng xúc xắc để lấy tên từ bộ tên của quốc gia đó. Bạn vẫn sửa tên được."
+      },
+      "draft-wheel": {
+        "title": "Khởi đầu sự nghiệp",
+        "description": "Các vòng quay lần lượt xác định tuổi, thời gian thi đấu, chỉ số và CLB khởi đầu."
+      },
+      "draft-result": {
+        "title": "Kết quả từng lượt",
+        "description": "Xem kết quả rồi tiếp tục khi nút sẵn sàng. Hướng dẫn không quay hoặc chọn kết quả thay bạn."
+      },
+      "career-wheel": {
+        "title": "Một mùa, nhiều bước",
+        "description": "Vòng quay giữa trang xử lý từng bước trong năm: giải đấu, thống kê và phát triển chỉ số. Xác suất thay đổi theo sự nghiệp."
+      },
+      "career-tabs": {
+        "title": "Ba góc nhìn cầu thủ",
+        "description": "Thẻ cầu thủ xem OVR và chỉ số. Mùa giải xem kết quả từng năm. Hợp đồng xem thời hạn, lương và giá trị."
+      },
+      "career-timeline": {
+        "title": "Nhật ký sự nghiệp",
+        "description": "Theo dõi các CLB đã thi đấu, số mùa đã chơi và OVR đỉnh cao ở cột trái."
+      },
+      "career-honours": {
+        "title": "Tủ danh hiệu",
+        "description": "Mở để xem thành tích CLB, đội tuyển và giải thưởng cá nhân đã đạt."
+      },
+      "career-shop": {
+        "title": "Cửa hàng hỗ trợ",
+        "description": "Cửa hàng khả dụng ở những thời điểm cho phép trong mùa. Xem giá, điều kiện và tác dụng trước khi mua."
+      },
+      "retirement-record": {
+        "title": "Trọn sự nghiệp",
+        "description": "Xem chỉ số đỉnh cao, tổng thống kê và các CLB trước khi lưu cầu thủ về đội hình."
+      },
+      "retirement-save": {
+        "title": "Lưu thẻ cầu thủ",
+        "description": "Lưu để hoàn tất vị trí này trong đội hình. Sau đó bạn có thể tiếp tục draft các vị trí còn lại."
+      },
+      "transfer-context": {
+        "title": "Tình hình hợp đồng",
+        "description": "Lương, thời hạn còn lại và giá trị cầu thủ giúp bạn cân nhắc ở lại hoặc chuyển CLB."
+      },
+      "transfer-tabs": {
+        "title": "Các lựa chọn chuyển nhượng",
+        "description": "Xem khả năng ở lại, đề nghị nhận được hoặc tìm CLB chủ động qua các tab."
+      },
+      "transfer-offers": {
+        "title": "Xem điều kiện trước khi chọn",
+        "description": "Mỗi đề nghị có lương, thời hạn và vai trò dự kiến. Khi tìm CLB, mức phí đề xuất ảnh hưởng cơ hội mở đàm phán."
+      },
+      "transfer-continue": {
+        "title": "Tiếp tục mà không chuyển CLB",
+        "description": "Nút này bỏ qua các đề nghị. Đọc nhãn nút để biết bạn sẽ ở lại hay trở thành cầu thủ tự do."
+      },
+      "negotiation-facts": {
+        "title": "Điều khoản đề nghị",
+        "description": "Kiểm tra CLB, mức lương và thời hạn trước khi xác nhận hợp đồng."
+      },
+      "negotiation-wages": {
+        "title": "Thương lượng lương",
+        "description": "Chọn mức lương rồi gửi đề nghị. Yêu cầu cao hơn có thể khó được chấp nhận; kết quả được xử lý khi bạn xác nhận."
+      },
+      "shop-balance": {
+        "title": "Ngân sách hiện tại",
+        "description": "Số dư quyết định những vật phẩm bạn có thể mua. Đây là tiền trong game."
+      },
+      "shop-items": {
+        "title": "Đọc tác dụng vật phẩm",
+        "description": "Mỗi vật phẩm ghi tác dụng, giá và tình trạng. Vật phẩm đã mua hoặc chưa đủ điều kiện sẽ không mua lại được lúc này."
+      },
+      "shop-continue": {
+        "title": "Mua là tùy chọn",
+        "description": "Bạn có thể tiếp tục mà không mua. Kiểm tra mùa áp dụng trước khi dùng ngân sách."
+      },
+      "quick-fields": {
+        "title": "Tạo một lượt chơi nhanh",
+        "description": "Chọn tên, quốc tịch và vị trí. Quick Mode mô phỏng một sự nghiệp gọn hơn Classic."
+      },
+      "quick-start": {
+        "title": "Bắt đầu khi sẵn sàng",
+        "description": "Tiến trình Quick Mode được lưu trên trình duyệt này, không trở thành đội hình Classic."
+      },
+      "quick-wheel": {
+        "title": "Quay từng chặng",
+        "description": "Mỗi lượt mở thêm một phần sự nghiệp. Chỉ số và vị trí có ảnh hưởng đến các cơ hội phù hợp."
+      },
+      "quick-tracker": {
+        "title": "Theo dõi cầu thủ",
+        "description": "Thông tin và chỉ số xuất hiện dần theo kết quả đã quay. Chưa quay thì chưa có kết quả."
+      },
+      "quick-totals": {
+        "title": "Tổng kết lượt chơi",
+        "description": "Xem OVR, số CLB và thành tích của sự nghiệp vừa hoàn tất."
+      },
+      "quick-records": {
+        "title": "Hành trình đã qua",
+        "description": "Bảng ghi lại các CLB và kết quả của lượt chơi này."
+      },
+      "quick-replay": {
+        "title": "Chơi lại",
+        "description": "Chơi lại bắt đầu một lượt Quick Mode mới. Lượt hiện tại không được thêm vào Classic."
+      },
+      "pve-squads": {
+        "title": "Đội hình đủ điều kiện",
+        "description": "PvE dùng đội hình Classic đã hoàn tất với đủ 11 cầu thủ. Chưa có đội hình phù hợp thì quay về Classic để hoàn thiện."
+      },
+      "pve-progress": {
+        "title": "Tiến trình giải đấu",
+        "description": "Theo dõi vòng hiện tại và bảng xếp hạng khi giải đang ở League Phase."
+      },
+      "pve-round": {
+        "title": "Đối thủ và kết quả",
+        "description": "Xem đội hình đối thủ trước khi chơi. Tiếp tục sau mỗi kết quả để tiến đến vòng kế tiếp."
+      },
+      "account-profile": {
+        "title": "Hồ sơ của bạn",
+        "description": "Xem email và sửa tên hiển thị ở đây. Tên hiển thị không thay đổi tên các cầu thủ đã tạo."
+      },
+      "account-squads": {
+        "title": "Trở lại đội hình",
+        "description": "Xem số đội hình và mở lại tiến trình Classic đã lưu."
+      },
+      "settings-language": {
+        "title": "Ngôn ngữ",
+        "description": "Chọn Tiếng Việt hoặc English. Một số thuật ngữ bóng đá giữ nguyên tiếng Anh."
+      },
+      "settings-motion": {
+        "title": "Chuyển động",
+        "description": "Giảm animation nếu bạn thấy khó theo dõi. Lựa chọn này không thay đổi kết quả vòng quay."
+      },
+      "policy-navigation": {
+        "title": "Đọc chính sách",
+        "description": "Dùng mục lục để đến phần cần đọc hoặc chuyển giữa hai trang chính sách."
+      },
+      "policy-contact": {
+        "title": "Liên hệ",
+        "description": "Thông tin liên hệ nằm ở cuối trang. Gửi yêu cầu riêng tư hoặc câu hỏi về điều khoản qua email được ghi tại đó."
+      },
+      "ballon-ranking": {
+        "title": "Kết quả Ballon d’Or",
+        "description": "Dòng được đánh dấu là cầu thủ của bạn. Các ứng viên khác hiển thị vị trí, số áo và CLB."
+      },
+      "ballon-return": {
+        "title": "Trở lại sự nghiệp",
+        "description": "Tiếp tục từ kết quả đã lưu. Xem hướng dẫn không quay lại hoặc thay đổi thứ hạng."
+      }
+    },
+    "close": "Đóng hướng dẫn"
   }
 }

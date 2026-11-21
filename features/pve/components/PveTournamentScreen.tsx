@@ -1,5 +1,6 @@
 "use client";
 
+import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
@@ -165,12 +166,13 @@ export function PveTournamentScreen({ gameId, sessionName, formation, squadRatin
   }
 
   return <div className="football-pve-shell">
-    <header className="football-pve-hero">
+    <PageGuide id="tournament" paused={isPending || matchView === "live"} />
+    <header className="football-pve-hero" data-guide="pve-progress">
       <h1>Champions League 2026/27</h1>
       <div className="football-pve-topbar"><Link href={`/classic/${gameId}`}><ArrowLeft aria-hidden="true" size={15} /> {sessionName}</Link><span>{squadRating ?? "—"} OVR</span></div>
     </header>
     {error && !isReplayConfirmOpen && <div className="football-pve-error" role="alert"><CircleAlert aria-hidden="true" size={17} /><span>{error}</span></div>}
-    <div className="football-pve-content">
+    <div className="football-pve-content" data-guide="pve-round">
       {!state ? (
         <section className="football-pve-start">
           <div><h2>League Phase</h2><p>{ui("finishInTheTopEightToReachTheRoundOf16")}</p></div>
