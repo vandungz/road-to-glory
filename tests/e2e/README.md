@@ -48,3 +48,17 @@ four-size viewport fill, independent club history, complete sticker attributes,
 wider league/cup dialogs, stationary recap artwork and offer/search list regions.
 The transfer preview now uses the same AppShell as the protected transfer route.
 Fixture buttons only exercise local callbacks; no test account is mutated.
+
+`pnpm check:onboarding` checks guide configuration, bilingual copy, production
+anchor coverage and browser-storage fallback. `onboarding.spec.ts` exercises
+first-run discovery, skip, on-demand reading modals, all guide contexts, free page interaction,
+keyboard/focus, missing anchors, busy/dialog/navigation cancellation, reduced
+motion, blocked storage and desktop bounds. `/dev/onboarding` is isolated and
+is blocked by production dev-route middleware and its own not-found guard; it
+never writes account or career data.
+
+`trophy-cabinet.spec.ts` uses `/dev/trophy-cabinet` (development only) with
+empty, two-honour and long-career fixtures. It checks loaded artwork, category
+counts, keyboard tabs, close/focus restoration, English copy and independent
+record scrolling with visible tabs/footer at 1024×600, 1280×800 and 1920×1080.
+These fixtures never read or mutate player accounts.

@@ -187,3 +187,35 @@ terms such as server/catalog. Season, eligibility, pricing and probability facts
 remain sourced from existing game data. Current evidence is in
 `output/playwright/ux-review/`; see `docs/UI_UX_Correction_2026-11-06.md` for scope
 and validation limits. The underlying game services and data are unchanged.
+
+## 2026-11-21: trophy cabinet
+
+The cabinet now shares the paper modal shell. A transparent engraved trophy
+collection occupies the left column beside separately scrolling records. The
+player name, total count, category counts, runner-up records and individual
+honours remain sourced from the existing season records.
+
+Asset: `public/media/editorial/trophy-collection.webp`, 960×960 RGBA, 321810
+bytes. Generated with the built-in imagegen tool, using the user's trophy-strip
+reference and the existing Ballon d’Or and match-duel illustrations as style
+references. WebP encoding preserves transparency. This is decorative collective
+artwork, not a claim that the player has won every depicted trophy.
+
+Generation prompt: “Create a production game illustration asset: a compact
+still-life collection of ALL the distinct football trophy silhouettes in
+reference 1, reinterpreted in the antique sports editorial illustration style
+of reference 2 gold ball and reference 3 footballers. Reference 1 is SUBJECT
+reference only, remove its grey background and enormous blank margins.
+References 2 and 3 are STYLE references. Arrange the fifteen varied cups as a
+handsome compact triangular three-tier collection, large tall handled
+European cup and crowned league cup at the rear, elegant tapered silver
+trophies and flared cups in the middle, small shield, round football award and
+short cups at the front. Each individual silhouette remains readable, a little
+overlap for depth, full trophy bases and handles visible. Brushed muted silver,
+aged warm gold, dark engraved ink contours, fine crosshatching and halftone
+grain, restrained highlights, collectible 1970s football annual illustration,
+NOT shiny CGI or flat vector or cartoon. No shelf, no cabinet furniture, no
+labels, text, branding, emblems or logos. Genuine transparent background outside
+the trophy group. Composition nearly square with only a small transparent
+margin, no huge empty space. This will be displayed on a warm cream paper modal
+at 360px wide, so avoid excessive tiny detail. Do not draw UI.”

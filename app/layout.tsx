@@ -14,6 +14,7 @@ import "./styles/features/account.css";
 import "./styles/features/guest-landing.css";
 import "./styles/features/policy.css";
 import "./styles/features/header-controls.css";
+import "./styles/features/trophy-cabinet.css";
 import { AppProviders } from "./providers";
 import { DesktopNotice } from "@/components/shared/DesktopNotice";
 import { GameEntryAnalytics } from "@/features/game/components/GameEntryAnalytics";

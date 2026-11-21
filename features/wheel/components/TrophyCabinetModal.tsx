@@ -1,4 +1,5 @@
 "use client";
+/* Hallmark · waive 26b · shared TabsTrigger and Button own disabled styling · All cabinet categories remain available. */
 
 import { useAwardCopy } from "./useAwardCopy";
 import { useTranslations } from "next-intl";
@@ -9,6 +10,8 @@ import { isDeprecatedAwardKey } from "@/types/awards";
 import { getHonourDisplayCategory, getHonourIdentity, getHonourResultLabel, getSpecificHonourLabel, normalizeHonourResult, type HonourDisplayCategory, type HonourResult } from "@/features/career/lib/honour-display";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
+import { EditorialArt } from "@/components/shared/EditorialArt";
+import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
 
 interface Props {
   seasonRecords: Record<number, SeasonRecord>;
@@ -118,32 +121,35 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
   const individualCount = trophyList.filter((trophy) => trophy.category === "individual").length;
 
   return (
-    <Modal open title={ui("sTrophyCabinet", { v0: String(playerName) })} onClose={onClose} size="md" variant="inverse" className="football-trophy-modal">
-      <ModalHeader onClose={onClose} closeLabel={ui("closeTrophyCabinet")}>{t("totalHonours", { count: trophyList.length })}</ModalHeader>
-      <div className="football-trophy-tabs" role="tablist" aria-label={ui("honourCategories")}>
+    <Modal open title={ui("sTrophyCabinet", { v0: String(playerName) })} onClose={onClose} size="lg" className="football-trophy-modal">
+      <ModalHeader onClose={onClose} closeLabel={ui("closeTrophyCabinet")}>{ui("trophyCabinet")}</ModalHeader>
+      <div className="football-trophy-layout">
+      <aside className="football-trophy-art">
+        <h3>{playerName}</h3>
+        <EditorialArt asset="trophy-collection" sizes="360px" />
+        <p>{t("totalHonours", { count: trophyList.length })}</p>
+      </aside>
+      <section className="football-trophy-records" aria-label={ui("honourCategories")}>
+      <TabsList className="football-trophy-tabs" aria-label={ui("honourCategories")}>
         {(["club", "individual"] as const).map((tab) => {
           const isActive = activeTab === tab;
           const count = tab === "club" ? clubCount : individualCount;
           return (
-            <button
+            <TabsTrigger
               key={tab}
-              type="button"
-              role="tab"
-              id={`trophy-tab-${tab}`}
-              aria-selected={isActive}
-              aria-controls="trophy-panel"
-              className={isActive ? "is-active" : undefined}
-              onClick={() => setActiveTab(tab)}
+              value={tab}
+              active={isActive}
+              onSelect={(value) => setActiveTab(value as HonourDisplayCategory)}
             >
               <span>{tab === "club" ? ui("clubHonours") : ui("individualAwards")}</span>
               <strong>{count}</strong>
-            </button>
+            </TabsTrigger>
           );
         })}
-      </div>
-      <ModalBody id="trophy-panel" role="tabpanel" aria-labelledby={`trophy-tab-${activeTab}`} className="football-trophy-modal__body">
+      </TabsList>
+      <ModalBody role="tabpanel" aria-label={activeTab === "club" ? ui("clubHonours") : ui("individualAwards")} tabIndex={0} className="football-trophy-modal__body">
         {visibleTrophies.length === 0 ? (
-          <div className="football-empty-state football-empty-state--inverse"><Trophy size={28} aria-hidden="true" /><p>{ui("noHonoursYet")}</p><span>{ui("honoursWillAppearHereAfterEachSeason")}</span></div>
+          <div className="football-empty-state"><Trophy size={28} aria-hidden="true" /><p>{ui("noHonoursYet")}</p><span>{ui("honoursWillAppearHereAfterEachSeason")}</span></div>
         ) : (
           visibleTrophies.map((trophy) => (
             <div className={`football-trophy-row${trophy.result === "runner_up" ? " is-runner-up" : ""}`} key={trophy.id}>
@@ -154,7 +160,9 @@ export function TrophyCabinetModal({ seasonRecords, playerName, playerNationalit
           ))
         )}
       </ModalBody>
-      <ModalFooter><Button variant="outline" fullWidth onClick={onClose}>{ui("closeTrophyCabinet")}</Button></ModalFooter>
+      </section>
+      </div>
+      <ModalFooter><Button variant="outline" onClick={onClose}>{ui("closeTrophyCabinet")}</Button></ModalFooter>
     </Modal>
   );
 }

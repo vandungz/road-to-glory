@@ -3,7 +3,7 @@ import dimensions from "@/public/media/editorial/dimensions.json";
 
 export const EDITORIAL_ASSETS = [
   "heritage-run", "air-control", "volley-control", "pitch-overview",
-  "free-kick", "match-duel", "heritage-touch", "contract-signing", "ballon-dor-trophy",
+  "free-kick", "match-duel", "heritage-touch", "contract-signing", "ballon-dor-trophy", "trophy-collection",
 ] as const;
 
 export type EditorialAsset = typeof EDITORIAL_ASSETS[number];
@@ -13,6 +13,7 @@ const DISPLAY_VARIANTS: Partial<Record<EditorialAsset, string>> = {
   "free-kick": "free-kick-clean",
   "contract-signing": "contract-signing",
   "ballon-dor-trophy": "ballon-dor-trophy",
+  "trophy-collection": "trophy-collection",
 };
 
 export function EditorialRail({ asset }: { asset: EditorialAsset }) {
