@@ -1,53 +1,54 @@
 import { createServerClient } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { contentSecurityPolicy, securityHeaders } from "@/lib/security/headers";
+import { appRouteAccess } from "@/lib/app-routes";
 
 const isProduction = process.env.NODE_ENV === "production";
 const sessionCookieMaxAge = 60 * 60 * 24 * 7;
 
-function withSecurityHeaders(response: NextResponse, oauthForm = false): NextResponse {
-  response.headers.set("X-Content-Type-Options", "nosniff");
-  response.headers.set("X-Frame-Options", "DENY");
-  response.headers.set("Referrer-Policy", "strict-origin-when-cross-origin");
-  response.headers.set("Permissions-Policy", "camera=(), microphone=(), geolocation=()");
-  response.headers.set("Content-Security-Policy", [
-    "default-src 'self'",
-    "base-uri 'self'",
-    "frame-ancestors 'none'",
-    "object-src 'none'",
-    // Some browsers check every redirect after a form POST, including the OAuth provider.
-    oauthForm ? "form-action 'self' https://*.supabase.co https://accounts.google.com" : "form-action 'self'",
-    "img-src 'self' data: blob: https:",
-    "font-src 'self' data: https:",
-    "style-src 'self' 'unsafe-inline'",
-    // React's development RSC debug payload uses eval; production never allows it.
-    isProduction ? "script-src 'self' 'unsafe-inline'" : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
-    "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
-  ].join("; "));
-  if (isProduction) {
-    response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
-  }
-  return response;
-}
-
 export async function middleware(request: NextRequest) {
+  const pathname = request.nextUrl.pathname;
+  const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
+  const policy = contentSecurityPolicy(nonce, isProduction, pathname === "/login" || pathname === "/auth/google");
+  const requestHeaders = new Headers(request.headers);
+  requestHeaders.delete("x-football-not-found");
+  // Never trust a caller-supplied nonce or CSP: Next reads this header during rendering.
+  requestHeaders.set("x-nonce", nonce);
+  requestHeaders.set("Content-Security-Policy", policy);
+  const next = () => NextResponse.next({ request: { headers: requestHeaders } });
+  const withSecurityHeaders = (response: NextResponse): NextResponse => {
+    securityHeaders.forEach(({ key, value }) => response.headers.set(key, value));
+    response.headers.set("Content-Security-Policy", policy);
+    response.headers.set("Cache-Control", "private, no-store");
+    if (isProduction) response.headers.set("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+    return response;
+  };
   if (isProduction && request.headers.get("x-forwarded-proto") !== "https") {
     const httpsUrl = request.nextUrl.clone();
     httpsUrl.protocol = "https:";
     return withSecurityHeaders(NextResponse.redirect(httpsUrl, 308));
   }
 
-  const pathname = request.nextUrl.pathname;
   if (pathname === "/privacy" || pathname === "/terms") {
-    return withSecurityHeaders(NextResponse.next());
+    return withSecurityHeaders(next());
   }
   if (process.env.NEXT_PUBLIC_GAME_ANALYTICS === "1" && pathname.startsWith("/_vercel/insights/")) {
-    return withSecurityHeaders(NextResponse.next());
+    return withSecurityHeaders(next());
   }
   if (isProduction && (pathname === "/dev" || pathname.startsWith("/dev/"))) {
     return withSecurityHeaders(NextResponse.redirect(new URL("/", request.url), 307));
   }
 
-  let supabaseResponse = NextResponse.next({ request });
+  const access = appRouteAccess(pathname);
+  const isDevPreview = !isProduction && (pathname === "/dev" || pathname.startsWith("/dev/"));
+  if (access === "missing" && !isDevPreview) {
+    requestHeaders.set("x-football-not-found", "1");
+    return withSecurityHeaders(NextResponse.rewrite(new URL("/404", request.url), {
+      status: 404, request: { headers: requestHeaders },
+    }));
+  }
+
+  let supabaseResponse = next();
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -59,7 +60,8 @@ export async function middleware(request: NextRequest) {
           cookiesToSet.forEach(({ name, value }) =>
             request.cookies.set(name, value)
           );
-          supabaseResponse = NextResponse.next({ request });
+          requestHeaders.set("cookie", request.cookies.toString());
+          supabaseResponse = next();
           cookiesToSet.forEach(({ name, value, options }) =>
             supabaseResponse.cookies.set(name, value, {
               ...options,
@@ -82,11 +84,7 @@ export async function middleware(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const isAuthRoute = pathname === "/login" || pathname.startsWith("/auth/");
-  const isPublicGameRoute = ["/", "/quick", "/quick/play", "/settings", "/profile"].includes(pathname);
-  const isDevPreview = process.env.NODE_ENV !== "production" && pathname.startsWith("/dev");
-
-  if (!user && !isAuthRoute && !isPublicGameRoute && !isDevPreview) {
+  if (!user && access === "protected" && !isDevPreview) {
     const loginUrl = new URL("/login", request.url);
     return withSecurityHeaders(NextResponse.redirect(loginUrl));
   }
@@ -96,11 +94,11 @@ export async function middleware(request: NextRequest) {
     return withSecurityHeaders(NextResponse.redirect(new URL("/", request.url)));
   }
 
-  return withSecurityHeaders(supabaseResponse, pathname === "/login" || pathname === "/auth/google");
+  return withSecurityHeaders(supabaseResponse);
 }
 
 export const config = {
   matcher: [
-    "/((?!_next/static|_next/image|favicon.ico|media/player-portraits/.*\\.webm$|media/landing/career-gameplay-v2\\.mp4$|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+    "/((?!_next/static/|_next/image(?:/|$)|favicon\\.ico$|media/).*)",
   ],
 };

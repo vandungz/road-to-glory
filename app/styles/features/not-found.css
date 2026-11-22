@@ -1,0 +1,81 @@
+/* Hallmark · shape: app screen · genre: playful · theme: Football Life · signature: 404 beside heritage player · v2.0.0 */
+/* Hallmark · pre-emit critique: P4 H4 E4 S4 R4 V3 · weakest: variety; retained the locked game's editorial player and paper system. */
+/* Hallmark · dismissed 25 · short 404 recovery lede at 42ch; this is two brief sentences rather than running prose. */
+/* Hallmark · finish-review: subagent · 1 finding resolved; pretty wrapping avoids a lone word at mobile width. */
+
+.football-not-found {
+  min-height: 100svh;
+  display: flex;
+  flex-direction: column;
+  color: var(--football-ink);
+  background: var(--football-paper);
+}
+
+.football-not-found__header,
+.football-not-found__footer {
+  width: min(100%, var(--football-max-width));
+  margin-inline: auto;
+  padding: 20px clamp(24px, 4vw, 64px);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.football-not-found__brand {
+  font: 600 26px/1.2 var(--font-headline);
+  color: var(--football-ink);
+  text-decoration: none;
+}
+
+.football-not-found__main {
+  flex: 1;
+  width: min(100%, var(--football-max-width));
+  margin-inline: auto;
+  padding: 32px clamp(24px, 4vw, 64px);
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: center;
+  gap: clamp(32px, 6vw, 96px);
+}
+
+.football-not-found__code {
+  margin: 0 0 24px;
+  font: 600 clamp(112px, 12vw, 176px)/1 var(--font-headline);
+  color: var(--football-accent-ink);
+}
+
+.football-not-found h1 {
+  margin: 0;
+  min-width: 0;
+  overflow-wrap: break-word;
+  font: 600 clamp(36px, 4vw, 56px)/1.15 var(--font-headline);
+  text-wrap: balance;
+}
+
+.football-not-found__description {
+  max-width: 42ch;
+  margin: 24px 0 32px;
+  color: var(--football-ink-2);
+  font-size: 16px;
+  line-height: 1.65;
+  text-wrap: pretty;
+}
+
+.football-not-found__art { display: grid; place-items: center; min-width: 0; }
+.football-not-found__art .football-editorial-art { width: min(100%, 352px); max-height: 520px; object-fit: contain; }
+
+.football-not-found__footer { font-size: 13px; color: var(--football-ink-2); }
+.football-not-found__footer nav { display: flex; flex-wrap: wrap; gap: 24px; }
+.football-not-found__footer a { color: inherit; text-underline-offset: 4px; }
+.football-not-found__footer a:hover,
+.football-not-found__brand:hover { color: var(--football-accent-ink); }
+.football-not-found__footer a:active,
+.football-not-found__brand:active { color: var(--football-ink); }
+.football-not-found a:focus-visible { outline: var(--football-outline); outline-offset: 4px; transition: none; }
+
+@media (width < 640px) {
+  .football-not-found__main { grid-template-columns: minmax(0, 1fr); gap: 40px; }
+  .football-not-found__art .football-editorial-art { max-height: 280px; }
+  .football-not-found__footer { align-items: flex-start; flex-direction: column; }
+}

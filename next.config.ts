@@ -1,8 +1,15 @@
 import createNextIntlPlugin from "next-intl/plugin";
 import type { NextConfig } from "next";
+import { securityHeaders } from "./lib/security/headers";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  async headers() {
+    return [{ source: "/:path*", headers: [
+      ...securityHeaders,
+      { key: "Content-Security-Policy", value: "frame-ancestors 'none'; object-src 'none'; base-uri 'self'" },
+    ] }];
+  },
   // Keep Turbopack's mutable dev artifacts separate from production builds.
   // Running `next build` while a dev server is open otherwise lets both
   // processes write `.next/static/development`, which can remove a manifest

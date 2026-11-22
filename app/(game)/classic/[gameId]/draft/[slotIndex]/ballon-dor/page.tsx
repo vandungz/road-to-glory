@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { notFound } from "next/navigation";
+import { isGameId, parseSquadSlot } from "@/lib/route-params";
 import { AppShell } from "@/components/shared/AppShell";
 import { ResultBanner } from "@/components/ui/ResultBanner";
 import { prisma } from "@/lib/prisma";
@@ -48,8 +49,8 @@ export default async function BallonDorResultPage({ params }: Props) {
   const ui = await getTranslations("ui");
   const awards = await getTranslations("awards");
   const { gameId, slotIndex: slotParam } = await params;
-  const slotIndex = Number(slotParam);
-  if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
+  const slotIndex = parseSquadSlot(slotParam);
+  if (!isGameId(gameId) || slotIndex === null) notFound();
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

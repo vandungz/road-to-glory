@@ -3,7 +3,7 @@
 @media (width < 1024px) {
   /* Includes portals: dialogs must not remain focusable over the desktop notice. */
   body > :not(.football-desktop-notice) { display: none !important; }
-  body > .football-desktop-content:has(:is(.football-guest-landing, .football-policy)) { display: block !important; }
+  body > .football-desktop-content:has(:is(.football-guest-landing, .football-policy, .football-not-found)) { display: block !important; }
   body { overflow-y: auto !important; }
   .football-desktop-notice {
     display: flex;
@@ -27,5 +27,5 @@
   .football-desktop-notice__body p { margin: 24px 0; color: var(--football-ink-2); line-height: 1.7; }
   .football-desktop-notice__body > span { display: inline-block; padding: 8px 16px; border-radius: var(--football-radius-control); background: var(--football-sunken); font-size: 13px; }
   .football-desktop-notice__footer { margin: 0; color: var(--football-ink-2); font-size: 12px; }
-  body:has(> .football-desktop-content :is(.football-guest-landing, .football-policy)) > .football-desktop-notice { display: none; }
+  body:has(> .football-desktop-content :is(.football-guest-landing, .football-policy, .football-not-found)) > .football-desktop-notice { display: none; }
 }

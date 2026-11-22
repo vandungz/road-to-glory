@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { isGameId } from "@/lib/route-params";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import { AppShell } from "@/components/shared/AppShell";
@@ -20,8 +21,10 @@ export async function generateMetadata(): Promise<Metadata> {
 
 export default async function SquadBoardPage({ params }: Props) {
   const { gameId } = await params;
+  if (!isGameId(gameId)) notFound();
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) notFound();
 
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
@@ -78,7 +81,7 @@ export default async function SquadBoardPage({ params }: Props) {
     },
   });
 
-  if (!session || !user || session.userId !== user.id) notFound();
+  if (!session || session.userId !== user.id) notFound();
 
   const formation = (session.formation as Formation) ?? "4-3-3";
   const slots = FORMATION_SLOTS[formation] ?? FORMATION_SLOTS["4-3-3"];

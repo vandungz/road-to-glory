@@ -1,4 +1,9 @@
 {
+  "notFound": {
+    "title": "Không tìm thấy trang",
+    "description": "Trang này không tồn tại hoặc không còn khả dụng. Trở về trang chủ để tiếp tục chơi.",
+    "footer": "Football Life / Road to Glory"
+  },
   "common": {
     "description": "Mô phỏng sự nghiệp cầu thủ bóng đá qua các vòng quay.",
     "back": "Quay lại",

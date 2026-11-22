@@ -1,4 +1,9 @@
 {
+  "notFound": {
+    "title": "Page not found",
+    "description": "This page does not exist or is no longer available. Return home to keep playing.",
+    "footer": "Football Life / Road to Glory"
+  },
   "common": {
     "description": "Simulate a football career through weighted wheel spins.",
     "back": "Back",

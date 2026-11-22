@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { isGameId, parseSquadSlot } from "@/lib/route-params";
 import { AppShell } from "@/components/shared/AppShell";
 import { ShopPageClient } from "@/features/wheel/components/ShopPageClient";
 import { formatEuroThousands } from "@/lib/transfer-economy";
@@ -23,8 +24,8 @@ export default async function ClassicShopPage({ params, searchParams }: Props) {
   const ui = await getTranslations("ui");
   const { gameId, slotIndex: slotIndexParam } = await params;
   const { season, return: returnAction } = await searchParams;
-  const slotIndex = Number(slotIndexParam);
-  if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
+  const slotIndex = parseSquadSlot(slotIndexParam);
+  if (!isGameId(gameId) || slotIndex === null) notFound();
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

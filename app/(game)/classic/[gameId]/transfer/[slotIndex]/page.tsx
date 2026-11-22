@@ -1,6 +1,7 @@
 import { getTranslations } from "next-intl/server";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
+import { isGameId, parseSquadSlot } from "@/lib/route-params";
 import { AppShell } from "@/components/shared/AppShell";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
@@ -22,8 +23,8 @@ export default async function ClassicTransferPage({ params, searchParams }: Prop
   const ui = await getTranslations("ui");
   const { gameId, slotIndex: slotParam } = await params;
   const { return: returnAction } = await searchParams;
-  const slotIndex = Number(slotParam);
-  if (!Number.isInteger(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
+  const slotIndex = parseSquadSlot(slotParam);
+  if (!isGameId(gameId) || slotIndex === null) notFound();
 
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();

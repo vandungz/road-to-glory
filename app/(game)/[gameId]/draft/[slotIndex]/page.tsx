@@ -1,5 +1,6 @@
 import { getTranslations } from "next-intl/server";
 import { notFound } from "next/navigation";
+import { isGameId, parseSquadSlot } from "@/lib/route-params";
 import { unstable_cache } from "next/cache";
 import type { Metadata } from "next";
 import { prisma } from "@/lib/prisma";
@@ -46,20 +47,20 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
 export default async function DraftSlotPage({ params }: Props) {
   const { gameId, slotIndex: slotStr } = await params;
-  const slotIndex = parseInt(slotStr, 10);
+  const slotIndex = parseSquadSlot(slotStr);
 
-  if (isNaN(slotIndex) || slotIndex < 0 || slotIndex > 10) notFound();
+  if (!isGameId(gameId) || slotIndex === null) notFound();
 
   // 1. Fetch game session + verify ownership
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
+  if (!user) notFound();
 
   const session = await prisma.gameSession.findUnique({
     where: { id: gameId },
     select: { id: true, name: true, formation: true, userId: true },
   });
-  if (!session) notFound();
-  if (session.userId !== user!.id) notFound();
+  if (!session || session.userId !== user.id) notFound();
 
   const formation = (session.formation as Formation) ?? "4-3-3";
   const slots     = FORMATION_SLOTS[formation];
