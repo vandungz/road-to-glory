@@ -9,8 +9,16 @@ Tài liệu này dành cho người đang tự setup Football Life trên:
 Không chạy tất cả lệnh một lúc. Làm theo thứ tự, chỉ chuyển bước khi ô kiểm tra
 của bước hiện tại đạt.
 
+**Cập nhật 22/11/2026:** xem [kết quả remediation và điều kiện phát hành](security-remediation-2026-11-22.md).
+Supabase MCP đã kết nối; Vercel được báo đã cài nhưng chưa có tool khả dụng
+trong phiên kiểm tra và CLI đang đăng xuất. CA công khai chính thức đã được
+đóng gói riêng cho Supabase pooler và handshake xác minh đã qua; vẫn cần nghiệm
+thu runtime sau deploy. Bảng ngày 16/10 bên
+dưới là lịch sử, không phải kết quả nghiệm thu production hiện tại.
+
 > Không gửi password, token, DATABASE_URL, DIRECT_URL, Supabase secret key
-> hoặc PGSSL_CA vào chat, Git, screenshot hay issue.
+> vào chat, Git, screenshot hay issue. Chứng chỉ CA công khai không phải mật
+> khẩu hay private key; chỉ lấy từ nguồn chính thức và không gửi kèm file env.
 
 ## 0. Trạng thái đã kiểm tra ngày 16/10/2026
 
@@ -103,12 +111,13 @@ SQL Editor. Không dùng DIRECT_URL cho request runtime.
 
 ## 3. Việc cần làm trước: kết nối đúng Vercel và Supabase
 
-Hiện tại phiên Codex chưa có kết nối MCP Vercel/Supabase. Vì vậy tôi không thể
-đọc Environment Variables, deployment logs hoặc Auth Logs private của bạn.
+Supabase MCP đã kết nối ở lần kiểm tra 22/11/2026. Vercel được báo đã cài nhưng
+tool chưa khả dụng trong phiên đó, CLI đang đăng xuất; vì vậy chưa đọc được
+Environment Variables hoặc deployment logs Vercel để xác nhận cấu hình.
 
 Bạn có thể kiểm tra bằng Dashboard ngay bây giờ. Nếu muốn tôi đọc trực tiếp ở
-lượt sau, hãy kết nối hai plugin Vercel và Supabase trong Codex rồi yêu cầu tôi
-kiểm tra lại. Không gửi secret vào chat.
+lượt sau, cần có tool Vercel khả dụng hoặc phiên CLI đã đăng nhập. Không gửi
+secret vào chat.
 
 ### 3.1 Vercel
 
@@ -130,8 +139,11 @@ UPSTASH_REDIS_REST_TOKEN
 LEGACY_CAREER_WRITES=false
 ~~~
 
-Các biến `PG_*`, `PGSSL_CA` và `PG_SSL_REJECT_UNAUTHORIZED` là tuning/TLS tùy
-chọn, không cần thêm chỉ vì chúng có trong `.env.example`. Tôi không liệt kê
+Các biến pool `PG_*` là tuning tùy chọn. TLS luôn xác minh chứng chỉ và hostname;
+Supabase pooler dùng CA công khai đã đóng gói. `PGSSL_CA` là override nếu cần
+đổi CA hoặc dùng nhà cung cấp khác; nếu đặt thì phải chứa PEM đáng tin cậy.
+`PG_SSL_REJECT_UNAUTHORIZED=false` bị từ chối. Không cần thêm các biến tuning
+nếu chưa có nhu cầu điều chỉnh. Tôi không liệt kê
 `NEXT_PUBLIC_ENABLE_DEV_TOOLS` ở đây vì source hiện tại không đọc biến đó.
 
 DIRECT_URL chỉ cần cho migration runner. Nếu bạn chưa có migration runner,
@@ -377,12 +389,17 @@ Sau khi login, trang lobby phải tải được danh sách game. Nếu gặp:
 P1011 self-signed certificate in certificate chain
 ~~~
 
-hãy kiểm tra lại DATABASE_URL có sslmode=require. Source hiện đã xử lý
-Supabase pooler bằng TLS; không tắt SSL.
+hãy lấy CA certificate từ Supabase Database → SSL Configuration, đặt toàn bộ
+PEM vào `PGSSL_CA` cho môi trường tương ứng rồi kiểm tra lại với
+`sslmode=verify-full`. Runtime mới luôn xác minh CA/hostname, kể cả URL cũ dùng
+`sslmode=require`; không tắt xác minh để xử lý lỗi. Không lấy CA từ chính peer
+chưa xác minh hoặc từ một nguồn không xác thực.
 
-Nếu muốn xác thực CA đầy đủ, lấy CA certificate trong Supabase Database →
-SSL Configuration, đặt PGSSL_CA và dùng sslmode=verify-full. Không đặt
-PG_SSL_REJECT_UNAUTHORIZED=true khi chưa có CA.
+Pooler hiện tại đã qua handshake xác minh với CA chính thức được đóng gói.
+Nếu deployment dùng host/CA khác, phải xác minh cấu hình đó. Kiểm tra TLS có thể thực hiện
+chỉ với PostgreSQL SSLRequest/handshake, không gửi user/password hoặc SQL.
+Sau đó kiểm tra authenticated route bằng tài khoản được phép; guest homepage
+thành công không chứng minh runtime DB đã kết nối được.
 
 ## 7. Kiểm tra Upstash rate limit
 

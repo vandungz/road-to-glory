@@ -62,3 +62,29 @@ empty, two-honour and long-career fixtures. It checks loaded artwork, category
 counts, keyboard tabs, close/focus restoration, English copy and independent
 record scrolling with visible tabs/footer at 1024×600, 1280×800 and 1920×1080.
 These fixtures never read or mutate player accounts.
+
+`pnpm check:not-found` verifies route classification, canonical IDs/slots,
+real page/handler coverage and middleware 404 responses without provider calls.
+`not-found.spec.ts` checks preserved URLs, HTTP 404, noindex, localized titles,
+language refresh/reload, protected-route login redirects, no-JavaScript recovery,
+keyboard focus and five viewport sizes (375–1920px). It runs against development
+or a production server; production loopback uses `RTG_PRODUCTION_CHECK=1` as
+described below. Screenshots go to `output/playwright/not-found-*.png`.
+
+`security-remediation.spec.ts` targets a **production build** separately from
+the development fixture suite. Start that build on isolated loopback, then run:
+
+```powershell
+$env:PLAYWRIGHT_BASE_URL = "http://127.0.0.1:3000"
+$env:RTG_PRODUCTION_CHECK = "1"
+pnpm exec playwright test tests/e2e/security-remediation.spec.ts
+```
+
+The header flag models the trusted HTTPS reverse proxy for this local check;
+do not point this fixture suite at production. Coverage includes nonce CSP,
+blocked script/handler execution, iframe denial, alternate route suffixes,
+static asset headers and a literal HTML-like player name through guest gameplay.
+Use dummy Supabase settings, no database credentials, an empty allowlisted
+environment and OS isolation with no external network. `pnpm
+check:security-remediation` runs the policy, middleware, limiter and TLS checks;
+its real TLS handshakes use only local dummy certificates.

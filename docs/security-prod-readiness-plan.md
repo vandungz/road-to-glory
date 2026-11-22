@@ -1,5 +1,11 @@
 # Production Security Readiness Plan
 
+Kết quả remediation mới nhất ngày 22/11/2026 nằm ở
+[security-remediation-2026-11-22.md](security-remediation-2026-11-22.md).
+Các mốc kiểm tra cũ bên dưới không thay thế nghiệm thu deployment hiện tại;
+CA Supabase pooler đã được đóng gói và handshake xác minh đã qua; nghiệm thu
+runtime Vercel vẫn là điều kiện phát hành.
+
 ## Mục tiêu
 
 Kiểm tra dựa trên source code và hoàn thiện các kiểm soát bảo mật cần thiết trước khi public production cho Football Life. Kết luận sẽ phân biệt rõ giữa:
@@ -106,7 +112,7 @@ Kiểm tra dựa trên source code và hoàn thiện các kiểm soát bảo m�
 | CORS | PASS SOURCE | Không có app/api route hoặc broad Access-Control-Allow-Origin; app dùng same-origin Server Actions. Nếu mở API public sau này phải allowlist exact origins, methods và headers. |
 | RLS/public PostgREST | APPLIED / VERIFY EDGE | Prisma migration đã bật RLS cho 13 bảng app, revoke table grants khỏi `PUBLIC`/`anon`/`authenticated`, grant DML cho bảng game mutable và chỉ `SELECT` cho catalog (`leagues`, `clubs`, `national_teams`) tới `football_life_runtime`, đồng thời giữ `NO FORCE ROW LEVEL SECURITY` để Supabase owner/admin path còn hoạt động. Cần test REST denial và runtime query trên deployment. |
 | DB least privilege | LIVE DATABASE VERIFIED / RUNTIME LOGIN PENDING | Database hiện có `football_life_runtime` an toàn, owner bảng vẫn là `postgres`, grants/RLS đúng và không có migration-owner role. Cần đặt/kiểm tra password role và deploy `DATABASE_URL` dùng đúng username pooler. |
-| DB TLS | SOURCE REMEDIATION / DEPLOYMENT VERIFY | `lib/prisma.ts` giữ SSL bắt buộc trong production; `sslmode=require` mặc định dùng mã hóa nhưng chưa xác minh CA (`rejectUnauthorized=false`) để tránh lỗi pooler hiện tại. Muốn xác minh certificate đầy đủ phải cung cấp CA Supabase và kiểm thử trên deployment. |
+| DB TLS | SOURCE REMEDIATION / VERIFIED HANDSHAKE / DEPLOYMENT VERIFY | `lib/database-connection.ts` luôn xác minh CA/hostname, từ chối URL overrides và cờ tắt xác minh. CA công khai chính thức được đóng gói chỉ cho Supabase pooler; handshake TLS 1.3 tới pooler cấu hình local đã qua. `PGSSL_CA` vẫn là override. Chưa coi runtime production là đã nghiệm thu. |
 
 ## Verification đã chạy
 
