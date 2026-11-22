@@ -93,7 +93,8 @@ export async function checkRateLimit(identifier: string): Promise<void> {
     return;
   }
 
-  const { success } = await ratelimit.limit(identifier);
+  const { success, reason } = await ratelimit.limit(identifier);
+  if (reason === "timeout") throw new Error("Request protection is unavailable.");
   if (!success) {
     throw new Error("Too many requests. Please try again later.");
   }
