@@ -32,8 +32,8 @@ Next.js loads environment variables in this order (later overrides earlier):
 | `UPSTASH_REDIS_REST_URL` | Server only | `https://example.upstash.io` | ✅ Yes in production | Distributed rate-limit backend. |
 | `UPSTASH_REDIS_REST_TOKEN` | Server only | `replace-with-token` | ✅ Yes in production | Secret token for the distributed rate-limit backend. |
 | `PG_POOL_MAX` | Server only | `3` | No | Per-instance PostgreSQL pool cap. Code bounds this to 1–10; tune only against measured database capacity. |
-| `PGSSL_CA` | Server only | Supabase production CA certificate | No | Optional CA certificate. Use with `sslmode=verify-full` to verify the Supabase server certificate. |
-| `PG_SSL_REJECT_UNAUTHORIZED` | Server only | `true` | No | Explicitly enables certificate verification. Requires a trusted CA; prefer `PGSSL_CA` with `sslmode=verify-full`. |
+| `PGSSL_CA` | Server only | Trusted PEM CA certificate | No for the current Supabase pooler | Optional override for CA rotation or another provider. Supabase pooler hosts use the bundled public provider CA; other hosts use Node roots by default. Verification stays enabled. |
+| `PG_SSL_REJECT_UNAUTHORIZED` | Server only | `true` | No | Compatibility setting; verification is always enabled. A value of `false` is rejected. |
 | `LEGACY_CAREER_WRITES` | Server only | `false` | No | Production safety switch. Legacy client-authoritative writes remain disabled unless an explicit migration window enables them. |
 | `NODE_ENV` | Tooling / Runtime | `development` | No | Set automatically by Next.js scripts. Do not set manually. Controls build optimizations, logging behavior, and dev overlays. |
 | `SEED_DATA_PATH` | Server / Scripts only | `./scripts/data/clubs.json` | No | Optional override for the path to football data seed files. Used by `scripts/seed.ts` only. Leave unset to use the default path. |
@@ -72,10 +72,10 @@ UPSTASH_REDIS_REST_TOKEN="replace-with-upstash-token"
 PG_POOL_MAX="3"
 LEGACY_CAREER_WRITES="false"
 
-# Optional PostgreSQL TLS verification. Leave empty with sslmode=require,
-# or provide the Supabase CA and use sslmode=verify-full.
+# PostgreSQL TLS always verifies certificates and hostnames. Supabase pooler
+# hosts have a bundled public CA. Override only for rotation or another provider.
 PGSSL_CA=""
-PG_SSL_REJECT_UNAUTHORIZED=""
+PG_SSL_REJECT_UNAUTHORIZED="true"
 
 # ─── Development / scripts only ────────────────────────────────────────────
 SEED_DATA_PATH=""
@@ -85,7 +85,9 @@ SEED_DATA_PATH=""
 
 ## Current Code References
 
-- `DATABASE_URL` is read by `lib/prisma.ts` for runtime queries; `DIRECT_URL` is read by `prisma.config.ts` only for Prisma CLI database commands.
+- `DATABASE_URL` is validated by `lib/database-connection.ts` and used by `lib/prisma.ts`; `DIRECT_URL` is read by `prisma.config.ts` only for Prisma CLI database commands.
+- Runtime URLs accept `sslmode=require`, `verify-ca` or `verify-full`; all three use certificate and hostname verification. `PGSSL_CA` takes precedence; otherwise only `.pooler.supabase.com` hosts use the bundled public Supabase CA and other hosts use Node roots. Plaintext is allowed only for loopback development/test databases with `sslmode=disable`.
+- URL parameters that override TLS, certificates, credentials or hosts are rejected. Supported auxiliary parameters are `pgbouncer`, `connection_limit`, `pool_timeout`, `schema` and `application_name`. Do not use `ssl=no-verify`, `sslrootcert` or `uselibpqcompat` to bypass the runtime policy.
 - `DIRECT_URL` uses the Supabase migration/admin connection copied from Connect. On Free, that may be the shared session pooler when the direct host is not reachable from the runner. The repository does not transfer table ownership to an application-created migration role.
 - `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` are read in `lib/supabase/client.ts` to create the browser-side Supabase client.
 - `lib/supabase/server.ts` uses the public Supabase URL and anon key only; no service-role key is required by the current source.

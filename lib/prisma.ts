@@ -2,52 +2,9 @@ import "dotenv/config";
 import { PrismaClient } from "@/app/generated/prisma/client";
 import { PrismaPg } from "@prisma/adapter-pg";
 import pg from "pg";
+import { databaseConnectionConfig } from "./database-connection";
 
 const globalForPrisma = globalThis as unknown as { prisma: PrismaClient; pool: pg.Pool };
-
-type DatabaseSslConfig = false | { rejectUnauthorized: boolean; ca?: string };
-
-function databaseConnectionConfig(connectionString: string): {
-  connectionString: string;
-  ssl: DatabaseSslConfig;
-} {
-  const databaseUrl = new URL(connectionString);
-  const sslMode = databaseUrl.searchParams.get("sslmode")?.toLowerCase() ?? "prefer";
-  const rootCertificate = process.env.PGSSL_CA?.trim();
-  const explicitVerification = process.env.PG_SSL_REJECT_UNAUTHORIZED?.trim().toLowerCase();
-  databaseUrl.searchParams.delete("sslmode");
-
-  if (sslMode === "disable") {
-    if (process.env.NODE_ENV === "production") {
-      throw new Error("DATABASE_URL must use SSL in production.");
-    }
-    return { connectionString: databaseUrl.toString(), ssl: false };
-  }
-
-  if (rootCertificate) {
-    return {
-      connectionString: databaseUrl.toString(),
-      ssl: { ca: rootCertificate, rejectUnauthorized: true },
-    };
-  }
-
-  if (sslMode === "verify-ca" || sslMode === "verify-full") {
-    throw new Error("PGSSL_CA is required when DATABASE_URL uses sslmode=verify-ca or verify-full.");
-  }
-
-  if (explicitVerification === "true") {
-    return {
-      connectionString: databaseUrl.toString(),
-      ssl: { rejectUnauthorized: true },
-    };
-  }
-
-  // Supabase pooler compatibility; enable PGSSL_CA when certificate pinning is ready.
-  return {
-    connectionString: databaseUrl.toString(),
-    ssl: { rejectUnauthorized: false },
-  };
-}
 
 function poolNumber(name: string, fallback: number, min: number, max: number): number {
   const parsed = Number.parseInt(process.env[name] ?? "", 10);
