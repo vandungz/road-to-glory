@@ -15,8 +15,7 @@ import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
 import { WheelGameHeader } from "./WheelGameHeader";
 import { getSeasonYearString } from "../lib/simulation-helpers";
-import { RouteLoading } from "@/components/ui/States";
-import { AppShell } from "@/components/shared/AppShell";
+import { GameRouteLoading } from "@/components/shared/GameRouteLoading";
 import { Toast } from "@/components/ui/Toast";
 import { ClassicProfileSetup, type ClassicProfile } from "./ClassicProfileSetup";
 import { useWheelUiStore } from "../stores/useWheelUiStore";
@@ -195,9 +194,7 @@ export function DraftDrumScreen({
     handleTransferReturn(transferReturnAction);
   }, [handleTransferReturn, isMounted, isProcessing, mode, transferReturnAction]);
 
-  if (!isMounted) return <AppShell backHref={backHref} backLabel="squadBoard">
-    <RouteLoading title={savedPlayerId ? ui("career") : ui("createPlayer")} label={ui("loadingPlayerProfile")} layout={savedPlayerId ? "career" : "quick"} />
-  </AppShell>;
+  if (!isMounted) return <GameRouteLoading title={savedPlayerId ? ui("career") : ui("createPlayer")} label={ui("loadingPlayerProfile")} layout={savedPlayerId ? "career" : "setup"} />;
 
   const activeRecord = seasonRecords[selectedAgeForStats] ?? null;
   const shopHref = shopTargetSeason === null

@@ -111,7 +111,7 @@
 .football-route-loading[data-layout="match"] .football-route-loading__layout {
   grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr);
 }
-.football-route-loading__surface, .football-route-loading__rail {
+.football-route-loading__surface:not(.football-quick-play__stage), .football-route-loading__rail:not(.football-quick-play__tracker) {
   display: grid;
   align-content: start;
   min-width: 0;
@@ -122,7 +122,6 @@
 .football-route-loading__surface { background: var(--football-surface); }
 .football-route-loading__surface:has(> :is(.football-route-loading__wheel, .football-route-loading__pitch)) { place-content: center; }
 .football-route-loading__wheel {
-  inline-size: clamp(120px, 20vw, 248px);
   aspect-ratio: 1;
   border: 1px solid var(--football-rule-strong);
   border-radius: 50%;

@@ -1,8 +1,7 @@
 import { useTranslations } from "next-intl";
-import { AppShell } from "@/components/shared/AppShell";
-import { RouteLoading } from "@/components/ui/States";
+import { GameRouteLoading } from "@/components/shared/GameRouteLoading";
 
 export default function PveTournamentLoading() {
   const ui = useTranslations("ui");
-  return <AppShell backHref="/pve" backLabel="pve"><RouteLoading title="Champions League" label={ui("loadingTournament")} layout="match" /></AppShell>;
+  return <GameRouteLoading title="Champions League" label={ui("loadingTournament")} layout="match" />;
 }
