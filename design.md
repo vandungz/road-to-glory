@@ -50,6 +50,18 @@ data, field names and component contracts when changing presentation.
   or restoration. Match its static placeholder to the destination: records, wheel
   workspace or match. Keep the status near the page heading. Never show fake scores
   or progress percentages. Reuse `ActivityLine` for the single indeterminate signal.
+- Use `BrandedSplash` for major entry routes without a destination skeleton.
+  Landing startup shows the branded entrance for at least 800 ms, as requested,
+  including ready/cached pages. Then release when the hero image loads or errors;
+  user interaction can dismiss it and a 3-second recovery limit prevents trapping.
+  Never wait for video. Render public content fully
+  on the server so it remains available without JavaScript.
+  The landing splash itself is present in the initial server HTML to prevent
+  content flashing before hydration; a noscript style hides it when JS is disabled.
+- `GameRouteLoading` uses the actual destination shell. Career shares the real
+  three-column grid; Quick shares its tracker, portrait, stage and responsive
+  wheel containers. Keep known geometry aligned at 1024/1440/1920; names and
+  revealed-stat counts remain content-dependent.
 - Keep existing records visible while refreshing. Mark the region busy, disable
   stale result actions, and offer a retry when a request fails. Debounce typing
   only. A completed request can display its result immediately.
@@ -59,13 +71,14 @@ data, field names and component contracts when changing presentation.
 ## Desktop policy
 - Gameplay starts at 1024 CSS pixels. Narrower windows show a localized
   desktop-required screen on game, account, and auth routes, including direct links.
-- The guest introduction at `/` scrolls from an illustrated hero through actual
-  gameplay, career milestones, mode choices, updates and FAQs, then repeats the Quick Mode action.
+- The guest introduction at `/` (Vietnamese) and `/en` (English) leads with the
+  green illustrated athlete hero, then real Career gameplay, odds, career milestones,
+  mode choices and FAQs before repeating the Quick Mode action.
   The header provides section links and the language switch. Footer links point to
-  available sections, with plain text for upcoming community and policy pages.
+  available sections and policy pages, with plain text for upcoming donation support.
   Each section reveals once when it enters the viewport and stays visible with
   reduced motion or scripting off. Below-the-fold art reserves its space and
-  loads a responsive source near the viewport. The muted trailer loops in view without
+  uses native lazy loading from server-rendered markup. The muted trailer loops in view without
   playback controls and shows its poster with reduced motion. Show the desktop
   requirement below 1024px and game links at playable widths.
 - Signed-in players reach the existing lobby at `/`.

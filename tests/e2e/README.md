@@ -1,5 +1,27 @@
 # Browser regression
 
+Loading verification: `pnpm exec playwright test tests/e2e/loading-layout.spec.ts`.
+It compares Career and Quick placeholder bounds with real populated screens at
+1024/1440/1920, verifies pending-image splash release, error recovery, reduced
+motion, server-rendered splash coverage before hydration, the requested 800 ms
+minimum entrance on ready pages, keyboard dismissal
+and the recovery timeout. Development-only previews
+are available at `/dev/loading-preview?view=splash`, `career`, `quick`, `records`,
+`match` and `setup`; no fixture writes account or career data.
+
+Landing SEO/loading coverage: `pnpm exec tsx tests/landing-seo.test.ts` and
+`pnpm exec playwright test tests/e2e/landing-seo.spec.ts`.
+Set `NEXT_PUBLIC_SITE_URL` to the canonical public HTTPS origin before starting
+the test server. The suite checks server-rendered content without JavaScript,
+hero image priority, native lazy images, CSP nonce, VI/EN metadata, crawler files
+and noindex on login/game routes. Preview deployments publish noindex and omit
+their URLs from the sitemap. Guest landing URLs are `/` (Vietnamese) and `/en`
+(English), regardless of the language cookie. Both have self-canonical URLs and
+reciprocal `vi`, `en`, `x-default` hreflang links. The sitemap includes only these
+indexable landing pages; policy pages retain their existing noindex metadata.
+Language links work without JavaScript and save the preference for game routes.
+Authenticated `/` continues to show the lobby in the user's preferred language.
+
 Install and run from the repository root:
 
 ```sh
@@ -9,8 +31,13 @@ pnpm test:e2e
 ```
 
 The configuration starts the development server on port 3000 when needed.
-Use `PLAYWRIGHT_BASE_URL` to target an existing development server. Development
-fixture routes are deliberately unavailable in production, so this full suite
+Use `PLAYWRIGHT_BASE_URL` to target an existing development server.
+Run only one Next.js development server per checkout: different ports still
+share `.next-dev`, which can leave routing or middleware stale. Reuse the
+running server with `PLAYWRIGHT_BASE_URL=http://localhost:3000` instead of
+starting a second server for browser tests.
+
+Development fixture routes are deliberately unavailable in production, so this full suite
 must target a development server. Reports, traces and screenshots go under
 `output/playwright/` (ignored by Git).
 
