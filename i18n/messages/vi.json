@@ -22,17 +22,11 @@
   },
   "landing": {
     "headline": "Một lượt quay đổi cả mùa",
-    "intro": "Tạo một cầu thủ và mô phỏng sự nghiệp bóng đá qua vòng quay.",
+    "intro": "Tạo cầu thủ. Vòng quay định đoạt sự nghiệp bóng đá.",
     "navigation": "Khám phá Road to Glory",
     "gameplayLink": "Vòng quay",
     "modesLink": "Chế độ",
     "switchLanguage": "Chuyển sang tiếng Anh",
-    "updatesLink": "Cập nhật",
-    "updatesTitle": "Nhật ký cập nhật",
-    "updates": {
-      "languageAndAwards": { "title": "Tiếng Anh và Ballon d’Or", "description": "Thêm tiếng Anh. Classic xét đề cử mỗi mùa." },
-      "careerRecords": { "title": "Hồ sơ giải đấu", "description": "Classic lưu bảng xếp hạng và hành trình cúp." }
-    },
     "footer": {
       "game": "Khám phá",
       "gameplay": "Xem gameplay",
@@ -42,42 +36,77 @@
       "donate": "Ủng hộ dự án",
       "policies": "Chính sách",
       "privacy": "Quyền riêng tư",
-      "terms": "Điều khoản sử dụng",
-      "pending": "Các trang cộng đồng đang được chuẩn bị."
+      "terms": "Điều khoản",
+      "pending": "Game indie từ vdz Indie."
     },
     "faqLink": "FAQ",
     "storyTitle": "Điều gì xảy ra khi kim dừng?",
-    "gameplayDescription": "Trong Career, vòng quay quyết định thứ hạng ở giải vô địch và chặng dừng ở cúp. Thực lực của cầu thủ và CLB ảnh hưởng đến cơ hội của từng kết quả.",
+    "gameplayDescription": "Một mùa tranh cúp, một bản hợp đồng, một lần lỡ hẹn với vinh quang. Trong Road to Glory, câu chuyện của cầu thủ rẽ hướng sau mỗi lần kim dừng.",
     "careerLink": "Theo dõi một sự nghiệp",
-    "careerTitle": "Từ ngày ra mắt đến lúc treo giày",
+    "careerTitle": "Một chiếc áo đầu tiên. Cả sự nghiệp phía trước.",
     "career": {
-      "debut": { "title": "Tìm chỗ đứng", "description": "Bạn chọn vị trí. Vòng quay chọn tuổi ra mắt và CLB đầu tiên." },
-      "season": { "title": "Ở lại hay ra đi?", "description": "Khi nhận lời mời chuyển nhượng trong Classic, bạn có thể ở lại hoặc đàm phán với CLB mới." },
-      "legacy": { "title": "Nhìn lại khi giải nghệ", "description": "Xem các CLB từng khoác áo và danh hiệu đã giành." }
+      "debut": {
+        "title": "Từ một cái tên chưa ai biết",
+        "description": "Chọn quốc tịch và vị trí cho cầu thủ. Vòng quay mở ra tuổi ra mắt và CLB đầu tiên — điểm xuất phát cho một hành trình riêng."
+      },
+      "season": {
+        "title": "Gắn bó hay tìm bến đỗ mới?",
+        "description": "Ở Classic, mỗi năm mang đến thành tích, tiến bộ và cơ hội chuyển nhượng. Bạn chọn ở lại hay đàm phán khi lời mời xuất hiện."
+      },
+      "legacy": {
+        "title": "Điều còn lại khi treo giày",
+        "description": "Nhìn lại các mùa giải, những màu áo và danh hiệu đã giành. Một sự nghiệp kết thúc, một vị trí trong đội hình của bạn được hoàn thành."
+      }
     },
-    "modesTitle": "Ba cách chơi",
-    "quickDescription": "Mô phỏng trọn một sự nghiệp, không cần tài khoản.",
-    "classicDescription": "Draft 11 cầu thủ. Chơi từng mùa, lưu đội hình.",
-    "pveDescription": "Dự giải với 11 cầu thủ đã giải nghệ trong Classic.",
+    "modesTitle": "Chọn cách viết sự nghiệp",
+    "quickDescription": "Trọn một sự nghiệp. Không cần tài khoản.",
+    "classicDescription": "Chơi từng mùa, chọn hợp đồng. Hoàn thành 11 sự nghiệp để xây đội hình.",
+    "pveDescription": "Mang 11 cầu thủ đã giải nghệ trong Classic vào giải PvE để tranh cúp.",
     "quickAction": "Thử ngay",
     "classicAction": "Vào Classic",
     "pveAction": "Vào giải PvE",
     "faqTitle": "Trước khi vào game",
     "faq": {
-      "wheel": { "question": "Có điều khiển cầu thủ trên sân không?", "answer": "Vòng quay mô phỏng các kết quả thi đấu. Bạn quyết định những việc như chọn hồ sơ cầu thủ và cân nhắc hợp đồng trong Classic." },
-      "account": { "question": "Tiến trình lưu ở đâu?", "answer": "Quick Mode giữ lượt chơi trong phiên của tab hiện tại. Classic và PvE cần đăng nhập để lưu tiến trình vào tài khoản." },
-      "devices": { "question": "Tôi có thể chơi trên điện thoại không?", "answer": "Bạn có thể xem giới thiệu và video trên điện thoại. Để chơi, hãy mở game bằng trình duyệt trên máy tính với cửa sổ rộng ít nhất 1024 px." }
+      "wheel": {
+        "question": "Có điều khiển trận đấu không?",
+        "answer": "Vòng quay mô phỏng các kết quả thi đấu. Bạn quyết định những việc như chọn hồ sơ cầu thủ và cân nhắc hợp đồng trong Classic."
+      },
+      "account": {
+        "question": "Tiến trình lưu ở đâu?",
+        "answer": "Quick Mode giữ lượt chơi trong phiên của tab hiện tại. Classic và PvE cần đăng nhập để lưu tiến trình vào tài khoản."
+      },
+      "devices": {
+        "question": "Có chơi trên điện thoại không?",
+        "answer": "Bạn có thể xem giới thiệu và video trên điện thoại. Để chơi, hãy mở game bằng trình duyệt trên máy tính với cửa sổ rộng ít nhất 1024 px."
+      }
     },
     "closingTitle": "Đến lượt cầu thủ của bạn",
     "closingAction": "Bắt đầu Quick Mode",
     "closingDesktop": "Mở Road to Glory trên máy tính để bắt đầu.",
     "backToTop": "Về đầu trang",
     "trailerUnavailable": "Trailer hiện không phát được.",
-    "description": "Tạo một cầu thủ và mô phỏng sự nghiệp bóng đá qua các vòng quay có trọng số. Chơi Quick Mode trên trình duyệt mà không cần tài khoản.",
+    "description": "Road to Glory là game mô phỏng sự nghiệp bóng đá bằng vòng quay có trọng số. Chơi Quick Mode miễn phí, xây đội hình trong Classic và dự giải PvE.",
     "desktop": "Mở game trên máy tính để chơi.",
     "previewAlt": "Vòng quay xếp hạng giải vô địch trong Career",
     "trailer": "Trailer gameplay",
-    "trailerDescription": "Video Career không tiếng, từ vòng quay xếp hạng giải vô địch đến kết quả FA Cup."
+    "trailerDescription": "Video Career không tiếng, từ vòng quay xếp hạng giải vô địch đến kết quả FA Cup.",
+    "seoTitle": "Road to Glory — Game mô phỏng sự nghiệp bóng đá",
+    "careerNav": "Sự nghiệp",
+    "probabilityDescription": "May mắn có trọng lượng: chỉ số cầu thủ và thực lực CLB ảnh hưởng đến cơ hội ở từng giải đấu. Đội mạnh có lợi thế, nhưng kết quả vẫn dành chỗ cho bất ngờ.",
+    "odds": {
+      "player": {
+        "title": "Cầu thủ của bạn",
+        "description": "Chỉ số và phong độ tạo nên lợi thế. Một mùa chơi tốt mở ra những cơ hội tốt hơn."
+      },
+      "club": {
+        "title": "Màu áo đang khoác",
+        "description": "Thực lực CLB và giải đấu ảnh hưởng đến khả năng tiến sâu, giành cúp và được ghi nhận."
+      },
+      "nation": {
+        "title": "Khi đội tuyển gọi tên",
+        "description": "Sức mạnh đội tuyển góp phần định hình cơ hội ở các giải châu lục và thế giới."
+      }
+    }
   },
   "ui": {
     "dismissNotification": "Đóng thông báo",

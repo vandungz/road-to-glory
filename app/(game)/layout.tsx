@@ -1,3 +1,7 @@
+import type { Metadata } from "next";
+
+export const metadata: Metadata = { robots: { index: false, follow: true } };
+
 /**
  * Layout cho tất cả game routes: (game)/page.tsx, (game)/[gameId]/page.tsx
  * Áp dụng cream background và retro styling xuyên suốt.

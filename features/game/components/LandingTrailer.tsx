@@ -51,7 +51,7 @@ export function LandingTrailer({ copy }: {
   }, []);
 
   return (
-    <figure className="football-guest-landing__trailer" data-kind="product">
+    <figure id="landing-gameplay" className="football-guest-landing__trailer" data-kind="product">
       <p id="gameplay-trailer-description" className="sr-only">{copy.description}</p>
       <video
         ref={videoRef}

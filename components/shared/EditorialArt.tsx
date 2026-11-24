@@ -29,6 +29,6 @@ export function EditorialArt({ asset, className = "", priority = false, sizes }:
 }) {
   return <Image src={`/media/editorial/${DISPLAY_VARIANTS[asset] ?? `${asset}-trimmed`}.webp`} alt="" aria-hidden="true"
     width={dimensions[asset].width} height={dimensions[asset].height} unoptimized={!sizes} sizes={sizes}
-    priority={priority} loading={priority ? undefined : "lazy"} fetchPriority={sizes && !priority ? "low" : undefined}
+    priority={priority} loading={priority ? "eager" : "lazy"} fetchPriority={priority ? "high" : sizes ? "low" : undefined}
     className={`football-editorial-art ${className}`} />;
 }

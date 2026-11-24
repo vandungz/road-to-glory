@@ -66,7 +66,7 @@ test("entry and mobile notice stay visible with JavaScript disabled", async ({ b
   await expect(page.locator("video")).toBeVisible();
   await page.getByRole("link", { name: "FAQ", exact: true }).click();
   await expect(page).toHaveURL(/#landing-faq$/);
-  await page.getByText("Tôi có thể chơi trên điện thoại không?", { exact: true }).click();
+  await page.getByText("Có chơi trên điện thoại không?", { exact: true }).click();
   await expect(page.getByText(/cửa sổ rộng ít nhất 1024 px/)).toBeVisible();
   await context.close();
 });
@@ -137,7 +137,7 @@ test("the desktop trailer starts muted when in view and loops", async ({ page })
     element.currentTime = element.duration - 0.3;
   });
   await expect.poll(() => video.evaluate((element: HTMLVideoElement) => element.currentTime)).toBeLessThan(3);
-  await page.getByRole("link", { name: "Road to Glory", exact: true }).scrollIntoViewIfNeeded();
+  await page.locator("#landing-faq").scrollIntoViewIfNeeded();
   await expect(video).toHaveJSProperty("paused", true);
 });
 
@@ -145,7 +145,7 @@ test("guest mode navigation explains access and reaches the correct entry pages"
   await page.goto("/");
   await page.getByRole("link", { name: "Chế độ", exact: true }).click();
   await expect(page).toHaveURL(/#landing-modes$/);
-  const modes = page.getByRole("region", { name: "Ba cách chơi" });
+  const modes = page.getByRole("region", { name: "Chọn cách viết sự nghiệp" });
   await expect(modes.getByRole("heading", { name: "PvE Tournament" })).toBeVisible();
   await expect(modes.getByRole("link", { name: "Vào Classic" })).toHaveAttribute("href", "/login?next=/classic");
   await expect(modes.getByRole("link", { name: "Thử ngay" })).toHaveAttribute("href", "/quick");
@@ -160,20 +160,20 @@ test("protected routes retain the login boundary", async ({ page }) => {
   await expect(page.getByRole("textbox").first()).toBeVisible();
 });
 
-test("guest updates are reachable and language selection persists on mobile", async ({ page }) => {
+test("guest career story is reachable and language selection persists on mobile", async ({ page }) => {
   await page.setViewportSize({ width: 390, height: 844 });
   await page.emulateMedia({ reducedMotion: "no-preference" });
   await page.goto("/");
-  await page.getByRole("link", { name: "Cập nhật", exact: true }).click();
-  await expect(page).toHaveURL(/#landing-updates$/);
-  const updates = page.getByRole("region", { name: "Nhật ký cập nhật" });
-  await expect(updates.getByRole("heading", { name: "Hồ sơ giải đấu" })).toBeInViewport();
-  await expect(updates).toHaveClass(/football-guest-landing__entered/);
-  await page.getByRole("button", { name: "Chuyển sang tiếng Anh" }).click();
+  await page.getByRole("banner").getByRole("link", { name: "Sự nghiệp", exact: true }).click();
+  await expect(page).toHaveURL(/#landing-career$/);
+  const career = page.getByRole("region", { name: "Một chiếc áo đầu tiên. Cả sự nghiệp phía trước." });
+  await expect(career.getByRole("heading", { name: "Từ một cái tên chưa ai biết" })).toBeInViewport();
+  await expect(career).toHaveClass(/football-guest-landing__entered/);
+  await page.getByRole("link", { name: "Chuyển sang tiếng Anh" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await expect(page).toHaveURL(/#landing-updates$/);
+  await expect(page).toHaveURL(/\/en#landing-career$/);
   await page.reload();
-  await expect(page.getByRole("heading", { name: "Update history" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "A first shirt. A whole career ahead." })).toBeVisible();
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Support the project" })).toHaveCount(0);
   await expect(page.getByRole("contentinfo").getByText("Support the project", { exact: true })).toBeVisible();
   await expectNoHorizontalOverflow(page);

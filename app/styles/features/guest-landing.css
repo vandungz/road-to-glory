@@ -1,12 +1,13 @@
-/* Hallmark · shape: Poster · genre: playful · theme: Football Life · job: try · nav: chapter links · footer: wordmark and return link · signature: football career decided by real weighted wheels · v2.0.0 */
-/* Hallmark · pre-emit critique: an illustrated hero followed by one video left the game unexplained. Give gameplay, career milestones and mode choice distinct sections. */
+/* Hallmark · shape: Poster · genre: playful · theme: Football Life · job: try · nav: chapter links · footer: wordmark and return link · signature: illustrated football hero and real weighted wheels · v2.0.0 */
+/* Hallmark · pre-emit critique: restore the requested green athlete hero; keep the Career video and odds explanation directly below. */
 /* Hallmark · dismissed 58 · the densest desktop viewport spans modes and closed FAQs; keep the eligibility and save details visitors need to choose. */
-/* Hallmark · waive 77 · two dated rows cover Classic and Ballon d’Or · Keep the Football Life changelog compact until there are more verified entries. */
+/* Hallmark · waive 77 · three native FAQ disclosures beside a section heading · Football Life keeps entry questions compact instead of adding unrelated artwork. */
 :root {
   --landing-pitch: color-mix(in srgb, var(--football-positive) 62%, var(--football-inverse));
   --landing-pitch-rule: color-mix(in srgb, var(--football-surface) 24%, transparent);
   --landing-trophy-paper: color-mix(in srgb, var(--football-honour-lit) 18%, var(--football-paper));
   --landing-section-gap: clamp(64px, 9vw, 136px);
+  --landing-column-gap: clamp(24px, 5vw, 72px);
   --landing-gutter: clamp(20px, 4vw, 64px);
   --landing-on-pitch-muted: color-mix(in srgb, var(--football-surface) 78%, var(--landing-pitch));
 }
@@ -165,6 +166,8 @@
   margin-top: 24px;
 }
 
+.football-guest-landing__intro h1 { color: var(--football-surface); }
+
 .football-guest-landing__classic {
   display: inline-flex;
   align-items: center;
@@ -183,7 +186,7 @@
   outline: var(--football-outline);
   outline-offset: 4px;
 }
-.football-guest-landing__hero a:focus-visible { outline-color: var(--football-surface); }
+
 
 .football-guest-landing .football-guest-landing__desktop { display: none; }
 
@@ -193,12 +196,12 @@
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   align-items: center;
-  gap: clamp(24px, 5vw, 72px);
+  gap: var(--landing-column-gap);
 }
 
 .football-guest-landing__gameplay {
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.9fr);
-  margin-top: clamp(64px, 5vw, 80px);
+  margin-top: 72px;
 }
 
 .football-guest-landing h2 {
@@ -222,7 +225,12 @@
 
 .football-guest-landing__section-copy .football-guest-landing__text-link { margin-top: 12px; }
 
+.football-guest-landing__questions details:not([open]) .football-guest-landing__answer { display: none; }
+
 .football-guest-landing__trailer {
+  position: relative;
+  aspect-ratio: 960 / 536;
+  scroll-margin-top: 100px;
   min-width: 0;
   margin: 0;
 }
@@ -234,6 +242,7 @@
 }
 
 .football-guest-landing__trailer video {
+  position: relative;
   display: block;
   width: 100%;
   height: auto;
@@ -343,33 +352,6 @@
 .football-guest-landing__closing .football-guest-landing__actions { margin: 0; }
 .football-guest-landing__footer a:focus-visible { outline-color: var(--football-surface); }
 
-.football-guest-landing__updates {
-  padding: clamp(24px, 4vw, 56px);
-  border-radius: var(--football-radius-panel);
-  background: var(--football-sunken);
-}
-
-.football-guest-landing__update-list {
-  margin-top: 32px;
-}
-
-.football-guest-landing__update-list article {
-  display: grid;
-  grid-template-columns: minmax(120px, 1fr) minmax(0, 3fr);
-  align-items: baseline;
-  gap: 8px 24px;
-  border-top: 1px solid var(--football-rule-strong);
-  padding: 20px 0;
-}
-
-.football-guest-landing__update-list time {
-  display: block;
-  color: var(--football-ink-2);
-  font-size: 14px;
-}
-
-.football-guest-landing__update-list p { max-width: 48ch; margin: 12px 0 0; font-size: 16px; }
-
 .football-guest-landing__footer {
   background: var(--landing-pitch);
   color: var(--landing-on-pitch-muted);
@@ -379,7 +361,7 @@
 .football-guest-landing__footer-grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr));
-  gap: 24px;
+  gap: var(--landing-column-gap);
   padding-block: 32px 24px;
   border-block: 1px solid var(--landing-pitch-rule);
 }
@@ -454,7 +436,6 @@
   .football-guest-landing__gameplay,
   .football-guest-landing__career,
   .football-guest-landing__faq,
-  .football-guest-landing__update-list article,
   .football-guest-landing__mode-list { grid-template-columns: minmax(0, 1fr); }
   .football-guest-landing__hero { min-height: auto; padding: 24px; }
   .football-guest-landing__mode-list article { padding: 20px 0; }
@@ -473,3 +454,12 @@
   }
   .football-guest-landing__nav { grid-row: 2; grid-column: 1 / -1; margin: 0; gap: 0 12px; }
 }
+
+.football-guest-landing__odds { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: var(--landing-column-gap); margin: 0; border-block: 1px solid var(--football-rule-strong); }
+.football-guest-landing__odds > div { padding: 24px 0; }
+@media (width < 740px) { .football-guest-landing__odds { grid-template-columns: minmax(0, 1fr); gap: 0; } .football-guest-landing__odds > div + div { border-top: 1px solid var(--football-rule); } }
+.football-guest-landing__odds dt { font: 600 24px/1.2 var(--font-headline); }
+.football-guest-landing__odds dd { margin: 8px 0 0; max-width: 48ch; color: var(--football-ink-2); line-height: 1.65; }
+
+
+.football-guest-landing__hero a:focus-visible { outline-color: var(--football-surface); }

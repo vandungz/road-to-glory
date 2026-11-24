@@ -3,34 +3,30 @@ import Link from "next/link";
 import { ArrowDown, ArrowUp, Monitor } from "lucide-react";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import { LandingQuickLink, LandingTrailer } from "./LandingTrailer";
-import { LandingDeferredArt, LandingFaqItem, LandingLanguageButton, LandingSectionMotion } from "./LandingEnhancements";
-
-const updates = [
-  { date: "2026-11-13", key: "languageAndAwards" },
-  { date: "2026-11-12", key: "careerRecords" },
-] as const;
+import { LandingFaqItem, LandingLanguageLink, LandingSectionMotion } from "./LandingEnhancements";
+import { LandingStartup } from "./LandingStartup";
 
 export function GuestLanding() {
   const t = useTranslations("landing");
   const ui = useTranslations("ui");
   const locale = useLocale();
   const targetLocale = locale === "vi" ? "en" : "vi";
-  const updateDate = new Intl.DateTimeFormat(locale, { dateStyle: "medium", timeZone: "UTC" });
   const careerMoments = ["debut", "season", "legacy"] as const;
   const questions = ["wheel", "account", "devices"] as const;
 
   return (
     <div id="landing-top" className="football-guest-landing">
+      <LandingStartup />
       <LandingSectionMotion />
       <header className="football-guest-landing__header">
-        <Link className="football-guest-landing__brand" href="/">Road to Glory</Link>
+        <Link className="football-guest-landing__brand" href={locale === "en" ? "/en" : "/"}>Road to Glory</Link>
         <nav className="football-guest-landing__nav" aria-label={t("navigation")}>
           <a href="#landing-gameplay">{t("gameplayLink")}</a>
           <a href="#landing-modes">{t("modesLink")}</a>
-          <a href="#landing-updates">{t("updatesLink")}</a>
+          <a href="#landing-career">{t("careerNav")}</a>
           <a href="#landing-faq">{t("faqLink")}</a>
         </nav>
-        <LandingLanguageButton target={targetLocale} label={t("switchLanguage")} />
+        <LandingLanguageLink target={targetLocale} label={t("switchLanguage")} />
       </header>
       <main className="football-guest-landing__main">
         <section className="football-guest-landing__hero" aria-labelledby="guest-landing-title">
@@ -52,19 +48,21 @@ export function GuestLanding() {
             <EditorialArt asset="heritage-run" className="football-guest-landing__art" priority />
           </div>
         </section>
-        <section id="landing-gameplay" className="football-guest-landing__section football-guest-landing__gameplay" aria-labelledby="landing-gameplay-title">
+        <section className="football-guest-landing__section football-guest-landing__gameplay" aria-labelledby="landing-gameplay-title">
           <div className="football-guest-landing__section-copy">
             <h2 id="landing-gameplay-title">{t("storyTitle")}</h2>
             <p>{t("gameplayDescription")}</p>
+            <p className="football-guest-landing__probability">{t("probabilityDescription")}</p>
             <a className="football-guest-landing__text-link" href="#landing-career">
               {t("careerLink")}<ArrowDown size={16} aria-hidden="true" />
             </a>
           </div>
-          <LandingTrailer copy={{
-            title: t("trailer"),
-            description: t("trailerDescription"),
-            unavailable: t("trailerUnavailable"),
-          }} />
+          <LandingTrailer copy={{ title: t("trailer"), description: t("trailerDescription"), unavailable: t("trailerUnavailable") }} />
+          <dl className="football-guest-landing__odds">
+            {(["player", "club", "nation"] as const).map((factor) => <div key={factor}>
+              <dt>{t(`odds.${factor}.title`)}</dt><dd>{t(`odds.${factor}.description`)}</dd>
+            </div>)}
+          </dl>
         </section>
         <section id="landing-career" className="football-guest-landing__section football-guest-landing__career" aria-labelledby="landing-career-title">
           <div className="football-guest-landing__career-copy">
@@ -78,10 +76,10 @@ export function GuestLanding() {
               ))}
             </ol>
           </div>
-          <LandingDeferredArt>
+          <div className="football-guest-landing__trophy-frame">
             <EditorialArt asset="ballon-dor-trophy" className="football-guest-landing__trophy"
               sizes="(max-width: 739px) 80vw, (max-width: 1450px) 40vw, 570px" />
-          </LandingDeferredArt>
+          </div>
         </section>
         <section id="landing-modes" className="football-guest-landing__section football-guest-landing__modes" aria-labelledby="landing-modes-title">
           <h2 id="landing-modes-title">{t("modesTitle")}</h2>
@@ -101,20 +99,6 @@ export function GuestLanding() {
               <p>{t("pveDescription")}</p>
               <Link className="football-guest-landing__text-link" href="/login?next=/pve" prefetch={false}>{t("pveAction")}</Link>
             </article>
-          </div>
-        </section>
-        <section id="landing-updates" className="football-guest-landing__section football-guest-landing__updates" aria-labelledby="landing-updates-title">
-          <h2 id="landing-updates-title">{t("updatesTitle")}</h2>
-          <div className="football-guest-landing__update-list">
-            {updates.map(({ date, key }) => (
-              <article key={key}>
-                <time dateTime={date}>{updateDate.format(new Date(date))}</time>
-                <div>
-                  <h3>{t(`updates.${key}.title`)}</h3>
-                  <p>{t(`updates.${key}.description`)}</p>
-                </div>
-              </article>
-            ))}
           </div>
         </section>
         <section id="landing-faq" className="football-guest-landing__section football-guest-landing__faq" aria-labelledby="landing-faq-title">
@@ -144,12 +128,12 @@ export function GuestLanding() {
             <ul>
               <li><a href="#landing-gameplay">{t("footer.gameplay")}</a></li>
               <li><a href="#landing-modes">{t("footer.modes")}</a></li>
-              <li><a href="#landing-updates">{t("updatesTitle")}</a></li>
+              <li><a href="#landing-career">{t("careerNav")}</a></li>
             </ul>
           </nav>
           <div>
             <h2>{t("footer.community")}</h2>
-            <ul><li>{t("footer.contact")}</li><li>{t("footer.donate")}</li></ul>
+            <ul><li><a href="mailto:vdz.indie@gmail.com">{t("footer.contact")}</a></li><li>{t("footer.donate")}</li></ul>
           </div>
           <div>
             <h2>{t("footer.policies")}</h2>

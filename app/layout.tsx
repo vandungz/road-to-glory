@@ -14,6 +14,8 @@ import "driver.js/dist/driver.css";
 import "./styles/features/onboarding.css";
 import "./styles/features/account.css";
 import "./styles/features/guest-landing.css";
+import "./styles/features/branded-splash.css";
+import "./styles/features/loading-layouts.css";
 import "./styles/features/policy.css";
 import "./styles/features/header-controls.css";
 import "./styles/features/trophy-cabinet.css";

@@ -18,17 +18,34 @@ async function main() {
     assert.equal(response.headers.get("Location"), "https://localhost/login");
     assert.ok(response.headers.get("Strict-Transport-Security"));
     const first = await middleware(new NextRequest("https://example.invalid/privacy", { headers: {
-      "x-forwarded-proto": "https", "x-nonce": "attacker", "Content-Security-Policy": "script-src *", "x-football-not-found": "1",
+      "x-forwarded-proto": "https", "x-nonce": "attacker", "Content-Security-Policy": "script-src *", "x-football-not-found": "1", "x-football-landing-locale": "en",
     } }));
     const second = await middleware(new NextRequest("https://example.invalid/terms", { headers: { "x-forwarded-proto": "https" } }));
     const nonce = first.headers.get("x-middleware-request-x-nonce");
     assert.match(nonce!, /^[A-Za-z0-9+/]{22}==$/);
     assert.notEqual(nonce, "attacker");
     assert.equal(first.headers.get("x-middleware-request-x-football-not-found"), null);
+    assert.equal(first.headers.get("x-middleware-request-x-football-landing-locale"), null);
     assert.notEqual(nonce, second.headers.get("x-middleware-request-x-nonce"));
     assert.equal(first.headers.get("x-middleware-request-content-security-policy"), first.headers.get("Content-Security-Policy"));
     assert.equal(first.headers.get("X-Frame-Options"), "DENY");
     assert.equal(first.headers.get("Cache-Control"), "private, no-store");
+    const english = await middleware(new NextRequest("https://example.invalid/en", {
+      headers: { "x-forwarded-proto": "https", "x-football-landing-locale": "vi", cookie: "football-life-locale=vi" },
+    }));
+    assert.equal(english.status, 200);
+    assert.equal(english.headers.get("x-middleware-request-x-football-landing-locale"), "en");
+    assert.equal(english.cookies.get("football-life-locale")?.value, "en");
+    assert.equal(english.headers.get("X-Frame-Options"), "DENY");
+    for (const path of ["/robots.txt", "/sitemap.xml"]) {
+      const crawler = await middleware(new NextRequest(`https://example.invalid${path}`, {
+        headers: { "x-forwarded-proto": "https" },
+      }));
+      assert.equal(crawler.status, 200);
+      assert.equal(crawler.headers.get("x-middleware-rewrite"), null);
+      assert.equal(crawler.headers.get("Location"), null);
+      assert.equal(crawler.headers.get("X-Frame-Options"), "DENY");
+    }
     for (const path of ["/missing", "/classic/invalid", "/classic/00000000-0000-4000-8000-000000000001/draft/0.png", "/auth/typo", "/404"]) {
       const missing = await middleware(new NextRequest(`https://example.invalid${path}`, { headers: { "x-forwarded-proto": "https" } }));
       assert.equal(missing.status, 404);

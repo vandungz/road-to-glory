@@ -1,0 +1,25 @@
+/* Hallmark · shape: route interlude · genre: playful · theme: Football Life · signature: RTG wordmark */
+/* Hallmark · pre-emit critique: one quiet signal during real work; no countdown or artificial hold. */
+.football-branded-splash {
+  display: grid;
+  place-items: center;
+  min-block-size: 100svh;
+  padding: 32px;
+  background: var(--football-paper);
+  color: var(--football-ink);
+}
+.football-branded-splash__identity { display: grid; justify-items: center; gap: 16px; }
+.football-branded-splash__mark {
+  display: grid;
+  place-items: center;
+  inline-size: 88px;
+  aspect-ratio: 1;
+  border: 1px solid var(--football-accent-ink);
+  border-radius: var(--football-radius-panel);
+  color: var(--football-accent-ink);
+  font: 700 40px/1 var(--font-headline);
+}
+.football-branded-splash strong { font: 600 28px/1.2 var(--font-headline); }
+.football-branded-splash .football-activity-line { inline-size: 120px; }
+.football-branded-splash__label { color: var(--football-ink-2); font-size: 13px; }
+.football-landing-startup { position: fixed; inset: 0; z-index: 100; overflow: auto; }

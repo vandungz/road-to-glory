@@ -1,24 +1,32 @@
 "use client";
 
-import { useEffect, useRef, useState, type MouseEvent, type ReactNode } from "react";
+import { useEffect, useRef, type MouseEvent } from "react";
 import { Globe } from "lucide-react";
 import { useGameReducedMotion } from "@/features/settings/game-motion";
 import { saveBrowserLocale } from "@/i18n/browser-locale";
 
+/** Policy pages keep their cookie-based language switch on the current URL. */
 export function LandingLanguageButton({ target, label }: { target: "vi" | "en"; label: string }) {
+  return <button type="button" className="football-guest-landing__language" aria-label={label}
+    onClick={() => { saveBrowserLocale(target); window.location.reload(); }}>
+    <Globe size={18} aria-hidden="true" /><span lang={target}>{target.toUpperCase()}</span>
+  </button>;
+}
+
+export function LandingLanguageLink({ target, label }: { target: "vi" | "en"; label: string }) {
   return (
-    <button
-      type="button"
+    <a
+      href={target === "en" ? "/en" : "/"}
       className="football-guest-landing__language"
       aria-label={label}
-      onClick={() => {
+      onClick={(event) => {
         saveBrowserLocale(target);
-        window.location.reload();
+        event.currentTarget.hash = window.location.hash;
       }}
     >
       <Globe size={18} aria-hidden="true" />
       <span lang={target}>{target.toUpperCase()}</span>
-    </button>
+    </a>
   );
 }
 
@@ -35,7 +43,7 @@ export function LandingSectionMotion() {
         observer.unobserve(target);
       }
     });
-    document.querySelectorAll(".football-guest-landing__main > section, .football-guest-landing__footer")
+    document.querySelectorAll(".football-guest-landing__main > section:not(.football-guest-landing__hero), .football-guest-landing__footer")
       .forEach((section) => observer.observe(section));
     return () => observer.disconnect();
   }, [reducedMotion]);
@@ -88,29 +96,5 @@ export function LandingFaqItem({ question, answer }: { question: string; answer:
         <div><p>{answer}</p></div>
       </div>
     </details>
-  );
-}
-
-export function LandingDeferredArt({ children }: { children: ReactNode }) {
-  const frame = useRef<HTMLDivElement>(null);
-  const [nearViewport, setNearViewport] = useState(false);
-
-  useEffect(() => {
-    const element = frame.current;
-    if (!element) return;
-
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry?.isIntersecting) return;
-      setNearViewport(true);
-      observer.disconnect();
-    }, { rootMargin: "260px 0px" });
-    observer.observe(element);
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={frame} className="football-guest-landing__trophy-frame">
-      {nearViewport ? children : <noscript>{children}</noscript>}
-    </div>
   );
 }

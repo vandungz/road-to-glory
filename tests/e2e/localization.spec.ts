@@ -8,9 +8,12 @@ test("language persists across routes and switches without resetting a Quick run
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
   await page.getByRole("link", { name: "Home", exact: true }).click();
+  await expect(page).toHaveURL(/\/$/);
+  await page.getByRole("link", { name: "Chuyển sang tiếng Anh" }).click();
+  await expect(page).toHaveURL(/\/en$/);
   await expect(page.getByRole("heading", { name: "A season can turn on a spin" })).toBeVisible();
   await expect(page.getByRole("link", { name: "The wheel" })).toHaveAttribute("href", "#landing-gameplay");
-  await expect(page.getByRole("heading", { name: "Three ways to play" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Choose your career" })).toBeVisible();
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("home-en.png") });
 

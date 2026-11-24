@@ -1,8 +1,9 @@
 import { isGameId, parseSquadSlot } from "./route-params";
 
 const publicPages = new Set([
-  "/", "/quick", "/quick/play", "/login", "/settings", "/profile", "/privacy", "/terms",
+  "/", "/en", "/quick", "/quick/play", "/login", "/settings", "/profile", "/privacy", "/terms",
   "/auth/google", "/auth/callback", "/auth/reset-password",
+  "/robots.txt", "/sitemap.xml",
 ]);
 
 /** Only real, syntactically valid game routes enter the authentication flow. */
