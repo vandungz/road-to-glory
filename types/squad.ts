@@ -139,6 +139,7 @@ const FLAG_MAP: Record<string, string> = {
   "Saudi Arabia": "🇸🇦",
   "Iran": "🇮🇷",
   "China": "🇨🇳",
+  "Vietnam": "🇻🇳",
   "Ecuador": "🇪🇨",
   "Paraguay": "🇵🇾",
   "Bolivia": "🇧🇴",

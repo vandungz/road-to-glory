@@ -1,6 +1,7 @@
 import type { WeightedItem } from "./spin-resolver";
 
 export const NATIONALITY_POOL: WeightedItem<string>[] = [
+  { value: "Vietnam", weight: 4 },
   // Top lớn
   { value: "England", weight: 15 },
   { value: "France", weight: 12 },

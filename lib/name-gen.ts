@@ -5,6 +5,7 @@
 import { resolveRandomInt } from "./wheel-engine/spin-resolver";
 
 const FIRST_NAMES: Record<string, string[]> = {
+  Vietnam: ["Minh Anh", "Quang Huy", "Đức Anh", "Tuấn Anh", "Hoàng Nam", "Gia Bảo", "Minh Quân", "Đức Minh", "Quốc Bảo", "Thanh Sơn"],
   England: ["Harry", "John", "Jack", "George", "James", "Thomas", "Charlie", "Oliver", "William", "Daniel"],
   France: ["Pierre", "Jean", "Lucas", "Hugo", "Antoine", "Clément", "Mathieu", "Théo", "Nicolas", "Alexandre"],
   Spain: ["Diego", "Carlos", "Javier", "Álvaro", "Sergio", "Manuel", "Alejandro", "Pablo", "Mateo", "Adrián"],
@@ -17,6 +18,7 @@ const FIRST_NAMES: Record<string, string[]> = {
 };
 
 const LAST_NAMES: Record<string, string[]> = {
+  Vietnam: ["Nguyễn", "Trần", "Lê", "Phạm", "Hoàng", "Huỳnh", "Phan", "Vũ", "Đặng", "Bùi"],
   England: ["Smith", "Jones", "Taylor", "Brown", "Williams", "Wilson", "Johnson", "Davies", "Robinson", "Wright"],
   France: ["Martin", "Bernard", "Dubois", "Thomas", "Robert", "Richard", "Petit", "Durand", "Leroy", "Moreau"],
   Spain: ["García", "Fernández", "González", "Rodríguez", "López", "Martínez", "Sánchez", "Pérez", "Gómez", "Díaz"],
@@ -38,5 +40,5 @@ export function generateFictionalName(nationality: string): string {
   const randomFirst = firsts[resolveRandomInt(0, firsts.length - 1)];
   const randomLast = lasts[resolveRandomInt(0, lasts.length - 1)];
 
-  return `${randomFirst} ${randomLast}`;
+  return nationality === "Vietnam" ? `${randomLast} ${randomFirst}` : `${randomFirst} ${randomLast}`;
 }
