@@ -1,5 +1,11 @@
 # Browser regression
 
+Landing entrance sequence: `pnpm exec playwright test tests/e2e/landing-entry.spec.ts`.
+It holds the hero image to verify no mount or section reveal starts behind the
+splash, then checks mount animation events occur after dismissal on both `/`
+and `/en`, without replay on section navigation. System/account reduced motion
+preserves the default splash hold and skips the entrance motion.
+
 Loading verification: `pnpm exec playwright test tests/e2e/loading-layout.spec.ts`.
 It compares Career and Quick placeholder bounds with real populated screens at
 1024/1440/1920, verifies pending-image splash release, error recovery, reduced
@@ -48,6 +54,11 @@ shop errors, transfer callbacks, PvE empty/populated states and retirement.
 Quick Mode includes a complete guest career, reload and restart. Its full-run
 case supplies deterministic random draws inside the test browser only; production
 weight calculations, resolvers and animation completion timing are unchanged.
+`quick-count-ranges.spec.ts` checks Vietnam selection, inclusive count ranges,
+the bounded `1000+` bucket, clean-sheet limits and exact-number persistence.
+`audio.spec.ts` covers audio settings, lazy downloads, decoded SFX reuse, immutable
+headers and progression when audio is unavailable. See `docs/game-audio.md` for
+hosting, license provenance, budgets and device checks still needed for release.
 
 Fixtures use synthetic IDs. Shop/transfer/retirement callbacks are local test
 callbacks. Tests do not click the real squad completion or player management
@@ -115,3 +126,10 @@ Use dummy Supabase settings, no database credentials, an empty allowlisted
 environment and OS isolation with no external network. `pnpm
 check:security-remediation` runs the policy, middleware, limiter and TLS checks;
 its real TLS handshakes use only local dummy certificates.
+
+`settings-redesign.spec.ts` covers Draft's live label and visible spin action at
+1024×600, compact Career/Transfer headers, keyboard-accessible horizontal audio
+controls, combined Profile/Audio/Language settings, and Floating Cities → Cipher
+selection when Quick Mode leaves Draft. The account/settings, audio, header
+language, onboarding and career workspace suites provide the related regressions.
+These fixtures do not sign in or mutate real accounts.

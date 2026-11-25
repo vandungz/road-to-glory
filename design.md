@@ -58,6 +58,10 @@ data, field names and component contracts when changing presentation.
   on the server so it remains available without JavaScript.
   The landing splash itself is present in the initial server HTML to prevent
   content flashing before hydration; a noscript style hides it when JS is disabled.
+  After the splash is removed, mark the landing ready and mount the header,
+  hero and athlete with opacity/translate entrances (220/360/420 ms, athlete
+  delayed 60 ms). This is the default production UX. Start section reveals only
+  after this ready signal; system/account reduced motion skips these entrances.
 - `GameRouteLoading` uses the actual destination shell. Career shares the real
   three-column grid; Quick shares its tracker, portrait, stage and responsive
   wheel containers. Keep known geometry aligned at 1024/1440/1920; names and
@@ -187,4 +191,6 @@ data, field names and component contracts when changing presentation.
 - Offer Tiếng Việt and English in Settings. Keep the preference per browser and update the document language.
 - Add user-facing copy to both message catalogs. Use one message for a sentence with variables, counts or names. Keep OVR, position codes, Classic, Quick Mode, League Phase, Ballon d’Or and official competition names.
 - Use gameplay identifiers and numeric values for decisions. Format them when displaying the result. Preserve historical data when an older format cannot be read.
-- Put Profile, Settings and Sign out in the homepage header. Gameplay headers show game context and navigation.
+- Keep Profile inside Settings; preserve `/profile` as a redirect. Settings uses a section index for Profile, Audio and Language, without a motion preference section.
+- Gameplay headers keep navigation, audio, Settings, language and Help. Do not repeat season, club or player data already visible in the workspace. Transfer keeps only Help on the right.
+- Audio opens labelled horizontal volume controls. Use Floating Cities for Draft and Cipher for main gameplay; load music only after opt-in and a user gesture.
