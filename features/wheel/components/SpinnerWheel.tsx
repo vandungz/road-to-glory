@@ -3,6 +3,7 @@
 import { useMotionValue } from "framer-motion";
 import { SpinnerWheelDisc } from "./SpinnerWheelDisc";
 import { useCallback, useEffect, useRef, useState, useMemo } from "react";
+import { playGameSound, type SoundId } from "@/features/audio/game-audio";
 
 // ============================================================
 // PROPS
@@ -22,6 +23,7 @@ interface Props {
   onSpinComplete: () => void;
   stakes?: "low" | "mid" | "high";
   idleLabel?: string | null;
+  resultSound?: SoundId;
   "data-guide"?: string;
 }
 
@@ -94,7 +96,7 @@ interface SpinSnapshot {
 // COMPONENT
 // ============================================================
 
-export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low", idleLabel, "data-guide": guideTarget }: Props) {
+export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, stakes = "low", idleLabel, resultSound = "confirm", "data-guide": guideTarget }: Props) {
   const rotateValue = useMotionValue(0);
   const spinControllerRef = useRef<SpinController | null>(null);
   const [spinSnapshot, setSpinSnapshot] = useState<SpinSnapshot | null>(null);
@@ -124,7 +126,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
   }, []);
 
   const onSpinCompleteRef = useRef(onSpinComplete);
-  useEffect(() => { onSpinCompleteRef.current = onSpinComplete; });
+  useEffect(() => { onSpinCompleteRef.current = () => { playGameSound(resultSound); onSpinComplete(); }; });
 
   // Sync active label on items change (substep changed). While a spin is in
   // progress, keep reading the immutable session snapshot so a parent
@@ -140,7 +142,10 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
   useEffect(() => {
     const unsubscribe = rotateValue.on("change", (r) => {
       const pointerAngle = ((90 - (r % 360)) % 360 + 360) % 360;
-      setLiveLabel(getLabelAtAngle(pointerAngle, displayItems, startAngles, arcSizes));
+      const label = getLabelAtAngle(pointerAngle, displayItems, startAngles, arcSizes);
+      const controller = spinControllerRef.current;
+      if (controller && !controller.completed && label !== activeLabelRef.current) playGameSound("tick");
+      setLiveLabel(label);
     });
     return () => unsubscribe();
   }, [rotateValue, displayItems, startAngles, arcSizes, setLiveLabel]);
@@ -180,6 +185,7 @@ export function SpinnerWheel({ isSpinning, items, targetIndex, onSpinComplete, s
       snapshot,
     };
     spinControllerRef.current = controller;
+    playGameSound("spin");
     setSpinSnapshot(snapshot);
 
     const tick = (timestamp: number) => {

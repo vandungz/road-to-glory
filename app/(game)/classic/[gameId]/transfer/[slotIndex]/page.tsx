@@ -6,7 +6,7 @@ import { AppShell } from "@/components/shared/AppShell";
 import { prisma } from "@/lib/prisma";
 import { createClient } from "@/lib/supabase/server";
 import type { ClubStint, StatSnapshot } from "@/types/domain";
-import { computeMarketValue, formatEuroThousands } from "@/lib/transfer-economy";
+import { computeMarketValue } from "@/lib/transfer-economy";
 import { TransferPageClient } from "@/features/wheel/components/TransferPageClient";
 
 interface Props {
@@ -87,9 +87,7 @@ export default async function ClassicTransferPage({ params, searchParams }: Prop
   });
 
   return (
-    <AppShell className="football-transfer-shell" backHref={`/classic/${gameId}/draft/${slotIndex}`} backLabel="career" headerMeta={(
-      <div className="football-transfer-shell__header-meta"><span><small>{ui("player3")}</small><strong>{player.name}</strong></span><span><small>{ui("position")}</small><strong>{player.position}</strong></span><span><small>{ui("value")}</small><strong>{formatEuroThousands(syncedMarketValue)}</strong></span></div>
-    )}>
+    <AppShell headerTools="help" className="football-transfer-shell" backHref={`/classic/${gameId}/draft/${slotIndex}`} backLabel="career">
       <TransferPageClient input={{
         gameId, slotIndex, playerId: player.id, playerName: player.name, position: player.position,
         currentClubId: currentClub?.id ?? currentStint?.clubId ?? null,

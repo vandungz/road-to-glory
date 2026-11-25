@@ -663,6 +663,22 @@
     "viewRankingWheel": "Go to ranking wheel",
     "continuePlayerDevelopment": "Continue to player development"
   },
+  "audio": {
+    "title": "Audio",
+    "description": "Adjust effects and background music to your liking. Music loads only when enabled.",
+    "mute": "Mute all audio",
+    "unmute": "Unmute audio",
+    "effects": "Sound effects",
+    "music": "Background music",
+    "effectsVolume": "Effects volume",
+    "musicVolume": "Music volume",
+    "preview": "Preview sound effect",
+    "credits": "Audio sources and licenses",
+    "musicEdits": "Loudness adjusted, fades added and MP3 encoded.",
+    "soundCredits": "Some interface effects by:",
+    "draftTrack": "Draft",
+    "gameplayTrack": "Gameplay"
+  },
   "quick": {
     "debut-age": "Debut age",
     "career-length": "Career length",
@@ -1017,10 +1033,6 @@
         "title": "Trophy cabinet",
         "description": "Open your club, national team and individual honours."
       },
-      "career-shop": {
-        "title": "Season support",
-        "description": "The shop opens at eligible points in the season. Review price, conditions and effects before buying."
-      },
       "retirement-record": {
         "title": "Your full career",
         "description": "Review peak attributes, career totals and clubs before saving the player to your squad."
@@ -1113,14 +1125,6 @@
         "title": "Return to your squads",
         "description": "Review your squad count and resume saved Classic progress."
       },
-      "settings-language": {
-        "title": "Language",
-        "description": "Choose Vietnamese or English. Some football terms stay in English."
-      },
-      "settings-motion": {
-        "title": "Motion",
-        "description": "Reduce animations if you find them distracting. This does not change wheel outcomes."
-      },
       "policy-navigation": {
         "title": "Read the policies",
         "description": "Use the contents to find a section or switch between the two policy pages."
@@ -1136,6 +1140,14 @@
       "ballon-return": {
         "title": "Return to your career",
         "description": "Continue from the saved result. Viewing help does not reroll or change the ranking."
+      },
+      "settings-navigation": {
+        "title": "Settings",
+        "description": "Choose Profile, Audio or Language."
+      },
+      "settings-content": {
+        "title": "Your preferences",
+        "description": "Change your display name, adjust audio levels and choose your language here."
       }
     },
     "close": "Close help"

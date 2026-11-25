@@ -26,7 +26,7 @@ for (const [id, guide] of Object.entries(guides)) {
 assert.equal(targets.size, stepKeys.size, "Unused guide copy");
 assert.equal(isAutomaticGuide("policy"), false);
 assert.equal(isAutomaticGuide("career"), true);
-assert.match(guideStorageKey("career"), /career:v1$/);
+assert.equal(guideStorageKey("career"), `football-life:guide:career:v${guides.career.version}`);
 const values = new Map<string, string>();
 const storage = { getItem: (key: string) => values.get(key) ?? null, setItem: (key: string, value: string) => { values.set(key, value); } };
 assert.equal(hasSeenGuide("career", storage), false);

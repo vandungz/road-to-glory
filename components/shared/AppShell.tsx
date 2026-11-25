@@ -8,6 +8,8 @@ import { HelpButton } from "@/features/onboarding/HelpButton";
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import type { GuideId } from "@/features/onboarding/guides";
 import { HeaderLanguageButton } from "@/features/settings/components/HeaderLanguageButton";
+import { HeaderAudioButton } from "@/features/audio/HeaderAudioButton";
+import { HeaderSettingsLink } from "@/features/settings/components/HeaderSettingsLink";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -19,6 +21,7 @@ interface AppShellProps {
   className?: string;
   showAccountControls?: boolean;
   guide?: GuideId;
+  headerTools?: "all" | "help";
 }
 
 export function AppShell({
@@ -31,6 +34,7 @@ export function AppShell({
   className,
   showAccountControls = false,
   guide,
+  headerTools = "all",
 }: AppShellProps) {
   const ui = useTranslations("ui");
   const common = useTranslations("common");
@@ -55,9 +59,9 @@ export function AppShell({
         </div>
 
         <div className="football-app-shell__context">
-          {headerMeta}
+          {headerTools === "all" && headerMeta}
           <div className="football-header-tools">
-            <HeaderLanguageButton />
+            {headerTools === "all" && <><HeaderAudioButton /><HeaderLanguageButton />{!showAccountControls && <HeaderSettingsLink />}</>}
             <HelpButton showLabel={showAccountControls} />
           </div>
           {showAccountControls && <div className="football-header-account">

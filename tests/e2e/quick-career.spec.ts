@@ -86,6 +86,8 @@ test("Quick Mode fits the desktop viewport and retains the trait in the player r
   const wheelBox = (await page.locator(".football-spinner-wheel__stage").boundingBox())!;
   expect(wheelBox.y - labelBox.y - labelBox.height).toBeGreaterThanOrEqual(12);
   await expect(rail.getByText("Cristiano Ronaldo", { exact: true })).toBeVisible();
+  await expect(rail.locator(".football-quick-play__trait-bonuses")).toContainText("Shooting+2");
+  await expect(rail.locator(".football-quick-play__trait-bonuses")).toContainText("Strength+1");
   await expect(liveLabel).toBeEmpty();
   await expect(rail.locator("dt").filter({ hasText: /^Shooting$/ }).locator("+ dd")).toHaveText("7");
   await expectFixedPage();

@@ -18,6 +18,7 @@ import "./styles/features/branded-splash.css";
 import "./styles/features/loading-layouts.css";
 import "./styles/features/policy.css";
 import "./styles/features/header-controls.css";
+import "./styles/features/settings.css";
 import "./styles/features/trophy-cabinet.css";
 import "./styles/features/not-found.css";
 import { AppProviders } from "./providers";

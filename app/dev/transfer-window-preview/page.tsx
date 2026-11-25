@@ -113,7 +113,8 @@ export default function TransferWindowPreviewPage() {
   }
 
   return (
-    <AppShell className="football-transfer-shell" backHref="/dev/design-preview" backLabel="career" headerMeta={<span role="status">Last action: {log}</span>}>
+    <AppShell headerTools="help" className="football-transfer-shell" backHref="/dev/design-preview" backLabel="career">
+      <output role="status">Last action: {log}</output>
         <PersistentTransferSection
           market={MOCK}
           currentClubId="c1"

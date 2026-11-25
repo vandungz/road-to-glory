@@ -4,7 +4,6 @@ import { useState } from "react";
 import { AppShell } from "@/components/shared/AppShell";
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { LanguageSettings } from "@/features/settings/components/LanguageSettings";
-import { MotionSettings } from "@/features/settings/components/MotionSettings";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Button } from "@/components/ui/Button";
 import { PveTournamentScreen } from "@/features/pve/components/PveTournamentScreen";
@@ -40,8 +39,8 @@ export function OnboardingPreview({ view }: { view?: string }) {
         <Button onClick={() => setModal(true)}>Open fixture dialog</Button>
       </div>
       <div className="football-account-sheet football-settings-sheet">
-        <LanguageSettings />
-        {showTarget && <MotionSettings />}
+        <div data-guide="settings-content"><LanguageSettings /></div>
+        {showTarget && <div data-guide="settings-navigation">Settings navigation fixture</div>}
       </div>
     </section>
     <ConfirmDialog open={modal} title="Fixture dialog" description="No game data is changed."

@@ -14,6 +14,7 @@ export function contentSecurityPolicy(nonce: string, production: boolean, oauthF
     oauthForm ? "form-action 'self' https://*.supabase.co https://accounts.google.com" : "form-action 'self'",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https:",
+    "media-src 'self'",
     // Motion and game layouts use style attributes; script execution is independently restricted.
     "style-src 'self' 'unsafe-inline'",
     production ? `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'` : "script-src 'self' 'unsafe-inline' 'unsafe-eval'",

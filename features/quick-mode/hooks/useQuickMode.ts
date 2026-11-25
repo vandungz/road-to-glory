@@ -5,6 +5,7 @@ import { randomPortraitId } from "@/features/player/lib/player-portraits";
 import { resolveWeightedOutcome, type WeightedItem } from "@/lib/wheel-engine/spin-resolver";
 import { getFlagEmoji } from "@/types/squad";
 import { applyTrait, getTraitPool } from "../lib/traits";
+import { getQuickCountRanges, resolveQuickCountRange, type QuickCountRangeItem } from "../lib/quick-count-ranges";
 import {
   DEBUT_AGE_POOL,
   getAppearancePool,
@@ -57,7 +58,7 @@ export interface ActiveWheel {
   spinItems?: WeightedItem<unknown>[];
 }
 
-type QuickWheelItem = WeightedItem<unknown> & { active?: boolean; label?: string };
+type QuickWheelItem = WeightedItem<unknown> & { active?: boolean; label?: string; range?: QuickCountRangeItem["range"] };
 
 const INITIAL_PLAYER: QuickPlayer = {
   name: "",
@@ -285,13 +286,13 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
       internationalCups: state.clubs.reduce((sum, club) => sum + club.internationalCups, 0),
     };
     const seasonsPlayed = getCareerYearsSpent(state) || outcomeContext.careerLength;
-    if (state.finale.appearances == null) return { key: "career-appearances", items: getAppearancePool({ ...outcomeContext, careerLength: seasonsPlayed }, state.finale.cleanSheets ?? 0) };
-    if (state.finaleStep === 0) return { key: "career-goals", items: getGoalPool(player.position, outcomeContext) };
-    if (state.finaleStep === 1) return { key: "career-assists", items: getAssistPool(player.position, outcomeContext) };
+    if (state.finale.appearances == null) return { key: "career-appearances", items: getQuickCountRanges(getAppearancePool({ ...outcomeContext, careerLength: seasonsPlayed }, state.finale.cleanSheets ?? 0), Math.max(seasonsPlayed * 12, state.finale.cleanSheets ?? 0)) };
+    if (state.finaleStep === 0) return { key: "career-goals", items: getQuickCountRanges(getGoalPool(player.position, outcomeContext)) };
+    if (state.finaleStep === 1) return { key: "career-assists", items: getQuickCountRanges(getAssistPool(player.position, outcomeContext)) };
     if (needsCleanSheetSpin(state)) {
       const appearances = state.finale.appearances;
       const items = getCleanSheetPool(player.position, { ...outcomeContext, careerLength: seasonsPlayed });
-      return { key: "career-clean-sheets", items: items.filter(({ value }) => value <= appearances) };
+      return { key: "career-clean-sheets", items: getQuickCountRanges(items, 0, appearances) };
     }
     if (state.finaleStep === 2) return { key: "ballon-dor", items: getBallonDorPool({ ...outcomeContext, position: player.position, goals: state.finale.goals, assists: state.finale.assists }) };
     if (state.finaleStep === 3) return { key: "other-awards-gate", items: [{ value: "yes", label: "CÓ", weight: 52 }, { value: "no", label: "KHÔNG", weight: 48 }] };
@@ -309,8 +310,10 @@ export function useQuickMode({ leagues, clubs }: UseQuickModeProps) {
     const spinItems = activeWheel.spinItems ?? activeWheel.items;
     if (spinItems.length === 0) return;
     const result = resolveWeightedOutcome(spinItems);
-    pendingResultRef.current = result;
-    setTargetIndex(activeWheel.items.findIndex((item) => Object.is(item.value, result)));
+    const index = activeWheel.items.findIndex((item) => Object.is(item.value, result));
+    const range = activeWheel.items[index]?.range;
+    pendingResultRef.current = range ? resolveQuickCountRange(range) : result;
+    setTargetIndex(index);
     setIsSpinning(true);
   }, [activeWheel, isSpinning]);
 

@@ -1,0 +1,12 @@
+{
+  "click": "/media/audio/click.036b16672293.mp3",
+  "tick": "/media/audio/tick.a8152c8cfc37.mp3",
+  "confirm": "/media/audio/confirm.b728a77c1224.mp3",
+  "transition": "/media/audio/transition.f07eb9d2707f.mp3",
+  "spin": "/media/audio/spin.b8492ef58472.mp3",
+  "success": "/media/audio/success.4422f908c52a.mp3",
+  "award": "/media/audio/award.440cd0039d80.mp3",
+  "negative": "/media/audio/negative.a7cc86238305.mp3",
+  "music": "/media/audio/music.f0bd2c74a5f1.mp3",
+  "cipher": "/media/audio/cipher.346a8fb30e8c.mp3"
+}

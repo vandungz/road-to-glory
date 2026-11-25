@@ -12,7 +12,9 @@ import { NationFlag } from "@/components/shared/NationFlag";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
 import { trackGameEntry } from "@/features/game/lib/entry-analytics";
 import { useQuickMode } from "../hooks/useQuickMode";
-import type { QuickClubOption, QuickLeagueOption, QuickPlayer, QuickStatKey } from "../types";
+import { useGameMusic } from "@/features/audio/useGameMusic";
+import { getQuickStatLabel } from "../lib/quick-mode-engine";
+import type { QuickClubOption, QuickLeagueOption, QuickPlayer, QuickStatKey, QuickTraitResult } from "../types";
 
 interface Props {
   leagues: QuickLeagueOption[];
@@ -45,6 +47,7 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
   const t = useTranslations("quick");
   const quick = useQuickMode({ leagues, clubs });
   const { state, activeWheel } = quick;
+  useGameMusic(state.phase === "setup" ? "draft" : "gameplay");
   const seenActiveRun = useRef(false);
 
   useEffect(() => {
@@ -110,8 +113,9 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
                   if (!isAuthenticated && activeWheel.key === "debut-age") trackGameEntry("quick_first_spin");
                 }}
                   idleLabel={null} stakes={state.phase === "finale" ? "high" : "low"}
+                  resultSound={activeWheel.key === "trait" || activeWheel.key === "improvement-value" ? "success" : "confirm"}
                   items={activeWheel.items.map((item) => ({
-                    label: activeWheel.key === "improvement-stat" ? item.label ?? valueLabel(item.value, t("yes"), t("no")) : valueLabel(item.value, t("yes"), t("no")),
+                    label: item.range || activeWheel.key === "improvement-stat" ? item.label ?? valueLabel(item.value, t("yes"), t("no")) : valueLabel(item.value, t("yes"), t("no")),
                     value: item.value,
                     weight: activeWheel.key.startsWith("stat-") ? 1 : item.weight,
                     active: item.active,
@@ -146,9 +150,7 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
           <PlayerPortrait portraitId={player.portraitId} loop />
           <div><strong>{player.name}</strong><PlayerIdentity player={player} /></div>
         </div>
-        <div className="football-quick-play__trait" aria-live="polite" aria-atomic="true">
-          {player.trait && <><span>{ui("trait")}</span><strong>{player.trait.name}</strong></>}
-        </div>
+        <QuickTraitDetails trait={player.trait} />
       </header>
       {revealedStats.length === statKeys.length && <div className="football-quick-play__tracker-ovr"><span>OVR</span><strong>{quick.overall}</strong></div>}
       {revealedStats.length > 0 && <dl className="football-quick-play__stats" aria-label={ui("stats")}>
@@ -186,6 +188,7 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
           <div>
             <h1>{ui("careerComplete")}</h1>
             <div><strong>{state.player.name}</strong><PlayerIdentity player={state.player} /></div>
+            <QuickTraitDetails trait={state.player.trait} />
           </div>
         </div>
         <div className="football-quick-summary__ovr"><span>OVR</span><strong>{quick.overall}</strong></div>
@@ -223,4 +226,16 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
       </div>
     </section>
   );
+}
+
+function QuickTraitDetails({ trait }: { trait: QuickTraitResult | null }) {
+  const ui = useTranslations("ui");
+  if (!trait) return null;
+  return <div className="football-quick-play__trait" aria-live="polite" aria-atomic="true">
+    <span>{ui("trait")}</span><strong>{trait.name}</strong>
+    <ul className="football-quick-play__trait-bonuses" aria-label={ui("stats")}>
+      {(Object.entries(trait.modifiers) as [QuickStatKey, number][]).map(([key, bonus]) =>
+        <li key={key}><span>{getQuickStatLabel(key)}</span><strong>+{bonus}</strong></li>)}
+    </ul>
+  </div>;
 }

@@ -14,7 +14,7 @@ import { SeasonRecapModal } from "./SeasonRecapModal";
 import { TrophyCabinetModal } from "./TrophyCabinetModal";
 import { PersistentTransferSection } from "./PersistentTransferSection";
 import { WheelGameHeader } from "./WheelGameHeader";
-import { getSeasonYearString } from "../lib/simulation-helpers";
+import { useGameMusic } from "@/features/audio/useGameMusic";
 import { GameRouteLoading } from "@/components/shared/GameRouteLoading";
 import { Toast } from "@/components/ui/Toast";
 import { ClassicProfileSetup, type ClassicProfile } from "./ClassicProfileSetup";
@@ -58,7 +58,6 @@ export function DraftDrumScreen({
   savedContinentalCup, 
   initialMode = "setup",
   backHref = `/${gameId}`,
-  gameName,
   shopReturnAction,
   shopReturnToken,
   transferReturnAction,
@@ -150,6 +149,7 @@ export function DraftDrumScreen({
   } = useDraftDrum(gameId, slotIndex, position, leagues, clubs, savedPlayerId, savedContinentalCup, initialMode);
 
   const [isTrophyCabinetOpen, setIsTrophyCabinetOpen] = useState<boolean>(false);
+  useGameMusic(mode === "setup" ? "draft" : "gameplay");
   const [rightTab, setRightTab] = useState<"panini" | "profile" | "transfer">("panini");
   const portrait = usePaniniReaction(setRightTab, Boolean(activeModal || isTrophyCabinetOpen), isProcessing,
     isMounted && mode === "career" ? savedPlayerId : undefined);
@@ -221,7 +221,7 @@ export function DraftDrumScreen({
         // Modal content is rendered through a React portal. Portal events
         // still bubble through this component tree even though the modal is
         // outside the dashboard DOM; never swallow its action buttons.
-        if (event.target instanceof Element && event.target.closest(".football-modal-overlay, [role=\"dialog\"]")) return;
+        if (event.target instanceof Element && event.target.closest(".football-modal-overlay, [role=\"dialog\"], [data-audio-controls]")) return;
         event.preventDefault();
         event.stopPropagation();
       }}
@@ -232,19 +232,7 @@ export function DraftDrumScreen({
     >
       <WheelGameHeader
         backHref={backHref}
-        gameName={gameName}
-        position={position}
-        slotIndex={slotIndex}
-        mode={mode}
-        seasonLabel={mode === "setup" ? undefined : getSeasonYearString(currentAge, playerDebutAge)}
-        age={mode === "setup" ? undefined : currentAge}
-        currentClubName={mode === "setup" ? undefined : currentClub?.name}
-        overall={mode === "setup" ? undefined : currentOvr}
-        shopHref={shopHref}
         isBusy={wheelInteractionLocked}
-        onOpenTrophyCabinet={() => {
-          if (!wheelInteractionLocked) setIsTrophyCabinetOpen(true);
-        }}
       />
 
       {/* ── MODE 1: SETUP WHEELS ── */}

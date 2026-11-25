@@ -134,8 +134,16 @@
 .football-draft-setup__action { gap: 24px; padding: 32px; background: var(--football-surface); }
 .football-draft-setup__heading h1 { font-size: 40px; line-height: 1.2; }
 .football-draft-setup__heading p { font-size: 16px; }
-.football-draft-setup__heading > span,
-.football-draft-setup__cta > span { font-size: 13px; }
+.football-draft-setup__heading > span { font-size: 13px; }
+
+@media (min-width: 1024px) and (max-height: 800px) {
+  .football-draft-setup { height: calc(100dvh - 88px); min-height: 0; margin-block: 12px; }
+  .football-draft-progress { padding: 12px 24px; }
+  .football-draft-setup__action { gap: 12px; padding: 12px 24px 16px; }
+  .football-draft-setup__heading h1 { font-size: 32px; }
+  .football-wheel-shell .football-draft-setup .football-spinner-wheel__stage { width: min(100%, max(160px, calc(100dvh - 380px)), 340px); }
+  .football-draft-dossier { overflow-y: auto; }
+}
 .football-draft-dossier { border: 0; border-radius: var(--football-radius-panel); }
 .football-draft-dossier__heading h2 { font-size: 28px; }
 .football-draft-dossier__row { gap: 16px; padding-block: 12px; }

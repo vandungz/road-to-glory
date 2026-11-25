@@ -119,7 +119,7 @@ test("busy states, missing anchors, dialogs and route changes cancel safely", as
   await page.getByRole("button", { name: "Toggle busy" }).click();
   await page.waitForTimeout(800);
   await expect(guide).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("football-life:guide:settings:v1"))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem("football-life:guide:settings:v2"))).toBeNull();
   await page.getByRole("button", { name: "Toggle target" }).click();
   await expect(guide).toBeVisible();
   await page.getByRole("button", { name: "Open fixture dialog" }).click();
@@ -169,7 +169,7 @@ test("landing and login stay untouched; policies offer on-demand help only", asy
 });
 
 test("guide fits supported sizes, preserves keyboard tabs and offers inline help", async ({ page }, testInfo) => {
-  await page.addInitScript(() => localStorage.removeItem("football-life:guide:career:v1"));
+  await page.addInitScript(() => localStorage.removeItem("football-life:guide:career:v2"));
   for (const viewport of [{ width: 1024, height: 700 }, { width: 1280, height: 800 }, { width: 1920, height: 1080 }]) {
     await page.setViewportSize(viewport);
     await page.goto("/dev/career-workspace");

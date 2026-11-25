@@ -32,7 +32,7 @@ const draftStepKeys: Partial<Record<number, string>> = {
   10: "careerLength", 11: "league", 12: "club",
 };
 
-export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelItems, targetIndex, handleSetupSpinComplete, tempValue, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
+export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelItems, targetIndex, handleSetupSpinComplete, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
   const ui = useTranslations("ui");
   const isComplete = activeStep >= STEP_LABELS.length;
   const t = useTranslations("draft");
@@ -50,11 +50,6 @@ export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelIt
     return item;
   });
 
-  const ageResult = typeof tempValue === "string" ? /^(\d+) Tuổi$/.exec(tempValue)?.[1] : null;
-  const lengthResult = typeof tempValue === "string" ? /^(\d+) Năm$/.exec(tempValue)?.[1] : null;
-  const result = ageResult ? wheel("ageCount", { count: Number(ageResult) })
-    : lengthResult ? ui("yearCount", { count: Number(lengthResult) }) : tempValue;
-
   return (
     <main className="football-draft-setup">
       <PageGuide id="draft" paused={isSpinning || isProcessing} />
@@ -69,9 +64,7 @@ export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelIt
           {!isComplete ? (
             <>
               <SpinnerWheel isSpinning={isSpinning} items={displayWheel} targetIndex={targetIndex} onSpinComplete={handleSetupSpinComplete} />
-              {tempValue !== null && !isSpinning && <div className="football-draft-setup__result" aria-live="polite">{result}</div>}
               <div className="football-draft-setup__cta">
-                <span>{isSpinning ? ui("spinning") : tempValue !== null ? ui("resultRecorded") : ui("ready")}</span>
                 <Button size="lg" onClick={handleSetupSpin} disabled={isSpinning}>
                   {isSpinning ? ui("wheelIsSpinning") : ui("spin")}
                 </Button>

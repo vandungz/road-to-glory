@@ -4,7 +4,7 @@
 .football-header-tools, .football-header-account { display: flex; align-items: center; gap: 4px; flex: none; }
 .football-header-account { position: relative; padding-inline-start: 12px; }
 .football-header-account::before { content: ""; position: absolute; inset-inline-start: 0; inset-block: 8px; width: 1px; background: var(--football-rule); }
-.football-header-tools :is(.football-header-language, .football-guide-help),
+.football-header-tools :is(.football-header-language, .football-guide-help, .football-icon-button),
 .football-header-account :is(.football-account-nav a, .football-app-shell__logout) {
   display: inline-flex;
   align-items: center;

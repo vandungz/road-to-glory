@@ -663,6 +663,22 @@
     "viewRankingWheel": "Sang vòng xếp hạng",
     "continuePlayerDevelopment": "Tiếp tục phát triển chỉ số"
   },
+  "audio": {
+    "title": "Âm thanh",
+    "description": "Điều chỉnh hiệu ứng và nhạc nền theo ý bạn. Nhạc chỉ tải khi bạn bật.",
+    "mute": "Tắt toàn bộ âm thanh",
+    "unmute": "Bật lại âm thanh",
+    "effects": "Hiệu ứng âm thanh",
+    "music": "Nhạc nền",
+    "effectsVolume": "Âm lượng hiệu ứng",
+    "musicVolume": "Âm lượng nhạc",
+    "preview": "Nghe thử hiệu ứng",
+    "credits": "Nguồn âm thanh và giấy phép",
+    "musicEdits": "Đã cân bằng âm lượng, thêm fade và nén MP3.",
+    "soundCredits": "Một số hiệu ứng giao diện:",
+    "draftTrack": "Draft",
+    "gameplayTrack": "Sự nghiệp"
+  },
   "quick": {
     "debut-age": "Tuổi ra mắt",
     "career-length": "Độ dài sự nghiệp",
@@ -1017,10 +1033,6 @@
         "title": "Tủ danh hiệu",
         "description": "Mở để xem thành tích CLB, đội tuyển và giải thưởng cá nhân đã đạt."
       },
-      "career-shop": {
-        "title": "Cửa hàng hỗ trợ",
-        "description": "Cửa hàng khả dụng ở những thời điểm cho phép trong mùa. Xem giá, điều kiện và tác dụng trước khi mua."
-      },
       "retirement-record": {
         "title": "Trọn sự nghiệp",
         "description": "Xem chỉ số đỉnh cao, tổng thống kê và các CLB trước khi lưu cầu thủ về đội hình."
@@ -1113,14 +1125,6 @@
         "title": "Trở lại đội hình",
         "description": "Xem số đội hình và mở lại tiến trình Classic đã lưu."
       },
-      "settings-language": {
-        "title": "Ngôn ngữ",
-        "description": "Chọn Tiếng Việt hoặc English. Một số thuật ngữ bóng đá giữ nguyên tiếng Anh."
-      },
-      "settings-motion": {
-        "title": "Chuyển động",
-        "description": "Giảm animation nếu bạn thấy khó theo dõi. Lựa chọn này không thay đổi kết quả vòng quay."
-      },
       "policy-navigation": {
         "title": "Đọc chính sách",
         "description": "Dùng mục lục để đến phần cần đọc hoặc chuyển giữa hai trang chính sách."
@@ -1136,6 +1140,14 @@
       "ballon-return": {
         "title": "Trở lại sự nghiệp",
         "description": "Tiếp tục từ kết quả đã lưu. Xem hướng dẫn không quay lại hoặc thay đổi thứ hạng."
+      },
+      "settings-navigation": {
+        "title": "Cài đặt",
+        "description": "Chọn Hồ sơ, Âm thanh hoặc Ngôn ngữ."
+      },
+      "settings-content": {
+        "title": "Tùy chỉnh",
+        "description": "Đổi tên hiển thị, điều chỉnh âm lượng và chọn ngôn ngữ tại đây."
       }
     },
     "close": "Đóng hướng dẫn"

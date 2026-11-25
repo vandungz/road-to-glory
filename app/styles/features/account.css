@@ -77,6 +77,13 @@
 .football-account-options label { display: flex; align-items: center; gap: 12px; min-height: 44px; width: fit-content; cursor: pointer; }
 .football-account-options input { width: 18px; height: 18px; accent-color: var(--football-accent-ink); }
 .football-account-options .football-account-note { margin: 16px 0 0; }
+.football-audio-settings { grid-column: 1 / -1; padding-top: 24px; border-top: 1px solid var(--football-rule); }
+.football-audio-settings .football-audio-settings__volume { display: grid; width: min(100%, 420px); grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 48px; }
+.football-audio-settings input[type="range"] { width: 100%; }
+.football-audio-settings output { text-align: end; font-variant-numeric: tabular-nums; }
+.football-audio-settings details { margin-top: 16px; }
+.football-audio-settings summary { cursor: pointer; }
+.football-audio-settings summary:focus-visible { outline: var(--football-outline); outline-offset: 2px; }
 
 .football-settings-sheet {
   display: grid;
@@ -84,7 +91,7 @@
   gap: 32px;
 }
 
-.football-settings-sheet > .football-account-options + .football-account-options {
+.football-settings-sheet > .football-account-options + .football-account-options:not(.football-audio-settings) {
   border-inline-start: 1px solid var(--football-rule);
   padding-inline-start: 32px;
 }

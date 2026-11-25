@@ -92,7 +92,7 @@ export function CareerWorkspacePreview({ cup, manyClubs, transfer = false, showP
     yearsAtClub: 1, ovrAtJoining: 75, ovrAtLeaving: 75,
   }));
   return <div className="football-dashboard football-wheel-shell football-career-shell">
-    <WheelGameHeader mode="career" backHref="/dev/design-preview" gameName="Kiểm tra bố cục" position="ST" slotIndex={9} seasonLabel="2042/43" age={35} currentClubName={club.name} overall={75} onOpenTrophyCabinet={() => setModal("recap")} />
+    <WheelGameHeader backHref="/dev/design-preview" />
     <DraftDrumCareerStage
       mobileSection="action" setMobileSection={() => {}} rightTab={rightTab} setRightTab={setRightTab}
       wheelInteractionLocked={false} careerSubStep={showNomination ? awardStep : transfer ? "transfer" : cup ? "domestic_cup" : "standing"}

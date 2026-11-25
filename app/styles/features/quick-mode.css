@@ -132,6 +132,8 @@
 .football-quick-play__trait { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 8px; font-size: 13px; color: var(--football-ink-2); overflow-wrap: anywhere; }
 .football-quick-play__trait:empty { position: absolute; }
 .football-quick-play__trait strong { color: var(--nation-primary); }
+.football-quick-play__trait-bonuses { display: flex; flex-basis: 100%; flex-wrap: wrap; gap: 4px 12px; margin: 0; padding: 0; list-style: none; }
+.football-quick-play__trait-bonuses li { display: inline-flex; gap: 4px; }
 .football-quick-play__tracker-head > strong {
   color: var(--nation-primary);
   font-family: var(--font-headline);

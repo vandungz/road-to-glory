@@ -5,7 +5,7 @@ export const guides = {
   squad: { version: 1, targets: ["squad-pitch", "squad-sheet"] },
   profileSetup: { version: 1, targets: ["player-fields", "player-portraits", "player-random"] },
   draft: { version: 1, targets: ["draft-wheel", "draft-result"] },
-  career: { version: 1, targets: ["career-wheel", "career-tabs", "career-timeline", "career-honours", "career-shop"] },
+  career: { version: 2, targets: ["career-wheel", "career-tabs", "career-timeline", "career-honours"] },
   retirement: { version: 1, targets: ["retirement-record", "retirement-save"] },
   transfer: { version: 1, targets: ["transfer-context", "transfer-tabs", "transfer-offers", "transfer-continue"] },
   negotiation: { version: 1, targets: ["negotiation-facts", "negotiation-wages"] },
@@ -16,7 +16,7 @@ export const guides = {
   pve: { version: 1, targets: ["pve-squads"] },
   tournament: { version: 1, targets: ["pve-progress", "pve-round"] },
   profile: { version: 1, targets: ["account-profile", "account-squads"] },
-  settings: { version: 1, targets: ["settings-language", "settings-motion"] },
+  settings: { version: 2, targets: ["settings-navigation", "settings-content"] },
   ballonResult: { version: 1, targets: ["ballon-ranking", "ballon-return"], auto: false },
   // Reading pages need on-demand orientation, not an automatic gameplay tour.
   policy: { version: 1, targets: ["policy-navigation", "policy-contact"], auto: false },

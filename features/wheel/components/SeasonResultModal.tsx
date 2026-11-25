@@ -10,6 +10,7 @@ import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Moda
 import { Button } from "@/components/ui/Button";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import { NationFlag } from "@/components/shared/NationFlag";
+import { useResultSound } from "@/features/audio/useResultSound";
 
 type Competition = "league" | "cup" | "continental" | "national";
 
@@ -63,6 +64,7 @@ export function SeasonResultModal({ type, record, currentContinentalCup, playerN
     names,
   );
   const title = savedTitle ?? ui(type === "national" ? "nationalTeam" : "domesticLeague");
+  useResultSound(result === "Winner" || result === "Vô địch" ? "award" : "confirm", !isArchived);
   const isLeague = type === "league";
   const detailTitle = t(isLeague ? "standings" : "journey");
   const emptyMessage = type === "national" && result === "Không được gọi"

@@ -29,6 +29,7 @@ test("header language switch preserves the Quick form and career, and waits duri
 test("Classic header language preserves unsaved player details and the selected career tab", async ({ page }) => {
   await page.setViewportSize({ width: 1024, height: 700 });
   await page.goto("/dev/classic-interactions-preview");
+  await expect(page.getByRole("button", { name: "Âm thanh", exact: true })).toBeVisible();
   await page.getByRole("textbox", { name: "Tên cầu thủ", exact: true }).fill("Unsaved Classic Player");
   await page.locator(".football-header-language").click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
@@ -48,7 +49,7 @@ test("Classic header language preserves unsaved player details and the selected 
 });
 
 test("shared game headers expose one language switch on each feature page", async ({ page }) => {
-  for (const path of ["/dev/classic-preview", "/dev/transfer-window-preview", "/settings", "/profile"]) {
+  for (const path of ["/dev/classic-preview", "/settings", "/profile"]) {
     await page.goto(path);
     await expect(page.getByRole("banner").locator(".football-header-language")).toHaveCount(1);
     await expect(page.locator(".football-header-language")).toBeVisible();
@@ -63,6 +64,7 @@ test("homepage header groups utilities and account actions with consistent geome
     await page.setViewportSize(viewport);
     const controls = header.locator(".football-header-tools button, .football-header-account a, .football-header-account button");
     await expect(controls).toHaveCount(5);
+    await expect(header.getByRole("button", { name: "Âm thanh", exact: true })).toBeVisible();
     const boxes = await controls.evaluateAll((elements) => elements.map((element) => {
       const box = element.getBoundingClientRect();
       return { height: box.height, centre: box.y + box.height / 2 };

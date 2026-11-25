@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/Button";
 import { EditorialArt } from "@/components/shared/EditorialArt";
 import type { AwardRankingEntry } from "@/types/awards";
 import { getPositionNumber } from "@/lib/position-number";
+import { useResultSound } from "@/features/audio/useResultSound";
 
 interface Props {
   nominated: boolean;
@@ -17,6 +18,7 @@ interface Props {
 export function BallonDorNominationModal({ nominated, onClose, rank, entries = [] }: Props) {
   const ui = useTranslations("ui");
   const awards = useTranslations("awards");
+  useResultSound(rank === 1 ? "award" : nominated ? "success" : "negative");
   if (rank !== undefined) return <Modal open title={ui("ballonDorResults")} onClose={onClose} size="lg" className="football-ballon-result">
     <ModalHeader onClose={onClose} closeLabel={ui("closeResults")}>{ui("ballonDor")}</ModalHeader>
     <ModalBody>
