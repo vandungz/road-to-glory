@@ -7,12 +7,18 @@ import { BrandedSplash } from "@/components/shared/BrandedSplash";
 export function LandingStartup() {
   const [waiting, setWaiting] = useState(true);
   useEffect(() => {
+    if (!waiting) document.querySelector<HTMLElement>(".football-guest-landing")?.setAttribute("data-entry-state", "ready");
+  }, [waiting]);
+  useEffect(() => {
     const image = document.querySelector<HTMLImageElement>(".football-guest-landing__hero img");
     const main = document.querySelector<HTMLElement>(".football-guest-landing__main");
     let minimumElapsed = false;
     let ready = !image || image.complete;
+    let finished = false;
     main?.setAttribute("inert", "");
     const finish = () => {
+      if (finished) return;
+      finished = true;
       clearTimeout(minimum);
       clearTimeout(deadline);
       setWaiting(false);

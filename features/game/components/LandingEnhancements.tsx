@@ -35,6 +35,8 @@ export function LandingSectionMotion() {
 
   useEffect(() => {
     if (reducedMotion || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const root = document.querySelector<HTMLElement>(".football-guest-landing");
+    if (!root) return;
 
     const observer = new IntersectionObserver((entries) => {
       for (const { target, isIntersecting } of entries) {
@@ -43,9 +45,16 @@ export function LandingSectionMotion() {
         observer.unobserve(target);
       }
     });
-    document.querySelectorAll(".football-guest-landing__main > section:not(.football-guest-landing__hero), .football-guest-landing__footer")
-      .forEach((section) => observer.observe(section));
-    return () => observer.disconnect();
+    const start = () => {
+      if (root.dataset.entryState !== "ready") return;
+      startup.disconnect();
+      root.querySelectorAll(".football-guest-landing__main > section:not(.football-guest-landing__hero), .football-guest-landing__footer")
+        .forEach((section) => observer.observe(section));
+    };
+    const startup = new MutationObserver(start);
+    startup.observe(root, { attributes: true, attributeFilter: ["data-entry-state"] });
+    start();
+    return () => { startup.disconnect(); observer.disconnect(); };
   }, [reducedMotion]);
 
   return null;

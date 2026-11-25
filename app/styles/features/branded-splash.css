@@ -1,5 +1,5 @@
 /* Hallmark · shape: route interlude · genre: playful · theme: Football Life · signature: RTG wordmark */
-/* Hallmark · pre-emit critique: one quiet signal during real work; no countdown or artificial hold. */
+/* Hallmark · pre-emit critique: an 800 ms branded entrance, then a restrained page reveal; never animate the page behind the splash. */
 .football-branded-splash {
   display: grid;
   place-items: center;
@@ -23,3 +23,20 @@
 .football-branded-splash .football-activity-line { inline-size: 120px; }
 .football-branded-splash__label { color: var(--football-ink-2); font-size: 13px; }
 .football-landing-startup { position: fixed; inset: 0; z-index: 100; overflow: auto; }
+
+@media (prefers-reduced-motion: no-preference) {
+  html:not([data-game-reduced-motion]) .football-guest-landing[data-entry-state="ready"] .football-guest-landing__header {
+    animation: football-landing-mount 220ms var(--football-motion-ease) backwards;
+  }
+  html:not([data-game-reduced-motion]) .football-guest-landing[data-entry-state="ready"] .football-guest-landing__hero {
+    animation: football-landing-mount 360ms cubic-bezier(.2, .7, .25, 1) backwards;
+  }
+  html:not([data-game-reduced-motion]) .football-guest-landing[data-entry-state="ready"] .football-guest-landing__pitch {
+    animation: football-landing-mount 420ms cubic-bezier(.2, .7, .25, 1) 60ms backwards;
+  }
+}
+
+@keyframes football-landing-mount {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}

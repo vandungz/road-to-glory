@@ -15,7 +15,7 @@ export function GuestLanding() {
   const questions = ["wheel", "account", "devices"] as const;
 
   return (
-    <div id="landing-top" className="football-guest-landing">
+    <div id="landing-top" className="football-guest-landing" data-entry-state="splash">
       <LandingStartup />
       <LandingSectionMotion />
       <header className="football-guest-landing__header">
