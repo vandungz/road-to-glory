@@ -13,7 +13,7 @@ const DISPLAY_VARIANTS: Partial<Record<EditorialAsset, string>> = {
   "free-kick": "free-kick-clean",
   "contract-signing": "contract-signing",
   "ballon-dor-trophy": "ballon-dor-trophy",
-  "trophy-collection": "trophy-collection",
+  "trophy-collection": "trophy-collection-v2",
 };
 
 export function EditorialRail({ asset }: { asset: EditorialAsset }) {

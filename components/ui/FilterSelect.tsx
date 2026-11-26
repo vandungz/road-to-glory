@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTranslations } from "next-intl";
 import { useEffect, useId, useRef, useState, type CSSProperties, type KeyboardEvent } from "react";
@@ -96,14 +98,14 @@ export function FilterSelect({ label, value, options, onChange, searchable = fal
       {searchable && <label className="football-filter__search"><Search aria-hidden="true" size={16} />
         <input ref={search} className="football-search-input" aria-label={ui("search", { v0: String(label.toLowerCase()) })} placeholder={ui("searchOptions")} value={query} onChange={(event) => setQuery(event.target.value)} />
       </label>}
-      <div className="football-filter__options" role="listbox" aria-label={label}>
+      <ScrollArea className="football-filter__options" role="listbox" aria-label={label}>
         {visible.map((option) => <button key={option.value} type="button" role="option" tabIndex={-1} aria-selected={option.value === value}
           onClick={() => { onChange(option.value); close(); }}>
           <span><span>{option.label}</span>{option.description && <small>{option.description}</small>}</span>
           {option.value === value && <Check aria-hidden="true" size={16} />}
         </button>)}
         {visible.length === 0 && <p role="status">{ui("noMatchingOptions")}</p>}
-      </div>
+      </ScrollArea>
     </div>
   </div>;
 }

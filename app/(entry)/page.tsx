@@ -3,6 +3,7 @@ import { AppShell } from "@/components/shared/AppShell";
 import { LandingPage, landingMetadata } from "@/features/game/components/LandingPage";
 import { Homepage } from "@/features/game/components/Homepage";
 import { getGameSessionsForUser } from "@/features/game/services/game-session.service";
+import { accountAvatar } from "@/features/settings/profile-avatar";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function LobbyPage() {
 
   const sessions = await getGameSessionsForUser(user.id);
   return (
-    <AppShell className="football-homepage-shell" showAccountControls isAuthenticated>
+    <AppShell className="football-homepage-shell" showAccountControls isAuthenticated accountAvatar={accountAvatar(user)}>
       <Homepage sessions={sessions} isAuthenticated />
     </AppShell>
   );

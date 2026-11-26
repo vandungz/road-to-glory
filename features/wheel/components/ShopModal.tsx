@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { CoachMark } from "@/features/onboarding/CoachMark";
@@ -177,7 +179,7 @@ export function ShopModal({
         )}
       </header>
 
-      <div className="football-shop-content__body">
+      <ScrollArea className="football-shop-content__body">
         <p className="football-shop-content__intro">
           {canPurchase
             ? t("appliesTo", { age: targetSeason })
@@ -198,7 +200,7 @@ export function ShopModal({
             />
           ))}
         </div>
-      </div>
+      </ScrollArea>
 
       <footer className="football-shop-content__footer" data-guide="shop-continue">
         <span>{ui("eachItemCanBeBoughtOncePerSeason")}</span>

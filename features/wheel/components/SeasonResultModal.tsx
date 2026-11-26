@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTranslations } from "next-intl";
 import type { CompetitionStats, SeasonRecord } from "@/types/game";
@@ -92,7 +94,7 @@ export function SeasonResultModal({ type, record, currentContinentalCup, playerN
               : type === "national" && result === "Không được gọi" ? ui("noAppearances") : ui("availableAtTheEndOfTheSeason")}</p>}
           </div>
         </section>
-        <section className="football-season-result__details" aria-label={detailTitle} tabIndex={0}>
+        <ScrollArea as="section" className="football-season-result__details" aria-label={detailTitle} tabIndex={0}>
           <h3>{detailTitle}</h3>
           {isLeague && record.leagueTable?.length ? (
             <table className="football-season-result__table">
@@ -109,7 +111,7 @@ export function SeasonResultModal({ type, record, currentContinentalCup, playerN
               <li key={`${index}-${item}`}>{formatJourney(item, type === "national")}</li>
             ))}</ol>
           ) : <p className="football-modal-note">{emptyMessage}</p>}
-        </section>
+        </ScrollArea>
       </ModalBody>
       <ModalFooter><Button onClick={onClose}>{isArchived ? ui("close") : ui("continue")}</Button></ModalFooter>
     </Modal>

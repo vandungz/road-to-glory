@@ -35,6 +35,8 @@ const ratelimit = redis
 export type AuthRateLimitOperation =
   | "login"
   | "login-failure"
+  | "account-security"
+  | "account-profile"
   | "signup"
   | "verify-signup"
   | "password-reset"
@@ -47,6 +49,8 @@ const authRateLimitConfig: Record<
   // This is a request guard. Successful logins may consume it, but they do
   // not consume the separate login-failure budget or any other auth budget.
   login: { limit: 10, window: "15 m" },
+  "account-security": { limit: 5, window: "15 m" },
+  "account-profile": { limit: 20, window: "15 m" },
   // Failed credentials are intentionally much tighter than normal login
   // traffic. This bucket is recorded only after Supabase rejects credentials.
   "login-failure": { limit: 5, window: "15 m" },

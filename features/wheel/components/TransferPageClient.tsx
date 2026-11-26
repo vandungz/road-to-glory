@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTransferCopy } from "./useTransferCopy";
 import { useTranslations } from "next-intl";
@@ -389,7 +391,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
   }
 
   if (cancelledOffer) {
-    return <main className="football-transfer-negotiation football-transfer-negotiation--cancelled"><span className="football-eyebrow">{ui("talksEnded")}</span><h1>{t("moveCancelled", { club: cancelledOffer.clubName })}</h1><p>{ui("theClubRejectedTwoWageProposalsAndWithdrewItsOfferForThisSeason")}</p><Button size="lg" onClick={() => setCancelledOffer(null)}>{ui("backToClubs")}</Button></main>;
+    return <ScrollArea as="main" className="football-transfer-negotiation football-transfer-negotiation--cancelled"><span className="football-eyebrow">{ui("talksEnded")}</span><h1>{t("moveCancelled", { club: cancelledOffer.clubName })}</h1><p>{ui("theClubRejectedTwoWageProposalsAndWithdrewItsOfferForThisSeason")}</p><Button size="lg" onClick={() => setCancelledOffer(null)}>{ui("backToClubs")}</Button></ScrollArea>;
   }
 
   if (selectedOffer) {

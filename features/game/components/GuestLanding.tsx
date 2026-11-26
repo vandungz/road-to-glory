@@ -1,3 +1,4 @@
+import { SupportLink } from "@/components/shared/SupportLink";
 import { useLocale, useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowDown, ArrowUp, Monitor } from "lucide-react";
@@ -26,7 +27,7 @@ export function GuestLanding() {
           <a href="#landing-career">{t("careerNav")}</a>
           <a href="#landing-faq">{t("faqLink")}</a>
         </nav>
-        <LandingLanguageLink target={targetLocale} label={t("switchLanguage")} />
+        <div className="football-landing-utilities"><SupportLink iconOnly /><LandingLanguageLink target={targetLocale} label={t("switchLanguage")} /></div>
       </header>
       <main className="football-guest-landing__main">
         <section className="football-guest-landing__hero" aria-labelledby="guest-landing-title">
@@ -133,7 +134,7 @@ export function GuestLanding() {
           </nav>
           <div>
             <h2>{t("footer.community")}</h2>
-            <ul><li><a href="mailto:vdz.indie@gmail.com">{t("footer.contact")}</a></li><li>{t("footer.donate")}</li></ul>
+            <ul><li><a href="mailto:vdz.indie@gmail.com">{t("footer.contact")}</a></li><li><SupportLink /></li></ul>
           </div>
           <div>
             <h2>{t("footer.policies")}</h2>

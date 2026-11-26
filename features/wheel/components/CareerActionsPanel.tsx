@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTranslations } from "next-intl";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
@@ -118,7 +120,7 @@ export function CareerActionsPanel({
         </header>
       )}
 
-      <div className="football-action-panel__body">
+      <ScrollArea className="football-action-panel__body">
         {careerSubStep === "idle" && (
           <div className="football-career-shop-entry">
             <span className="football-eyebrow">{ui("season2")} {seasonLabel} {ui("age2")} {currentAge} · {clubLabel}</span>
@@ -164,7 +166,7 @@ export function CareerActionsPanel({
               <Button size="lg" onClick={!isFinalSeason && careerSubStep === "resolved" && onOpenShop ? onOpenShop : handleNextSeason} disabled={isProcessing} className="football-action-panel__primary">{isFinalSeason ? ui("retireAndReviewCareer") : ui("startNextSeason")}</Button>
           </div>
         )}
-      </div>
+      </ScrollArea>
 
     </section>
   );

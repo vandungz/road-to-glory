@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTranslations } from "next-intl";
 import { useEffect } from "react";
@@ -17,7 +19,7 @@ export function Drawer({ open, title, onClose, children, className }: { open: bo
     <div className="football-drawer-overlay" role="presentation" onMouseDown={(event) => event.target === event.currentTarget && onClose()}>
       <aside className={cn("football-drawer", className)} role="dialog" aria-modal="true" aria-label={title}>
         <header className="football-modal-header"><h2 className="football-modal-header__title">{title}</h2><button type="button" className="football-icon-button" onClick={onClose} aria-label={ui("close")}>×</button></header>
-        <div className="football-drawer__body">{children}</div>
+        <ScrollArea className="football-drawer__body">{children}</ScrollArea>
       </aside>
     </div>
   );

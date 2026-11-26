@@ -1,5 +1,5 @@
+import { SupportLink } from "@/components/shared/SupportLink";
 import { HelpButton } from "@/features/onboarding/HelpButton";
-import { HeaderLanguageButton } from "@/features/settings/components/HeaderLanguageButton";
 import { HeaderAudioButton } from "@/features/audio/HeaderAudioButton";
 import { HeaderSettingsLink } from "@/features/settings/components/HeaderSettingsLink";
 import { useTranslations } from "next-intl";
@@ -46,8 +46,7 @@ export function WheelGameHeader({
         <div className="football-header-tools">
           <HeaderAudioButton />
           <HeaderSettingsLink disabled={isBusy} />
-          <HeaderLanguageButton disabled={isBusy} />
-          <HelpButton />
+          <HelpButton /><SupportLink iconOnly />
         </div>
       </div>
     </header>

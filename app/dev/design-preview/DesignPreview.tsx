@@ -43,7 +43,7 @@ export function DesignPreview({ initialTab = TABS[0] }: { initialTab?: string })
           ))}
         </TabsList>
         <TabsContent active={tab === "Đội hình"}>
-          <SquadDashboard
+          <SquadDashboard managementPreview
             gameId="design-preview" formation="4-3-3" status="in_progress"
             squadRating={83} sessionName="Đội hình thử nghiệm" players={previewPlayers}
             slots={FORMATION_SLOTS["4-3-3"]}

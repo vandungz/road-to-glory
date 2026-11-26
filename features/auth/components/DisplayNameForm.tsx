@@ -6,9 +6,10 @@ import { updateDisplayNameAction } from "@/actions/auth.actions";
 import { Button } from "@/components/ui/Button";
 import { Field, Input } from "@/components/ui/Field";
 
-export function DisplayNameForm({ initialName }: { initialName: string }) {
+export function DisplayNameForm({ initialName, preview = false, onSaved }: { initialName: string; preview?: boolean; onSaved?: (name: string) => void }) {
   const ui = useTranslations("ui");
   const t = useTranslations("auth");
+  const account = useTranslations("accountSettings");
   const [name, setName] = useState(initialName);
   const [savedName, setSavedName] = useState(initialName);
   const [pending, setPending] = useState(false);
@@ -21,6 +22,7 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
     setStatus(undefined);
     const nextName = name.trim();
     try {
+      if (preview) { setStatus({ error: false, text: account("previewOnly") }); return; }
       const result = await updateDisplayNameAction(nextName);
       if (!result.success) {
         setStatus({ error: true, text: result.error });
@@ -29,6 +31,7 @@ export function DisplayNameForm({ initialName }: { initialName: string }) {
       setName(nextName);
       setSavedName(nextName);
       setStatus({ error: false, text: t("nameSaved") });
+      onSaved?.(nextName);
     } catch {
       setStatus({ error: true, text: t("nameSaveError") });
     } finally {

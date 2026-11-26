@@ -1,3 +1,5 @@
+
+import { ScrollArea } from "@/components/ui/ScrollArea";
 import { useTranslations } from "next-intl";
 import type { DraftData } from "../stores/useWheelUiStore";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
@@ -34,7 +36,7 @@ export function DraftPlayerDossier({ profile, draftData, position, playerNumber 
   const stats = position === "GK" ? GK_STATS : FIELD_STATS;
 
   return (
-    <aside className="football-draft-dossier" data-guide="draft-result" data-nation={draftData.nationality?.replace(/\s+/g, "")} aria-label={ui("draftProfile")}>
+    <ScrollArea as="aside" className="football-draft-dossier" data-guide="draft-result" data-nation={draftData.nationality?.replace(/\s+/g, "")} aria-label={ui("draftProfile")}>
       <div className="football-draft-dossier__heading" data-has-profile={Boolean(profile)}>
         {profile ? <PlayerPortrait portraitId={profile.portraitId} /> : <span>{ui("completedDraftProfile")}</span>}
         <h2>{profile?.name ?? ui("player", { v0: String(playerNumber) })}</h2>
@@ -67,6 +69,6 @@ export function DraftPlayerDossier({ profile, draftData, position, playerNumber 
         </div>
       </div>
 
-    </aside>
+    </ScrollArea>
   );
 }

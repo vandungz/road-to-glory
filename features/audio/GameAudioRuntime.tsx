@@ -10,7 +10,7 @@ export function GameAudioRuntime() {
   const pathname = usePathname();
   const preferences = useAudioPreferences();
   const scene = pathname === "/quick" || pathname === "/quick/play" || pathname.includes("/draft/") ? "draft" : "gameplay";
-  const enabled = pathname === "/settings" || pathname === "/quick" || pathname === "/quick/play" || appRouteAccess(pathname) === "protected"
+  const enabled = appRouteAccess(pathname) !== "missing" && !pathname.startsWith("/auth/") && pathname !== "/login"
     || (process.env.NODE_ENV !== "production" && pathname.startsWith("/dev/"));
   useEffect(() => {
     setGameAudioActive(enabled, scene);

@@ -169,3 +169,5 @@ export const RARITY_ACCENT: Record<string, string> = {
   epic:       "#7c42c4",
   legendary:  "#e8106e",
 };
+
+export type MovePlayerSummary = Pick<ClientSafePlayer, "id" | "name" | "position" | "nationality" | "peakOvr" | "portraitId">;

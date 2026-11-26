@@ -25,7 +25,7 @@ export function ClassicInteractionsPreview({ view }: { view?: string }) {
     {view === "ballon" || view === "ballon-runner" ? open && <BallonDorNominationModal nominated rank={view === "ballon-runner" ? 2 : 1}
         entries={view === "ballon-runner" ? placeBallonDorPlayer(entries, 2, { candidateKey: entries[0].candidateKey, name: "Bomba Ballon Test", position: "CM", clubName: "Real Madrid" }) : entries}
         onClose={() => { setOpen(false); setNotice("Continue development"); }} />
-      : view === "archive" ? <PlayerCareerDialog player={previewPlayers[1]} isOpen={open} gameId="design-preview" canManage onClose={() => setOpen(false)} />
+      : view === "archive" ? <PlayerCareerDialog player={previewPlayers[1]} isOpen={open} gameId="design-preview" canManage managementPreview onClose={() => setOpen(false)} />
       : view === "confirm" ? <ConfirmDialog open={open} title="Replace player" description="The saved career will be removed and the slot reopened." confirmLabel="Replace player"
           onCancel={() => setOpen(false)} onConfirm={() => { setOpen(false); setNotice("Confirmed once"); }} />
       : <ClassicProfileSetup slotPosition="CM" onRandom={() => setNotice("Wheel flow")} onContinue={(profile) => setNotice(`${profile.name} ${profile.position}`)} />}

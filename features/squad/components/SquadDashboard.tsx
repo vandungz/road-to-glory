@@ -8,6 +8,7 @@ import { PlayerCareerDialog } from "@/features/player/components/PlayerCareerDia
 import { PitchBoard } from "./PitchBoard";
 import { SquadBoardPageHead } from "./SquadBoardPageHead";
 import { SquadSheet } from "./SquadSheet";
+import { DeleteSquadDialog } from "./DeleteSquadDialog";
 import { SquadSummary } from "./SquadSummary";
 import { getSlotStateForIndex } from "../lib/slot-state";
 import type { ClientSafePlayer, SlotConfig } from "@/types/squad";
@@ -23,6 +24,8 @@ interface SquadDashboardProps {
   slots: SlotConfig[];
   inProgressSlots?: number[];
   draftBasePath?: string;
+  playerMoveUsed?: boolean;
+  managementPreview?: boolean;
 }
 
 export function SquadDashboard({
@@ -34,6 +37,8 @@ export function SquadDashboard({
   players,
   slots,
   inProgressSlots = [],
+  playerMoveUsed = false,
+  managementPreview = false,
   draftBasePath = `/${gameId}`,
 }: SquadDashboardProps) {
   const ui = useTranslations("ui");
@@ -62,7 +67,7 @@ export function SquadDashboard({
   return (
     <div className="football-squad-dashboard">
       <PageGuide id="squad" />
-      <SquadBoardPageHead sessionName={sessionName} formation={formation} playerCount={startingXI.length} slotCount={slots.length} />
+      <SquadBoardPageHead sessionName={sessionName} formation={formation} playerCount={startingXI.length} slotCount={slots.length}><DeleteSquadDialog gameId={gameId} name={sessionName} canMove={!playerMoveUsed && players.length > 0} preview={managementPreview} /></SquadBoardPageHead>
 
       <div className="football-squad-dashboard__body">
         <section className="football-squad-dashboard__pitch" data-guide="squad-pitch">
@@ -104,7 +109,7 @@ export function SquadDashboard({
       </div>
 
       {/* Board players are retired careers; the server rechecks retirement before mutations. */}
-      <PlayerCareerDialog player={selectedPlayer} isOpen={selectedPlayer !== null} onClose={() => setSelectedPlayer(null)} gameId={gameId} canManage />
+      <PlayerCareerDialog player={selectedPlayer} isOpen={selectedPlayer !== null} onClose={() => setSelectedPlayer(null)} gameId={gameId} canManage moveUsed={playerMoveUsed} managementPreview={managementPreview} />
     </div>
   );
 }

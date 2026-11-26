@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTranslations } from "next-intl";
 import { Modal, ModalBody, ModalFooter, ModalHeader } from "@/components/ui/Modal";
@@ -26,12 +28,12 @@ export function BallonDorNominationModal({ nominated, onClose, rank, entries = [
         <h2>{rank === 1 ? awards("winnerHeadline") : awards("topTenRank", { rank })}</h2>
         <EditorialArt asset="ballon-dor-trophy" className="football-ballon-result__art" />
       </div>
-      <section className="football-ballon-result__ranking" aria-label={ui("ballonDorRanking")} tabIndex={0}>
+      <ScrollArea as="section" className="football-ballon-result__ranking" aria-label={ui("ballonDorRanking")} tabIndex={0}>
         <h3>{ui("ballonDorRanking")}</h3>
         <ol>{entries.map((entry) => <li key={entry.candidateKey} className={entry.isCareerPlayer ? "is-player" : undefined}>
           <strong>{entry.rank}</strong><span><b>{entry.isCareerPlayer ? entry.name : `${entry.position} #${getPositionNumber(entry.position)}`}</b><small>{entry.clubName}</small></span>
         </li>)}</ol>
-      </section>
+      </ScrollArea>
     </ModalBody>
     <ModalFooter><Button onClick={onClose}>{ui("continuePlayerDevelopment")}</Button></ModalFooter>
   </Modal>;

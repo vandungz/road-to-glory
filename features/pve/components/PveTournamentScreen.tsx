@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
@@ -36,7 +38,7 @@ function LeaguePhaseTable({ group, onContinue, onReplay }: { group: PveTournamen
         ? <Button onClick={onContinue}>{ui("enterTheRoundOf16")}</Button>
         : <Button variant="outline" onClick={onReplay}>{ui("replayWithThisSquad")}</Button>}
     </header>
-    <div className="football-pve-league-table__scroll" role="region" aria-label={ui("leaguePhaseStandings")} tabIndex={0}>
+    <ScrollArea className="football-pve-league-table__scroll" role="region" aria-label={ui("leaguePhaseStandings")} tabIndex={0}>
       <table>
         <thead><tr><th scope="col">{ui("rank")}</th><th scope="col">{ui("club")}</th><th scope="col">{t("played")}</th><th scope="col">{ui("won")}</th><th scope="col">{ui("drawn")}</th><th scope="col">{t("lost")}</th><th scope="col">{ui("goalDifference")}</th><th scope="col">{ui("points")}</th></tr></thead>
         <tbody>
@@ -46,7 +48,7 @@ function LeaguePhaseTable({ group, onContinue, onReplay }: { group: PveTournamen
           </tr>)}
         </tbody>
       </table>
-    </div>
+    </ScrollArea>
   </section>;
 }
 
@@ -61,13 +63,13 @@ function PreviewCard({ status, opponent, onPlay, onReview, pending }: { pending:
         <Button onClick={onPlay} loading={pending}>{ui("startMatch")}</Button>
       </div>
     </header>
-    <div className="football-pve-lineup" role="region" tabIndex={0} aria-label={ui("playerDetailsFor", { v0: String(opponent.name) })}>
+    <ScrollArea className="football-pve-lineup" role="region" tabIndex={0} aria-label={ui("playerDetailsFor", { v0: String(opponent.name) })}>
       {opponent.players.map((player) => <div className="football-pve-lineup__player" key={player.id}>
         <strong>{player.name}</strong><span>{player.position} / OVR {player.overall}</span>
         <small>PAC {player.stats.pace} / SHO {player.stats.shooting} / PAS {player.stats.passing}</small>
         <small>DRI {player.stats.dribbling} / DEF {player.stats.defending} / PHY {player.stats.physical}</small>
       </div>)}
-    </div>
+    </ScrollArea>
   </section>;
 }
 
@@ -89,7 +91,7 @@ function LiveMatchCard({ record, formation, userPlayers, revealedCount, onContin
       <PvePitchBoard formation={formation} userPlayers={userPlayers} opponent={record.opponent} />
       <section className="football-pve-moments-panel" aria-labelledby="pve-moments-heading">
         <h3 className="football-pve-moments__heading" id="pve-moments-heading">{ui("matchRound")}</h3>
-        <div className="football-pve-moments__list" role="region" tabIndex={0} aria-label={ui("matchEvents")} aria-live="polite">
+        <ScrollArea className="football-pve-moments__list" role="region" tabIndex={0} aria-label={ui("matchEvents")} aria-live="polite">
           {visibleMoments.map((moment) => {
             const momentKey = matchMoments[moment.index - 1];
             return <div data-mount="detail" className={`football-pve-moment ${moment.winner === "user" ? "is-user" : "is-opponent"}`} key={moment.index}>
@@ -98,7 +100,7 @@ function LiveMatchCard({ record, formation, userPlayers, revealedCount, onContin
             <span className="football-pve-moment__result" aria-label={moment.winner === "user" ? ui("yourTeamWinsTheRound") : ui("opponentWinsTheRound")}>{moment.winner === "user" ? <Check aria-hidden="true" size={17} /> : <Swords aria-hidden="true" size={17} />}</span>
           </div>; })}
           {!complete && <p className="football-pve-moments__empty">{ui("preparingNextRound")}</p>}
-        </div>
+        </ScrollArea>
         {complete && <div className="football-pve-moments__action"><Button size="sm" onClick={onContinue}>{ui("continue2")}</Button></div>}
       </section>
     </div>

@@ -27,3 +27,26 @@
 .football-ballon-result__ranking b, .football-ballon-result__ranking small { overflow-wrap: break-word; min-width: 0; }
 .football-ballon-result__ranking small { color: var(--football-ink-2); font-size: 13px; text-align: end; }
 @media (max-height: 700px) { .football-ballon-result__art { height: min(200px, 32dvh); } }
+
+.football-squad-board__actions, .football-career-dialog__tools { display: flex; align-items: center; gap: 12px; }
+.football-squad-board__actions > span { font-size: 13px; color: var(--football-ink-2); }
+.football-player-options > p { margin: 0 0 12px; font-weight: 600; overflow-wrap: anywhere; }
+.football-player-options > button { display: flex; width: 100%; align-items: flex-start; gap: 16px; padding: 20px 8px; text-align: start; border: 0; border-top: 1px solid var(--football-rule); background: transparent; color: var(--football-ink); cursor: pointer; }
+.football-player-options > button span { display: grid; gap: 8px; min-width: 0; }
+.football-player-options strong { font: 500 15px/1.4 var(--font-body); }
+.football-player-options small { color: var(--football-ink-2); font-size: 13px; line-height: 1.6; }
+.football-player-options > button:hover:not(:disabled) { background: var(--football-sunken); }
+.football-player-options > button:active:not(:disabled) { background: var(--football-rule); }
+.football-player-options > button:focus-visible { outline: var(--football-outline); outline-offset: -4px; }
+.football-player-options > button:disabled { color: var(--football-disabled); background: var(--football-sunken); cursor: not-allowed; }
+.football-player-options > button.is-danger { color: var(--football-accent-ink); }
+.football-player-move-form, .football-squad-delete-form { display: grid; gap: 20px; }
+.football-player-move-form p, .football-squad-delete-form p { margin: 0; line-height: 1.6; }
+.football-player-move-note, .football-squad-delete-reminder { color: var(--football-ink-2); font-size: 14px; }
+.football-squad-delete-form .football-field { gap: 12px; }
+.football-squad-delete-form .football-input:focus-visible { outline-offset: 2px; }
+
+.football-player-replacement { display: grid; gap: 20px; border-top: 1px solid var(--football-rule); padding-top: 20px; }
+.football-player-replacement > p { color: var(--football-accent-ink); font-size: 14px; }
+.football-player-replacement .football-field { gap: 12px; }
+.football-player-replacement .football-field > span { font-size: 14px; overflow-wrap: anywhere; }

@@ -1,0 +1,31 @@
+/* Hallmark · component: player move · theme: Football Life · signature: two-player comparison ledger · v2.0.0 */
+/* Critique: replace the narrow text stack with visible identities and a clear retained-versus-deleted comparison. */
+.football-player-move-modal .football-modal-body { flex: 1; min-height: 0; padding: 24px 28px; overflow-anchor: none; }
+.football-player-move-modal .football-player-move-form { gap: 16px; }
+.football-move-comparison { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); border-block: 1px solid var(--football-rule); }
+.football-move-comparison > section { min-width: 0; padding: 16px 24px 16px 0; }
+.football-move-comparison > section + section { padding-inline: 24px 0; border-inline-start: 1px solid var(--football-rule); }
+.football-move-comparison .football-move-comparison__label { margin: 0 0 16px; font-size: 13px; font-weight: 500; color: var(--football-ink-2); }
+.football-move-comparison__outgoing .football-move-comparison__label { color: var(--football-accent-ink); }
+.football-move-player-identity { display: grid; grid-template-columns: 64px minmax(0, 1fr); align-items: center; gap: 16px; }
+.football-move-portrait { width: 64px; min-width: 0; }
+.football-move-player-identity h3 { min-width: 0; margin: 0 0 8px; overflow-wrap: anywhere; font: 500 24px/1.2 var(--font-headline); }
+.football-move-player-identity span { font-size: 13px; color: var(--football-ink-2); }
+.football-move-comparison dl { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; margin: 12px 0 0; }
+.football-move-comparison dl > div { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; }
+.football-move-comparison dt { font-size: 13px; color: var(--football-ink-2); }
+.football-move-comparison dd { margin: 0; min-width: 0; overflow-wrap: anywhere; text-align: start; font-size: 14px; }
+.football-move-comparison dl > div:first-child dd { font: 500 32px/1 var(--font-headline); }
+.football-move-comparison .football-move-comparison__note { margin: 8px 0 0; font-size: 12px; color: var(--football-ink-2); }
+.football-move-empty { min-height: 186px; display: flex; flex-direction: column; justify-content: center; gap: 12px; }
+.football-move-empty strong { font: 500 22px/1.25 var(--font-headline); overflow-wrap: break-word; min-width: 0; }
+.football-move-empty p { font-size: 14px; color: var(--football-ink-2); }
+.football-move-comparison__skeleton { display: grid; gap: 12px; min-height: 186px; align-content: start; }
+.football-move-comparison__skeleton > div { height: 24px; }
+.football-move-comparison__skeleton > div:first-child { height: 90px; }
+.football-player-move-modal .football-player-replacement { padding-top: 0; border: 0; gap: 16px; }
+.football-player-move-modal .football-modal-footer { flex: none; }
+@media (max-height: 700px) {
+  .football-player-move-modal .football-modal-body { padding-block: 20px; }
+  .football-move-comparison > section { padding-block: 16px; }
+}

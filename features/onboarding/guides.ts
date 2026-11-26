@@ -15,8 +15,8 @@ export const guides = {
   quickSummary: { version: 1, targets: ["quick-totals", "quick-records", "quick-replay"] },
   pve: { version: 1, targets: ["pve-squads"] },
   tournament: { version: 1, targets: ["pve-progress", "pve-round"] },
-  profile: { version: 1, targets: ["account-profile", "account-squads"] },
-  settings: { version: 2, targets: ["settings-navigation", "settings-content"] },
+  profile: { version: 2, targets: ["account-profile"] },
+  settings: { version: 3, targets: ["settings-navigation", "settings-content"] },
   ballonResult: { version: 1, targets: ["ballon-ranking", "ballon-return"], auto: false },
   // Reading pages need on-demand orientation, not an automatic gameplay tour.
   policy: { version: 1, targets: ["policy-navigation", "policy-contact"], auto: false },

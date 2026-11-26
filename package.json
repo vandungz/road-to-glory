@@ -57,6 +57,7 @@
     "lucide-react": "^1.22.0",
     "next": "15.5.29",
     "next-intl": "^4.15.0",
+    "overlayscrollbars": "2.17.1",
     "pg": "^8.22.0",
     "react": "19.1.10",
     "react-dom": "19.1.10",

@@ -6,9 +6,10 @@ interface Props {
   formation: Formation;
   playerCount: number;
   slotCount: number;
+  children?: React.ReactNode;
 }
 
-export function SquadBoardPageHead({ sessionName, formation, playerCount, slotCount }: Props) {
+export function SquadBoardPageHead({ sessionName, formation, playerCount, slotCount, children }: Props) {
   const ui = useTranslations("ui");
   return (
     <div className="football-squad-board__head">
@@ -16,7 +17,7 @@ export function SquadBoardPageHead({ sessionName, formation, playerCount, slotCo
         <h1>{sessionName}</h1>
         <span>{formation}</span>
       </div>
-      <span>{playerCount}/{slotCount} {ui("players")}</span>
+      <div className="football-squad-board__actions"><span>{playerCount}/{slotCount} {ui("players")}</span>{children}</div>
     </div>
   );
 }

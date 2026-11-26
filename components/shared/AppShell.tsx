@@ -1,3 +1,6 @@
+
+import { ScrollArea } from "@/components/ui/ScrollArea";
+import { SupportLink } from "@/components/shared/SupportLink";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
@@ -10,6 +13,7 @@ import type { GuideId } from "@/features/onboarding/guides";
 import { HeaderLanguageButton } from "@/features/settings/components/HeaderLanguageButton";
 import { HeaderAudioButton } from "@/features/audio/HeaderAudioButton";
 import { HeaderSettingsLink } from "@/features/settings/components/HeaderSettingsLink";
+import type { AccountAvatar } from "@/features/settings/profile-avatar";
 
 interface AppShellProps {
   children: React.ReactNode;
@@ -22,6 +26,7 @@ interface AppShellProps {
   showAccountControls?: boolean;
   guide?: GuideId;
   headerTools?: "all" | "help";
+  accountAvatar?: AccountAvatar;
 }
 
 export function AppShell({
@@ -35,6 +40,7 @@ export function AppShell({
   showAccountControls = false,
   guide,
   headerTools = "all",
+  accountAvatar,
 }: AppShellProps) {
   const ui = useTranslations("ui");
   const common = useTranslations("common");
@@ -61,20 +67,20 @@ export function AppShell({
         <div className="football-app-shell__context">
           {headerTools === "all" && headerMeta}
           <div className="football-header-tools">
-            {headerTools === "all" && <><HeaderAudioButton /><HeaderLanguageButton />{!showAccountControls && <HeaderSettingsLink />}</>}
-            <HelpButton showLabel={showAccountControls} />
+            {headerTools === "all" && <><HeaderAudioButton />{showAccountControls && <HeaderLanguageButton />}{!showAccountControls && <HeaderSettingsLink />}</>}
+            <HelpButton showLabel={showAccountControls} /><SupportLink iconOnly />
           </div>
           {showAccountControls && <div className="football-header-account">
-            <AccountNavigation />
+            <AccountNavigation avatar={accountAvatar} />
             {isAuthenticated && <LogoutButton />}
           </div>}
         </div>
       </header>
 
-      <main className="football-app-shell__main" data-mount="page">{children}</main>
+      <ScrollArea as="main" className="football-app-shell__main" data-mount="page">{children}</ScrollArea>
 
       <footer className="football-app-shell__footer">
-        <span>{ui("footballLifeRoadToGlory202526Season")}</span>
+        <span>{ui("footballLifeRoadToGlory202526Season")}</span><SupportLink />
       </footer>
     </div>
   );

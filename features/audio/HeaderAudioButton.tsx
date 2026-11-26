@@ -1,36 +1,48 @@
 "use client";
 
+import { createPortal } from "react-dom";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { Volume2, VolumeX } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { IconButton } from "@/components/ui/IconButton";
 import { updateAudioPreferences, useAudioPreferences } from "./audio-preferences";
 import { unlockGameAudio } from "./game-audio";
-import { useEffect, useId, useRef, useState } from "react";
+import { useLayoutEffect, useId, useRef, useState } from "react";
 import { AudioVolumeControl } from "./AudioVolumeControl";
 
 export function HeaderAudioButton() {
   const t = useTranslations("audio");
   const preferences = useAudioPreferences();
   const [open, setOpen] = useState(false);
+  const [position, setPosition] = useState({ top: 0, left: 0 });
+  const reduced = useReducedMotion();
+  const panel = useRef<HTMLDivElement>(null);
   const root = useRef<HTMLDivElement>(null);
   const trigger = useRef<HTMLButtonElement>(null);
   const id = useId();
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!open) return;
-    root.current?.querySelector<HTMLInputElement>('input[type="range"]')?.focus();
-    const outside = (event: PointerEvent) => { if (event.target instanceof Node && !root.current?.contains(event.target)) setOpen(false); };
+    panel.current?.querySelector<HTMLInputElement>('input[type="range"]')?.focus();
+    const outside = (event: PointerEvent) => { if (event.target instanceof Node && !root.current?.contains(event.target) && !panel.current?.contains(event.target)) setOpen(false); };
     const escape = (event: KeyboardEvent) => { if (event.key === "Escape") { event.stopPropagation(); setOpen(false); trigger.current?.focus(); } };
+    const place = () => {
+      const box = trigger.current?.getBoundingClientRect();
+      if (box) setPosition({ top: box.bottom + 8, left: Math.max(16, Math.min(box.right - 340, window.innerWidth - 356)) });
+    };
+    place();
+    window.addEventListener("resize", place);
+    window.addEventListener("scroll", place, true);
     document.addEventListener("pointerdown", outside);
     document.addEventListener("keydown", escape);
-    return () => { document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); };
+    return () => { window.removeEventListener("resize", place); window.removeEventListener("scroll", place, true); document.removeEventListener("pointerdown", outside); document.removeEventListener("keydown", escape); };
   }, [open]);
   return <div className="football-audio-control" data-audio-controls ref={root} onBlur={(event) => {
-    if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget)) setOpen(false);
+    if (event.relatedTarget instanceof Node && !event.currentTarget.contains(event.relatedTarget) && !panel.current?.contains(event.relatedTarget)) setOpen(false);
   }}>
-    <IconButton ref={trigger} aria-label={t("title")} title={t("title")} aria-expanded={open} aria-haspopup="dialog" aria-controls={open ? id : undefined} data-audio-silent onClick={() => setOpen(!open)}>
+    <IconButton ref={trigger} aria-label={t("title")} aria-expanded={open} aria-haspopup="dialog" aria-controls={open ? id : undefined} data-audio-silent onClick={() => setOpen(!open)}>
       {preferences.muted ? <VolumeX size={18} aria-hidden="true" /> : <Volume2 size={18} aria-hidden="true" />}
     </IconButton>
-    {open && <div id={id} role="dialog" aria-label={t("title")} className="football-audio-popover">
+    {typeof document !== "undefined" && createPortal(<AnimatePresence>{open && <motion.div ref={panel} initial={{ opacity: 0, y: reduced ? 0 : -6 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: reduced ? 0 : -4 }} transition={{ duration: reduced ? 0 : 0.16 }} style={position} id={id} role="dialog" aria-label={t("title")} className="football-audio-popover">
       <label className="football-audio-toggle"><span>{t("mute")}</span><input role="switch" type="checkbox" checked={preferences.muted} onChange={(event) => {
         updateAudioPreferences({ muted: event.target.checked }); unlockGameAudio();
       }} /></label>
@@ -40,6 +52,6 @@ export function HeaderAudioButton() {
       <AudioVolumeControl label={t("musicVolume")} value={preferences.music ? preferences.musicVolume : 0} onChange={(value) => {
         updateAudioPreferences({ musicVolume: value, music: value > 0, muted: false }); unlockGameAudio();
       }} />
-    </div>}
+    </motion.div>}</AnimatePresence>, document.body)}
   </div>;
 }

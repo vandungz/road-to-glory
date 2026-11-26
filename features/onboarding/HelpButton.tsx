@@ -5,7 +5,6 @@ import { useEffect, useState } from "react";
 import { useTranslations } from "next-intl";
 import { usePathname } from "next/navigation";
 import { IconButton } from "@/components/ui/IconButton";
-import { Tooltip } from "@/components/ui/Tooltip";
 import { usePageGuide } from "./GuideProvider";
 import { PageHelpModal } from "./PageHelpModal";
 import { browserGuideStorage, markGuideSeen } from "./guide-storage";
@@ -24,7 +23,7 @@ export function HelpButton({ showLabel = false }: { showLabel?: boolean }) {
 function PageHelpControl({ id, paused, stopTour, showLabel }: { id: GuideId; paused: boolean; stopTour: () => void; showLabel: boolean }) {
   const t = useTranslations("onboarding");
   const [open, setOpen] = useState(false);
-  return <><Tooltip label={paused ? t("busy") : t("help")}>
+  return <>
     <IconButton className={`football-guide-help${showLabel ? " football-guide-help--labelled" : ""}`} aria-label={t("help")} disabled={paused} onClick={() => {
       stopTour();
       markGuideSeen(id, browserGuideStorage());
@@ -33,5 +32,5 @@ function PageHelpControl({ id, paused, stopTour, showLabel }: { id: GuideId; pau
       <CircleHelp size={18} strokeWidth={1.7} aria-hidden="true" />
       {showLabel && <span>{t("helpShort")}</span>}
     </IconButton>
-  </Tooltip><PageHelpModal id={id} open={open} onClose={() => setOpen(false)} /></>;
+  <PageHelpModal id={id} open={open} onClose={() => setOpen(false)} /></>;
 }

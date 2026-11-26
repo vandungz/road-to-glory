@@ -1,0 +1,40 @@
+/* Hallmark · component: shared scrollbars · theme: Football Life · signature: quiet rounded thumbs · v2.0.0 */
+/* Critique: keep native scrolling and keyboard behavior, remove visible tracks and arrow buttons. */
+:root { --football-scrollbar-size: 8px; --football-scrollbar-thumb: var(--football-ink-3); --football-scrollbar-hover: var(--football-ink-2); --football-scrollbar-active: var(--football-accent-ink); --football-scrollbar-track: transparent; }
+* { scrollbar-width: thin; scrollbar-color: var(--football-scrollbar-thumb) var(--football-scrollbar-track); }
+*:hover, *:focus-within { scrollbar-color: var(--football-scrollbar-hover) var(--football-scrollbar-track); }
+@supports selector(::-webkit-scrollbar) {
+  * { scrollbar-width: auto; scrollbar-color: auto; }
+  *::-webkit-scrollbar { width: var(--football-scrollbar-size); height: var(--football-scrollbar-size); }
+  *::-webkit-scrollbar-track, *::-webkit-scrollbar-corner { background: var(--football-scrollbar-track); }
+  *::-webkit-scrollbar-button { display: none; width: 0; height: 0; }
+  *::-webkit-scrollbar-thumb { min-height: 32px; border: 2px solid var(--football-scrollbar-track); border-radius: var(--football-radius-control); background: var(--football-scrollbar-thumb); background-clip: padding-box; }
+  *::-webkit-scrollbar-thumb:hover { background-color: var(--football-scrollbar-hover); }
+  *::-webkit-scrollbar-thumb:active, *:focus-within::-webkit-scrollbar-thumb { background-color: var(--football-scrollbar-active); }
+}
+@media (forced-colors: active) { * { scrollbar-color: auto; } }
+
+/* The custom thumb overlays the viewport with a fixed footprint on every pointer state. */
+.football-scrollbar {
+  --os-size: 8px;
+  --os-padding-perpendicular: 2px;
+  --os-padding-axis: 4px;
+  --os-track-bg: transparent;
+  --os-track-bg-hover: transparent;
+  --os-track-bg-active: transparent;
+  --os-track-border: none;
+  --os-track-border-hover: none;
+  --os-track-border-active: none;
+  --os-handle-bg: var(--football-scrollbar-thumb);
+  --os-handle-bg-hover: var(--football-scrollbar-hover);
+  --os-handle-bg-active: var(--football-scrollbar-active);
+  --os-handle-border-radius: var(--football-radius-control);
+  --os-handle-perpendicular-size: 100%;
+  --os-handle-perpendicular-size-hover: 100%;
+  --os-handle-perpendicular-size-active: 100%;
+  --os-handle-min-size: 32px;
+}
+[data-overlayscrollbars-viewport] { scrollbar-gutter: auto !important; }
+.football-scrollbar .os-scrollbar-handle { transition: background-color var(--football-motion-control) var(--football-motion-ease); }
+[data-overlayscrollbars]:focus-within > .football-scrollbar { --os-handle-bg: var(--football-scrollbar-active); }
+@media (prefers-reduced-motion: reduce) { .football-scrollbar .os-scrollbar-handle { transition: none; } }

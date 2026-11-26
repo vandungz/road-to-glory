@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { CoachMark } from "@/features/onboarding/CoachMark";
@@ -20,10 +22,10 @@ export function TransferNegotiationPanel({ offer, selected, failed, processing, 
   const name = useId();
   const options = computeWageOptions({ baseWage: offer.wageAnnual, minWage: Math.max(1, Math.round(offer.wageAnnual * .7)), maxWage: Math.round(offer.wageAnnual * 1.5) });
   const mood = Math.max(0, 100 - failed.length * 50);
-  return <section data-mount="panel" className="football-transfer-negotiation football-contract-negotiation">
+  return <ScrollArea as="section" data-mount="panel" className="football-transfer-negotiation football-contract-negotiation">
     <PageGuide id="negotiation" paused={processing} />
     <div className="football-contract-negotiation__copy">
-      <div className="football-contract-negotiation__body">
+      <ScrollArea className="football-contract-negotiation__body">
       <button type="button" className="football-transfer-back" disabled={processing} onClick={onBack}><ArrowLeft aria-hidden="true" size={16} />{ui("backToOffers")}</button>
       <h1>{t("dealHeading", { club: offer.clubName })}</h1>
       <p>{t("chooseWage", { count: offer.contractYears })}</p>
@@ -49,9 +51,9 @@ export function TransferNegotiationPanel({ offer, selected, failed, processing, 
           </label>;
         })}
       </fieldset>
-      </div>
+      </ScrollArea>
       <Button size="lg" fullWidth loading={processing} disabled={processing || failed.includes(selected)} onClick={onSubmit}>{ui("submitWageProposal")}</Button>
     </div>
     <aside className="football-contract-negotiation__art" aria-hidden="true"><EditorialArt asset="contract-signing" priority /></aside>
-  </section>;
+  </ScrollArea>;
 }

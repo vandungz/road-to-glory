@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
@@ -139,7 +141,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
               </div>
 
               {/* CỘT 2 (GIỮA): CAREER ACTIONS PANEL */}
-              <div data-guide="career-wheel" className={`football-dashboard__actions ${mobileSection === "action" ? "" : "max-lg:hidden"}`}>
+              <ScrollArea data-guide="career-wheel" className={`football-dashboard__actions ${mobileSection === "action" ? "" : "max-lg:hidden"}`}>
                 <CareerActionsPanel
                   careerSubStep={careerSubStep}
                   currentAge={currentAge}
@@ -168,7 +170,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                   onOpenTransferModal={onOpenTransferModal}
                   onOpenShop={onOpenShop}
                 />
-              </div>
+              </ScrollArea>
 
               {/* CỘT 3 (PHẢI): TAB SWITCH (PANINI STICKER & SEASON PROFILE) */}
               <div className={`football-dashboard__dossier ${mobileSection === "panini" ? "" : "max-lg:hidden"}`}>
@@ -180,7 +182,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                   <TabsTrigger value="transfer" active={rightTab === "transfer"} disabled={wheelInteractionLocked} onSelect={(value) => setRightTab(value as "panini" | "profile" | "transfer")}>{ui("contract")}</TabsTrigger>
                 </TabsList>
 
-                <div className="football-dossier-body" ref={dossier}>
+                <ScrollArea className="football-dossier-body" ref={dossier}>
                     <div className="football-panini-panel" data-mount="panel" hidden={rightTab !== "panini"}>
                     <PaniniSticker
                       portraitId={props.portraitId}
@@ -234,7 +236,7 @@ export function DraftDrumCareerStage(props: DraftDrumCareerStageProps) {
                     </div>
                     </section>
                   )}
-                </div>
+                </ScrollArea>
               </div>
 
             </div>

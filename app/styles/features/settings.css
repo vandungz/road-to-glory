@@ -1,20 +1,29 @@
 /* Hallmark · app: settings · theme: Football Life locked system · signature: personal controls in a flat settings ledger · v2.0.0 */
-/* Critique: replace repeated explanations with a section index and direct account, audio and language controls. */
-.football-settings-page { width: min(100%, 1120px); margin-inline: auto; padding-block: 28px; }
-.football-settings-page h1 { margin: 0 0 24px; font: 600 40px/1.15 var(--font-headline); min-width: 0; overflow-wrap: break-word; text-wrap: balance; }
-.football-settings-layout { display: grid; grid-template-columns: 180px minmax(0, 1fr); gap: 32px; align-items: start; }
-.football-settings-nav { position: sticky; top: 24px; display: grid; gap: 4px; }
-.football-settings-nav a { display: flex; align-items: center; gap: 12px; min-height: 48px; padding-inline: 16px; border-radius: var(--football-radius-control); color: var(--football-ink-2); font-size: 15px; }
-.football-settings-nav a:hover, .football-settings-nav a:active { color: var(--football-accent-ink); background: var(--football-sunken); }
-.football-settings-nav a:focus-visible { outline: var(--football-outline); outline-offset: 2px; }
-.football-settings-content { min-width: 0; padding: 8px 32px; background: var(--football-surface); border-radius: var(--football-radius-panel); }
-.football-settings-section { padding-block: 24px; scroll-margin-top: 24px; }
-.football-settings-section + .football-settings-section { border-top: 1px solid var(--football-rule); }
-.football-settings-section h2, .football-settings-section legend { margin: 0 0 20px; font: 600 28px/1.2 var(--font-headline); min-width: 0; overflow-wrap: break-word; }
-.football-settings-section h3 { margin: 0 0 12px; font: 500 16px/1.4 var(--font-body); }
-.football-settings-profile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 32px; }
-.football-settings-profile .football-account-record { padding-block: 12px; gap: 12px; }
+/* Critique: show one task at a time with true tabs; keep the account controls within the game viewport. */
+.football-settings-page { width: min(100%, 1120px); height: 100%; min-height: 0; margin-inline: auto; display: flex; flex-direction: column; }
+.football-settings-page h1 { margin: 0 0 20px; font: 600 36px/1.15 var(--font-headline); min-width: 0; overflow-wrap: break-word; text-wrap: balance; }
+.football-settings-layout { display: grid; flex: 1; min-height: 0; grid-template-columns: 180px minmax(0, 1fr); gap: 32px; align-items: stretch; }
+.football-settings-nav { display: flex; flex-direction: column; gap: 4px; align-items: stretch; }
+.football-settings-nav button { display: flex; align-items: center; gap: 12px; min-height: 48px; padding-inline: 16px; border: 0; border-radius: var(--football-radius-control); color: var(--football-ink-2); background: transparent; font: 400 15px/1.4 var(--font-body); cursor: pointer; text-align: start; }
+.football-settings-nav button:hover, .football-settings-nav button[aria-selected="true"] { color: var(--football-accent-ink); background: var(--football-sunken); }
+.football-settings-nav button:active { background: var(--football-rule); }
+.football-settings-content { min-width: 0; min-height: 0; background: var(--football-surface); border-radius: var(--football-radius-panel); }
+.football-settings-content > [role="tabpanel"] { height: 100%; min-height: 0; }
+.football-settings-content > [hidden] { display: none; }
+.football-settings-section { padding: 24px 32px; }
+.football-settings-section h2, .football-settings-section legend { margin: 0 0 20px; font: 600 28px/1.2 var(--font-headline); min-width: 0; overflow-wrap: break-word; text-wrap: balance; }
+.football-settings-section h3 { margin: 0 0 8px; font: 500 16px/1.4 var(--font-body); }
+.football-settings-profile { width: 100%; }
 .football-settings-guest p { margin: 0 0 16px; color: var(--football-ink-2); }
+.football-settings-danger { display: flex; align-items: center; justify-content: space-between; gap: 24px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--football-rule); }
+.football-settings-danger p { margin: 0; max-width: 480px; color: var(--football-ink-2); font-size: 14px; }
+.football-settings-danger button { flex: none; color: var(--football-accent-ink); }
+.football-settings-security > form { margin: 0; }
+.football-password-form { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; align-items: start; }
+.football-password-form__new { display: contents; }
+.football-password-form > button { justify-self: start; grid-column: 1 / -1; }
+.football-password-form > p:empty { display: none; }
+.football-password-form > p { grid-column: 1 / -1; margin: 0; }
 .football-settings-page .football-audio-settings { padding: 0; border: 0; }
 .football-settings-page .football-account-options { width: 100%; }
 .football-settings-page :is(a, button, input, summary):focus-visible, .football-audio-popover :is(button, input):focus-visible { outline: var(--football-outline); outline-offset: 3px; }
@@ -30,31 +39,56 @@
 .football-audio-volume input::-webkit-slider-thumb { appearance: none; width: 16px; height: 16px; border-radius: var(--football-radius-control); background: var(--football-accent-ink); border: 2px solid var(--football-surface); }
 .football-audio-volume input::-moz-range-thumb { width: 12px; height: 12px; border-radius: var(--football-radius-control); background: var(--football-accent-ink); border: 2px solid var(--football-surface); }
 .football-audio-volume output { text-align: end; color: var(--football-ink-2); font-variant-numeric: tabular-nums; }
-.football-audio-tracks { display: flex; flex-wrap: wrap; gap: 8px 24px; padding: 12px 0 20px; margin: 0; font-size: 13px; color: var(--football-ink-2); }
-.football-audio-tracks div { display: flex; gap: 8px; }
-.football-audio-tracks dd { margin: 0; color: var(--football-ink); }
-.football-audio-settings details { font-size: 13px; color: var(--football-ink-2); }
-.football-audio-settings details a { text-decoration: underline; text-underline-offset: 3px; }
 .football-audio-control { position: relative; flex: none; }
-.football-audio-popover { position: absolute; z-index: 50; inset: calc(100% + 8px) 0 auto auto; width: 340px; max-width: calc(100dvw - 32px); padding: 16px 20px; border: 1px solid var(--football-rule); border-radius: var(--football-radius-panel); background: var(--football-surface); color: var(--football-ink); }
+.football-audio-popover { position: fixed; z-index: 100; width: 340px; max-width: calc(100dvw - 32px); padding: 16px 20px; border: 1px solid var(--football-rule); border-radius: var(--football-radius-panel); background: var(--football-surface); color: var(--football-ink); }
 .football-audio-popover .football-audio-volume { grid-template-columns: 126px minmax(60px, 1fr) 36px; gap: 8px; font-size: 13px; }
 .football-header-tools > a.football-icon-button { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; border-radius: var(--football-radius); color: var(--football-ink-2); }
 .football-header-tools a:focus-visible { outline: var(--football-outline); outline-offset: 2px; }
-.football-settings-shell { height: auto; min-height: 100dvh; }
-.football-settings-shell .football-app-shell__main { overflow: visible; }
-html:has(.football-settings-shell), body:has(.football-settings-shell) { height: auto; overflow-y: auto; }
-html:has(.football-settings-shell) { scroll-behavior: smooth; }
-.football-settings-layout:not(:has(:target)) .football-settings-nav a[href="#profile"],
-.football-settings-layout:has(#profile:target) .football-settings-nav a[href="#profile"],
-.football-settings-layout:has(#audio:target) .football-settings-nav a[href="#audio"],
-.football-settings-layout:has(#language:target) .football-settings-nav a[href="#language"] { color: var(--football-accent-ink); background: var(--football-sunken); }
-.football-settings-page #language label { display: inline-flex; padding: 8px 16px; margin-inline-end: 8px; border: 1px solid var(--football-rule); border-radius: var(--football-radius-control); }
-.football-settings-page #language label:has(input:checked) { color: var(--football-accent-ink); border-color: var(--football-accent-ink); }
+.football-settings-shell { height: 100dvh; min-height: 0; }
+.football-settings-shell .football-app-shell__main { min-height: 0; overflow: clip; padding-block: 24px; }
+.football-settings-nav button:focus-visible, .football-settings-content [role="tabpanel"]:focus-visible { outline: var(--football-outline); outline-offset: 2px; }
+.football-settings-page #settings-panel-language label { display: inline-flex; padding: 8px 16px; margin-inline-end: 8px; border: 1px solid var(--football-rule); border-radius: var(--football-radius-control); }
+.football-settings-page #settings-panel-language label:has(input:checked) { color: var(--football-accent-ink); border-color: var(--football-accent-ink); }
 .football-settings-page button:disabled { cursor: not-allowed; color: var(--football-ink-2); }
-.football-account-shell .football-app-shell__main:has(.football-settings-page) { scroll-behavior: smooth; }
-@media (max-width: 1100px) { .football-settings-layout { grid-template-columns: 150px minmax(0, 1fr); gap: 24px; } .football-settings-content { padding-inline: 24px; } .football-settings-profile { grid-template-columns: minmax(0, 1fr); gap: 20px; } }
-@media (max-width: 700px) { .football-settings-layout { grid-template-columns: minmax(0, 1fr); gap: 16px; } .football-settings-nav { position: static; display: flex; flex-wrap: wrap; } .football-settings-content { padding-inline: 16px; } }
+.football-settings-shell .football-app-shell__footer a { font-size: 12px; color: var(--football-ink-2); text-decoration: underline; }
+@media (max-width: 1100px) { .football-settings-layout { grid-template-columns: 150px minmax(0, 1fr); gap: 24px; } .football-settings-section { padding-inline: 24px; } }
+@media (max-height: 700px) { .football-settings-shell .football-app-shell__main { padding-block: 16px; } .football-settings-page h1 { margin-bottom: 12px; font-size: 32px; } .football-settings-section { padding-block: 20px; } .football-settings-section h2 { margin-bottom: 16px; } }
 @media (prefers-reduced-motion: reduce) { .football-audio-toggle input::after { transition: none; } }
 @media (prefers-reduced-motion: reduce) { .football-account-shell .football-app-shell__main:has(.football-settings-page) { scroll-behavior: auto; } }
 @media (prefers-reduced-motion: reduce) { html:has(.football-settings-shell) { scroll-behavior: auto; } }
 html[data-game-reduced-motion] .football-audio-toggle input::after { transition: none; }
+.football-account-delete-form { display: flex; flex-direction: column; gap: 20px; }
+.football-account-delete-form > p { margin: 0; }
+.football-account-delete-form .football-field { gap: 12px; }
+.football-account-delete-form .football-input:focus-visible { outline-offset: 2px; }
+.football-profile-row { display: grid; grid-template-columns: 140px minmax(0, 1fr) auto; gap: 20px; align-items: center; min-height: 80px; padding-block: 16px; border-bottom: 1px solid var(--football-rule); }
+.football-profile-row:last-of-type { border-bottom: 0; }
+.football-profile-row > :first-child { font-size: 14px; }
+.football-profile-row strong { font-weight: 500; overflow-wrap: anywhere; }
+.football-profile-row > span, .football-profile-row > div { min-width: 0; overflow-wrap: anywhere; }
+.football-profile-row form { margin: 0; }
+.football-profile-identity { display: flex; align-items: center; gap: 16px; }
+.football-profile-avatar { display: inline-flex; flex: none; align-items: center; justify-content: center; width: 72px; height: 72px; overflow: clip; border-radius: 50%; background: var(--football-sunken); color: var(--football-ink-2); }
+.football-profile-avatar img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.football-profile-note { margin: 4px 0 0; font-size: 13px; color: var(--football-ink-2); }
+.football-profile-details > p:empty { display: none; }
+.football-avatar-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(90px, 1fr)); gap: 16px; }
+.football-avatar-options label { display: flex; position: relative; width: fit-content; align-items: center; justify-content: center; justify-self: center; padding: 8px; border: 2px solid var(--football-rule); border-radius: 50%; cursor: pointer; }
+.football-avatar-options label:has(input:checked) { border-color: var(--football-accent-ink); background: var(--football-sunken); }
+.football-avatar-options label:hover { border-color: var(--football-ink-2); }
+.football-avatar-options label:active { background: var(--football-rule); }
+.football-avatar-options input { accent-color: var(--football-accent-ink); }
+.football-avatar-options input:focus-visible { outline: var(--football-outline); outline-offset: 3px; }
+.football-avatar-options label:has(input:focus-visible) { outline: var(--football-outline); outline-offset: 3px; }
+.football-avatar-options label:has(input:disabled) { background: var(--football-sunken); border-color: var(--football-rule); color: var(--football-ink-3); cursor: wait; }
+.football-account-nav .football-profile-avatar { width: 32px; height: 32px; }
+@media (max-width: 1100px) { .football-profile-row { grid-template-columns: 110px minmax(0, 1fr) auto; gap: 12px; } .football-profile-row button { padding-inline: 12px; font-size: 13px; } }
+@media (max-height: 700px) { .football-profile-row { min-height: 64px; padding-block: 8px; } .football-profile-avatar { width: 56px; height: 56px; } }
+
+.football-information-settings nav { display: grid; }
+.football-information-settings nav a { display: flex; align-items: center; justify-content: space-between; gap: 16px; min-height: 64px; padding-block: 16px; border-bottom: 1px solid var(--football-rule); font-size: 15px; color: var(--football-ink); text-decoration: none; }
+.football-information-settings nav a:hover { color: var(--football-accent-ink); }
+.football-information-settings nav a:active { background: var(--football-sunken); }
+.football-information-settings nav a:focus-visible { outline: var(--football-outline); outline-offset: -4px; }
+.football-information-support { padding-top: 32px; }
+.football-information-support p { margin: 0 0 20px; color: var(--football-ink-2); font-size: 14px; line-height: 1.6; }

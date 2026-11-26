@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
@@ -70,9 +72,9 @@ export function GameList({ sessions }: { sessions: GameSessionSummary[] }) {
       {otherSessions.length > 0 && (
         <section className="football-classic-lobby__other" aria-labelledby="other-squads-title">
           <div className="football-classic-lobby__other-heading"><span id="other-squads-title">{activeSession ? ui("otherSquads") : ui("savedSquads")}</span></div>
-          <div className="football-classic-lobby__other-list" role="region" aria-label={ui("otherSquadsList")} tabIndex={0}>
+          <ScrollArea className="football-classic-lobby__other-list" role="region" aria-label={ui("otherSquadsList")} tabIndex={0}>
             {otherSessions.map((session) => <SessionRow key={session.id} session={session} />)}
-          </div>
+          </ScrollArea>
         </section>
       )}
     </div>

@@ -36,13 +36,12 @@ export function LogoutButton() {
         type="button"
         onClick={handleLogout}
         disabled={isPending}
-        title={ui("signOut")}
+        aria-label={isPending ? ui("signingOut") : ui("signOut")}
         variant="quiet"
         size="sm"
         className="football-app-shell__logout"
       >
         <LogOut aria-hidden="true" size={18} strokeWidth={1.7} />
-        {isPending ? ui("signingOut") : ui("signOut")}
       </Button>
     </>
   );

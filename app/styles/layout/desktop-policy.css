@@ -1,3 +1,5 @@
+/* Hallmark · component: desktop notice · theme: Football Life · signature: actionable device guidance · v2.0.0 */
+/* Critique: replace the oversized stop screen with compact guidance and a usable copy-link action. */
 .football-desktop-notice { display: none; }
 
 @media (width < 1024px) {
@@ -5,27 +7,19 @@
   body > :not(.football-desktop-notice) { display: none !important; }
   body > .football-desktop-content:has(:is(.football-guest-landing, .football-policy, .football-not-found)) { display: block !important; }
   body { overflow-y: auto !important; }
-  .football-desktop-notice {
-    display: flex;
-    min-height: 100svh;
-    flex-direction: column;
-    justify-content: space-between;
-    gap: 48px;
-    padding: 32px 24px;
-    background: var(--football-paper);
-  }
-  .football-desktop-notice__brand {
-    width: fit-content;
-    color: var(--football-ink);
-    font-family: var(--font-headline);
-    font-size: 24px;
-    text-decoration: none;
-  }
-  .football-desktop-notice__body { max-width: 480px; margin-inline: auto; }
-  .football-desktop-notice__body > svg { color: var(--football-accent-ink); margin-bottom: 24px; }
-  .football-desktop-notice h1 { margin: 0; font-family: var(--font-headline); font-size: 44px; line-height: 1.15; }
-  .football-desktop-notice__body p { margin: 24px 0; color: var(--football-ink-2); line-height: 1.7; }
-  .football-desktop-notice__body > span { display: inline-block; padding: 8px 16px; border-radius: var(--football-radius-control); background: var(--football-sunken); font-size: 13px; }
-  .football-desktop-notice__footer { margin: 0; color: var(--football-ink-2); font-size: 12px; }
+  .football-desktop-notice { display: flex; min-height: 100svh; flex-direction: column; gap: 32px; padding: 24px; background: var(--football-paper); }
+  .football-desktop-notice__brand { align-self: flex-start; color: var(--football-ink); font: 600 24px/1.2 var(--font-headline); text-decoration: none; }
+  .football-desktop-notice__body { width: min(100%, 480px); margin: auto; padding-block: 24px; }
+  .football-desktop-notice__body > svg { color: var(--football-accent-ink); margin-bottom: 20px; }
+  .football-desktop-notice h1 { margin: 0; color: var(--football-ink); font: 600 32px/1.2 var(--font-headline); min-width: 0; overflow-wrap: break-word; text-wrap: balance; }
+  .football-desktop-notice__body > p { margin: 16px 0 24px; color: var(--football-ink-2); font-size: 16px; line-height: 1.6; }
+  .football-desktop-notice dl { margin: 0 0 24px; }
+  .football-desktop-notice dl > div { padding-block: 16px; border-top: 1px solid var(--football-rule); }
+  .football-desktop-notice dt { margin-bottom: 8px; font-size: 14px; font-weight: 600; }
+  .football-desktop-notice dd { margin: 0; color: var(--football-ink-2); font-size: 15px; line-height: 1.6; }
+  .football-desktop-notice__footer { width: min(100%, 480px); margin: 0 auto; color: var(--football-ink-2); font-size: 13px; line-height: 1.6; }
+  .football-desktop-notice :is(a, button, input):focus-visible { outline: var(--football-outline); outline-offset: 3px; }
+  .football-desktop-notice__fallback { display: grid; gap: 8px; margin-top: 16px; color: var(--football-ink-2); font-size: 14px; }
+  .football-desktop-notice__fallback input { width: 100%; min-height: 44px; padding: 8px; border: 1px solid var(--football-rule); border-radius: var(--football-radius); color: var(--football-ink); background: var(--football-surface); }
   body:has(> .football-desktop-content :is(.football-guest-landing, .football-policy, .football-not-found)) > .football-desktop-notice { display: none; }
 }

@@ -1,18 +1,18 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useAwardCopy } from "@/features/wheel/components/useAwardCopy";
 import { useTranslations } from "next-intl";
-import React, { useMemo, useState, useTransition } from "react";
-import { RotateCcw, Trash2, X } from "lucide-react";
-import { useRouter } from "next/navigation";
-import { manageSquadPlayerAction } from "@/actions/squad.actions";
+import React, { useMemo, useState } from "react";
+import { Settings2, X } from "lucide-react";
 import { Button } from "@/components/ui/Button";
 import type { SeasonAwardRecord } from "@/types/domain";
 import type { ClientSafePlayer } from "@/types/squad";
 import { getHonourResultLabel, getSpecificHonourLabel } from "@/features/career/lib/honour-display";
 import { getHonourRows } from "@/features/player/lib/honour-summary";
 import { Modal } from "@/components/ui/Modal";
-import { ConfirmDialogContent } from "@/components/ui/ConfirmDialog";
+import { PlayerManagement } from "./PlayerManagement";
 import {
   aggregateCareerStats,
   buildCareerArchiveTimeline,
@@ -28,6 +28,8 @@ interface PlayerCareerDialogProps {
   onClose: () => void;
   gameId?: string;
   canManage?: boolean;
+  moveUsed?: boolean;
+  managementPreview?: boolean;
 }
 
 interface SeasonRow {
@@ -41,13 +43,13 @@ interface SeasonRow {
   isFinal: boolean;
 }
 
-export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage = false }: PlayerCareerDialogProps) {
+export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage = false, moveUsed = false, managementPreview = false }: PlayerCareerDialogProps) {
   const ui = useTranslations("ui");
   const awardCopy = useAwardCopy();
-  const router = useRouter();
-  const [isPending, startTransition] = useTransition();
-  const [actionError, setActionError] = useState<string | null>(null);
-  const [managementMode, setManagementMode] = useState<"replace" | "delete" | null>(null);
+  const [moveView, setMoveView] = useState(false);
+  const [managementBusy, setManagementBusy] = useState(false);
+  const [managementMode, setManagementMode] = useState(false);
+  const managementCopy = useTranslations("squadManagement");
   const debutAge = player?.debutAge ?? 18;
   const retireAge = player?.retireAge ?? 35;
   const statsTimeline = useMemo(() => buildCareerArchiveTimeline({
@@ -95,27 +97,6 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
   const clubRunnerUps = clubHonours.filter((honour) => honour.result === "runner_up");
   const individualRunnerUps = individualHonours.filter((honour) => honour.result === "runner_up");
 
-  function managePlayer(mode: "replace" | "delete") {
-    if (!player || !gameId) return;
-    if (isPending) return;
-    setActionError(null);
-    startTransition(async () => {
-      try {
-        const result = await manageSquadPlayerAction({ gameId, playerId: player.id, mode });
-        if (!result.success) {
-          setActionError(result.error);
-          return;
-        }
-        setManagementMode(null);
-        onClose();
-        if (mode === "replace") router.push(`/classic/${gameId}/draft/${result.slotIndex}`);
-        else router.refresh();
-      } catch {
-        setActionError(ui("squadUpdateError"));
-      }
-    });
-  }
-
   const seasonRows = useMemo<SeasonRow[]>(() => {
     const seasonAwards = player?.honours && player.honours.length > 0
       ? player.honours.map((honour) => {
@@ -161,37 +142,23 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
 
   if (!isOpen || !player) return null;
 
-  const cancelManagement = () => { setManagementMode(null); setActionError(null); };
+  const cancelManagement = () => { setManagementMode(false); setMoveView(false); };
 
   return (
     <Modal
       open={isOpen}
-      title={managementMode ? ui(managementMode === "replace" ? "replacePlayer" : "removeFromSquad") : ui("sCareerRecord", { v0: String(player.name) })}
-      onClose={managementMode ? () => { if (!isPending) cancelManagement(); } : onClose}
-      closeOnBackdrop={!isPending}
-      className={managementMode ? "football-confirm-dialog" : "football-career-modal"}
+      title={managementMode ? managementCopy("managePlayer") : ui("sCareerRecord", { v0: String(player.name) })}
+      onClose={managementMode ? () => { if (!managementBusy) cancelManagement(); } : onClose}
+      closeOnBackdrop={!managementMode}
+      className={managementMode ? (moveView ? "football-player-move-modal" : "football-confirm-dialog") : "football-career-modal"}
       size={managementMode ? "sm" : "md"}
-      transitionKey={managementMode ?? "archive"}
+      transitionKey={managementMode ? "management" : "archive"}
       mobileSheet={false}
-      style={managementMode ? undefined : { width: "min(1056px, calc(100% - 32px))", maxWidth: "1056px", height: "min(700px, calc(100dvh - 40px))", padding: 0, overflow: "hidden" }}
+      style={managementMode ? (moveView ? { width: "min(760px, calc(100% - 32px))", maxWidth: "760px", height: "min(760px, calc(100dvh - 40px))" } : undefined) : { width: "min(1056px, calc(100% - 32px))", maxWidth: "1056px", height: "min(700px, calc(100dvh - 40px))", padding: 0, overflow: "hidden" }}
     >
-      {managementMode ? <ConfirmDialogContent title={ui(managementMode === "replace" ? "replacePlayer" : "removeFromSquad")}
-        description={ui(managementMode === "replace" ? "replacePlayerConfirmation" : "removePlayerConfirmation", { name: player.name })}
-        confirmLabel={ui(managementMode === "replace" ? "replacePlayer" : "removeFromSquad")} pending={isPending} error={actionError}
-        onCancel={cancelManagement} onConfirm={() => managePlayer(managementMode)} /> : <div className="football-career-dialog">
-        <aside className="football-career-dialog__sidebar">
+      {managementMode && gameId ? <PlayerManagement gameId={gameId} player={player} moveUsed={moveUsed} preview={managementPreview} onBusyChange={setManagementBusy} onMoveView={setMoveView} onClose={cancelManagement} onDone={() => { cancelManagement(); onClose(); }} /> : <div className="football-career-dialog">
+        <ScrollArea as="aside" className="football-career-dialog__sidebar">
           <PlayerStickerCard player={player} finalClub={finalClub} debutAge={debutAge} retireAge={retireAge} careerLength={careerLength} />
-
-          {canManage && gameId && <section className="football-career-dialog__management" aria-labelledby="squad-management-title">
-            <span className="football-career-dialog__eyebrow">{ui("manageSquad")}</span>
-            <h3 id="squad-management-title">{ui("manageThisSlot")}</h3>
-            <p>{ui("replacingThePlayerReopensThisSlotAndResetsPveResultsForThisSquad")}</p>
-            <div className="football-career-dialog__management-actions">
-              <Button variant="outline" size="sm" onClick={() => { setActionError(null); setManagementMode("replace"); }} disabled={isPending}><RotateCcw aria-hidden="true" size={14} /> {ui("replacePlayer")}</Button>
-              <Button variant="quiet" size="sm" className="football-career-dialog__danger-button" onClick={() => { setActionError(null); setManagementMode("delete"); }} disabled={isPending}><Trash2 aria-hidden="true" size={14} /> {ui("removeFromSquad")}</Button>
-            </div>
-            {actionError && <p className="football-career-dialog__action-error" role="alert">{actionError}</p>}
-          </section>}
 
           <section className="football-career-dialog__section" aria-labelledby="career-total-title">
             <h3 id="career-total-title">{ui("careerTotals2")}</h3>
@@ -228,7 +195,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
               {individualRunnerUps.map((honour) => <div className="football-career-dialog__metric" key={`${honour.label}:runner-up`}><span>{awardCopy(honour.label)}</span><strong>{honour.count}</strong></div>)}
             </>}
           </section>
-        </aside>
+        </ScrollArea>
 
         <main className="football-career-dialog__main">
           <header className="football-career-dialog__heading">
@@ -236,7 +203,8 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
               <span className="football-career-dialog__eyebrow">{ui("careerArchivePosition")} {player.position} {ui("squad")} {finalClub}</span>
               <h2>{ui("careerProgress")}</h2>
             </div>
-            <button type="button" className="football-career-dialog__close" onClick={onClose} aria-label={ui("closeCareerRecord")}><X size={18} strokeWidth={1.5} aria-hidden="true" /></button>
+            <div className="football-career-dialog__tools">{canManage && gameId && <Button variant="outline" size="sm" onClick={() => setManagementMode(true)}><Settings2 size={16} aria-hidden="true" />{managementCopy("managePlayer")}</Button>}
+            <button type="button" className="football-career-dialog__close" onClick={onClose} aria-label={ui("closeCareerRecord")}><X size={18} strokeWidth={1.5} aria-hidden="true" /></button></div>
           </header>
 
           <section className="football-career-dialog__chart" aria-labelledby="ovr-chart-title">
@@ -246,7 +214,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
 
           <section className="football-career-dialog__seasons" aria-labelledby="season-stats-title">
             <h3 id="season-stats-title">{ui("seasonbyseasonStats")}</h3>
-            <div className="football-career-dialog__table-wrap">
+            <ScrollArea className="football-career-dialog__table-wrap">
               <table>
                 <thead><tr><th>{ui("age")}</th><th>{ui("club")}</th><th>{ui("league")}</th><th>OVR</th><th>{ui("apps2")}</th><th>{ui("goals3")}</th><th>{ui("assists3")}</th><th>{ui("rating")}</th></tr></thead>
                 <tbody>
@@ -265,7 +233,7 @@ export function PlayerCareerDialog({ player, isOpen, onClose, gameId, canManage 
                   ))}
                 </tbody>
               </table>
-            </div>
+            </ScrollArea>
           </section>
         </main>
       </div>}

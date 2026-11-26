@@ -1,5 +1,6 @@
 /* Hallmark · component: trophy cabinet · theme: locked sports album · signature: engraved trophy collection */
 /* Critique: replace the cramped inverse popup with paper, generous artwork and independently scrolling records. */
+/* Hallmark · waive 72 · records intentionally scroll in a labelled tabpanel, verified by keyboard and scroll tests · Art, tabs and footer remain fixed while all rows stay reachable. */
 /* Hallmark · waive 26b · disabled state belongs to shared Tabs and Button · Cabinet tabs are always available. */
 .football-modal-panel.football-trophy-modal { width: 100%; max-width: 960px; }
 .football-trophy-layout { display: grid; grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); grid-template-rows: minmax(0, 1fr); height: 440px; max-height: calc(90dvh - 184px); min-height: 0; overflow: hidden; }

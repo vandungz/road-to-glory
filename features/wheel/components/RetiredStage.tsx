@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
@@ -45,7 +47,7 @@ export function RetiredStage({ position, playerNationality, peakOvrValue, player
           <div className="football-retired-stage__stat"><span>{ui("assists2")}</span><strong>{careerTotalStats.assists}</strong></div>
         </div></div>
         {ballonDorCount > 0 && <ResultBanner tone="honour"><Trophy size={16} aria-hidden="true" /> {ballonDorCount} {ui("ballonDor")}</ResultBanner>}
-        <div className="football-retired-stage__section"><span className="football-eyebrow">{ui("clubHistory")}</span><div className="football-retired-stage__clubs">{clubStints.length === 0 ? <p className="football-modal-note">{ui("noClubHistoryYet2")}</p> : clubStints.map((stint, index) => <div className="football-retired-stage__club" key={`${stint.clubName}-${index}`}><div><strong>{stint.clubName}</strong>{stint.leagueName && <small>{stint.leagueName}</small>}</div><span>{ui("age")} {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : ui("current")}</span><b>{ui("seasonCount", { count: stint.yearsAtClub })}</b></div>)}</div></div>
+        <div className="football-retired-stage__section"><span className="football-eyebrow">{ui("clubHistory")}</span><ScrollArea className="football-retired-stage__clubs">{clubStints.length === 0 ? <p className="football-modal-note">{ui("noClubHistoryYet2")}</p> : clubStints.map((stint, index) => <div className="football-retired-stage__club" key={`${stint.clubName}-${index}`}><div><strong>{stint.clubName}</strong>{stint.leagueName && <small>{stint.leagueName}</small>}</div><span>{ui("age")} {stint.startAge}{stint.endAge ? ` → ${stint.endAge}` : ui("current")}</span><b>{ui("seasonCount", { count: stint.yearsAtClub })}</b></div>)}</ScrollArea></div>
       </section>
       <EditorialRail asset="heritage-touch" />
     </div>

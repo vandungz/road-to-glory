@@ -8,7 +8,7 @@ export default async function DesignPreviewPage({ searchParams }: { searchParams
   if (process.env.NODE_ENV === "production") notFound();
   const { view } = await searchParams;
   if (view === "Home") {
-    return <AppShell className="football-homepage-shell" showAccountControls isAuthenticated>
+    return <AppShell className="football-homepage-shell" showAccountControls isAuthenticated accountAvatar={{ choice: "playmaker", google: null }}>
       <Homepage sessions={previewClassicSessions} isAuthenticated />
     </AppShell>;
   }

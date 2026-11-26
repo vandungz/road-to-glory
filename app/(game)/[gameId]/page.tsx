@@ -35,6 +35,7 @@ export default async function SquadBoardPage({ params }: Props) {
       status: true,
       squadRating: true,
       userId: true,
+      playerMoveUsed: true,
       players: {
         where: { isRetired: true },
         orderBy: { slotIndex: "asc" },
@@ -99,6 +100,7 @@ export default async function SquadBoardPage({ params }: Props) {
     >
       <SquadDashboard
         gameId={gameId}
+        playerMoveUsed={session.playerMoveUsed}
         formation={formation}
         status={session.status}
         squadRating={session.squadRating}

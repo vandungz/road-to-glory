@@ -1,3 +1,4 @@
+import { SupportLink } from "@/components/shared/SupportLink";
 import { HelpButton } from "@/features/onboarding/HelpButton";
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import type { Metadata } from "next";
@@ -6,6 +7,7 @@ import { getLocale } from "next-intl/server";
 import vi from "@/i18n/legal/vi.json";
 import en from "@/i18n/legal/en.json";
 import { LandingLanguageButton } from "./LandingEnhancements";
+import { AudioAttribution } from "@/features/audio/AudioAttribution";
 
 type PolicyKind = "privacy" | "terms";
 const contactEmail = "vdz.indie@gmail.com";
@@ -27,7 +29,7 @@ export async function PolicyDocument({ kind }: { kind: PolicyKind }) {
       <PageGuide id="policy" />
       <header className="football-policy__header">
         <Link className="football-guest-landing__brand" href="/">Road to Glory</Link>
-        <HelpButton />
+        <HelpButton /><SupportLink iconOnly />
         <LandingLanguageButton label={copy.switchLanguage} target={english ? "vi" : "en"} />
       </header>
       <main className="football-policy__main">
@@ -47,6 +49,7 @@ export async function PolicyDocument({ kind }: { kind: PolicyKind }) {
               <section data-guide={id === contactSection ? "policy-contact" : undefined} key={id} id={id} aria-labelledby={`${id}-title`}>
                 <h2 id={`${id}-title`}>{title}</h2>
                 {paragraphs.map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
+                {kind === "terms" && id === "content" && <AudioAttribution />}
                 {id === contactSection && <p><a href={`mailto:${contactEmail}`}>{contactEmail}</a></p>}
               </section>
             ))}
@@ -55,7 +58,7 @@ export async function PolicyDocument({ kind }: { kind: PolicyKind }) {
       </main>
       <footer className="football-policy__footer">
         <Link href="/">{copy.home}</Link>
-        <Link href={`/${related}`}>{copy[related].title}</Link>
+        <Link href={`/${related}`}>{copy[related].title}</Link><SupportLink />
       </footer>
     </div>
   );

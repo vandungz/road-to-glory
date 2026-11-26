@@ -4,6 +4,7 @@ import { z } from "zod";
 import type { Prisma } from "@/app/generated/prisma/client";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { completeSquad } from "@/features/squad/services/squad-management.service";
 import { prisma } from "@/lib/prisma";
 import { requireAuthenticatedUser, requireGameOwnership } from "@/lib/auth/guards";
 import { checkRateLimit } from "@/lib/rate-limit";
@@ -414,25 +415,10 @@ export async function completeGameSession(gameId: string) {
   const owner = await verifyGameOwnership(gameId);
   await checkRateLimit(owner.id);
 
-  const players = await prisma.careerPlayer.findMany({
-    where: {
-      gameSessionId: gameId,
-      slotIndex: { gte: 0, lte: 10 },
-    },
-    select: { peakOvr: true },
-  });
+  await completeSquad(prisma, owner.id, gameId);
 
-  const squadRating = players.length > 0 
-    ? Math.round(players.reduce((sum, p) => sum + p.peakOvr, 0) / players.length)
-    : 0;
-
-  await prisma.gameSession.update({
-    where: { id: gameId },
-    data: {
-      status: "completed",
-      squadRating,
-    },
-  });
-
+  revalidatePath(`/classic/${gameId}`);
+  revalidatePath("/classic");
+  revalidatePath("/");
   revalidatePath(`/${gameId}`);
 }

@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { PageGuide } from "@/features/onboarding/GuideProvider";
 import { useTranslations } from "next-intl";
@@ -144,7 +146,7 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
   const improvements = justFinishedClub ? state.clubs.at(-1)?.improvements ?? [] : state.clubDraft.improvements;
 
   return (
-    <aside className="football-quick-play__tracker" data-guide="quick-tracker" data-nation={player.nationality.replace(/\s+/g, "")} aria-label={ui("playerProfileAndStats")} tabIndex={0}>
+    <ScrollArea as="aside" className="football-quick-play__tracker" data-guide="quick-tracker" data-nation={player.nationality.replace(/\s+/g, "")} aria-label={ui("playerProfileAndStats")} tabIndex={0}>
       <header className="football-quick-play__tracker-head">
         <div className="football-quick-portrait-identity">
           <PlayerPortrait portraitId={player.portraitId} loop />
@@ -170,7 +172,7 @@ function QuickStatsTracker({ quick }: { quick: ReturnType<typeof useQuickMode> }
         <div><dt>{ui("debutAge2")}</dt><dd>{player.debutAge}</dd></div>
         {player.careerLength !== null && <div><dt>{state.phase === "setup" ? ui("career") : ui("seasonsPlayed")}</dt><dd>{state.phase === "setup" ? ui("seasonCount", { count: player.careerLength }) : `${yearsSpent} / ${player.careerLength}`}</dd></div>}
       </dl>}
-    </aside>
+    </ScrollArea>
   );
 }
 
@@ -200,7 +202,7 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
         <div><dt>{ui("cleanSheets2")}</dt><dd>{state.finale.cleanSheets ?? "—"}</dd></div>
         <div><dt>{ui("ballonDor2")}</dt><dd>{state.finale.ballonDorWins ?? 0}</dd></div>
       </dl>
-      <div className="football-quick-summary__records" data-guide="quick-records" role="region" tabIndex={0} aria-label={ui("careerDetails")}>
+      <ScrollArea className="football-quick-summary__records" data-guide="quick-records" role="region" tabIndex={0} aria-label={ui("careerDetails")}>
         <table className="football-quick-summary__journey">
           <caption>{ui("clubHistory2")}</caption>
           <thead><tr>
@@ -219,7 +221,7 @@ function QuickSummary({ quick, isAuthenticated }: { quick: ReturnType<typeof use
           </tbody>
         </table>
         {namedAwards.length > 0 && <div className="football-quick-summary__awards"><h2>{ui("otherIndividualAwards")}</h2><p>{namedAwards.join(", ")}</p></div>}
-      </div>
+      </ScrollArea>
       <div className="football-quick-summary__actions" data-guide="quick-replay">
         {!isAuthenticated && <Link className="football-button football-button--outline" href="/login?next=/">{ui("signInToPlayClassic")}</Link>}
         <Link className="football-button football-button--primary" href="/quick" onClick={quick.reset}><RefreshCw aria-hidden="true" size={14} /> {ui("playQuickModeAgain")}</Link>

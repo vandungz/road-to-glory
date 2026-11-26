@@ -1,5 +1,6 @@
 "use client";
 
+import { ScrollArea } from "./ScrollArea";
 import { useTranslations } from "next-intl";
 import { createContext, useContext, useEffect, useId, useRef, useState, type HTMLAttributes, type ReactNode } from "react";
 import { createPortal } from "react-dom";
@@ -192,7 +193,7 @@ export function ModalHeader({ children, onClose, closeLabel, className, eyebrow 
 }
 
 export function ModalBody({ children, className, ...props }: { children: ReactNode; className?: string } & HTMLAttributes<HTMLDivElement>) {
-  return <div {...props} className={cn("football-modal-body", className)}>{children}</div>;
+  return <ScrollArea {...props} className={cn("football-modal-body", className)}>{children}</ScrollArea>;
 }
 
 export function ModalFooter({ children, className }: { children: ReactNode; className?: string }) {

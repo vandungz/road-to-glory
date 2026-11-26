@@ -1,4 +1,6 @@
 "use client";
+import { ScrollArea } from "@/components/ui/ScrollArea";
+
 
 import { useTranslations } from "next-intl";
 import { ChevronRight, Plus } from "lucide-react";
@@ -86,13 +88,13 @@ export function SquadSheet({ slots, players, inProgressSlots, status, hoveredSlo
       <div className="football-squad-sheet__row football-squad-sheet__row--head" aria-hidden="true">
         <span>{ui("position")}</span><span className="football-squad-sheet__nation">{ui("nationalityShort")}</span><span>{ui("player3")}</span><span>OVR</span><span />
       </div>
-      <div className="football-squad-sheet__table" role="region" aria-label={ui("startingLineup")} tabIndex={0}>
+      <ScrollArea className="football-squad-sheet__table" role="region" aria-label={ui("startingLineup")} tabIndex={0}>
         {slots.map((slot) => {
           const player = playerMap.get(slot.index);
           const state = getSlotStateForIndex(slot.index, player, inProgressSlots, status);
           return <SlotRow key={slot.index} slot={slot} player={player} state={state} isHovered={hoveredSlot === slot.index} onHover={(slotIndex) => onSlotHover?.(slotIndex)} onClick={() => onSlotClick(slot.index, player)} />;
         })}
-      </div>
+      </ScrollArea>
     </section>
   );
 }
