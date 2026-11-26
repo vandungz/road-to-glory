@@ -80,7 +80,7 @@ export function AppShell({
       <ScrollArea as="main" className="football-app-shell__main" data-mount="page">{children}</ScrollArea>
 
       <footer className="football-app-shell__footer">
-        <span>{ui("footballLifeRoadToGlory202526Season")}</span><SupportLink />
+        <span>{ui("footballLifeRoadToGlory202526Season")}</span>
       </footer>
     </div>
   );

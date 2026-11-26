@@ -58,7 +58,7 @@ export async function PolicyDocument({ kind }: { kind: PolicyKind }) {
       </main>
       <footer className="football-policy__footer">
         <Link href="/">{copy.home}</Link>
-        <Link href={`/${related}`}>{copy[related].title}</Link><SupportLink />
+        <Link href={`/${related}`}>{copy[related].title}</Link>
       </footer>
     </div>
   );

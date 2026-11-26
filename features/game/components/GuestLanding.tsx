@@ -134,7 +134,7 @@ export function GuestLanding() {
           </nav>
           <div>
             <h2>{t("footer.community")}</h2>
-            <ul><li><a href="mailto:vdz.indie@gmail.com">{t("footer.contact")}</a></li><li><SupportLink /></li></ul>
+            <ul><li><a href="mailto:vdz.indie@gmail.com">{t("footer.contact")}</a></li></ul>
           </div>
           <div>
             <h2>{t("footer.policies")}</h2>

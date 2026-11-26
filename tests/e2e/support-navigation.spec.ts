@@ -24,7 +24,7 @@ test("settings Information groups policies and support without overflowing", asy
   await page.screenshot({ path: testInfo.outputPath("privacy-navigation.png") });
 });
 
-test("headers and footers point to the same Ko-fi page without embedding payment scripts", async ({ page }) => {
+test("support remains in headers and is absent from footers without embedding payment scripts", async ({ page }) => {
   const externalRequests: string[] = [];
   page.on("request", (request) => { if (request.url().includes("ko-fi.com")) externalRequests.push(request.url()); });
   for (const route of ["/", "/en", "/dev/design-preview?view=Home", "/dev/career-workspace", "/dev/transfer-window-preview", "/settings?tab=information", "/terms"]) {
@@ -37,8 +37,7 @@ test("headers and footers point to the same Ko-fi page without embedding payment
     await expect(heart).toHaveAccessibleName(/Ko-fi/);
     await heart.focus();
     await expect(heart).toBeFocused();
-    const footer = page.locator("footer a.football-support-link").first();
-    if (await footer.count()) await expect(footer).toHaveAttribute("href", url);
+    await expect(page.locator("footer a.football-support-link")).toHaveCount(0);
     await expectNoHorizontalOverflow(page);
   }
   expect(externalRequests).toEqual([]);
