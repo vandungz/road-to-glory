@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 
 const jsonChoiceSchema = z.union([
   z.string().max(100),

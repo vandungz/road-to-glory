@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/Button";
 import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
-import { loginAction, resendSignupAction, signUpAction, verifySignupCodeAction } from "@/actions/auth.actions";
+import { sessionRequest } from "@/features/auth/session-request";
 
 type Mode = "login" | "register";
 type View = "form" | "confirm-email";
@@ -65,13 +65,13 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
     setIsPending(true);
     try {
       if (mode === "login") {
-        const result = await loginAction({ email, password });
+        const result = await sessionRequest("login", { email, password });
         if (!result.success) { setError(result.error); return; }
         window.location.href = nextPath;
         return;
       }
 
-      const result = await signUpAction({ email, password });
+      const result = await sessionRequest("signup", { email, password });
       if (!result.success) { setError(result.error); return; }
       openVerification();
       setNotice(true);
@@ -90,7 +90,7 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
     setNotice(false);
     setIsPending(true);
     try {
-      const result = await verifySignupCodeAction({ email, token });
+      const result = await sessionRequest("verify", { email, token });
       if (result.success) window.location.assign(nextPath);
       else setError(result.error);
     } catch {
@@ -107,7 +107,7 @@ export function LoginForm({ initialError, nextPath = "/", initialVerification = 
     setNotice(false);
     setIsResending(true);
     try {
-      const result = await resendSignupAction(email);
+      const result = await sessionRequest("resend", email);
       if (!result.success) {
         setError(result.error);
         if (result.retryAfterSeconds) startCooldown(result.retryAfterSeconds);

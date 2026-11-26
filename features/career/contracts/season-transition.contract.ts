@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 
 /**
  * Explicitly acknowledges the off-season shop gate. `completed` means the

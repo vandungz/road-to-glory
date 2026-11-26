@@ -2,7 +2,7 @@ import { isGameId, parseSquadSlot } from "./route-params";
 
 const publicPages = new Set([
   "/", "/en", "/quick", "/quick/play", "/login", "/settings", "/profile", "/privacy", "/terms",
-  "/auth/google", "/auth/callback", "/auth/reset-password",
+  "/auth/google", "/auth/callback", "/auth/reset-password", "/auth/session",
   "/robots.txt", "/sitemap.xml",
 ]);
 

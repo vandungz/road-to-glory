@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 import { PLAYER_PROFILE_POSITIONS } from "@/features/player/lib/player-portraits";
 import type { ClubStint, SeasonHistory, StatSnapshot, AchievementRecord } from "@/types/domain";
 

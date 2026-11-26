@@ -10,7 +10,7 @@ const sessionCookieMaxAge = 60 * 60 * 24 * 7;
 export async function middleware(request: NextRequest) {
   const pathname = request.nextUrl.pathname;
   const nonce = btoa(String.fromCharCode(...crypto.getRandomValues(new Uint8Array(16))));
-  const policy = contentSecurityPolicy(nonce, isProduction, pathname === "/login" || pathname === "/auth/google");
+  const policy = contentSecurityPolicy(nonce, isProduction);
   const requestHeaders = new Headers(request.headers);
   requestHeaders.delete("x-football-not-found");
   requestHeaders.delete("x-football-landing-locale");

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 
 export const purchaseShopItemCommandSchema = z.object({
   playerId: z.string().uuid(),

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 
 export const commitSeasonStatsCommandSchema = z.object({

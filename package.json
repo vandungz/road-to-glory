@@ -10,6 +10,8 @@
     "test:e2e": "playwright test",
     "test:e2e:ui": "playwright test --ui",
     "check:auth-recovery": "tsx --tsconfig tests/tsconfig.json tests/auth-recovery.test.tsx",
+    "check:auth-session": "tsx tests/auth-session.test.ts && tsx tests/zod-csp.test.ts && tsx tests/security/login-failure-budget.test.ts",
+    "check:oauth-csp": "tsx tests/security-policy.test.ts && tsx tests/middleware-csp.test.ts && tsx tests/oauth-form-csp.browser.ts",
     "check:not-found": "tsx tests/not-found.test.ts && tsx tests/middleware-csp.test.ts",
     "check:security-remediation": "tsx tests/security-policy.test.ts && tsx tests/middleware-csp.test.ts && tsx tests/security-runtime.test.ts && tsx tests/database-tls.test.ts",
     "check:onboarding": "tsx scripts/onboarding-config-check.ts",

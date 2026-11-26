@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import { useState } from "react";
 import { LogOut } from "lucide-react";
 import { Button } from "@/components/ui/Button";
-import { logoutAction } from "@/actions/auth.actions";
+import { sessionRequest } from "@/features/auth/session-request";
 
 export function LogoutButton() {
   const ui = useTranslations("ui");
@@ -16,7 +16,7 @@ export function LogoutButton() {
     setError(null);
     setIsPending(true);
     try {
-      const result = await logoutAction();
+      const result = await sessionRequest("logout");
       if (result.success) {
         window.location.replace("/login");
         return;

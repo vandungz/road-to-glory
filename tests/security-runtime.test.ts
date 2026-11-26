@@ -21,9 +21,11 @@ async function main() {
   let calls = 0;
   let writes = 0;
   let providerFailure = false;
+  let remaining = 1;
   class DummyRatelimit {
     static slidingWindow() { return {}; }
     async limit() { calls++; if (providerFailure) throw new Error("Dummy limiter unavailable"); return response; }
+    async getRemaining() { if (providerFailure) throw new Error("Dummy limiter unavailable"); return { remaining, reset: Date.now() + 60_000 }; }
   }
   try {
     environment.NODE_ENV = "production";
@@ -37,6 +39,14 @@ async function main() {
     replace("../lib/prisma", { prisma: { gameSession: { create: async () => { writes++; return { id: "dummy-session" }; } } } });
     const { checkRateLimit, checkAuthRateLimit } = load("../lib/rate-limit") as typeof import("../lib/rate-limit");
     const { createGameSession } = load("../features/game/actions/createGameSession") as typeof import("../features/game/actions/createGameSession");
+    const beforeRead = calls;
+    await checkAuthRateLimit("login-failure", "dummy", { consume: false });
+    assert.equal(calls, beforeRead, "Checking a failure budget must not consume a successful login");
+    remaining = 0;
+    await assert.rejects(checkAuthRateLimit("login-failure", "dummy", { consume: false }), /Too many authentication/);
+    providerFailure = true;
+    await assert.rejects(checkAuthRateLimit("login-failure", "dummy", { consume: false }), /Dummy limiter unavailable/);
+    providerFailure = false;
     const input = new FormData();
     input.set("name", "Quota fixture");
     input.set("formation", "4-3-3");
@@ -67,6 +77,7 @@ async function main() {
     const missing = load("../lib/rate-limit") as typeof import("../lib/rate-limit");
     await assert.rejects(missing.checkRateLimit("dummy"), /protection is unavailable/);
     await assert.rejects(missing.checkAuthRateLimit("login", "dummy"), /protection is unavailable/);
+    await assert.rejects(missing.checkAuthRateLimit("login-failure", "dummy", { consume: false }), /protection is unavailable/);
     environment.NODE_ENV = "development";
     await missing.checkRateLimit("dummy");
     console.log("Security runtime: actual squad action blocks timeout/denial/provider failure/missing configuration without database writes.");

@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 import type { WageDealOption } from "@/lib/salary-negotiation";
 
 export const completeTransferCommandSchema = z.object({

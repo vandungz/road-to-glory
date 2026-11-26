@@ -1,6 +1,6 @@
 "use server";
 
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 import { requireAuthenticatedUser } from "@/lib/auth/guards";
 import { checkRateLimit } from "@/lib/rate-limit";
 import { resolveWheelCommandSchema, type WheelCheckpointDto } from "@/features/career/contracts/checkpoint.contract";

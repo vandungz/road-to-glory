@@ -1,4 +1,4 @@
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 
 const transferContextSchema = {
   playerId: z.string().uuid(),

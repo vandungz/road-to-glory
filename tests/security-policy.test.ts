@@ -15,12 +15,12 @@ for (const url of ["/classic/id/draft/0.png", "/id/draft/0.svg", "/classic/id/tr
 for (const url of ["/_next/static/chunk.js", "/_next/image?url=photo.png", "/media/editorial/trophy-collection.webp", "/media/landing/career-gameplay-v2.mp4", "/favicon.ico"]) {
   assert.equal(unstable_doesMiddlewareMatch({ config, nextConfig: {}, url }), false, `Leave real static asset ${url} cacheable`);
 }
-const production = contentSecurityPolicy("testnonce", true, false);
+const production = contentSecurityPolicy("testnonce", true);
 assert.match(production, /script-src 'self' 'nonce-testnonce' 'strict-dynamic'/);
 assert.doesNotMatch(production.split(";").find((part) => part.trim().startsWith("script-src"))!, /unsafe-inline|unsafe-eval/);
 assert.match(production, /frame-ancestors 'none'/);
-assert.match(contentSecurityPolicy("testnonce", true, true), /form-action 'self' https:\/\/\*\.supabase\.co https:\/\/accounts\.google\.com/);
-assert.match(contentSecurityPolicy("testnonce", false, false), /unsafe-eval/);
+assert.match(production, /form-action 'self' https:\/\/\*\.supabase\.co https:\/\/accounts\.google\.com/);
+assert.match(contentSecurityPolicy("testnonce", false), /unsafe-eval/);
 async function checkGlobalHeaders() {
   const rules = await nextConfig.headers!();
   assert.ok(rules.some((rule) => rule.source === "/:path*" && rule.headers.some((header) => header.key === "X-Frame-Options" && header.value === "DENY")));

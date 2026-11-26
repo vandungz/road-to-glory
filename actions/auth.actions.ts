@@ -2,7 +2,7 @@
 
 import { getTranslations } from "next-intl/server";
 import { headers } from "next/headers";
-import { z } from "zod";
+import { z } from "@/lib/validation/zod";
 import { createClient } from "@/lib/supabase/server";
 import {
   AuthRateLimitError,
@@ -52,6 +52,10 @@ async function checkAuthOperationRateLimit(
   await Promise.all([
     checkAuthRateLimit(operation, `ip:${ip}`),
     checkAuthRateLimit(operation, `email:${email}`),
+    ...(operation === "login" ? [
+      checkAuthRateLimit("login-failure", `ip:${ip}`, { consume: false }),
+      checkAuthRateLimit("login-failure", `email:${email}`, { consume: false }),
+    ] : []),
   ]);
   return { ip };
 }

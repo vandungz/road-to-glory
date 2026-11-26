@@ -111,6 +111,7 @@ export async function checkRateLimit(identifier: string): Promise<void> {
 export async function checkAuthRateLimit(
   operation: AuthRateLimitOperation,
   identifier: string,
+  options?: { consume: false },
 ): Promise<void> {
   if (!authRatelimits) {
     if (process.env.NODE_ENV === "production") {
@@ -119,6 +120,11 @@ export async function checkAuthRateLimit(
     return;
   }
 
+  if (options?.consume === false) {
+    const { remaining, reset } = await authRatelimits[operation].getRemaining(identifier);
+    if (remaining <= 0) throw new AuthRateLimitError(reset);
+    return;
+  }
   const { success, reset, reason } = await authRatelimits[operation].limit(identifier);
   if (reason === "timeout") throw new Error("Request protection is unavailable.");
   if (!success) {

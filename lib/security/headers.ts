@@ -5,13 +5,14 @@ export const securityHeaders = [
   { key: "Permissions-Policy", value: "camera=(), microphone=(), geolocation=()" },
 ];
 
-export function contentSecurityPolicy(nonce: string, production: boolean, oauthForm: boolean): string {
+export function contentSecurityPolicy(nonce: string, production: boolean): string {
   return [
     "default-src 'self'",
     "base-uri 'self'",
     "frame-ancestors 'none'",
     "object-src 'none'",
-    oauthForm ? "form-action 'self' https://*.supabase.co https://accounts.google.com" : "form-action 'self'",
+    // Client navigation retains the entry document's CSP, including on login/settings.
+    "form-action 'self' https://*.supabase.co https://accounts.google.com",
     "img-src 'self' data: blob: https:",
     "font-src 'self' data: https:",
     "media-src 'self'",

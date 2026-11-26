@@ -30,6 +30,10 @@ async function main() {
     assert.equal(first.headers.get("x-middleware-request-content-security-policy"), first.headers.get("Content-Security-Policy"));
     assert.equal(first.headers.get("X-Frame-Options"), "DENY");
     assert.equal(first.headers.get("Cache-Control"), "private, no-store");
+    for (const document of [response, first, second]) {
+      assert.match(document.headers.get("Content-Security-Policy")!, /form-action 'self' https:\/\/\*\.supabase\.co https:\/\/accounts\.google\.com/,
+        "OAuth must work after client navigation from any entry document");
+    }
     const english = await middleware(new NextRequest("https://example.invalid/en", {
       headers: { "x-forwarded-proto": "https", "x-football-landing-locale": "vi", cookie: "football-life-locale=vi" },
     }));

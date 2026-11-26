@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { createRequire, Module } from "node:module";
 import { resolve } from "node:path";
 
-// Desired security contract. Expected to fail on the audited pre-fix source.
+// Check the failure budget before contacting the provider again.
 // This is not evidence of real Supabase throttling or account compromise.
 const load = createRequire(resolve("tests/security/login-failure-budget.test.ts"));
 const saved = new Map<string, NodeModule | undefined>();
@@ -17,6 +17,7 @@ function replace(name: string, exports: object) {
 
 async function main() {
   let providerCalls = 0;
+  let providerStatus: number | null = 400;
   const counts = new Map<string, number>();
   class DummyRateLimitError extends Error {
     readonly resetAt = Date.now() + 60_000;
@@ -29,13 +30,17 @@ async function main() {
     replace("../../lib/supabase/server", { createClient: async () => ({ auth: {
       signInWithPassword: async () => {
         providerCalls++;
-        return { data: { session: null }, error: { status: 400 } };
+        return { data: { session: providerStatus === null ? { fixture: true } : null }, error: providerStatus === null ? null : { status: providerStatus } };
       },
     } }) });
     replace("../../lib/rate-limit", {
       AuthRateLimitError: DummyRateLimitError,
-      checkAuthRateLimit: async (operation: string, identifier: string) => {
+      checkAuthRateLimit: async (operation: string, identifier: string, options?: { consume: false }) => {
         const key = `${operation}:${identifier}`;
+        if (options?.consume === false) {
+          if ((counts.get(key) ?? 0) >= 5) throw new DummyRateLimitError("Dummy quota reached");
+          return;
+        }
         const count = (counts.get(key) ?? 0) + 1;
         counts.set(key, count);
         if (count > (operation === "login-failure" ? 5 : 10)) {
@@ -52,6 +57,13 @@ async function main() {
       assert.equal(result.success, false);
     }
     assert.equal(providerCalls, 5, "Sixth attempt must stop before the provider after five failures");
+    counts.clear();
+    providerStatus = null;
+    assert.equal((await loginAction({ email: "fixture@example.invalid", password: "dummy-correct" })).success, true);
+    assert.equal([...counts.keys()].filter((key) => key.startsWith("login-failure:")).length, 0, "Successful login must not consume the failure budget");
+    providerStatus = 503;
+    assert.equal((await loginAction({ email: "fixture@example.invalid", password: "dummy" })).success, false);
+    assert.equal([...counts.keys()].filter((key) => key.startsWith("login-failure:")).length, 0, "Provider outage must not consume the failure budget");
     console.log("PASS: exhausted failure budget stops further credential checks.");
   } finally {
     if (previousAction) load.cache[actionId] = previousAction;
