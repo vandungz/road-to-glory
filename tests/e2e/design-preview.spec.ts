@@ -36,6 +36,7 @@ test("shop states render and a failed purchase remains recoverable without write
   await expect(dialog).toBeVisible();
   for (const viewport of [{ width: 1024, height: 768 }, { width: 1440, height: 900 }]) {
     await page.setViewportSize(viewport);
+    await expect.poll(() => dialog.evaluate((node) => node.getAnimations().every((animation) => animation.playState === "finished"))).toBe(true);
     const layout = await dialog.evaluate((node) => {
       const body = node.querySelector(".football-shop-content__body")!;
       const footer = node.querySelector(".football-shop-content__footer")!;
@@ -45,7 +46,7 @@ test("shop states render and a failed purchase remains recoverable without write
     expect(layout.gap).toBeGreaterThanOrEqual(0);
     expect(layout.inset).toBeGreaterThanOrEqual(24);
     expect(layout.bottom).toBeLessThanOrEqual(viewport.height);
-    expect(layout.overflow).toBe("auto");
+    expect(layout.overflow).toMatch(/auto|scroll/);
   }
   const buy = dialog.getByRole("button", { name: "Mua", exact: true }).first();
   await buy.scrollIntoViewIfNeeded();

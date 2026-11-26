@@ -1,0 +1,35 @@
+import { test, expect, expectNoHorizontalOverflow } from "./helpers";
+
+test("custom scrollbars keep fixed geometry, hide native controls and support wheel, keyboard and drag", async ({ page }, testInfo) => {
+  await page.goto("/dev/trophy-cabinet");
+  await expect.poll(() => page.getByRole("dialog").evaluate((element) => element.getAnimations().every((animation) => animation.playState === "finished"))).toBe(true);
+  const panel = page.getByRole("tabpanel");
+  const bar = panel.locator(".os-scrollbar-vertical"); const handle = bar.locator(".os-scrollbar-handle");
+  await expect(handle).toBeVisible();
+  expect(await panel.evaluate((element) => getComputedStyle(element).scrollbarWidth)).toBe("none");
+  const before = await panel.evaluate((element) => ({ width: element.clientWidth, x: element.firstElementChild!.getBoundingClientRect().x }));
+  const size = await bar.boundingBox();
+  expect(size!.width).toBe(8);
+  await handle.hover();
+  expect((await bar.boundingBox())!.width).toBe(size!.width);
+  expect(await panel.evaluate((element) => ({ width: element.clientWidth, x: element.firstElementChild!.getBoundingClientRect().x }))).toEqual(before);
+  expect(await bar.locator("button").count()).toBe(0);
+  expect(await bar.locator(".os-scrollbar-track").evaluate((element) => getComputedStyle(element).backgroundColor)).toBe("rgba(0, 0, 0, 0)");
+  expect(parseFloat(await handle.evaluate((element) => getComputedStyle(element).borderRadius))).toBeGreaterThan(0);
+  await panel.hover(); await page.mouse.wheel(0, 350);
+  await expect.poll(() => panel.evaluate((element) => element.scrollTop)).toBeGreaterThan(0);
+  await panel.focus(); await page.keyboard.press("End");
+  await expect(panel.locator(".football-trophy-row").last()).toBeInViewport({ ratio: 1 });
+  await page.keyboard.press("Home");
+  await expect.poll(() => panel.evaluate((element) => element.scrollTop)).toBe(0);
+  const thumb = await handle.boundingBox();
+  await page.mouse.move(thumb!.x + thumb!.width / 2, thumb!.y + thumb!.height / 2);
+  await page.mouse.down(); await page.mouse.move(thumb!.x + thumb!.width / 2, thumb!.y + thumb!.height / 2 + 80, { steps: 10 }); await page.mouse.up();
+  await expect.poll(() => panel.evaluate((element) => element.scrollTop)).toBeGreaterThan(50);
+  await expectNoHorizontalOverflow(page);
+  await page.screenshot({ path: `.hallmark/shots/scrollbar-${testInfo.project.name}.png` });
+  await page.keyboard.press("Escape");
+  await page.goto("/terms");
+  await page.mouse.move(700, 400); await page.mouse.wheel(0, 500);
+  await expect.poll(() => page.evaluate(() => scrollY)).toBeGreaterThan(0);
+});

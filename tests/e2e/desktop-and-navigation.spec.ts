@@ -39,7 +39,7 @@ for (const route of ["/quick", "/quick/play", "/login", "/auth/reset-password", 
   test(`narrow screen gates direct navigation to ${route}`, async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(route);
-    await expect(page.getByRole("heading", { name: "Hãy mở game trên máy tính" })).toBeVisible();
+    await expect(page.getByRole("heading", { name: "Chơi trên màn hình lớn" })).toBeVisible();
     await expect(page.locator(".football-desktop-content")).toBeHidden();
     await expectNoHorizontalOverflow(page);
   });
@@ -50,7 +50,7 @@ test("1023px is gated, 1024px restores the same form draft", async ({ page }) =>
   const name = page.getByRole("textbox", { name: "Tên cầu thủ" });
   await name.fill("Giữ nguyên bản nháp");
   await page.setViewportSize({ width: 1023, height: 768 });
-  await expect(page.getByRole("heading", { name: "Hãy mở game trên máy tính" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Chơi trên màn hình lớn" })).toBeVisible();
   await page.setViewportSize({ width: 1024, height: 768 });
   await expect(name).toBeVisible();
   await expect(name).toHaveValue("Giữ nguyên bản nháp");

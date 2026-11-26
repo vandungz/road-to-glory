@@ -1,4 +1,5 @@
 import { test, expect, expectNoHorizontalOverflow } from "./helpers";
+import { EDITORIAL_ASSETS } from "../../components/shared/EditorialArt";
 import type { Locator } from "@playwright/test";
 
 async function paintedImageSize(image: Locator) {
@@ -18,7 +19,7 @@ test("all editorial assets decode and fit supported desktop sizes", async ({ pag
   await page.goto("/dev/design-preview");
   await page.getByRole("tab", { name: "Media", exact: true }).click();
   const images = page.locator(".football-editorial-art");
-  await expect(images).toHaveCount(9);
+  await expect(images).toHaveCount(EDITORIAL_ASSETS.length);
   for (const image of await images.all()) {
     await image.scrollIntoViewIfNeeded();
     await expect.poll(() => image.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
@@ -39,7 +40,7 @@ test("entry art preserves actions and reduced-motion uses static images", async 
     await expect(art).toBeVisible();
     await expect.poll(() => art.evaluate((element) => (element as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
     expect((await art.boundingBox())!.height).toBeGreaterThanOrEqual(300);
-    await expect(page.locator("video")).toHaveCount(0);
+    for (const video of await page.locator("video").all()) await expect(video).toHaveJSProperty("paused", true);
     await expectNoHorizontalOverflow(page);
   }
 });

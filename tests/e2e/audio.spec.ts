@@ -14,8 +14,8 @@ test("audio stays unloaded before interaction and music is opt-in", async ({ pag
   expect(audio.some((url) => url.endsWith(assets.music))).toBe(false);
 });
 
-test("settings persist volume, mute and music preferences and expose credits", async ({ page }, testInfo) => {
-  await page.goto("/settings");
+test("settings persist volume, mute and music preferences without a Credits footer", async ({ page }, testInfo) => {
+  await page.goto("/settings?tab=audio");
   const music = page.getByRole("switch", { name: "Nhạc nền", exact: true });
   await expect(music).not.toBeChecked();
   await music.check();
@@ -25,10 +25,8 @@ test("settings persist volume, mute and music preferences and expose credits", a
   await expect(music).toBeChecked();
   await expect(page.getByRole("slider", { name: "Âm lượng nhạc" })).toHaveValue("25");
   await expect(page.getByRole("switch", { name: "Tắt toàn bộ âm thanh", exact: true })).toBeChecked();
-  await expect(page.getByRole("button", { name: "Nghe thử hiệu ứng" })).toBeDisabled();
-  await page.getByText("Nguồn âm thanh và giấy phép", { exact: true }).click();
-  await expect(page.getByText("Floating Cities", { exact: true })).toBeVisible();
-  await expect(page.getByRole("link", { name: "CC BY 4.0", exact: true })).toHaveCount(2);
+  await expect(page.getByRole("button", { name: "Nghe thử hiệu ứng" })).toHaveCount(0);
+  await expect(page.getByRole("link", { name: "Credits", exact: true })).toHaveCount(0);
   await page.setViewportSize({ width: 1024, height: 600 });
   await expectNoHorizontalOverflow(page);
   await page.screenshot({ path: testInfo.outputPath("audio-settings.png"), fullPage: true });
@@ -42,13 +40,12 @@ test("replaying an effect fetches it once and muting survives navigation", async
     AudioContext.prototype.createBufferSource = function () { browser.audioSources++; return createSource.call(this); };
   });
   const downloads: string[] = [];
-  page.on("request", (request) => { if (request.url().endsWith(assets.success)) downloads.push(request.url()); });
-  await page.goto("/settings");
-  const preview = page.getByRole("button", { name: "Nghe thử hiệu ứng" });
-  await preview.click();
+  page.on("request", (request) => { if (request.url().endsWith(assets.click)) downloads.push(request.url()); });
+  await page.goto("/settings?tab=audio");
+  await page.getByRole("tab", { name: "Ngôn ngữ", exact: true }).click();
   await expect.poll(() => downloads.length).toBe(1);
   await page.waitForLoadState("networkidle");
-  await preview.click();
+  await page.getByRole("tab", { name: "Âm thanh", exact: true }).click();
   await page.waitForLoadState("networkidle");
   expect(downloads).toHaveLength(1);
   expect(await page.evaluate(() => (window as unknown as { audioSources: number }).audioSources)).toBeGreaterThan(0);

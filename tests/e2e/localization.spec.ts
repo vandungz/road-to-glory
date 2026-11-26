@@ -3,7 +3,7 @@ import { test, expect, expectNoHorizontalOverflow } from "./helpers";
 
 test("language persists across routes and switches without resetting a Quick run", async ({ page }, testInfo) => {
   await page.setViewportSize({ width: 1024, height: 600 });
-  await page.goto("/settings");
+  await page.goto("/settings?tab=language");
   await page.getByRole("radio", { name: "English" }).click();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
   await expect(page.getByRole("heading", { name: "Settings" })).toBeVisible();
@@ -34,7 +34,7 @@ test("language persists across routes and switches without resetting a Quick run
   await expect(page.getByText("English test", { exact: true })).toBeVisible();
 
   const settings = await page.context().newPage();
-  await settings.goto("/settings");
+  await settings.goto("/settings?tab=language");
   await expect(settings.getByRole("radio", { name: "English" })).toBeChecked();
   await settings.getByRole("radio", { name: "Tiếng Việt" }).click();
   await expect(settings.locator("html")).toHaveAttribute("lang", "vi");
@@ -63,7 +63,7 @@ test("English renders Classic results and the desktop gate, and account controls
   await page.screenshot({ path: testInfo.outputPath("career-cup-en.png"), animations: "disabled" });
   await dialog.getByRole("button", { name: "Continue" }).click();
   await page.setViewportSize({ width: 390, height: 844 });
-  await expect(page.getByRole("heading", { name: "Play on desktop" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Play on a bigger screen" })).toBeVisible();
 });
 
 test("English transfer filters and negotiation show complete labels", async ({ page, baseURL }) => {

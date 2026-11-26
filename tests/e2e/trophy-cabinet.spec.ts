@@ -5,6 +5,7 @@ test("cabinet preserves categories, keyboard tabs and close focus", async ({ pag
   const dialog = page.getByRole("dialog");
   await expect(dialog).toBeVisible();
   await expect(dialog.getByText("Tổng thành tích (2)")).toBeVisible();
+  await expect(dialog.locator("img")).toHaveAttribute("src", /trophy-collection-v2\.webp(?:&|$)/);
   await expect(dialog.locator(".football-trophy-row")).toHaveCount(1);
   await expect.poll(() => dialog.locator("img").evaluate((image) => (image as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await dialog.getByRole("tab", { name: "Danh hiệu CLB" }).focus();
@@ -41,9 +42,10 @@ test("empty cabinet and English copy remain readable", async ({ page }) => {
   await expect(page.getByRole("dialog")).toContainText("Tổng thành tích (0)");
   await expect(page.getByRole("dialog").locator(".football-empty-state")).toBeVisible();
   await page.keyboard.press("Escape");
-  await page.locator(".football-header-language").click();
+  await page.goto("/settings?tab=language");
+  await page.getByRole("radio", { name: "English", exact: true }).check();
   await expect(page.locator("html")).toHaveAttribute("lang", "en");
-  await page.getByRole("button", { name: "Open cabinet" }).click();
+  await page.goto("/dev/trophy-cabinet?empty=1");
   await expect(page.getByRole("dialog")).toContainText("Total honours (0)");
   await expect(page.getByRole("dialog")).toContainText("No honours yet");
 });

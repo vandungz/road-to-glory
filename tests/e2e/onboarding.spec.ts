@@ -119,7 +119,7 @@ test("busy states, missing anchors, dialogs and route changes cancel safely", as
   await page.getByRole("button", { name: "Toggle busy" }).click();
   await page.waitForTimeout(800);
   await expect(guide).toHaveCount(0);
-  expect(await page.evaluate(() => localStorage.getItem("football-life:guide:settings:v2"))).toBeNull();
+  expect(await page.evaluate(() => localStorage.getItem("football-life:guide:settings:v3"))).toBeNull();
   await page.getByRole("button", { name: "Toggle target" }).click();
   await expect(guide).toBeVisible();
   await page.getByRole("button", { name: "Open fixture dialog" }).click();

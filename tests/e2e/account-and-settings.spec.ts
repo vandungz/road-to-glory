@@ -18,7 +18,7 @@ test("guest header is simplified and settings remain accessible", async ({ page 
 
   await page.getByRole("link", { name: "Trang chủ" }).click();
   await expect(page.getByRole("contentinfo").getByRole("link", { name: "Cài đặt" })).toHaveCount(0);
-  await page.goto("/settings");
+  await page.goto("/settings?tab=audio");
   await expect(page.getByRole("heading", { name: "Cài đặt" })).toBeVisible();
   await expect(page.getByRole("radio", { name: "Theo hệ thống" })).toHaveCount(0);
   await expect(page.getByRole("switch", { name: "Hiệu ứng âm thanh", exact: true })).toBeChecked();
@@ -32,7 +32,7 @@ test("audio settings sync across tabs while system reduced motion and the Quick 
   await startQuickRun(page);
   await expect(page.getByRole("navigation", { name: "Tài khoản và cài đặt" })).toHaveCount(0);
   const settings = await page.context().newPage();
-  await settings.goto("/settings");
+  await settings.goto("/settings?tab=audio");
   const mute = settings.getByRole("switch", { name: "Tắt toàn bộ âm thanh", exact: true });
   await mute.focus();
   await settings.keyboard.press("Space");

@@ -129,7 +129,15 @@ its real TLS handshakes use only local dummy certificates.
 
 `settings-redesign.spec.ts` covers Draft's live label and visible spin action at
 1024×600, compact Career/Transfer headers, keyboard-accessible horizontal audio
-controls, combined Profile/Audio/Language settings, and Floating Cities → Cipher
-selection when Quick Mode leaves Draft. The account/settings, audio, header
+controls, isolated Profile/Security/Audio/Language tabs, and Floating Cities → Cipher
+selection when Quick Mode leaves Draft, plus homepage music after opt-in/interaction. The account/settings, audio, header
 language, onboarding and career workspace suites provide the related regressions.
 These fixtures do not sign in or mutate real accounts.
+
+Account security tests and the rollback-only database fixture are documented in
+`docs/account-settings.md`. The dev preview never submits account mutations.
+
+Squad management: `pnpm exec playwright test tests/e2e/squad-management.spec.ts`.
+Cross-engine scrollbars: `pnpm exec playwright test --config playwright.scrollbars.config.ts`
+(requires `pnpm exec playwright install firefox`). See docs/squad-management.md for
+server/database checks and fixture cleanup behavior.
