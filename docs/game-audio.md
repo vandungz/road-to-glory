@@ -1,7 +1,7 @@
 # Game audio: hosting, playback and verification
 
-Decision date: 2026-11-25. Applies to Classic, Quick and PvE; landing, authentication,
-policy pages and missing routes stay silent. No production configuration was changed.
+Decision updated: 2026-11-26. Audio is available across public/game pages, including
+home, after opt-in and a trusted gesture. Authentication and missing routes stay silent.
 
 ## Storage decision
 
@@ -50,7 +50,7 @@ signed URL, Redis lookup or Supabase request is needed.
   License: https://creativecommons.org/licenses/by/4.0/
   Download: https://incompetech.com/music/royalty-free/mp3-royaltyfree/Floating%20Cities.mp3
   Modified: loudness adjusted, entry/exit fades, metadata stripped, MP3 encoding.
-  Author, title, source, license link and modification notice are visible in Settings.
+  Author, title, source, license link and modification notice are available in the Terms of service content section.
 
 Draft uses Floating Cities. Main gameplay uses **Cipher**, Kevin MacLeod, ISRC
 USUAN1100844, CC BY 4.0. Source and attribution:
@@ -91,7 +91,7 @@ is embedded in the application.
 - SFX over 1 MB compressed or 5 seconds decoded are rejected. A cue whose first load
   takes more than 350 ms is cached but not played late; the next eligible event can
   use the ready buffer. There is no delayed burst of queued ticks.
-- Mute, leaving game routes and hiding the document stop current SFX and pause music.
+- Mute, entering excluded routes and hiding the document stop current SFX and pause music.
   Browser autoplay restrictions or device interruptions are caught. A later trusted
   gesture can resume effects. Audio completion never decides game progression.
 - Shared wheel rotation triggers ticks without additional React state updates.

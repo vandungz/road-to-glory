@@ -219,3 +219,12 @@ labels, text, branding, emblems or logos. Genuine transparent background outside
 the trophy group. Composition nearly square with only a small transparent
 margin, no huge empty space. This will be displayed on a warm cream paper modal
 at 360px wide, so avoid excessive tiny detail. Do not draw UI.”
+
+## Fictional trophy collection revision (2026-11-26)
+
+`public/media/editorial/trophy-collection-v2.webp`: 960×960, transparent WebP,
+318,962 bytes. Generated from the previous collection as a style reference using
+the built-in image tool. The composition retains bronze engraving on warm paper,
+with fictional vessel shapes, handles and bases, no logos or official competition
+marks. This is a design distinction, not a legal clearance guarantee. EditorialArt
+uses this version; the previous file remains for existing cached URLs.

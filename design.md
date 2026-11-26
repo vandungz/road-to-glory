@@ -191,6 +191,17 @@ data, field names and component contracts when changing presentation.
 - Offer Tiếng Việt and English in Settings. Keep the preference per browser and update the document language.
 - Add user-facing copy to both message catalogs. Use one message for a sentence with variables, counts or names. Keep OVR, position codes, Classic, Quick Mode, League Phase, Ballon d’Or and official competition names.
 - Use gameplay identifiers and numeric values for decisions. Format them when displaying the result. Preserve historical data when an older format cannot be read.
-- Keep Profile inside Settings; preserve `/profile` as a redirect. Settings uses a section index for Profile, Audio and Language, without a motion preference section.
-- Gameplay headers keep navigation, audio, Settings, language and Help. Do not repeat season, club or player data already visible in the workspace. Transfer keeps only Help on the right.
-- Audio opens labelled horizontal volume controls. Use Floating Cities for Draft and Cipher for main gameplay; load music only after opt-in and a user gesture.
+- Keep Profile inside Settings; preserve `/profile` as a redirect. Settings uses URL-backed Profile, Security, Audio, Language and Information tabs, with only one panel visible. Keep the page within the viewport; no stacked sections or motion preference section.
+- Gameplay headers keep navigation, audio, Settings and Help. Language is configured in Settings. Do not repeat season, club or player data already visible in the workspace. Transfer keeps Help and the shared support heart on the right.
+- Audio opens labelled horizontal volume controls. Use Floating Cities for Draft and Cipher for main gameplay; load music only after opt-in and a user gesture, including on the homepage. The header audio panel is portalled and animates on open/close. Audio settings contain controls only; attribution stays accessible in Terms of service; no Credits footer link.
+
+- Profile settings use flat account rows: picture/name, editable display name, email and Google connection. Use game avatar choices or the Google identity picture; keep private account identifiers out of the UI.
+- A pending account action disables conflicting operations but only its own submit shows loading. Delete inputs keep focus-ring clearance from adjacent labels.
+
+- The signed-in homepage links to Profile settings through the current avatar. Avatar choices use pictures and accessible names without visible tags. Save feedback is immediate, with rollback on failure.
+- Use a shared thin scrollbar with transparent tracks and no arrow buttons; preserve native scrolling and forced-colors behavior.
+
+- Support uses a quiet heart icon in headers and a text link in footers and Settings Information. Open Ko-fi in a new tab; no embedded payment widget.
+
+- Squad deletion is a quiet board action with typed confirmation and a reminder about the single outbound player move. Retired-player controls belong in the archive header's Manage player panel, not a sidebar box. Destinations must explain exact-position empty slots and the once-per-source-squad rule.
+- Use shared ScrollArea viewports for fixed-size, trackless custom scrollbars across engines. Hover changes color only; preserve wheel, keyboard, drag and high-contrast fallback.
