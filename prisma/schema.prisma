@@ -18,9 +18,11 @@ model GameSession {
   squadRating  Int?
   status       String         @default("in_progress") // "in_progress" | "completed"
   userId       String         // Supabase User ID
+  playerMoveUsed Boolean      @default(false)
   players      CareerPlayer[]
   pveTournament PveTournament?
 
+  @@index([userId, createdAt])
   @@map("game_sessions")
 }
 
