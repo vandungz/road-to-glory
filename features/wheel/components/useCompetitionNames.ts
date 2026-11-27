@@ -1,5 +1,5 @@
 import { useTranslations } from "next-intl";
-import { getContinentalCupLabel, getDomesticCupName } from "../lib/simulation-helpers";
+import { getContinentalCupLabel, getDomesticCupName } from "../lib/competition-display";
 
 export function useCompetitionNames() {
   const ui = useTranslations("ui");

@@ -1,4 +1,5 @@
 "use client";
+import { formatEuroThousands } from "@/lib/money-display";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 
 
@@ -9,7 +10,6 @@ import { useState } from "react";
 import { X } from "lucide-react";
 import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
-import { formatEuroThousands } from "@/lib/transfer-economy";
 import {
   EXTRA_APPEARANCES_BONUS,
   NATIONAL_CALLUP_WEIGHT_BONUS,

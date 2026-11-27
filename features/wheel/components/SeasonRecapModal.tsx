@@ -7,7 +7,7 @@ import { useState, type ReactNode } from "react";
 import type { SeasonRecord } from "@/types/game";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import { AWARD_LABELS, isDeprecatedAwardKey, type AwardRankingSnapshotInput } from "@/types/awards";
-import { getSeasonYearString } from "../lib/simulation-helpers";
+import { getSeasonYearString } from "../lib/competition-display";
 import { useCompetitionNames } from "./useCompetitionNames";
 import { useCompetitionResult } from "./useCompetitionResult";
 import { Button } from "@/components/ui/Button";

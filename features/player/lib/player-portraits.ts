@@ -1,4 +1,4 @@
-import { resolveRandomInt } from "@/lib/wheel-engine/spin-resolver";
+import { visualRandomInt as resolveRandomInt } from "@/lib/visual-random";
 
 export const PORTRAIT_IDS = ["p01", "p02", "p03", "p04", "p05", "p06"] as const;
 export type PortraitId = (typeof PORTRAIT_IDS)[number];

@@ -14,6 +14,7 @@ interface SetupStageProps {
   slotIndex: number;
   activeStep: number;
   isSpinning: boolean;
+  isResolving?: boolean;
   wheelItems: { label: string; value: unknown; weight?: number }[];
   targetIndex: number;
   handleSetupSpinComplete: () => void;
@@ -32,7 +33,7 @@ const draftStepKeys: Partial<Record<number, string>> = {
   10: "careerLength", 11: "league", 12: "club",
 };
 
-export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelItems, targetIndex, handleSetupSpinComplete, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
+export function SetupStage({ profile, slotIndex, activeStep, isSpinning, isResolving, wheelItems, targetIndex, handleSetupSpinComplete, handleSetupSpin, handleStartCareer, isProcessing, startCareerError, draftData, position, STEP_LABELS }: SetupStageProps) {
   const ui = useTranslations("ui");
   const isComplete = activeStep >= STEP_LABELS.length;
   const t = useTranslations("draft");
@@ -65,7 +66,7 @@ export function SetupStage({ profile, slotIndex, activeStep, isSpinning, wheelIt
             <>
               <SpinnerWheel isSpinning={isSpinning} items={displayWheel} targetIndex={targetIndex} onSpinComplete={handleSetupSpinComplete} />
               <div className="football-draft-setup__cta">
-                <Button size="lg" onClick={handleSetupSpin} disabled={isSpinning}>
+                <Button size="lg" onClick={handleSetupSpin} disabled={isSpinning || isResolving || !wheelItems.length} loading={isResolving}>
                   {isSpinning ? ui("wheelIsSpinning") : ui("spin")}
                 </Button>
               </div>

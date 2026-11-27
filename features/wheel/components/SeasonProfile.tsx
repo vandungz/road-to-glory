@@ -5,7 +5,7 @@ import { ChevronRight } from "lucide-react";
 import { FilterSelect } from "@/components/ui/FilterSelect";
 import type { ModalType } from "../hooks/useDraftDrum";
 import type { SeasonRecord } from "@/types/game";
-import { getSeasonYearString } from "../lib/simulation-helpers";
+import { getSeasonYearString } from "../lib/competition-display";
 import { useCompetitionNames } from "./useCompetitionNames";
 import { useCompetitionResult } from "./useCompetitionResult";
 

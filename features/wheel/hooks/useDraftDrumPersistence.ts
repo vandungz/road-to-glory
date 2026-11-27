@@ -8,8 +8,8 @@ import {
 import { purchaseShopItemCommandAction } from "@/actions/career-command.actions";
 import type { ShopInventoryEntry } from "@/lib/shop-catalog";
 import type { AchievementRecord, ClubStint, CurrentClub, SeasonHistory, StatSnapshot } from "@/types/domain";
-import { getNationalTournamentName } from "../lib/simulation-helpers";
-import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
+import { getNationalTournamentName } from "../lib/competition-display";
+import { getNationalContinentalCup } from "@/lib/football-nations";
 import type { useCareerStats } from "./useCareerStats";
 import type { useCareerCheckpointSync } from "@/features/career/hooks/useCareerCheckpointSync";
 

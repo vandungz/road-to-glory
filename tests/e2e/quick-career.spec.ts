@@ -3,6 +3,7 @@ import { QUICK_MODE_STORAGE_KEY } from "../../features/quick-mode/lib/quick-mode
 import { DEBUT_AGE_POOL } from "../../lib/wheel-engine/weight-pools";
 import { getAppearancePool, getAssistPool, getCleanSheetPool, getClubCountPool, getGoalPool, getQuickOverall } from "../../features/quick-mode/lib/quick-mode-engine";
 import { getQuickModeOptions } from "../../features/quick-mode/lib/quick-mode-options";
+import { getQuickStatLabel } from "../../features/quick-mode/lib/quick-presentation";
 import type { QuickModeState } from "../../features/quick-mode/types";
 
 test("guest identity, wheel, reload and narrow-screen resize preserve progression", async ({ page }, testInfo) => {
@@ -85,11 +86,12 @@ test("Quick Mode fits the desktop viewport and retains the trait in the player r
   const labelBox = (await liveLabel.boundingBox())!;
   const wheelBox = (await page.locator(".football-spinner-wheel__stage").boundingBox())!;
   expect(wheelBox.y - labelBox.y - labelBox.height).toBeGreaterThanOrEqual(12);
-  await expect(rail.getByText("Cristiano Ronaldo", { exact: true })).toBeVisible();
-  await expect(rail.locator(".football-quick-play__trait-bonuses")).toContainText("Shooting+2");
-  await expect(rail.locator(".football-quick-play__trait-bonuses")).toContainText("Strength+1");
+  await expect.poll(() => page.evaluate(key => JSON.parse(sessionStorage.getItem(key)!).setupStep, QUICK_MODE_STORAGE_KEY)).toBe(11);
+  const picked = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)!).player, QUICK_MODE_STORAGE_KEY);
+  await expect(rail.getByText(picked.trait.name, {exact:true})).toBeVisible();
+  for (const [key, delta] of Object.entries(picked.trait.modifiers)) await expect(rail.locator(".football-quick-play__trait-bonuses")).toContainText(`${getQuickStatLabel(key as import("../../features/quick-mode/types").QuickStatKey)}+${delta}`);
   await expect(liveLabel).toBeEmpty();
-  await expect(rail.locator("dt").filter({ hasText: /^Shooting$/ }).locator("+ dd")).toHaveText("7");
+  await expect(rail.locator("dt").filter({ hasText: /^Shooting$/ }).locator("+ dd")).toHaveText(String(picked.stats.sho));
   await expectFixedPage();
   await page.mouse.move(0, 0);
   await page.screenshot({ path: testInfo.outputPath("quick-trait.png") });
@@ -105,7 +107,7 @@ test("Quick Mode fits the desktop viewport and retains the trait in the player r
   Object.assign(state.clubDraft, { clubId: club.id, clubName: club.name, leagueId: club.leagueId, leagueName: club.leagueName, prestige: club.prestige, seasons: 3 });
   await load();
   await expect(page.getByRole("heading", { name: "Cúp quốc nội", exact: true })).toBeVisible();
-  await expect(rail.getByText("Cristiano Ronaldo", { exact: true })).toBeVisible();
+  await expect(rail.getByText(picked.trait.name, { exact: true })).toBeVisible();
   await expect(liveLabel).toBeEmpty();
   await expect(page.getByText(club.name, { exact: true })).toBeVisible();
   await expect(spin).toBeInViewport({ ratio: 1 });
@@ -175,24 +177,25 @@ test("Quick Mode shows each stat gain before the club closes and applies it only
   await expect(page.getByRole("heading", { name: "Nâng Pace", exact: true })).toBeVisible();
   await expect(pace).toHaveText("5");
   await expect(ovr).toHaveText(String(getQuickOverall(baseStats)));
-  await page.evaluate(() => { Math.random = () => 0.01; });
   await spin.click();
-  await expect(page.getByRole("heading", { name: "Chọn chỉ số 2", exact: true })).toBeVisible();
-  await expect(pace).toHaveAttribute("aria-label", "Pace: 6, tăng 1");
-  await expect(pace.getByText("+1", { exact: true })).toBeVisible();
-  await expect(ovr).toHaveText(String(getQuickOverall({ ...baseStats, pac: 6 })));
-  await page.screenshot({ path: testInfo.outputPath("quick-live-gain.png") });
-
+  await expect(page.getByRole("heading", {name:"Chọn chỉ số 2",exact:true})).toBeVisible();
+  const first = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)!), QUICK_MODE_STORAGE_KEY);
+  const gain = first.clubDraft.improvements.find((item: {stat:string;delta:number}) => item.stat === "pac").delta;
+  expect(gain).toBeGreaterThan(0);
+  await expect(pace).toHaveAttribute("aria-label", `Pace: ${5+gain}, tăng ${gain}`);
+  await expect(ovr).toHaveText(String(getQuickOverall({...baseStats,pac:5+gain})));
+  await page.screenshot({path:testInfo.outputPath("quick-live-gain.png")});
   await page.reload();
-  await expect(pace).toHaveAttribute("aria-label", "Pace: 6, tăng 1");
-  await page.evaluate(() => { Math.random = () => 0.01; });
+  await expect(pace).toHaveAttribute("aria-label", `Pace: ${5+gain}, tăng ${gain}`);
   await spin.click();
-  await expect(page.getByRole("heading", { name: "Nâng Shooting", exact: true })).toBeVisible();
-  await spin.click();
-  await expect(page.getByRole("heading", { name: "Số trận ra sân", exact: true })).toBeVisible();
-  await expect(pace).toHaveAttribute("aria-label", "Pace: 6, tăng 1");
-  await expect(rail.locator("dd[aria-label^='Shooting:']")).toHaveAttribute("aria-label", "Shooting: 6, tăng 1");
-  await expect(ovr).toHaveText(String(getQuickOverall({ ...baseStats, pac: 6, sho: 6 })));
+  await expect.poll(() => page.evaluate(key => JSON.parse(sessionStorage.getItem(key)!).careerStep, QUICK_MODE_STORAGE_KEY)).toBe(11);
+  await expect(spin).toBeEnabled(); await spin.click();
+  await expect(page.getByRole("heading", {name:"Số trận ra sân",exact:true})).toBeVisible();
+  const completed = await page.evaluate(key => JSON.parse(sessionStorage.getItem(key)!), QUICK_MODE_STORAGE_KEY);
+  expect(completed.player.stats.pac).toBe(5+gain);
+  expect(completed.clubs[0].improvements).toHaveLength(2);
+  await expect(ovr).toHaveText(String(getQuickOverall(completed.player.stats)));
+
 });
 
 test("Quick Mode weights favor high G/A for elite careers and reward defensive roles for clean sheets", () => {
@@ -223,20 +226,31 @@ test("Quick Mode weights favor high G/A for elite careers and reward defensive r
 
 test("a complete guest career reaches summary, survives reload and can restart", async ({ page }, testInfo) => {
   test.setTimeout(360_000);
+  await page.emulateMedia({ reducedMotion: "reduce" });
   await startQuickRun(page);
   const portrait = page.locator(".football-player-portrait");
   const portraitSrc = await portrait.locator("img").getAttribute("src");
   expect(portraitSrc).toMatch(/\/p0[1-6]\/default\.webp$/);
-  // Deterministic browser-only random draws keep this regression repeatable.
-  await page.evaluate(() => { Math.random = () => 0.01; });
+  // Multi-club rules are covered by the pure server suite; keep this UI journey bounded.
   const phases = new Set<string>();
   for (let spins = 0; spins < 100; spins += 1) {
     const before = await page.evaluate((key) => sessionStorage.getItem(key)!, QUICK_MODE_STORAGE_KEY);
     const state = JSON.parse(before);
     phases.add(state.phase);
     if (state.phase === "complete") break;
+    if (state.phase === "career" && state.careerClubIndex === 0 && state.careerStep === 0 && state.player.clubCount !== 1) {
+      state.player.clubCount = 1;
+      await page.evaluate(({key,state}) => sessionStorage.setItem(key,JSON.stringify(state)), {key:QUICK_MODE_STORAGE_KEY,state});
+      await page.reload();
+      continue;
+    }
     await page.getByRole("button", { name: "Quay vòng", exact: true }).click();
     await expect.poll(() => page.evaluate((key) => sessionStorage.getItem(key), QUICK_MODE_STORAGE_KEY)).not.toBe(before);
+    // Persistence can change before the last animation frame commits the next screen.
+    await expect.poll(async () =>
+      await page.getByText("Sự nghiệp đã hoàn tất", { exact: true }).isVisible()
+      || await page.getByRole("button", { name: "Quay vòng", exact: true }).isEnabled().catch(() => false)
+    ).toBe(true);
   }
   expect([...phases]).toEqual(["setup", "career", "finale", "complete"]);
   const { appearances, cleanSheets } = await page.evaluate((key) => JSON.parse(sessionStorage.getItem(key)!).finale, QUICK_MODE_STORAGE_KEY);

@@ -1,6 +1,7 @@
 "use client";
 
 import { useTranslations } from "next-intl";
+import { getApproachPreviewAction } from "@/actions/wheel-preview.actions";
 
 import type { Dispatch, MutableRefObject, SetStateAction } from "react";
 import {
@@ -14,8 +15,6 @@ import {
   searchClubsForApproachAction,
 } from "@/actions/season.actions";
 import {
-  applyTransferFeeDealChance,
-  computeEffectivePositionOvr,
   type TransferFeeDealOption,
 } from "@/lib/transfer-economy";
 import type { WageDealOption } from "@/lib/salary-negotiation";
@@ -149,8 +148,7 @@ export function useDraftDrumTransferFlow({
           feeOption: selectedOption,
         });
       } else {
-        const adjustedChance = applyTransferFeeDealChance(club.acceptChance, selectedOption);
-        const effPosOvr = computeEffectivePositionOvr(position, currentStats, currentOvr);
+        const { adjustedChance, effPosOvr } = await getApproachPreviewAction({chance:club.acceptChance, option:selectedOption, position, stats:currentStats, ovr:currentOvr});
         res = await resolveShortlistApproachAction({
           clubId: club.clubId,
           clubName: club.clubName,

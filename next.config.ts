@@ -4,6 +4,7 @@ import { securityHeaders } from "./lib/security/headers";
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  productionBrowserSourceMaps: false,
   async headers() {
     return [{ source: "/:path*", headers: [
       ...securityHeaders,

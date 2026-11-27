@@ -128,7 +128,7 @@ export function useDraftDrum(
   // tắt trước khi server action tương ứng resolve).
   const [isProcessing, setIsProcessing] = useState(false);
 
-  const { careerWheelItems } = useCareerWheelItems({
+  const { careerWheelItems, wheelPreviewError, retryCareerPreview } = useCareerWheelItems({
     careerSubStep, isMounted, mode, currentContinentalCup, currentAge,
     playerDebutAge, playerCareerLength,
     playerNationality, currentClub, currentOvr,
@@ -452,7 +452,9 @@ export function useDraftDrum(
     isMounted, isSaving: statsProps.isSaving, mode,
     wheelItems: setupProps.wheelItems, targetIndex: setupProps.targetIndex,
     tempValue: setupProps.tempValue, activeStep: setupProps.activeStep,
-    isSpinning: setupProps.isSpinning, draftData: setupProps.draftData,
+    isSpinning: setupProps.isSpinning, isSetupResolving:setupProps.isResolving, draftData: setupProps.draftData,
+    previewError:mode === "setup" ? setupProps.setupPreviewError : wheelPreviewError,
+    retryWheelPreview:mode === "setup" ? setupProps.retrySetupPreview : retryCareerPreview,
     playerName, hiddenStats, statsTimeline, clubStints,
     playerNationality, playerDebutAge, playerCareerLength,
     currentAge, currentOvr, currentStats, currentClub, currentContinentalCup,

@@ -11,7 +11,7 @@ import { DataRow } from "@/components/ui/DataRow";
 import { ResultBanner } from "@/components/ui/ResultBanner";
 import { SpinnerWheel } from "./SpinnerWheel";
 import type { SpinnerItem } from "./SpinnerWheel";
-import { getSeasonYearString } from "../lib/simulation-helpers";
+import { getSeasonYearString } from "../lib/competition-display";
 import { useCompetitionNames } from "./useCompetitionNames";
 import { useCompetitionResult } from "./useCompetitionResult";
 

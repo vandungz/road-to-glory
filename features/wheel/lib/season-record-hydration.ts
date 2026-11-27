@@ -1,7 +1,7 @@
 import type { SeasonRecord } from "@/types/game";
 import { isDeprecatedAwardKey } from "@/types/awards";
-import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
-import { getNationalTournamentName } from "./simulation-helpers";
+import { getNationalContinentalCup } from "@/lib/football-nations";
+import { getNationalTournamentName } from "./competition-display";
 
 function asRecord(value: unknown): Record<string, unknown> {
   return value !== null && typeof value === "object" && !Array.isArray(value)

@@ -7,20 +7,15 @@ import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/Button";
 import { FilterSelect } from "@/components/ui/FilterSelect";
-import { NATIONALITY_POOL } from "@/lib/wheel-engine/weight-pools";
+import { NATIONALITY_CHOICES as NATIONALITY_POOL } from "@/lib/football-nations";
 import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
 import { useQuickMode } from "../hooks/useQuickMode";
-import { QUICK_POSITIONS, type QuickClubOption, type QuickLeagueOption, type QuickPosition } from "../types";
+import { QUICK_POSITIONS, type QuickPosition } from "../types";
 
-interface Props {
-  leagues: QuickLeagueOption[];
-  clubs: QuickClubOption[];
-}
-
-export function QuickModeSetupScreen({ leagues, clubs }: Props) {
+export function QuickModeSetupScreen() {
   const ui = useTranslations("ui");
   const router = useRouter();
-  const quick = useQuickMode({ leagues, clubs });
+  const quick = useQuickMode();
   const [name, setName] = useState("");
   const [nationality, setNationality] = useState("England");
   const [position, setPosition] = useState<QuickPosition>("ST");

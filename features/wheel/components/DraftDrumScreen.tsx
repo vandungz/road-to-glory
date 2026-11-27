@@ -1,4 +1,5 @@
 "use client";
+import { Button } from "@/components/ui/Button";
 
 import { useTranslations } from "next-intl";
 import React, { useState } from "react";
@@ -79,6 +80,7 @@ export function DraftDrumScreen({
     tempValue,
     activeStep,
     isSpinning,
+    isSetupResolving, previewError, retryWheelPreview,
     draftData,
     playerName,
     playerNationality,
@@ -234,12 +236,13 @@ export function DraftDrumScreen({
         backHref={backHref}
         isBusy={wheelInteractionLocked}
       />
+      {previewError && <div role="alert"><p>{ui("connectionError")}</p><Button onClick={retryWheelPreview}>{ui("spin2")}</Button></div>}
 
       {/* ── MODE 1: SETUP WHEELS ── */}
       {mode === "setup" && profile === undefined && <ClassicProfileSetup slotPosition={slotPosition} onRandom={() => setProfile(null)}
         onContinue={(nextProfile) => {
           const draft = useWheelUiStore.getState();
-          draft.resolveStep(0, nextProfile.nationality, nextProfile.position);
+          draft.setNationality(nextProfile.nationality);
           draft.setStep(1);
           setProfile(nextProfile);
         }} />}
@@ -249,6 +252,7 @@ export function DraftDrumScreen({
           slotIndex={slotIndex}
           activeStep={activeStep}
           isSpinning={isSpinning}
+          isResolving={isSetupResolving}
           wheelItems={wheelItems}
           targetIndex={targetIndex}
           handleSetupSpinComplete={handleSetupSpinComplete}

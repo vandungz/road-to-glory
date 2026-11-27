@@ -83,9 +83,9 @@ export function useDraftDrumAdvanceSeason({
         return;
       }
     }
-    const { isRetire } = statsProps.handleNextSeason(
+    const { isRetire } = await statsProps.handleNextSeason(
       standingResult, domesticCupResult, continentalCupResult,
-      nationalCallupResult, nationalTournamentResult, yearSimResult, ballonDorRank,
+      nationalCallupResult, nationalTournamentResult, yearSimResult, ballonDorRank, serverTransition?.currentContinentalCup,
     );
     // The server is authoritative for projection fields that must survive a
     // refresh. Keep the local state aligned for the current tab as well; this

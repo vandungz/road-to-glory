@@ -9,7 +9,7 @@ import { SquadDashboard } from "@/features/squad/components/SquadDashboard";
 import { FORMATION_SLOTS } from "@/types/squad";
 import type { ClientSafePlayer } from "@/types/squad";
 import type { Formation } from "@/types/game";
-import { recoverLegacyOvrByAge } from "@/features/career/services/career-summary.service";
+import { recoverLegacyOvrByAge } from "@/features/career/services/legacy-ovr-recovery.service";
 
 interface Props {
   params: Promise<{ gameId: string }>;

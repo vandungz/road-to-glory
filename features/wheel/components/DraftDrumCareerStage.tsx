@@ -13,7 +13,7 @@ import { SeasonSideSummary } from "./SeasonSideSummary";
 import { MobileCareerContext } from "./MobileCareerContext";
 import { TabsList, TabsTrigger } from "@/components/ui/Tabs";
 import { DataRow } from "@/components/ui/DataRow";
-import { formatEuroThousands } from "@/lib/transfer-economy";
+import { formatEuroThousands } from "@/lib/money-display";
 import type { ModalType } from "../hooks/useDraftDrum";
 import type { CareerSubStep, ClubStint } from "@/types/domain";
 import type { SeasonRecord } from "@/types/game";

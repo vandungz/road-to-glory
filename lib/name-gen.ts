@@ -2,7 +2,7 @@
 // FICTIONAL NAME POOLS BY NATIONALITY
 // ============================================================
 
-import { resolveRandomInt } from "./wheel-engine/spin-resolver";
+import { visualRandomInt as resolveRandomInt } from "./visual-random";
 
 const FIRST_NAMES: Record<string, string[]> = {
   Vietnam: ["Minh Anh", "Quang Huy", "Đức Anh", "Tuấn Anh", "Hoàng Nam", "Gia Bảo", "Minh Quân", "Đức Minh", "Quốc Bảo", "Thanh Sơn"],

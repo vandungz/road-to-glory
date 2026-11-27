@@ -1,4 +1,5 @@
 "use client";
+import { formatEuroThousands } from "@/lib/money-display";
 import { ScrollArea } from "@/components/ui/ScrollArea";
 
 
@@ -15,7 +16,6 @@ import { SearchField } from "@/components/ui/SearchField";
 import { OfferCard, ShortlistCard } from "./TransferClubRows";
 import { TransferNegotiationPanel } from "./TransferNegotiationPanel";
 import {
-  formatEuroThousands,
   type TransferFeeDealOption,
 } from "@/lib/transfer-economy";
 import { type WageDealOption } from "@/lib/salary-negotiation";

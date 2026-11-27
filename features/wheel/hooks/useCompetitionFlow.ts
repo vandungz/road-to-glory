@@ -2,8 +2,8 @@
 
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
-import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
-import { getContinentalCupLabel, getNationalTournamentName } from "../lib/simulation-helpers";
+import { getNationalContinentalCup } from "@/lib/football-nations";
+import { getContinentalCupLabel, getNationalTournamentName } from "../lib/competition-display";
 import {
   simulatePlayerSeasonAction,
   generateLeagueTableAction,

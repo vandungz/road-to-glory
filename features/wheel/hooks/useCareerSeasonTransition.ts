@@ -1,13 +1,13 @@
+import { getQualificationPreviewAction } from "@/actions/wheel-preview.actions";
 import type { Dispatch, SetStateAction } from "react";
 import type { SimulatedSeasonResult } from "@/features/season/services/season-simulator.service";
 import type { AchievementRecord, ClubStint, CurrentClub } from "@/types/domain";
 import {
-  calculateContinentalQualification,
   getContinentalCupLabel,
   getDomesticCupName,
   getNationalTournamentName,
-} from "../lib/simulation-helpers";
-import { getNationalContinentalCup } from "@/lib/wheel-engine/weight-calculator";
+} from "../lib/competition-display";
+import { getNationalContinentalCup } from "@/lib/football-nations";
 
 interface UseCareerSeasonTransitionProps {
   currentAge: number;
@@ -39,7 +39,7 @@ export function useCareerSeasonTransition(props: UseCareerSeasonTransitionProps)
     applySimResultToRecords, finalizeSeasonRecord,
   } = props;
 
-  function handleNextSeason(
+  async function handleNextSeason(
     standingResult: number | null,
     domesticCupResult: string | null,
     continentalCupResult: string | null,
@@ -47,7 +47,8 @@ export function useCareerSeasonTransition(props: UseCareerSeasonTransitionProps)
     nationalTournamentResult: string | null,
     yearSimResult: SimulatedSeasonResult | null,
     ballonDorRank: number | null,
-  ): { isRetire: boolean; nextContinentalCup: string } {
+    serverTicket?: string,
+  ): Promise<{ isRetire: boolean; nextContinentalCup: string }> {
     const nextAge = currentAge + 1;
     const actualStint =
       clubStints.find((st) => currentAge >= st.startAge && currentAge <= st.endAge) ||
@@ -104,12 +105,7 @@ export function useCareerSeasonTransition(props: UseCareerSeasonTransitionProps)
         // Giữ nguyên currentContinentalCup (đã đúng theo CLB mới) — không ghi đè
         // bằng vé kiếm được ở CLB cũ.
       } else {
-        nextContinentalCup = calculateContinentalQualification(
-          actualStintLeagueId,
-          standingResult,
-          continentalCupResult,
-          currentContinentalCup,
-        );
+        nextContinentalCup = serverTicket ?? await getQualificationPreviewAction({leagueId:actualStintLeagueId,standing:standingResult,result:continentalCupResult,cup:currentContinentalCup});
         setCurrentContinentalCup(nextContinentalCup);
       }
     }

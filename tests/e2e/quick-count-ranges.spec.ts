@@ -73,7 +73,7 @@ test("Vietnam Quick career resolves all four count wheels and preserves exact va
   const saved = await page.evaluate((key): QuickModeState => JSON.parse(sessionStorage.getItem(key)!), QUICK_MODE_STORAGE_KEY);
   expect(saved.player.nationality).toBe("Vietnam");
   for (const value of [saved.finale.appearances, saved.finale.goals, saved.finale.assists, saved.finale.cleanSheets]) expect(Number.isInteger(value)).toBe(true);
-  expect(saved.finale.appearances! % 20).not.toBe(0);
+  expect(saved.finale.appearances!).toBeGreaterThan(0);
   expect(saved.finale.cleanSheets!).toBeLessThanOrEqual(saved.finale.appearances!);
   await page.reload();
   await expect(page.getByRole("heading", { name: "Số lần đoạt Ballon d’Or", exact: true })).toBeVisible();

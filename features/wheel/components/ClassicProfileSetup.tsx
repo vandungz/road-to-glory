@@ -12,7 +12,7 @@ import { IconButton } from "@/components/ui/IconButton";
 import { Input } from "@/components/ui/Field";
 import { Tooltip } from "@/components/ui/Tooltip";
 import { generateFictionalName } from "@/lib/name-gen";
-import { NATIONALITY_POOL } from "@/lib/wheel-engine/weight-calculator";
+import { NATIONALITY_CHOICES as NATIONALITY_POOL } from "@/lib/football-nations";
 
 export interface ClassicProfile {
   name: string;

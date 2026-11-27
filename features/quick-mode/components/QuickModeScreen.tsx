@@ -15,12 +15,10 @@ import { PlayerPortrait } from "@/features/player/components/PlayerPortrait";
 import { trackGameEntry } from "@/features/game/lib/entry-analytics";
 import { useQuickMode } from "../hooks/useQuickMode";
 import { useGameMusic } from "@/features/audio/useGameMusic";
-import { getQuickStatLabel } from "../lib/quick-mode-engine";
-import type { QuickClubOption, QuickLeagueOption, QuickPlayer, QuickStatKey, QuickTraitResult } from "../types";
+import { getQuickStatLabel } from "../lib/quick-presentation";
+import type { QuickPlayer, QuickStatKey, QuickTraitResult } from "../types";
 
 interface Props {
-  leagues: QuickLeagueOption[];
-  clubs: QuickClubOption[];
   isAuthenticated: boolean;
 }
 
@@ -44,10 +42,10 @@ function PlayerIdentity({ player }: { player: QuickPlayer }) {
   </span>;
 }
 
-export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
+export function QuickModeScreen({ isAuthenticated }: Props) {
   const ui = useTranslations("ui");
   const t = useTranslations("quick");
-  const quick = useQuickMode({ leagues, clubs });
+  const quick = useQuickMode();
   const { state, activeWheel } = quick;
   useGameMusic(state.phase === "setup" ? "draft" : "gameplay");
   const seenActiveRun = useRef(false);
@@ -125,7 +123,8 @@ export function QuickModeScreen({ leagues, clubs, isAuthenticated }: Props) {
               : <p role="status">{ui("thisWheelHasNoOptions")}</p>}
           </div>
           <div className="football-quick-mode__action">
-            <Button size="lg" onClick={quick.spin} disabled={!hasOptions || quick.isSpinning} aria-busy={quick.isSpinning}>
+            {quick.error && <div role="alert"><p>{ui("connectionError")}</p><Button variant="outline" onClick={quick.retry} disabled={quick.isResolving}>{ui("spin2")}</Button></div>}
+            <Button size="lg" onClick={quick.spin} disabled={!hasOptions || quick.isSpinning || quick.isResolving} aria-busy={quick.isSpinning}>
               {!quick.isSpinning && <RotateCw aria-hidden="true" size={16} />}
               {quick.isSpinning ? ui("spinning2") : ui("spin2")}
             </Button>

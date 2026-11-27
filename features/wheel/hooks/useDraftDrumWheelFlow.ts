@@ -3,7 +3,7 @@
 import { useTranslations } from "next-intl";
 
 import { useRef, type Dispatch, type MutableRefObject, type SetStateAction } from "react";
-import { getCareerWheelPoolAndValue } from "../lib/career-wheel-resolver";
+import { resolveLegacyWheelAction } from "@/actions/wheel-preview.actions";
 import { isCareerRevisionConflict } from "@/features/career/hooks/useCareerCheckpointSync";
 import type { CareerSubStep, HiddenStats, CurrentClub } from "@/types/domain";
 import { TOP_TEN_LIMIT } from "@/types/awards";
@@ -213,7 +213,11 @@ export function useDraftDrumWheelFlow({
       nationalCallupBoostActive,
       eliteDevelopmentActive,
     };
-    const { result, idx } = getCareerWheelPoolAndValue(careerSubStep, ctx);
+    setIsProcessing(true);
+    let resolved;
+    try { resolved = await resolveLegacyWheelAction({...ctx,careerSubStep}); }
+    catch { setApproachBanner(t("wheelError")); setIsProcessing(false); return; }
+    const { result, idx } = resolved;
     setIsProcessing(true);
     activeSpinStepRef.current = careerSubStep;
     activeSpinNextStepRef.current = null;

@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import { AppShell } from "@/components/shared/AppShell";
 import { createClient } from "@/lib/supabase/server";
 import { QuickModeScreen } from "@/features/quick-mode/components/QuickModeScreen";
-import { getQuickModeOptions } from "@/features/quick-mode/lib/quick-mode-options";
 
 export const dynamic = "force-dynamic";
 
@@ -13,7 +12,6 @@ export const metadata: Metadata = {
 export default async function QuickModePlayPage() {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
-  const { leagues, clubs } = getQuickModeOptions();
 
   return (
     <AppShell
@@ -22,7 +20,7 @@ export default async function QuickModePlayPage() {
       backHref="/quick"
       backLabel="setup"
     >
-      <QuickModeScreen leagues={leagues} clubs={clubs} isAuthenticated={Boolean(user)} />
+      <QuickModeScreen isAuthenticated={Boolean(user)} />
     </AppShell>
   );
 }

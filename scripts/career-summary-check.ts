@@ -1,7 +1,7 @@
+import { recoverLegacyOvrByAge } from "../features/career/services/legacy-ovr-recovery.service";
 import {
   aggregateCareerStats,
   buildCareerArchiveTimeline,
-  recoverLegacyOvrByAge,
   calculatePeakOvr,
   normalizeClubStints,
 } from "@/features/career/services/career-summary.service";

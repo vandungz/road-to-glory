@@ -24,7 +24,9 @@ import { PersistentTransferSection } from "./PersistentTransferSection";
 import { TransferNegotiationPanel } from "./TransferNegotiationPanel";
 import { ErrorState, RouteLoading } from "@/components/ui/States";
 import { Button } from "@/components/ui/Button";
-import { applyTransferFeeDealChance, formatEuroThousands, formatTransferFee, type TransferFeeDealOption } from "@/lib/transfer-economy";
+import type { TransferFeeDealOption } from "@/lib/transfer-economy";
+import { formatEuroThousands, formatTransferFee } from "@/lib/money-display";
+import { getFeeChanceAction } from "@/actions/transfer-display.actions";
 import { getTransferPortraitCue, saveTransferPortraitCue } from "../lib/portrait-reactions";
 
 export interface TransferPageInput {
@@ -301,7 +303,7 @@ export function TransferPageClient({ input }: { input: TransferPageInput }) {
             previewYears: club.previewYears,
             mandatoryBuyout: market?.mandatoryBuyout ?? 0,
             feeOption: selectedDeal,
-            clientAcceptChance: applyTransferFeeDealChance(club.acceptChance, selectedDeal),
+            clientAcceptChance: await getFeeChanceAction({chance:club.acceptChance,option:selectedDeal}),
             currentOvr: input.currentOvr,
             effPositionOvr: market?.valuation.effectivePositionOvr,
             currentAge: input.currentAge,
