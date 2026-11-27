@@ -1,4 +1,4 @@
-import { z } from "zod/v4";
+import { z } from "@/lib/validation/zod";
 import type { AchievementRecord } from "./domain";
 
 // ============================================================

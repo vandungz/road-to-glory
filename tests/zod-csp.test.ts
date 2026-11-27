@@ -1,7 +1,6 @@
 import assert from "node:assert/strict";
 import { createRequire } from "node:module";
 import { resolve } from "node:path";
-import { z } from "../lib/validation/zod";
 
 const load = createRequire(resolve("tests/zod-csp.test.ts"));
 const originalFunction = globalThis.Function;
@@ -11,6 +10,9 @@ globalThis.Function = new Proxy(originalFunction, {
   construct() { attempts++; throw new EvalError("CSP forbids eval"); },
 });
 try {
+  // This schema is imported by entry pages before the career contracts.
+  load("../types/game");
+  const { z } = load("../lib/validation/zod") as typeof import("../lib/validation/zod");
   assert.equal(z.config().jitless, true);
   const schema = z.object({ email: z.email(), count: z.number().int().positive() }).strict();
   assert.equal(schema.safeParse({ email: "fixture@example.invalid", count: 1 }).success, true);

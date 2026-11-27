@@ -19,7 +19,7 @@ import {
   type PveUserPlayerInput,
 } from "@/features/pve/services/pve-engine.service";
 import type { PveClubInput } from "@/types/pve";
-import { z } from "zod/v4";
+import { z } from "@/lib/validation/zod";
 
 const pveInputSchema = z.object({ gameId: z.string().uuid() }).strict();
 

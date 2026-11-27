@@ -1,6 +1,6 @@
-import { z } from "zod";
+import { config } from "zod/v4/core";
 
 // Configure before constructing schemas, including those imported by client bundles.
-z.config({ jitless: true });
+config({ jitless: true });
 
-export { z };
+export { z } from "zod/v4";

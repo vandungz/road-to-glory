@@ -2,7 +2,7 @@
 
 import { getTranslations } from "next-intl/server";
 import { revalidatePath } from "next/cache";
-import { z } from "zod/v4";
+import { z } from "@/lib/validation/zod";
 import { FORMATION_SLOTS } from "@/types/squad";
 import type { MovePlayerSummary } from "@/types/squad";
 import type { Formation } from "@/types/game";
